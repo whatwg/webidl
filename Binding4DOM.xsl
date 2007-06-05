@@ -73,8 +73,19 @@
       <dd>
         <xsl:choose>
           <xsl:when test='$options/versions/this[@cvsweb="true"]'>
-            <xsl:variable name='href' select='concat($options/versions/this/@href, "?rev=", $rev, "&amp;content-type=text/xml")'/>
-            <a href='{$href}'><xsl:value-of select='$href'/></a>
+            <xsl:variable name='href' select='concat(substring-before($options/versions/this/@href, "~checkout~/"), substring-after($options/versions/this/@href, "~checkout~/"))'/>
+            <xsl:variable name='href2' select='concat($href, "?rev=", $rev, "&amp;content-type=text/xml")'/>
+            <a id='thisVersionLink' href='{$href}'><xsl:value-of select='$href'/></a>
+            <script>
+              var id = "&#x24;Id$";
+              var a = document.getElementById('thisVersionLink');
+              var xs = id.match(/ ([0-9]\.[0-9.]+) /);
+              if (xs) {
+                var rev = xs[1];
+                a.href = "<xsl:value-of select='$options/versions/this/@href'/>?rev=" + rev + String.fromCharCode(38) + "content-type=text/html; charset=utf-8";
+                a.firstChild.data = a.href;
+              }
+            </script>
           </xsl:when>
           <xsl:otherwise>
             <a href='{$options/versions/this/@href}'><xsl:value-of select='$options/versions/this/@href'/></a>
