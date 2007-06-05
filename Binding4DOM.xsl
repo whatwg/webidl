@@ -82,11 +82,11 @@
         </xsl:choose>
       </dd>
       <dt>Latest version:</dt>
-      <xsl:if test='$options/versions/latest/@href'>
+      <xsl:if test='$options/versions/latest/@href != ""'>
         <dd><a href='{$options/versions/latest/@href}'><xsl:value-of select='$options/versions/latest/@href'/></a></dd>
       </xsl:if>
       <dt>Previous version:</dt>
-      <xsl:if test='$options/versions/previous/@href'>
+      <xsl:if test='$options/versions/previous/@href != ""'>
         <xsl:for-each select='$options/versions/previous/@href'>
           <dd><a href='{$options/versions/previous/@href}'><xsl:value-of select='$options/versions/previous/@href'/></a></dd>
         </xsl:for-each>
