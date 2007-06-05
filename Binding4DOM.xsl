@@ -248,11 +248,16 @@
     <xsl:copy>
       <xsl:copy-of select='@*[namespace-uri()="" or namespace-uri="http://www.w3.org/XML/1998/namespace"]'/>
       <xsl:if test='$tocpi'>
-        <xsl:call-template name='section-number'>
-          <xsl:with-param name='section' select='..'/>
-        </xsl:call-template>
+        <xsl:variable name='num'>
+          <xsl:call-template name='section-number'>
+            <xsl:with-param name='section' select='..'/>
+          </xsl:call-template>
+        </xsl:variable>
+        <xsl:if test='$num != ""'>
+          <xsl:value-of select='$num'/>
+          <xsl:text>. </xsl:text>
+        </xsl:if>
       </xsl:if>
-      <xsl:text>. </xsl:text>
       <xsl:apply-templates select='node()'/>
     </xsl:copy>
   </xsl:template>
