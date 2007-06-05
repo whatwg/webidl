@@ -221,7 +221,9 @@
       <xsl:when test='$section/ancestor::* = $sections'>
         <xsl:for-each select='$section/ancestor-or-self::h:div[@class="section"]'>
           <xsl:value-of select='count(preceding-sibling::h:div[@class="section"]) + 1'/>
-          <xsl:text>.</xsl:text>
+          <xsl:if test='position() != last()'>
+            <xsl:text>.</xsl:text>
+          </xsl:if>
         </xsl:for-each>
       </xsl:when>
       <xsl:when test='$section/ancestor::* = $appendices'>
@@ -234,7 +236,9 @@
               <xsl:value-of select='count(preceding-sibling::h:div[@class="section"]) + 1'/>
             </xsl:otherwise>
           </xsl:choose>
-          <xsl:text>.</xsl:text>
+          <xsl:if test='position() != last()'>
+            <xsl:text>.</xsl:text>
+          </xsl:if>
         </xsl:for-each>
       </xsl:when>
     </xsl:choose>
@@ -248,7 +252,7 @@
           <xsl:with-param name='section' select='..'/>
         </xsl:call-template>
       </xsl:if>
-      <xsl:text> </xsl:text>
+      <xsl:text>. </xsl:text>
       <xsl:apply-templates select='node()'/>
     </xsl:copy>
   </xsl:template>
