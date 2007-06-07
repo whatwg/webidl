@@ -279,7 +279,7 @@
   <xsl:template match='prod'>
     <tr id='prod-{@nt}'>
       <td class='prod-number'>[<xsl:value-of select='position()'/>]</td>
-      <td class='prod-lhs'><a href='#proddef-{@nt}'><xsl:value-of select='@nt'/></a></td>
+      <td class='prod-lhs'><a class='nt' href='#proddef-{@nt}'><xsl:value-of select='@nt'/></a></td>
       <td class='prod-mid'>::=</td>
       <td class='prod-rhs'>
         <xsl:call-template name='bnf'>
@@ -307,7 +307,7 @@
               <xsl:with-param name='s' select='substring($s, 2)'/>
             </xsl:call-template>
           </xsl:variable>
-          <a href='#prod-{$nt}'><xsl:value-of select='$nt'/></a>
+          <a class='nt' href='#prod-{$nt}'><xsl:value-of select='$nt'/></a>
           <xsl:call-template name='bnf'>
             <xsl:with-param name='s' select='substring($s, string-length($nt) + 1)'/>
           </xsl:call-template>

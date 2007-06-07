@@ -16,7 +16,7 @@
   <head>
     <title>Language Bindings for DOM Specifications</title>
     <meta http-equiv='Content-Type' content='application/xhtml+xml; charset=UTF-8'/>
-    <meta name='revision' content='$Id: Overview.xml,v 1.4 2007-06-06 12:16:01 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: Overview.xml,v 1.5 2007-06-07 06:59:22 cmccorma Exp $'/>
     <link rel='stylesheet' href='http://www.w3.org/StyleSheets/TR/base' type='text/css'/>
     <link rel='stylesheet' href='Binding4DOM.css' type='text/css'/>
 
@@ -50,7 +50,7 @@
 
       <div class='ednote'>
         <p>
-          This is revision $Id: Overview.xml,v 1.4 2007-06-06 12:16:01 cmccorma Exp $.
+          This is revision $Id: Overview.xml,v 1.5 2007-06-07 06:59:22 cmccorma Exp $.
         </p>
       </div>
     </div>
@@ -122,8 +122,9 @@
 
         <div class='ednote'>
           <p>
-            This section will describe an IDL which is syntactically a subset of
-            and semantically mostly similar to OMG IDL.
+            This section will describe an IDL which is similar to OMG IDL.
+            Syntactically, it’ll be a subset of OMG IDL plus extended attributes,
+            and semantically mostly the same.
           </p>
         </div>
       </div>
@@ -169,10 +170,11 @@
           <p>
             Every interface corresponds to a property on the global object,
             whose name is the same as its identifier in the IDL.  This identifier
-            is not the qualified name of the interface, but the
-            <span class='bnf'>&lt;identifier&gt;</span> part of the
-            <span class='bnf'>&lt;scoped-name&gt;::&lt;identifier&gt;</span> that
-            forms the complete qualified name.  The value of this property is
+            is not the qualified name of the interface, but the final
+            <a class='nt' href='#prod-Identifier'>Identifier</a> in the
+            <a class='nt' href='#prod-ScopedName'>ScopedName</a> production
+            that forms the complete qualified name.
+            The value of this property is
             an object called the <dfn>interface object</dfn>, which provides
             access to the constants and functions defined on the interface.
             The property has the attributes
@@ -258,6 +260,8 @@
               </tr>
             </table>
 
+            <div class='ednote'><p>Remove <code>constructor</code>, since the object wasn’t created with <code>[[Construct]]</code>?</p></div>
+
             <p>
               In addition, there is a property on the interface prototype object
               for each operation defined on the interface that does not have the
@@ -280,7 +284,7 @@
           </div>
 
           <div id='custom-get-put' class='section'>
-            <h4>Custom [[Get]] methods</h4>
+            <h4>Custom [[Get]] and [[Put]] methods</h4>
 
             <div class='ednote'>
               <p>
@@ -292,6 +296,9 @@
               </p>
               <p>
                 Do any existing DOM objects have custom [[Put]] or [[Delete]] methods?
+                Yes, it seems: assigning to <code>window.location</code> is like assigning to
+                <code>window.location.href</code>, and assigning to <code>.style.width</code> is like assigning
+                to <code>.style.width.cssText</code> in the new CSSOM.
               </p>
             </div>
           </div>
@@ -315,6 +322,8 @@
             <div class='ednote'>
               <p>
                 How attributes on an interface correspond to properties on the host object.
+                Perhaps a <tt>[PutForwards=<i>PropertyName</i>]</tt> to handle the
+                <code>window.location</code> assignment mentioned above.
               </p>
             </div>
           </div>
@@ -353,7 +362,8 @@
           Björn Höhrmann,
           Anne van Kesteren,
           Jonas Sicking,
-          Maciej Stachowiak.
+          Maciej Stachowiak,
+          Boris Zbarsky.
         </p>
       </div>
     </div>
@@ -365,29 +375,29 @@
 
       <grammar xmlns=''>
         <prod nt='Definitions'>(ExtendedAttributes? (Module | Interface | Exception | Typedef | Valuetype | Const))*</prod>
-        <prod nt='Module'>"module" Name "{" Definitions "}" ";"</prod>
-        <prod nt='Interface'>"interface" Name (":" ScopedName)? ("{" (Const | (ExtendedAttributes? (Attribute | Operation)))* "}")? ";"</prod>
-        <prod nt='Exception'>"exception" Name "{" Member* "}" ";"</prod>
-        <prod nt='Typedef'>"typedef" Type Name ";"</prod>
-        <prod nt='Valuetype'>"valuetype" Name Type ";"</prod>
-        <prod nt='Const'>"const" Type Name ConstExpr ";"</prod>
-        <prod nt='Attribute'>"readonly"? "attribute" Type Name ("getraises" ExceptionList)? ("setraises" ExceptionList)? ";"</prod>
-        <prod nt='Operation'>ReturnType Name ArgumentList ("raises" ExceptionList)? ";"</prod>
+        <prod nt='Module'>"module" Identifier "{" Definitions "}" ";"</prod>
+        <prod nt='Interface'>"interface" Identifier (":" ScopedName)? ("{" (Const | (ExtendedAttributes? (Attribute | Operation)))* "}")? ";"</prod>
+        <prod nt='Exception'>"exception" Identifier "{" Member* "}" ";"</prod>
+        <prod nt='Typedef'>"typedef" Type Identifier ";"</prod>
+        <prod nt='Valuetype'>"valuetype" Identifier Type ";"</prod>
+        <prod nt='Const'>"const" Type Identifier ConstExpr ";"</prod>
+        <prod nt='Attribute'>"readonly"? "attribute" Type Identifier ("getraises" ExceptionList)? ("setraises" ExceptionList)? ";"</prod>
+        <prod nt='Operation'>ReturnType Identifier ArgumentList ("raises" ExceptionList)? ";"</prod>
         <prod nt='ExceptionList'>ScopedName ("," ScopedName)*</prod>
         <prod nt='ArgumentList'>"(" Argument ("," Argument)* ")"</prod>
-        <prod nt='Argument'>"in" Type Name</prod>
-        <prod nt='Member'>Type Name ";"</prod>
+        <prod nt='Argument'>"in" Type Identifier</prod>
+        <prod nt='Member'>Type Identifier ";"</prod>
         <prod nt='ExtendedAttributes'>"[" ExtendedAttribute ("," ExtendedAttribute)* "]"</prod>
-        <prod nt='ExtendedAttribute'>Name</prod>
+        <prod nt='ExtendedAttribute'>Identifier</prod>
         <prod nt='Type'>"any" | "boolean" | "octet" | "unsigned"? ("short" | "long" "long"?) | "float" | "Object" | "sequence" "&lt;" Type ">" | ScopedName</prod>
         <prod nt='ReturnType'>Type | "void"</prod>
-        <prod nt='Name' whitespace='explicit'>"_"? [A-Za-z] [0-9A-Z_a-z]*</prod>
-        <prod nt='ScopedName'>"::"? (Name "::")* Name</prod>
+        <prod nt='Identifier' whitespace='explicit'>"_"? [A-Za-z] [0-9A-Z_a-z]*</prod>
+        <prod nt='ScopedName'>"::"? (Identifier "::")* Identifier</prod>
       </grammar>
 
       <div class='ednote'>
         <p>Need to refer to EBNF language being used (as XQuery does), write the ConstExpr productions, explain ws:explicit.
-          Should restrict Name so that it doesn't match if it's one of the keywords.  Not sure what to do with
+          Should restrict Identifier so that it doesn’t match if it’s one of the keywords.  Not sure what to do with
           the ExtendedAttribute, to be forwards-compatible.</p>
       </div>
 
