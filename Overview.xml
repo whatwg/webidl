@@ -16,7 +16,7 @@
   <head>
     <title>Language Bindings for DOM Specifications</title>
     <meta http-equiv='Content-Type' content='application/xhtml+xml; charset=UTF-8'/>
-    <meta name='revision' content='$Id: Overview.xml,v 1.9 2007-06-09 07:10:44 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: Overview.xml,v 1.10 2007-06-09 23:19:45 cmccorma Exp $'/>
     <link rel='stylesheet' href='http://www.w3.org/StyleSheets/TR/base' type='text/css'/>
     <link rel='stylesheet' href='Binding4DOM.css' type='text/css'/>
 
@@ -50,7 +50,7 @@
 
       <div class='ednote'>
         <p>
-          This is revision $Id: Overview.xml,v 1.9 2007-06-09 07:10:44 cmccorma Exp $.
+          This is revision $Id: Overview.xml,v 1.10 2007-06-09 23:19:45 cmccorma Exp $.
         </p>
       </div>
     </div>
@@ -167,6 +167,16 @@
             or retrieving a property whose corresponding attribute in the IDL is of type <i>T</i>.
           </p>
 
+          <div class='ednote'>
+            <p>
+              There will be some extended attributes that can override the behaviour
+              of stuff in this section.  For example, a [NoNull] extended attribute
+              on a function argument of type DOMString (which is a boxed
+              sequence&lt;octet> valuetype) indicates that a null value passed
+              to the function will be converted to the ES string "null".
+            </p>
+          </div>
+
           <div id='type-any' class='section'>
             <h4>any</h4>
 
@@ -184,7 +194,10 @@
               in IDL is as the return type of an operation.  Functions on host objects
               that implement an operation whose IDL specifies a
               <span class='idltype'>void</span> return type must return the
-              <span class='esvalue'>undefined</span> value.  ECMAScript functions
+              <span class='esvalue'>undefined</span> value.
+            </p>
+            <p>
+              ECMAScript functions
               that implement an operation whose IDL specifies a <span class='idltype'>void</span>
               return type may return any value, which will be discarded.
             </p>
@@ -198,6 +211,8 @@
               <span class='idltype'>boolean</span> will first be converted
               to an ECMAScript <span class='estype'>Boolean</span> value by the
               ToBoolean operator defined in section 9.2 of [<a href='#ref-ECMA-262'>ECMA-262</a>].
+            </p>
+            <p>
               <span class='idltype'>boolean</span> values returned from a host object
               must be ECMAScript <span class='estype'>Boolean</span> values.
             </p>
@@ -210,18 +225,15 @@
               Values passed to a host object that expects an
               <span class='idltype'>octet</span> will first be converted to an
               ECMAScript <span class='estype'>Number</span> value by the
-              ToUint8 operator, which functions, analgously to the ToUint16
-              operator defined in section 9.7 of [<a href='#ref-ECMA-262'>ECMA-262</a>],
+              ToUint8 operator, which functions, analgously to the ToUint32
+              operator defined in section 9.6 of [<a href='#ref-ECMA-262'>ECMA-262</a>],
               as follows:
             </p>
             <ol>
               <li>Call ToNumber on the input argument.</li>
-              <li>If Result(1) is <span class='esvalue'>NaN</span>, +0, -1, +∞, or -∞, return +0.</li>
+              <li>If Result(1) is <span class='esvalue'>NaN</span>, +0, −0, +∞, or −∞, return +0.</li>
               <li>Compute sign(Result(1)) * floor(abs(Result(1))).</li>
-              <li>Compute Result(3) modulo 2<sup>8</sup>; that is, a finite integer value <i>k</i>
-                of Number type with positive sign and less than 2<sup>8</sup> in magnitude
-                such that the mathematical difference of Result(3) and <i>k</i> is an integer
-                multiple of 2<sup>8</sup>.</li>
+              <li>Compute Result(3) modulo 2<sup>8</sup>.</li>
               <li>Return Result(4).</li>
             </ol>
             <p>
@@ -230,11 +242,221 @@
             </p>
           </div>
 
+          <div id='type-short' class='section'>
+            <h4>short</h4>
+
+            <p>
+              Values passed to a host object that expects a
+              <span class='idltype'>short</span> will first be converted
+              to an ECMAScript <span class='estype'>Number</span> value by
+              the ToInt16 operator, which functions, analagously to the ToInt32
+              operator defined in section 9.5 of [<a href='#ref-ECMA-262'>ECMA-262</a>],
+              as follows:
+            </p>
+            <ol>
+              <li>Call ToNumber on the input argument.</li>
+              <li>If Result(1) is <span class='esvalue'>NaN</span>, +0, −0, +∞, or −∞, return +0.</li>
+              <li>Compute sign(Result(1)) * floor(abs(Result(1))).</li>
+              <li>Compute Result(3) modulo 2<sup>16</sup>.</li>
+              <li>If Result(4) is greater than or equal to 2<sup>15</sup>, return Result(4)−2<sup>16</sup>.
+                Otherwise, return Result(4).</li>
+            </ol>
+            <p>
+              <span class='idltype'>short</span> values returned from a host object
+              must be ECMAScript <span class='estype'>Number</span> values.
+            </p>
+          </div>
+
+          <div id='type-unsigned-short' class='section'>
+            <h4>unsigned short</h4>
+
+            <p>
+              Values passed to a host object that expects an
+              <span class='idltype'>unsigned short</span> will first be converted to an
+              ECMAScript <span class='estype'>Number</span> value by the
+              ToUint16 operator defined in section 9.7 of [<a href='#ref-ECMA-262'>ECMA-262</a>].
+            </p>
+            <p>
+              <span class='idltype'>unsigned short</span> values returned from a host object
+              must be ECMAScript <span class='estype'>Number</span> values.
+            </p>
+          </div>
+
+          <div id='type-long' class='section'>
+            <h4>long</h4>
+
+            <p>
+              Values passed to a host object that expects an
+              <span class='idltype'>long</span> will first be converted to an
+              ECMAScript <span class='estype'>Number</span> value by the
+              ToInt32 operator defined in section 9.5 of [<a href='#ref-ECMA-262'>ECMA-262</a>].
+            </p>
+            <p>
+              <span class='idltype'>long</span> values returned from a host object
+              must be ECMAScript <span class='estype'>Number</span> values.
+            </p>
+          </div>
+
+          <div id='type-unsigned-long' class='section'>
+            <h4>unsigned long</h4>
+
+            <p>
+              Values passed to a host object that expects an
+              <span class='idltype'>unsigned long</span> will first be converted to an
+              ECMAScript <span class='estype'>Number</span> value by the
+              ToUint32 operator defined in section 9.5 of [<a href='#ref-ECMA-262'>ECMA-262</a>].
+            </p>
+            <p>
+              <span class='idltype'>unsigned long</span> values returned from a host object
+              must be ECMAScript <span class='estype'>Number</span> values.
+            </p>
+          </div>
+
+          <div id='type-long-long' class='section'>
+            <h4>long long</h4>
+
+            <p>
+              Values passed to a host object that expects a
+              <span class='idltype'>long long</span> will first be converted
+              to an ECMAScript <span class='estype'>Number</span> value by
+              the ToInt64 operator, which functions, analagously to the ToInt32
+              operator defined in section 9.5 of [<a href='#ref-ECMA-262'>ECMA-262</a>],
+              as follows:
+            </p>
+            <ol>
+              <li>Call ToNumber on the input argument.</li>
+              <li>If Result(1) is <span class='esvalue'>NaN</span>, +0, −0, +∞, or −∞, return +0.</li>
+              <li>Compute sign(Result(1)) * floor(abs(Result(1))).</li>
+              <li>Compute Result(3) modulo 2<sup>64</sup>.</li>
+              <li>If Result(4) is greater than or equal to 2<sup>63</sup>, return Result(4)−2<sup>64</sup>.
+                Otherwise, return Result(4).</li>
+            </ol>
+            <p>
+              <span class='idltype'>long long</span> values returned from a host object
+              must be ECMAScript <span class='estype'>Number</span> values.  If the
+              <span class='idltype'>long long</span> value cannot be represented exactly
+              by a <span class='estype'>Number</span> value (i.e., it is less than or equal
+              to −2<sup>53</sup> or greater than or equal to 2<sup>53</sup>), the
+              <span class='estype'>Number</span> value returned must be the number
+              representable by a <span class='estype'>Number</span> closest to the
+              given <span class='idltype'>long long</span>.
+            </p>
+            <div class='ednote'>
+              <p>Should check that range of signed integers representable in a double.</p>
+            </div>
+          </div>
+
+          <div id='type-unsigned-long-long' class='section'>
+            <h4>unsigned long long</h4>
+
+            <p>
+              Values passed to a host object that expects an
+              <span class='idltype'>unsigned long long</span> will first be converted to an
+              ECMAScript <span class='estype'>Number</span> value by the
+              ToUint64 operator, which functions, analgously to the ToUint32
+              operator defined in section 9.6 of [<a href='#ref-ECMA-262'>ECMA-262</a>],
+              as follows:
+            </p>
+            <ol>
+              <li>Call ToNumber on the input argument.</li>
+              <li>If Result(1) is <span class='esvalue'>NaN</span>, +0, −0, +∞, or −∞, return +0.</li>
+              <li>Compute sign(Result(1)) * floor(abs(Result(1))).</li>
+              <li>Compute Result(3) modulo 2<sup>64</sup>.</li>
+              <li>Return Result(4).</li>
+            </ol>
+            <p>
+              <span class='idltype'>unsigned long long</span> values returned from a host object
+              must be ECMAScript <span class='estype'>Number</span> values.  If the
+              <span class='idltype'>unsigned long long</span> value cannot be represented exactly
+              by a <span class='estype'>Number</span> value (i.e., it is greater than
+              or equal to 2<sup>53</sup>), the <span class='estype'>Number</span> value
+              returned must be the number representable by a <span class='estype'>Number</span>
+              closest to the given <span class='idltype'>unsigned long long</span>.
+            </p>
+            <div class='ednote'>
+              <p>
+                Should we do something other than choosing the closest double value to
+                represent the long long?
+              </p>
+            </div>
+          </div>
+
+          <div id='type-float' class='section'>
+            <h4>float</h4>
+
+            <p>
+              Values passed to a host object that expects a
+              <span class='idltype'>float</span> will first be converted
+              to an ECMAScript <span class='estype'>Number</span> value by the
+              ToNumber operator defined in section 9.3 of [<a href='#ref-ECMA-262'>ECMA-262</a>].
+            </p>
+            <p>
+              <span class='idltype'>float</span> values returned from a host object
+              must be ECMAScript <span class='estype'>Number</span> values.
+            </p>
+          </div>
+
+          <div id='type-Object' class='section'>
+            <h4>Object</h4>
+
+            <p>
+              If a host object that expects an <span class='idltype'>Object</span>
+              is passed the <span class='esvalue'>null</span> value, then that value
+              is passed without modification.  Otherwise, the value being passed will
+              first be converted to an ECMAScript <span class='estype'>Object</span> value
+              by the ToObject operator defined in section 9.9 of [<a href='#ref-ECMA-262'>ECMA-262</a>].
+            </p>
+            <p>
+              If a host object returns an <span class='idltype'>Object</span> that is null,
+              then the ECMAScript <span class='estype'>null</span> value must be returned.
+              Otherwise, an ECMAScript <span class='estype'>Object</span> value must be returned.
+            </p>
+          </div>
+
+          <div id='type-sequence-octet' class='section'>
+            <h4>sequence&lt;octet&gt;</h4>
+
+            <p>
+              As a special case, a <span class='idltype'>sequence&lt;octet></span>
+              is represented by an ECMAScript <span class='estype'>String</span>
+              value.
+            </p>
+            <p>
+              Values passed to a host object that expects a <span class='idltype'>sequence&lt;octet></span>
+              value will first be converted to an ECMAScript <span class='estype'>String</span> value
+              by the ToString operator defined in section 9.8 of [<a href='#ref-ECMA-262'>ECMA-262</a>].
+            </p>
+            <p>
+              <span class='idltype'>sequence&lt;octet></span> values returned from a host object
+              must be  ECMAScript <span class='estype'>String</span> values.
+            </p>
+          </div>
+
+          <div id='type-boxed-valuetype' class='section'>
+            <h4>Boxed valuetypes</h4>
+
+            <p>
+              A boxed valuetype is represented by either the ECMAScript type corresponding to the
+              IDL type being boxed, or the ECMAScript <span class='esvalue'>null</span> value.
+            </p>
+            <p>
+              If a host object that expects a boxed valuetype is passed the
+              <span class='esvalue'>null</span> value, then that value is passed
+              without modification.  Otherwise, the value will first be handled according to
+              the rules in this section corresponding to the IDL type being boxed.
+            </p>
+            <p>
+              If a host object returns a boxed valuetype that is null, then the
+              ECMAScript <span class='estype'>null</span> value must be returned.
+              Otherwise, the value must be of an ECMAScript type according to the rules in
+              this section corresponding to the IDL type being boxed.
+            </p>
+          </div>
+
           <div class='ednote'>
             <p>
-              TBD: short, unsigned short, long, unsigned long, signed long long, unsigned long long,
-              float, Object, sequence&lt;octet>, sequence&lt;<i>T</i>>.
-              Also mention that null can be passed to host objects expecting boxed valuetypes of whatever.
+              Perhaps there should be an example here for the real-world case that boxed
+              valuetypes are actually used for (DOMString).
             </p>
           </div>
         </div>
