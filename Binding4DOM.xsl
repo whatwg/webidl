@@ -1,8 +1,7 @@
 <xsl:stylesheet xmlns:xsl='http://www.w3.org/1999/XSL/Transform'
                 xmlns:h='http://www.w3.org/1999/xhtml'
-                xmlns:d='http://mcc.id.au/ns/local'
                 xmlns='http://www.w3.org/1999/xhtml'
-                exclude-result-prefixes='h d'
+                exclude-result-prefixes='h'
                 version='1.0' id='xslt'>
 
   <xsl:output method='xml' encoding='UTF-8'
@@ -13,26 +12,7 @@
   <xsl:variable name='options' select='/*/h:head/options'/>
   <xsl:variable name='id' select='/*/h:head/h:meta[@name="revision"]/@content'/>
   <xsl:variable name='rev' select='substring-before(substring-after(substring-after($id, " "), " "), " ")'/>
-  <xsl:variable name='data' select='document("")/*/d:data'/>
-  <xsl:variable name='months' select='$data/d:months'/>
   <xsl:variable name='tocpi' select='//processing-instruction("toc")[1]'/>
-
-  <data xmlns='http://mcc.id.au/ns/local'>
-    <months>
-      <item>January</item>
-      <item>February</item>
-      <item>March</item>
-      <item>April</item>
-      <item>May</item>
-      <item>June</item>
-      <item>July</item>
-      <item>August</item>
-      <item>September</item>
-      <item>October</item>
-      <item>November</item>
-      <item>December</item>
-    </months>
-  </data>
 
   <xsl:template match='/'>
     <xsl:text>&#xa;</xsl:text>
@@ -53,6 +33,22 @@
     </xsl:copy>
   </xsl:template>
 
+  <xsl:template name='monthName'>
+    <xsl:param name='n' select='1'/>
+    <xsl:param name='s' select='"January February March April May June July August September October November December "'/>
+    <xsl:choose>
+      <xsl:when test='$n = 1'>
+        <xsl:value-of select='substring-before($s, " ")'/>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:call-template name='monthName'>
+          <xsl:with-param name='n' select='$n - 1'/>
+          <xsl:with-param name='s' select='substring-after($s, " ")'/>
+        </xsl:call-template>
+      </xsl:otherwise>
+    </xsl:choose>
+  </xsl:template>
+
   <xsl:template match='processing-instruction("top")'>
     <div><a href="http://www.w3.org/"><img src="http://www.w3.org/Icons/w3c_home" width="72" height="48" alt="W3C"></img></a></div>
     <h1><xsl:value-of select='/*/h:head/h:title'/></h1>
@@ -62,7 +58,9 @@
         <xsl:variable name='date' select='substring-before(substring-after(substring-after(substring-after($id, " "), " "), " "), " ")'/>
         <xsl:value-of select='number(substring($date, 9))'/>
         <xsl:text> </xsl:text>
-        <xsl:value-of select='$months/*[number(substring($date, 6, 2))]'/>
+        <xsl:call-template name='monthName'>
+          <xsl:with-param name='n' select='number(substring($date, 6, 2))'/>
+        </xsl:call-template>
         <xsl:text> </xsl:text>
         <xsl:value-of select='substring($date, 1, 4)'/>
       </em>
@@ -278,18 +276,20 @@
 
   <xsl:template match='prod'>
     <tr id='prod-{@nt}'>
-      <td class='prod-number'>[<xsl:value-of select='position()'/>]</td>
-      <td class='prod-lhs'><a class='nt' href='#proddef-{@nt}'><xsl:value-of select='@nt'/></a></td>
-      <td class='prod-mid'>::=</td>
-      <td class='prod-rhs'>
-        <xsl:call-template name='bnf'>
-          <xsl:with-param name='s' select='string(.)'/>
-        </xsl:call-template>
-      </td>
-      <td class='prod-notes'>
+      <td><span class='prod-number'>[<xsl:value-of select='position()'/>]</span></td>
+      <td>
+        <a class='nt' href='#proddef-{@nt}'><xsl:value-of select='@nt'/></a>
         <xsl:if test='@whitespace="explicit"'>
-          /* ws: explicit */
+          <sub class='nt-attr'>explicit</sub>
         </xsl:if>
+      </td>
+      <td class='prod-mid'>→</td>
+      <td class='prod-rhs'>
+        <div class='prod-line'>
+          <xsl:call-template name='bnf'>
+            <xsl:with-param name='s' select='string(.)'/>
+          </xsl:call-template>
+        </div>
       </td>
     </tr>
   </xsl:template>
@@ -311,6 +311,13 @@
           <xsl:call-template name='bnf'>
             <xsl:with-param name='s' select='substring($s, string-length($nt) + 1)'/>
           </xsl:call-template>
+        </xsl:when>
+        <xsl:when test='$mode = 0 and $c = "|"'>
+          <div class='prod-line-subsequent'> |
+            <xsl:call-template name='bnf'>
+              <xsl:with-param name='s' select='substring($s, 2)'/>
+            </xsl:call-template>
+          </div>
         </xsl:when>
         <xsl:when test='$c = &#39;"&#39;'>
           <xsl:value-of select='$c'/>

@@ -16,7 +16,7 @@
   <head>
     <title>Language Bindings for DOM Specifications</title>
     <meta http-equiv='Content-Type' content='application/xhtml+xml; charset=UTF-8'/>
-    <meta name='revision' content='$Id: Overview.xml,v 1.5 2007-06-07 06:59:22 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: Overview.xml,v 1.6 2007-06-09 00:58:17 cmccorma Exp $'/>
     <link rel='stylesheet' href='http://www.w3.org/StyleSheets/TR/base' type='text/css'/>
     <link rel='stylesheet' href='Binding4DOM.css' type='text/css'/>
 
@@ -50,7 +50,7 @@
 
       <div class='ednote'>
         <p>
-          This is revision $Id: Overview.xml,v 1.5 2007-06-07 06:59:22 cmccorma Exp $.
+          This is revision $Id: Overview.xml,v 1.6 2007-06-09 00:58:17 cmccorma Exp $.
         </p>
       </div>
     </div>
@@ -74,7 +74,7 @@
         “Language Bindings for DOM Specifications” specification.  Please send
         comments to <a href='mailto:public-webapi@w3.org'>public-webapi@w3.org</a>
         (<a href='http://lists.w3.org/Archives/Public/public-webapi/'>archived</a>)
-        with <tt>[Bindings]</tt> at the start of the subject line.
+        with “<tt>[Bindings]</tt>” at the start of the subject line.
       </p>
       <p>
         This document is produced by the
@@ -371,34 +371,159 @@
     <div id='appendices'>
       <div id='idl-grammar' class='section'>
         <h2>IDL grammar</h2>
-      </div>
 
-      <grammar xmlns=''>
-        <prod nt='Definitions'>(ExtendedAttributes? (Module | Interface | Exception | Typedef | Valuetype | Const))*</prod>
-        <prod nt='Module'>"module" Identifier "{" Definitions "}" ";"</prod>
-        <prod nt='Interface'>"interface" Identifier (":" ScopedName)? ("{" (Const | (ExtendedAttributes? (Attribute | Operation)))* "}")? ";"</prod>
-        <prod nt='Exception'>"exception" Identifier "{" Member* "}" ";"</prod>
-        <prod nt='Typedef'>"typedef" Type Identifier ";"</prod>
-        <prod nt='Valuetype'>"valuetype" Identifier Type ";"</prod>
-        <prod nt='Const'>"const" Type Identifier ConstExpr ";"</prod>
-        <prod nt='Attribute'>"readonly"? "attribute" Type Identifier ("getraises" ExceptionList)? ("setraises" ExceptionList)? ";"</prod>
-        <prod nt='Operation'>ReturnType Identifier ArgumentList ("raises" ExceptionList)? ";"</prod>
-        <prod nt='ExceptionList'>ScopedName ("," ScopedName)*</prod>
-        <prod nt='ArgumentList'>"(" Argument ("," Argument)* ")"</prod>
-        <prod nt='Argument'>"in" Type Identifier</prod>
-        <prod nt='Member'>Type Identifier ";"</prod>
-        <prod nt='ExtendedAttributes'>"[" ExtendedAttribute ("," ExtendedAttribute)* "]"</prod>
-        <prod nt='ExtendedAttribute'>Identifier</prod>
-        <prod nt='Type'>"any" | "boolean" | "octet" | "unsigned"? ("short" | "long" "long"?) | "float" | "Object" | "sequence" "&lt;" Type ">" | ScopedName</prod>
-        <prod nt='ReturnType'>Type | "void"</prod>
-        <prod nt='Identifier' whitespace='explicit'>"_"? [A-Za-z] [0-9A-Z_a-z]*</prod>
-        <prod nt='ScopedName'>"::"? (Identifier "::")* Identifier</prod>
-      </grammar>
+        <p>
+          This section defines an LL(1) grammar whose start symbol,
+          <a class='nt' href='#prod-Definitions'>Definitions</a>, matches an
+          entire IDL fragment.
+        </p>
 
-      <div class='ednote'>
-        <p>Need to refer to EBNF language being used (as XQuery does), write the ConstExpr productions, explain ws:explicit.
-          Should restrict Identifier so that it doesn’t match if it’s one of the keywords.  Not sure what to do with
-          the ExtendedAttribute, to be forwards-compatible.</p>
+        <p>
+          Each production in the grammar has on its right hand side either a
+          non-zero sequence of terminal and non-terminal symbols, or an
+          epsilon (ε) which indicates no symbols.  Symbols that begin with
+          an uppercase letter are non-terminal symbols.  Symbols within quotes
+          are terminal symbols that are matched with the exact text between
+          the quotes.  Symbols that begin with a lowercase letter are terminal
+          symbols that are matched by the regular expressions (using the Perl Compatible
+          Regular Expression syntax [@@ref PCRE]) as follows:
+        </p>
+        <table class='grammar'>
+          <tr>
+            <td id='prod-integer' class='nt'>integer</td>
+            <td>=</td>
+            <td class='prod-rhs'>0([0-7]*|[Xx][0-9A-Fa-f]+)|[1-9][0-9]*</td>
+          </tr>
+          <tr>
+            <td id='prod-float' class='nt'>float</td>
+            <td>=</td>
+            <td class='prod-rhs'>([0-9]+\.[0-9]*|[0-9]*\.[0-9]+)([Ee][0-9]+)?|[0-9]+[Ee][0-9]+</td>
+          </tr>
+          <tr>
+            <td id='prod-identifier' class='nt'>identifier</td>
+            <td>=</td>
+            <td class='prod-rhs'>[A-Z_a-z][0-9A-Z_a-z]*</td>
+          </tr>
+          <tr>
+            <td id='prod-whitespace' class='nt'>whitespace</td>
+            <td>=</td>
+            <td class='prod-rhs'>[\t\n\r ]</td>
+          </tr>
+        </table>
+
+        <div class='ednote'>
+          <p>
+            Should we require quoting (with an underscore) of identifiers that would match
+            keywords used in OMG IDL 3.0 but not in this IDL?
+          </p>
+        </div>
+
+        <p>
+          When tokenizing, the longest possible match must be used.  For example, if the input
+          text is “<tt>a1</tt>”, it should be tokenized as a single <span class='nt'>identifier</span>,
+          and not as a separate <span class='nt'>identifier</span> and <span class='nt'>integer</span>.
+          If the longest possible match could match both an <span class='nt'>identifier</span> and
+          one of the quoted terminal symbols from the grammar, it must be tokenized as the quoted
+          terminal symbol.  Thus, the input text “<tt>in</tt>” is tokenized as the quoted terminal symbol
+          <span class='nt'>"in"</span> rather than an <span class='nt'>identifier</span> called “in”.
+        </p>
+
+        <p>
+          Implicitly, the <span class='nt'>whitespace</span> terminal is allowed between every terminal
+          in the input text being parsed.  Such <span class='nt'>whitespace</span> terminals are
+          ignored while parsing.
+        </p>
+
+        <p>
+          The following LL(1) grammar matches IDL fragments:
+        </p>
+
+        <grammar xmlns=''>
+          <prod nt='Definitions'>ExtendedAttributeList Definition Definitions | ε</prod>
+          <prod nt='Definition'>Module | Interface | Exception | Typedef | Valuetype | Const</prod>
+          <prod nt='Module'>"module" identifier "{" Definitions "}" ";"</prod>
+          <prod nt='Interface'>"interface" identifier InterfaceInheritance InterfaceBody ";"</prod>
+          <prod nt='InterfaceInheritance'>":" ScopedName | ε</prod>
+          <prod nt='InterfaceBody'>"{" InterfaceMembers "}" | ε</prod>
+          <prod nt='InterfaceMembers'>ExtendedAttributeList InterfaceMember InterfaceMembers | ε</prod>
+          <prod nt='InterfaceMember'>Const | Attribute | Operation</prod>
+          <prod nt='Exception'>"exception" identifier "{" ExceptionMembers "}" ";"</prod>
+          <prod nt='ExceptionMembers'>ExtendedAttributeList ExceptionMember ExceptionMembers | ε</prod>
+          <prod nt='Typedef'>"typedef" Type identifier ";"</prod>
+          <prod nt='Valuetype'>"valuetype" identifier Type ";"</prod>
+          <prod nt='Const'>"const" Type identifier ConstExpr ";"</prod>
+          <prod nt='ConstExpr'>BooleanLiteral | integer | float</prod>
+          <prod nt='BooleanLiteral'>"TRUE" | "FALSE"</prod>
+          <prod nt='Attribute'>ReadOnly "attribute" Type identifier GetRaises SetRaises ";"</prod>
+          <prod nt='ReadOnly'>"readonly" | ε</prod>
+          <prod nt='GetRaises'>"getraises" ExceptionList | ε</prod>
+          <prod nt='SetRaises'>"setraises" ExceptionList | ε</prod>
+          <prod nt='Operation'>ReturnType identifier "(" ArgumentList ")" Raises ";"</prod>
+          <prod nt='Raises'>"raises" ExceptionList | ε</prod>
+          <prod nt='ExceptionList'>"(" ScopedName Exceptions ")"</prod>
+          <prod nt='Exceptions'>"," ScopedName Exceptions | ε</prod>
+          <prod nt='ArgumentList'>Argument Arguments | ε</prod>
+          <prod nt='Arguments'>"," Argument Arguments | ε</prod>
+          <prod nt='Argument'>"in" Type identifier</prod>
+          <prod nt='ExceptionMember'>Type identifier ";"</prod>
+          <prod nt='ExtendedAttributeList'>"[" ExtendedAttribute ExtendedAttributes "]"</prod>
+          <prod nt='ExtendedAttributes'>"," ExtendedAttribute ExtendedAttributes | ε</prod>
+          <prod nt='ExtendedAttribute'>identifier ExtendedAttributeAssignment</prod>
+          <prod nt='ExtendedAttributeAssignment'>"=" ExtendedAttributeArgument | ε</prod>
+          <prod nt='ExtendedAttributeArgument'>identifier</prod>
+          <prod nt='Type'>IntegerType | ScopedName | "any" | "boolean" | "octet" | "unsigned" IntegerType | "float" | "Object" | "sequence" "&lt;" Type ">"</prod>
+          <prod nt='UnsignedType'>"unsigned" IntegerType</prod>
+          <prod nt='IntegerType'>"short" | "long" OptionalLong</prod>
+          <prod nt='OptionalLong'>"long" | ε</prod>
+          <prod nt='ReturnType'>Type | "void"</prod>
+          <prod nt='ScopedName'>"::" identifier ScopedNameParts | identifier ScopedNameParts</prod>
+          <prod nt='ScopedNameParts'>"::" identifier ScopedNameParts | ε</prod>
+
+          <!--prod nt='Keyword'>"any" | "attribute" | "boolean" | "const" | "exception" | "float" | "getraises" | "in" | "interface" | "long" | "module" | "Object" | "octet" | "raises" | "readonly" | "sequence" | "setraises" | "short" | "typedef" | "unsigned | "v id"</prod-->
+          <!-- the following are the remaining OMG IDL 3 keywords:
+          "abstract" |
+          "case" |
+          "char" |
+          "component" |
+          "consumes" |
+          "context" |
+          "custom" |
+          "default" |
+          "double" |
+          "emits" |
+          "enum" |
+          "eventtype" |
+          "factory" |
+          "FALSE" |
+          "finder" |
+          "fixed" |
+          "home" |
+          "inout" |
+          "local" |
+          "multiple" |
+          "native" |
+          "oneway" |
+          "out" |
+          "primarykey" |
+          "private" |
+          "provides" |
+          "public" |
+          "publishes" |
+          "string" |
+          "struct" |
+          "supports" |
+          "switch" |
+          "TRUE" |
+          "truncatable" |
+          "typeid" |
+          "typeprefix" |
+          "union" |
+          "uses" |
+          "ValueBase" |
+          "wchar" |
+          "wstring"
+          -->
+        </grammar>
       </div>
 
       <div id='references' class='section'>
