@@ -74,7 +74,7 @@
             <xsl:variable name='href' select='concat(substring-before($options/versions/this/@href, "~checkout~/"), substring-after($options/versions/this/@href, "~checkout~/"))'/>
             <xsl:variable name='href2' select='concat($href, "?rev=", $rev, "&amp;content-type=text/xml")'/>
             <a id='thisVersionLink' href='{$href}'><xsl:value-of select='$href'/></a>
-            <script>
+            <script type='text/ecmascript'>
               var id = "&#x24;Id$";
               var a = document.getElementById('thisVersionLink');
               var xs = id.match(/ ([0-9]\.[0-9.]+) /);
