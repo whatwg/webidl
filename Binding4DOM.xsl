@@ -148,7 +148,7 @@
     <xsl:variable name='id' select='substring-before(., " ")'/>
     <xsl:variable name='names' select='concat(" ", substring-after(., " "), " ")'/>
     <table class='grammar'>
-      <xsl:apply-templates select='id($id)/prod[contains($names, concat(" ", @nt, " "))]'/>
+      <xsl:apply-templates select='id($id)/prod[contains($names, concat(" ", @nt, " "))]' mode='def'/>
     </table>
   </xsl:template>
 
@@ -280,6 +280,26 @@
     <table class='grammar'>
       <xsl:apply-templates select='prod'/>
     </table>
+  </xsl:template>
+
+  <xsl:template match='prod' mode='def'>
+    <tr id='proddef-{@nt}'>
+      <td><span class='prod-number'>[<xsl:value-of select='count(preceding-sibling::prod) + 1'/>]</span></td>
+      <td>
+        <a class='nt' href='#prod-{@nt}'><xsl:value-of select='@nt'/></a>
+        <xsl:if test='@whitespace="explicit"'>
+          <sub class='nt-attr'>explicit</sub>
+        </xsl:if>
+      </td>
+      <td class='prod-mid'>→</td>
+      <td class='prod-rhs'>
+        <div class='prod-line'>
+          <xsl:call-template name='bnf'>
+            <xsl:with-param name='s' select='string(.)'/>
+          </xsl:call-template>
+        </div>
+      </td>
+    </tr>
   </xsl:template>
 
   <xsl:template match='prod'>
