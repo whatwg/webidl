@@ -293,11 +293,11 @@
       </td>
       <td class='prod-mid'>→</td>
       <td class='prod-rhs'>
-        <div class='prod-line'>
+        <span class='prod-lines'>
           <xsl:call-template name='bnf'>
             <xsl:with-param name='s' select='string(.)'/>
           </xsl:call-template>
-        </div>
+        </span>
       </td>
     </tr>
   </xsl:template>
@@ -313,11 +313,11 @@
       </td>
       <td class='prod-mid'>→</td>
       <td class='prod-rhs'>
-        <div class='prod-line'>
-          <xsl:call-template name='bnf'>
+        <span class='prod-lines'>
+            <xsl:call-template name='bnf'>
             <xsl:with-param name='s' select='string(.)'/>
           </xsl:call-template>
-        </div>
+        </span>
       </td>
     </tr>
   </xsl:template>
@@ -341,11 +341,11 @@
           </xsl:call-template>
         </xsl:when>
         <xsl:when test='$mode = 0 and $c = "|"'>
-          <div class='prod-line-subsequent'> |
+          <!--div class='prod-line-subsequent'--><br/> |
             <xsl:call-template name='bnf'>
               <xsl:with-param name='s' select='substring($s, 2)'/>
             </xsl:call-template>
-          </div>
+          <!--/div-->
         </xsl:when>
         <xsl:when test='$c = &#39;"&#39;'>
           <xsl:value-of select='$c'/>
