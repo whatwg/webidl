@@ -144,6 +144,14 @@
     <hr/>
   </xsl:template>
 
+  <xsl:template match='processing-instruction("productions")'>
+    <xsl:variable name='id' select='substring-before(., " ")'/>
+    <xsl:variable name='names' select='concat(" ", substring-after(., " "), " ")'/>
+    <table class='grammar'>
+      <xsl:apply-templates select='id($id)/prod[contains($names, concat(" ", @nt, " "))]'/>
+    </table>
+  </xsl:template>
+
   <xsl:template match='processing-instruction("toc")'>
     <xsl:variable name='sectionsID' select='substring-before(., " ")'/>
     <xsl:variable name='appendicesID' select='substring-after(., " ")'/>
@@ -276,7 +284,7 @@
 
   <xsl:template match='prod'>
     <tr id='prod-{@nt}'>
-      <td><span class='prod-number'>[<xsl:value-of select='position()'/>]</span></td>
+      <td><span class='prod-number'>[<xsl:value-of select='count(preceding-sibling::prod) + 1'/>]</span></td>
       <td>
         <a class='nt' href='#proddef-{@nt}'><xsl:value-of select='@nt'/></a>
         <xsl:if test='@whitespace="explicit"'>
