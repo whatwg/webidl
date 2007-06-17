@@ -19,7 +19,7 @@
   <head>
     <title>Language Bindings for DOM Specifications</title>
     <meta http-equiv='Content-Type' content='application/xhtml+xml; charset=UTF-8'/>
-    <meta name='revision' content='$Id: Overview.xml,v 1.21 2007-06-17 06:21:18 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: Overview.xml,v 1.22 2007-06-17 23:34:21 cmccorma Exp $'/>
     <link rel='stylesheet' href='http://www.w3.org/StyleSheets/TR/base' type='text/css'/>
     <link rel='stylesheet' href='Binding4DOM.css' type='text/css'/>
 
@@ -53,7 +53,7 @@
 
       <div class='ednote'>
         <p>
-          This is revision $Id: Overview.xml,v 1.21 2007-06-17 06:21:18 cmccorma Exp $.
+          This is revision $Id: Overview.xml,v 1.22 2007-06-17 23:34:21 cmccorma Exp $.
         </p>
       </div>
     </div>
@@ -228,22 +228,134 @@
           <div id='Constructor' class='section'>
             <h4>[Constructor]</h4>
 
-            <p>…</p>
+            <p>
+              If the <a class='xattr' href='#Constructor'>[Constructor]</a>
+              extended attribute appears on an interface, it indicates that
+              there must be a way to construct objects that implement this interface.
+              How such objects can be constructed is specific to the language binding.
+            </p>
+            <p>
+              The <a class='xattr' href='#Constructor'>[Constructor]</a>
+              extended attribute takes no argument.
+            </p>
+            <div class='example'>
+              <p>
+                The following IDL defines two interfaces.  The second has the
+                <a class='xattr' href='#Constructor'>[Constructor]</a> extended
+                attribute, while the first does not.
+              </p>
+              <codeblock xmlns='' language='idl'>interface NodeList {
+  Node item(in unsigned long index);
+  readonly attribute unsigned long length;
+};
+
+[Constructor]
+interface Circle {
+  attribute float r;
+  attribute float cx;
+  attribute float cy;
+  readonly attribute float circumference;
+};</codeblock>
+              <p>
+                An ECMAScript implementation supporting these interfaces would
+                have a <span class='prop'>[[Construct]]</span> property on the
+                <span class='idltype'>Circle</span> interface object which would
+                return a new object that implements the interface.  The
+                <span class='idltype'>NodeList</span> interface object would not
+                have a <span class='prop'>[[Construct]]</span> property.
+              </p>
+              <codeblock xmlns='' language='es'>var x = new Circle();    // x is now a reference to a host object that implements the Circle interface.
+var y = new NodeList();  // This would throw a TypeError.</codeblock>
+            </div>
+            <div class='ednote'>
+              <p>
+                This doesn’t allow for constructors which take arguments, and
+                that’s probably something that will be wanted.  Maybe the
+                extended attribute should be on operations instead, e.g.:
+              </p>
+              <codeblock xmlns='' language='idl'>interface Circle {
+  attribute float r;
+  attribute float cx;
+  attribute float cy;
+  readonly attribute float circumference;
+
+  [Constructor] Circle createCircle(in float r, in float cx, in float cy);
+};</codeblock>
+              <p>
+                For ES, such operations map to a [[Construct]] property
+                with a function that takes the given arguments.  For other languages,
+                this could perhaps map to a static method somewhere.
+              </p>
+            </div>
           </div>
 
           <div id='NoNull' class='section'>
             <h4>[NoNull]</h4>
 
-            <p>…</p>
+            <p>
+              If the <a class='xattr' href='#NoNull'>[NoNull]</a> extended
+              attribute appears on an attribute, an operation or an operation
+              argument, whose type is a boxed valuetype, it indicates that
+              a null value is not expected and will never be returned.  How
+              implementations treat the assignment of a null value to an
+              attribute with the <a class='xattr' href='#NoNull'>[NoNull]</a>
+              extended attribute, or passing a null value as a
+              <a class='xattr' href='#NoNull'>[NoNull]</a> operation argument,
+              is specific to the language binding.
+            </p>
+            <p>
+              The <a class='xattr' href='#NoNull'>[NoNull]</a>
+              extended attribute takes no argument.
+            </p>
 
             <div class='ednote'>
               <p>
                 Perhaps instead of having a <span class='xattr'>[NoNull]</span> extended attribute
                 on DOMString arguments/attributes, different types could be used, e.g.:
               </p>
-              <pre>typedef sequence&lt;octet> DOMString;
-valuetype DOMStringOrNull DOMString;</pre>
+              <codeblock xmlns='' language='idl'>typedef sequence&lt;octet> DOMString;
+valuetype DOMStringOrNull DOMString;</codeblock>
             </div>
+          </div>
+
+          <div id='Overloads' class='section'>
+            <h4>[Overloads]</h4>
+
+            <p>
+              If the <a class='xattr' href='#Overloads'>[Overloads]</a>
+              extended attribute appears on an operation, it indicates that
+              the operation is to be considered to overload the operation
+              with the identifier given as the extended attribute argument.
+              The extent to which a language supports method overloading
+              determines whether an object implementing an interface with
+              overloaded operations must implement the operation using the
+              overloaded name or the original name.
+            </p>
+            <p>
+              The <a class='xattr' href='#Overloads'>[Overloads]</a>
+              extended attribute takes a single, required argument,
+              an <a class='nt' href='#prod-Identifier'>Identifier</a>,
+              which specifies the name of the operation in the interface
+              this operation overloads.
+            </p>
+          </div>
+
+          <div id='Variadic' class='section'>
+            <h4>[Variadic]</h4>
+
+            <p>
+              If the <a class='xattr' href='#Variadic'>[Variadic]</a>
+              extended attribute appears on the final argument of an operation,
+              it indicates that the operation is variadic, and can be passed
+              zero or more arguments after the regular arguments.  Each of
+              these extra arguments must be of the type specified by that
+              final argument.  How such arguments are passed is specific to the
+              language binding.
+            </p>
+            <p>
+              The <a class='xattr' href='#Variadic'>[Variadic]</a>
+              extended attribute takes no argument.
+            </p>
           </div>
         </div>
       </div>
@@ -277,13 +389,13 @@ valuetype DOMStringOrNull DOMString;</pre>
 
           <p>
             This sub-section describes how types in the IDL map to types in ECMAScript.
-            The phrase “to pass a value to a host object expecting type <i>T</i>” is used in this sub-section
+            The phrase “to pass a value to a host object expecting type <span class='typevar'>T</span>” is used in this sub-section
             to describe passing an ECMAScript value as an argument to a function whose corresponding operation in the IDL specifies that
-            the argument is of type <i>T</i>, or assigning to a property whose corresponding attribute in the IDL
-            is of type <i>T</i>.  Conversely, the phrase “to return a value of type
-            <i>T</i> from a host object” is used to describe obtaining the ECMAScript return value
-            from a function whose corresponding operation in the IDL specifies a return type <i>T</i>,
-            or retrieving a property whose corresponding attribute in the IDL is of type <i>T</i>.
+            the argument is of type <span class='typevar'>T</span>, or assigning to a property whose corresponding attribute in the IDL
+            is of type <span class='typevar'>T</span>.  Conversely, the phrase “to return a value of type
+            <span class='typevar'>T</span> from a host object” is used to describe obtaining the ECMAScript return value
+            from a function whose corresponding operation in the IDL specifies a return type <span class='typevar'>T</span>,
+            or retrieving a property whose corresponding attribute in the IDL is of type <span class='typevar'>T</span>.
           </p>
 
           <div class='ednote'>
@@ -292,7 +404,7 @@ valuetype DOMStringOrNull DOMString;</pre>
               of stuff in this section.  For example, a [NoNull] extended attribute
               on a function argument of type DOMString (which is a boxed
               sequence&lt;octet> valuetype) indicates that a null value passed
-              to the function will be converted to the ES string "null".
+              to the function will be converted to the ES string <span class='esstring'>"null"</span>.
             </p>
           </div>
 
@@ -532,6 +644,17 @@ valuetype DOMStringOrNull DOMString;</pre>
             </p>
           </div>
 
+          <div id='type-sequence' class='section'>
+            <h4>sequence&lt;<span class='typevar'>T</span>&gt;</h4>
+
+            <p>
+              …
+            </p>
+            <div class='ednote'>
+              <p>Nothing currently uses sequences of types other than octet.</p>
+            </div>
+          </div>
+
           <div id='type-sequence-octet' class='section'>
             <h4>sequence&lt;octet&gt;</h4>
 
@@ -559,23 +682,45 @@ valuetype DOMStringOrNull DOMString;</pre>
               IDL type being boxed, or the ECMAScript <span class='esvalue'>null</span> value.
             </p>
             <p>
-              If a host object that expects a boxed valuetype is passed the
+              If a host object that expects a boxed valuetype that is not annotated with
+              the <a class='xattr' href='#NoNull'>[NoNull]</a> extended attribute is passed the
               <span class='esvalue'>null</span> value, then that value is passed
-              without modification.  Otherwise, the value will first be handled according to
-              the rules in this section corresponding to the IDL type being boxed.
+              without modification.  However, if the <a class='xattr' href='#NoNull'>[NoNull]</a>
+              extended attribute does apply and the <span class='esvalue'>null</span> value
+              is passed to the host object, the behavior depends on the type being boxed.
+              If the type being boxed is <span class='idltype'>sequence&lt;octet></span>,
+              then the ECMAScript <span class='estype'>String</span> <span class='esstring'>"null"</span> is passed to
+              the host object.  If the type being boxed is anything else, the behavior
+              is implementation specific.
+            </p>
+            <p>
+              If a host object that expects a boxed valuetype is passed an
+              ECMAScript <span class='estype'>Object</span> value, the value
+              will first be handled according to the rules in this section
+              corresponding to the IDL type being boxed.
             </p>
             <p>
               If a host object returns a boxed valuetype that is null, then the
               ECMAScript <span class='estype'>null</span> value must be returned.
-              Otherwise, the value must be of an ECMAScript type according to the rules in
+              If the operation or attribute is annotated with the
+              <a class='xattr' href='#NoNull'>[NoNull]</a> extended attribute, the host
+              object must not return a null value.  If the value returned is not null,
+              it must be handled according to the rules in
               this section corresponding to the IDL type being boxed.
             </p>
+
+            <div class='ednote'>
+              <p>
+                Perhaps there should be an example here for the real-world case that boxed
+                valuetypes are actually used for (DOMString).
+              </p>
+            </div>
           </div>
 
-          <div class='ednote'>
+          <div id='type-array' class='section'>
+            <h4>Arrays</h4>
             <p>
-              Perhaps there should be an example here for the real-world case that boxed
-              valuetypes are actually used for (DOMString).
+              …
             </p>
           </div>
         </div>
@@ -747,6 +892,11 @@ valuetype DOMStringOrNull DOMString;</pre>
 
         <div id='native-objects' class='section'>
           <h3>Native objects implementing interfaces</h3>
+
+          <!--p>
+            A native ECMAScript object is considered to implement a particular
+            interface if it has a property corresponding to each 
+          </p-->
 
           <div class='ednote'>
             <p>
@@ -946,6 +1096,7 @@ valuetype DOMStringOrNull DOMString;</pre>
         <div class='ednote'>
           <p>
             Still not sure how we should handle extensibility of extended attributes.
+            Need an array type to handle various things in HTML 5.
           </p>
         </div>
       </div>

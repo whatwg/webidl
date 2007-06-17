@@ -276,6 +276,32 @@
     </xsl:copy>
   </xsl:template>
 
+  <xsl:template match='h:div[@class="example"]'>
+    <xsl:copy>
+      <xsl:copy-of select='@*[namespace-uri()="" or namespace-uri="http://www.w3.org/XML/1998/namespace"]'/>
+      <div class='exampleHeader'>Example</div>
+      <xsl:apply-templates select='node()'/>
+    </xsl:copy>
+  </xsl:template>
+
+  <xsl:template match='codeblock'>
+    <div class='block'>
+      <div class='blockTitleDiv'>
+        <span class='blockTitle'>
+          <xsl:choose>
+            <xsl:when test='@language="idl"'>IDL</xsl:when>
+            <xsl:when test='@language="es"'>ECMAScript</xsl:when>
+            <xsl:when test='@language="java"'>Java</xsl:when>
+            <xsl:otherwise>@@</xsl:otherwise>
+          </xsl:choose>
+        </span>
+      </div>
+      <div class='blockContent'>
+        <pre class='code'><code class='{@language}-code'><xsl:apply-templates select='node()'/></code></pre>
+      </div>
+    </div>
+  </xsl:template>
+
   <xsl:template match='grammar'>
     <table class='grammar'>
       <xsl:apply-templates select='prod'/>
