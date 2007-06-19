@@ -1,7 +1,8 @@
 <xsl:stylesheet xmlns:xsl='http://www.w3.org/1999/XSL/Transform'
                 xmlns:h='http://www.w3.org/1999/xhtml'
+                xmlns:x='http://mcc.id.au/ns/local'
                 xmlns='http://www.w3.org/1999/xhtml'
-                exclude-result-prefixes='h'
+                exclude-result-prefixes='h x'
                 version='1.0' id='xslt'>
 
   <xsl:output method='xml' encoding='UTF-8'
@@ -9,7 +10,7 @@
               doctype-system='http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd'
               media-type='application/xhtml+xml; charset=UTF-8'/>
 
-  <xsl:variable name='options' select='/*/h:head/options'/>
+  <xsl:variable name='options' select='/*/h:head/x:options'/>
   <xsl:variable name='id' select='/*/h:head/h:meta[@name="revision"]/@content'/>
   <xsl:variable name='rev' select='substring-before(substring-after(substring-after($id, " "), " "), " ")'/>
   <xsl:variable name='tocpi' select='//processing-instruction("toc")[1]'/>
@@ -70,8 +71,8 @@
       <dt>This version:</dt>
       <dd>
         <xsl:choose>
-          <xsl:when test='$options/versions/this[@cvsweb="true"]'>
-            <xsl:variable name='href' select='concat(substring-before($options/versions/this/@href, "~checkout~/"), substring-after($options/versions/this/@href, "~checkout~/"))'/>
+          <xsl:when test='$options/x:versions/x:this[@cvsweb="true"]'>
+            <xsl:variable name='href' select='concat(substring-before($options/x:versions/x:this/@href, "~checkout~/"), substring-after($options/x:versions/x:this/@href, "~checkout~/"))'/>
             <xsl:variable name='href2' select='concat($href, "?rev=", $rev, "&amp;content-type=text/xml")'/>
             <a id='thisVersionLink' href='{$href}'><xsl:value-of select='$href'/></a>
             <script type='text/ecmascript'>
@@ -80,45 +81,45 @@
               var xs = id.match(/ ([0-9]\.[0-9.]+) /);
               if (xs) {
                 var rev = xs[1];
-                a.href = "<xsl:value-of select='$options/versions/this/@href'/>?rev=" + rev + String.fromCharCode(38) + "content-type=text/html; charset=utf-8";
+                a.href = "<xsl:value-of select='$options/x:versions/x:this/@href'/>?rev=" + rev + String.fromCharCode(38) + "content-type=text/html; charset=utf-8";
                 a.firstChild.data = a.href;
               }
             </script>
           </xsl:when>
           <xsl:otherwise>
-            <a href='{$options/versions/this/@href}'><xsl:value-of select='$options/versions/this/@href'/></a>
+            <a href='{$options/x:versions/x:this/@href}'><xsl:value-of select='$options/x:versions/x:this/@href'/></a>
           </xsl:otherwise>
         </xsl:choose>
       </dd>
       <dt>Latest version:</dt>
-      <xsl:if test='$options/versions/latest/@href != ""'>
-        <dd><a href='{$options/versions/latest/@href}'><xsl:value-of select='$options/versions/latest/@href'/></a></dd>
+      <xsl:if test='$options/x:versions/x:latest/@href != ""'>
+        <dd><a href='{$options/x:versions/x:latest/@href}'><xsl:value-of select='$options/x:versions/x:latest/@href'/></a></dd>
       </xsl:if>
       <dt>Previous version:</dt>
-      <xsl:if test='$options/versions/previous/@href != ""'>
-        <xsl:for-each select='$options/versions/previous/@href'>
-          <dd><a href='{$options/versions/previous/@href}'><xsl:value-of select='$options/versions/previous/@href'/></a></dd>
+      <xsl:if test='$options/x:versions/x:previous/@href != ""'>
+        <xsl:for-each select='$options/x:versions/x:previous/@href'>
+          <dd><a href='{$options/x:versions/x:previous/@href}'><xsl:value-of select='$options/x:versions/x:previous/@href'/></a></dd>
         </xsl:for-each>
       </xsl:if>
-      <dt>Editor<xsl:if test='count($options/editors/person) &gt; 1'>s</xsl:if>:</dt>
-      <xsl:for-each select='$options/editors/person'>
+      <dt>Editor<xsl:if test='count($options/x:editors/x:person) &gt; 1'>s</xsl:if>:</dt>
+      <xsl:for-each select='$options/x:editors/x:person'>
         <dd>
           <xsl:choose>
             <xsl:when test='@homepage'>
-              <a href='{@homepage}'><xsl:value-of select='name'/></a>
+              <a href='{@homepage}'><xsl:value-of select='x:name'/></a>
             </xsl:when>
             <xsl:otherwise>
-              <xsl:value-of select='name'/>
+              <xsl:value-of select='x:name'/>
             </xsl:otherwise>
           </xsl:choose>
-          <xsl:if test='affiliation'>
+          <xsl:if test='x:affiliation'>
             <xsl:text> (</xsl:text>
             <xsl:choose>
-              <xsl:when test='affiliation/@homepage'>
-                <a href='{affiliation/@homepage}'><xsl:value-of select='affiliation'/></a>
+              <xsl:when test='x:affiliation/@homepage'>
+                <a href='{x:affiliation/@homepage}'><xsl:value-of select='x:affiliation'/></a>
               </xsl:when>
               <xsl:otherwise>
-                <xsl:value-of select='affiliation'/>
+                <xsl:value-of select='x:affiliation'/>
               </xsl:otherwise>
             </xsl:choose>
             <xsl:text>)</xsl:text>
@@ -132,7 +133,7 @@
       </xsl:for-each>
     </dl>
     <p class="copyright">
-      <a href="http://www.w3.org/Consortium/Legal/ipr-notice#Copyright">Copyright</a> ©<xsl:value-of select='concat($options/years, " ")'/>
+      <a href="http://www.w3.org/Consortium/Legal/ipr-notice#Copyright">Copyright</a> ©<xsl:value-of select='concat($options/x:years, " ")'/>
       <a href="http://www.w3.org/"><acronym title="World Wide Web Consortium">W3C</acronym></a><sup>®</sup>
       (<a href="http://www.csail.mit.edu/"><acronym title="Massachusetts Institute of Technology">MIT</acronym></a>,
       <a href="http://www.ercim.org/"><acronym title="European Research Consortium for Informatics and Mathematics">ERCIM</acronym></a>,
@@ -148,7 +149,7 @@
     <xsl:variable name='id' select='substring-before(., " ")'/>
     <xsl:variable name='names' select='concat(" ", substring-after(., " "), " ")'/>
     <table class='grammar'>
-      <xsl:apply-templates select='id($id)/prod[contains($names, concat(" ", @nt, " "))]' mode='def'/>
+      <xsl:apply-templates select='id($id)/x:prod[contains($names, concat(" ", @nt, " "))]' mode='def'/>
     </table>
   </xsl:template>
 
@@ -284,7 +285,7 @@
     </xsl:copy>
   </xsl:template>
 
-  <xsl:template match='codeblock'>
+  <xsl:template match='x:codeblock'>
     <div class='block'>
       <div class='blockTitleDiv'>
         <span class='blockTitle'>
@@ -292,6 +293,7 @@
             <xsl:when test='@language="idl"'>IDL</xsl:when>
             <xsl:when test='@language="es"'>ECMAScript</xsl:when>
             <xsl:when test='@language="java"'>Java</xsl:when>
+            <xsl:when test='@language="c"'>C</xsl:when>
             <xsl:otherwise>@@</xsl:otherwise>
           </xsl:choose>
         </span>
@@ -302,15 +304,15 @@
     </div>
   </xsl:template>
 
-  <xsl:template match='grammar'>
+  <xsl:template match='x:grammar'>
     <table class='grammar'>
-      <xsl:apply-templates select='prod'/>
+      <xsl:apply-templates select='x:prod'/>
     </table>
   </xsl:template>
 
-  <xsl:template match='prod' mode='def'>
+  <xsl:template match='x:prod' mode='def'>
     <tr id='proddef-{@nt}'>
-      <td><span class='prod-number'>[<xsl:value-of select='count(preceding-sibling::prod) + 1'/>]</span></td>
+      <td><span class='prod-number'>[<xsl:value-of select='count(preceding-sibling::x:prod) + 1'/>]</span></td>
       <td>
         <a class='nt' href='#prod-{@nt}'><xsl:value-of select='@nt'/></a>
         <xsl:if test='@whitespace="explicit"'>
@@ -328,9 +330,9 @@
     </tr>
   </xsl:template>
 
-  <xsl:template match='prod'>
+  <xsl:template match='x:prod'>
     <tr id='prod-{@nt}'>
-      <td><span class='prod-number'>[<xsl:value-of select='count(preceding-sibling::prod) + 1'/>]</span></td>
+      <td><span class='prod-number'>[<xsl:value-of select='count(preceding-sibling::x:prod) + 1'/>]</span></td>
       <td>
         <a class='nt' href='#proddef-{@nt}'><xsl:value-of select='@nt'/></a>
         <xsl:if test='@whitespace="explicit"'>

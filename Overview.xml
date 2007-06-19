@@ -6,7 +6,8 @@
 
   This is written in XHTML 1.1 with an inline <options> element that helps
   the Binding4DOM.xsl stylesheet process the document (generating a table
-  of contents, section numbers, certain processing instructions).
+  of contents, section numbers, certain processing instructions).  The silly
+  DTD subset is required so that the XPath id() function works appropriately.
   -->
 
 <?xml-stylesheet href='Binding4DOM.xsl' type='text/xsl'?>
@@ -15,15 +16,15 @@
 <!ELEMENT grammar ANY>
 <!ATTLIST grammar id ID #IMPLIED>
 ]>
-<html xmlns='http://www.w3.org/1999/xhtml' xml:lang='en'>
+<html xmlns='http://www.w3.org/1999/xhtml' xmlns:x='http://mcc.id.au/ns/local' xml:lang='en'>
   <head>
     <title>Language Bindings for DOM Specifications</title>
     <meta http-equiv='Content-Type' content='application/xhtml+xml; charset=UTF-8'/>
-    <meta name='revision' content='$Id: Overview.xml,v 1.23 2007-06-19 00:04:07 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: Overview.xml,v 1.24 2007-06-19 03:20:08 cmccorma Exp $'/>
     <link rel='stylesheet' href='http://www.w3.org/StyleSheets/TR/base' type='text/css'/>
     <link rel='stylesheet' href='Binding4DOM.css' type='text/css'/>
 
-    <options xmlns=''>
+    <options xmlns='http://mcc.id.au/ns/local'>
       <versions>
         <this cvsweb='true' href='http://dev.w3.org/cvsweb/~checkout~/2006/webapi/Binding4DOM/Overview.html'/>
         <latest href=''/>
@@ -53,7 +54,7 @@
 
       <div class='ednote'>
         <p>
-          This is revision $Id: Overview.xml,v 1.23 2007-06-19 00:04:07 cmccorma Exp $.
+          This is revision $Id: Overview.xml,v 1.24 2007-06-19 03:20:08 cmccorma Exp $.
         </p>
       </div>
     </div>
@@ -244,7 +245,7 @@
                 <a class='xattr' href='#Constructor'>[Constructor]</a> extended
                 attribute, while the first does not.
               </p>
-              <codeblock xmlns='' language='idl'>interface NodeList {
+              <x:codeblock language='idl'>interface NodeList {
   Node item(in unsigned long index);
   readonly attribute unsigned long length;
 };
@@ -255,7 +256,7 @@ interface Circle {
   attribute float cx;
   attribute float cy;
   readonly attribute float circumference;
-};</codeblock>
+};</x:codeblock>
               <p>
                 An ECMAScript implementation supporting these interfaces would
                 have a <span class='prop'>[[Construct]]</span> property on the
@@ -264,8 +265,8 @@ interface Circle {
                 <span class='idltype'>NodeList</span> interface object would not
                 have a <span class='prop'>[[Construct]]</span> property.
               </p>
-              <codeblock xmlns='' language='es'>var x = new Circle();    // x is now a reference to a host object that implements the Circle interface.
-var y = new NodeList();  // This would throw a TypeError.</codeblock>
+              <x:codeblock language='es'>var x = new Circle();    // x is now a reference to a host object that implements the Circle interface.
+var y = new NodeList();  // This would throw a TypeError.</x:codeblock>
             </div>
             <div class='ednote'>
               <p>
@@ -273,14 +274,14 @@ var y = new NodeList();  // This would throw a TypeError.</codeblock>
                 that’s probably something that will be wanted.  Maybe the
                 extended attribute should be on operations instead, e.g.:
               </p>
-              <codeblock xmlns='' language='idl'>interface Circle {
+              <x:codeblock language='idl'>interface Circle {
   attribute float r;
   attribute float cx;
   attribute float cy;
   readonly attribute float circumference;
 
   [Constructor] Circle createCircle(in float r, in float cx, in float cy);
-};</codeblock>
+};</x:codeblock>
               <p>
                 For ES, such operations map to a [[Construct]] property
                 with a function that takes the given arguments.  For other languages,
@@ -309,28 +310,29 @@ var y = new NodeList();  // This would throw a TypeError.</codeblock>
             </p>
             <div class='example'>
               <p>
-                The following IDL fragment declares an interface that has one
+                The following IDL fragment defines an interface that has one
                 attribute with the <a class='xattr' href='#NoNull'>[NoNull]</a>
                 extended attribute, and one operation with an argument that has
                 the extended attribute:
               </p>
-              <codeblock xmlns='' language='idl'>valuetype DOMString sequence&lt;octet>;
+              <x:codeblock language='idl'>valuetype DOMString sequence&lt;octet>;
 
 interface Dog {
   [NoNull] attribute DOMString name;
   attribute DOMString shortName;
 
   boolean isMemberOfBreed([NoNull] in DOMString breedName);
-};</codeblock>
+};</x:codeblock>
               <p>
                 An ECMAScript implementation implementing the <span class='idltype'>Dog</span>
                 interface would not allow the <span class='esvalue'>null</span> value to
                 be assigned to the <span class='prop'>name</span> property or passed as the
                 argument to the <span class='prop'>isMemberOfBreed</span> function:
               </p>
-              <codeblock xmlns='' language='es'>var d = getDog();         // Assume d is a host object implementing the Dog interface.
+              <x:codeblock language='es'>var d = getDog();         // Assume d is a host object implementing the Dog interface.
+
 d.name = null;            // This assigns the string "null" to the .name property.
-d.isMemberOfBreed(null);  // This passes the string "null" to the isMemberOfBreed function.</codeblock>
+d.isMemberOfBreed(null);  // This passes the string "null" to the isMemberOfBreed function.</x:codeblock>
             </div>
 
             <div class='ednote'>
@@ -338,8 +340,8 @@ d.isMemberOfBreed(null);  // This passes the string "null" to the isMemberOfBree
                 Perhaps instead of having a <span class='xattr'>[NoNull]</span> extended attribute
                 on DOMString arguments/attributes, different types could be used, e.g.:
               </p>
-              <codeblock xmlns='' language='idl'>typedef sequence&lt;octet> DOMString;
-valuetype DOMStringOrNull DOMString;</codeblock>
+              <x:codeblock language='idl'>typedef sequence&lt;octet> DOMString;
+valuetype DOMStringOrNull DOMString;</x:codeblock>
             </div>
           </div>
 
@@ -354,7 +356,8 @@ valuetype DOMStringOrNull DOMString;</codeblock>
               The extent to which a language supports method overloading
               determines whether an object implementing an interface with
               overloaded operations must implement the operation using the
-              overloaded name or the original name.
+              overloaded name or the original name, and is specific to the
+              language binding.
             </p>
             <p>
               The <a class='xattr' href='#Overloads'>[Overloads]</a>
@@ -363,6 +366,93 @@ valuetype DOMStringOrNull DOMString;</codeblock>
               which specifies the name of the operation in the interface
               this operation overloads.
             </p>
+            <div class='example'>
+              <p>
+                The following IDL fragment defines an interface with
+                overloaded operations:
+              </p>
+              <x:codeblock language='idl'>interface Person;
+
+interface PersonFactory {
+  Person createPerson();
+  [Overloads=createPerson] Person createPersonWithAge(in short age);
+};</x:codeblock>
+              <p>
+                Since the ECMAScript binding allows overloading, a host object
+                implementing the <span class='idltype'>PersonFactory</span>
+                interface will have a single property <span class='prop'>createPerson</span>:
+              </p>
+              <x:codeblock language='es'>var f = getFactory();          // Assume f is a host object implementing the PersonFactory interface.
+
+typeof f.createPerson;         // Evaluates to "function".
+typeof f.createPersonWithAge;  // Evaluates to "undefined".
+
+var p1 = f.createPerson();     // Corresponds to the createPerson operation.
+var p2 = f.createPerson(26);   // Corresponds to the createPersonWithAge operation.</x:codeblock>
+              <p>
+                However, a hypothetical C language binding would not, since
+                C does not support overloading.  Separate functions would be used
+                for the two operations:
+              </p>
+              <x:codeblock language='c'>PersonFactory* f = getFactory();
+
+Person* p1 = PersonFactory_createPerson(f);             // Corresponds to the createPerson operation.
+Person* p2 = PersonFactory_createPersonWithAge(f, 26);  // Corresponds to the createPersonWithAge operation.</x:codeblock>
+            </div>
+          </div>
+
+          <div id='PutForwards' class='section'>
+            <h4>[PutForwards]</h4>
+
+            <p>
+              If the <a class='xattr' href='#PutForwards'>[PutForwards]</a> extended
+              attribute appears on a readonly attribute declaration whose type is an object,
+              it indicates that assigning to the attribute will have specific behavior.
+              Namely, the assignment is “forwarded” to the attribute (specified by
+              the extended attribute argument) on the object that is currently the value
+              of the attribute being assigned to.
+            </p>
+            <p>
+              It is binding language specific what behavior occurs when assigning
+              to such an attribute when its value is null.
+            </p>
+            <p>
+              The <a class='xattr' href='#PutForwards'>[PutForwards]</a> extended
+              attribute takes a single, required argument, an
+              <a class='nt' href='#prod-Identifier'>Identifier</a>, which
+              specifies the name of the attribute assignments must be forwarded to.
+            </p>
+            <div class='example'>
+              <p>
+                The following IDL fragment defines interfaces for names and people.
+                The <a class='xattr' href='#PutForwards'>[PutForwards]</a> extended
+                attribute is used on the <span class='idlattr'>name</span> attribute
+                of the <span class='idltype'>Person</span> interface to indicate
+                that assignments to that attribute result in assignments to the
+                <span class='idlattr'>full</span> attribute of the
+                <span class='idltype'>Person</span> object:
+              </p>
+              <x:codeblock language='idl'>valuetype DOMString sequence&lt;octet>;
+
+interface Name {
+  attribute DOMString full;
+  attribute DOMString family;
+  attribute DOMString given;
+};
+
+interface Person {
+  [PutForwards=full] readonly attribute Name name;
+  attribute unsigned short age;
+};</x:codeblock>
+              <p>
+                In the ECMAScript binding, this would allow assignments to the
+                <span class='prop'>name</span> property:
+              </p>
+              <x:codeblock language='es'>var p = getPerson();           // Assume p is a host object implementing the Person interface.
+
+p.name = 'John Citizen';       // This statement...
+p.name.full = 'John Citizen';  // ...has the same behavior as this one.</x:codeblock>
+            </div>
           </div>
 
           <div id='Variadic' class='section'>
@@ -381,6 +471,31 @@ valuetype DOMStringOrNull DOMString;</codeblock>
               The <a class='xattr' href='#Variadic'>[Variadic]</a>
               extended attribute takes no argument.
             </p>
+            <div class='example'>
+              <p>
+                The following IDL fragment defines an interface that has a
+                variadic operation:
+              </p>
+              <x:codeblock language='idl'>interface IntegerSet {
+  readonly unsigned long cardinality;
+
+  void union([Variadic] in long integers);
+  void intersection([Variadic] in long integers);
+};</x:codeblock>
+              <p>
+                In the ECMAScript binding, variadic operations are implemented by
+                functions that can accept the subsequent arguments:
+              </p>
+              <x:codeblock language='es'>var s = getIntegerSet();  // Assume s is a host object implementing the IntegerSet interface.
+
+s.union();                // Passing no arguments corresponding to 'integers'.
+s.union(1, 4, 7);         // Passing three arguments corresponding to 'integers'.</x:codeblock>
+              <p>
+                A binding for a language that does not support variadic functions
+                may specify that an explicit array or list of integers be passed
+                to such an operation.
+              </p>
+            </div>
           </div>
         </div>
       </div>
@@ -1029,7 +1144,7 @@ valuetype DOMStringOrNull DOMString;</codeblock>
           The following LL(1) grammar matches an IDL fragment:
         </p>
 
-        <grammar id='grammar' xmlns=''>
+        <grammar id='grammar' xmlns='http://mcc.id.au/ns/local'>
           <prod nt='Definitions'>ExtendedAttributeList Definition Definitions | ε</prod>
           <prod nt='Definition'>Module | Interface | Exception | Typedef | Valuetype | Const</prod>
           <prod nt='Module'>"module" identifier "{" Definitions "}" ";"</prod>
