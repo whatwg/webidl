@@ -20,7 +20,7 @@
   <head>
     <title>Language Bindings for DOM Specifications</title>
     <meta http-equiv='Content-Type' content='application/xhtml+xml; charset=UTF-8'/>
-    <meta name='revision' content='$Id: Overview.xml,v 1.26 2007-06-20 01:15:58 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: Overview.xml,v 1.27 2007-06-20 09:20:13 cmccorma Exp $'/>
     <link rel='stylesheet' href='http://www.w3.org/StyleSheets/TR/base' type='text/css'/>
     <link rel='stylesheet' href='Binding4DOM.css' type='text/css'/>
 
@@ -54,7 +54,7 @@
 
       <div class='ednote'>
         <p>
-          This is revision $Id: Overview.xml,v 1.26 2007-06-20 01:15:58 cmccorma Exp $.
+          This is revision $Id: Overview.xml,v 1.27 2007-06-20 09:20:13 cmccorma Exp $.
         </p>
       </div>
     </div>
@@ -290,39 +290,23 @@ var y = new NodeList();  // This would throw a TypeError.</x:codeblock>
             </div>
           </div>
 
-          <div id='Index' class='section'>
-            <h4>[Index]</h4>
+          <div id='IndexGetter' class='section'>
+            <h4>[IndexGetter]</h4>
 
             <p>
-              If the <a class='xattr' href='#Index'>[Index]</a> extended
-              attribute appears on an operation that can accept a single
-              argument, it indicates that indexing for lookup an object that implements
-              the interface with a value of the operation’s argument type will
-              have the same effect as calling the operation with the given index.
-              Multiple single-argument accepting operations on an object may be
-              annotated with <a class='xattr' href='#Index'>[Index]</a>, however
-              each operation must have a different type as its argument.
+              If the <a class='xattr' href='#IndexGetter'>[IndexGetter]</a> extended
+              attribute appears on an operation with a single <span class='idltype'>unsigned long</span>
+              argument, it indicates that an object that implements the interface
+              can be indexed with an <span class='idltype'>unsigned long</span>,
+              resulting in the same effect as calling the operation with the given
+              index (for languages that support such object indexing).
+              If an object implements interfaces such that it has more than one
+              operation annotated with <a class='xattr' href='#IndexGetter'>[IndexGetter]</a>,
+              then which operation is invoked when an object is indexed with an
+              <span class='idltype'>unsigned long</span> value is undefined.
             </p>
             <p>
-              If the <a class='xattr' href='#Index'>[Index]</a> extended
-              attribute appears on an operation that can accept two arguments,
-              it indicates that indexing an object that implements the interface
-              with a value of the operation’s first argument type and assigning
-              to that object index a value of the operation’s second argument
-              type will have the same effect as calling the operation with the
-              given index and value.  Multiple two-argument accepting operations
-              on an object may be annotated with
-              <a class='xattr' href='#Index'>[Index]</a>, however each operation
-              must have a different pair of argument types.
-            </p>
-            <p>
-              It is language binding specific how indexing the object for
-              value lookup or assignment with types other than the argument types
-              of one of the <a class='xattr' href='#Index'>[Index]</a>-annotated
-              operations is handled.
-            </p>
-            <p>
-              The <a class='xattr' href='#Index'>[Index]</a> extended attribute
+              The <a class='xattr' href='#IndexGetter'>[IndexGetter]</a> extended attribute
               takes no argument.
             </p>
             <div class='example'>
@@ -336,11 +320,11 @@ var y = new NodeList();  // This would throw a TypeError.</x:codeblock>
 interface OrderedMap {
   readonly attribute unsigned long size;
 
-  [Index] any get(in DOMString name);
-  [Index] any getByIndex(in unsigned long index);
+  [IndexGetter] any getByIndex(in unsigned long index);
+  [IndexPutter] void setByIndex(in unsigned long index, in any value);
 
-  [Index] void set(in DOMString name, in any value);
-  [Index] void setByIndex(in unsigned long index, in any value);
+  [NameGetter] any get(in DOMString name);
+  [NamePutter] void set(in DOMString name, in any value);
 };</x:codeblock>
               <p>
                 An ECMAScript implementation would have an internal
@@ -350,12 +334,98 @@ interface OrderedMap {
                 in the map:
               </p>
               <x:codeblock language='es'>var map = getOrderedMap();  // Assume map is a host object implementing the OrderedMap interface.
+var x, y;
 
-var x = map[0];             // Same as calling map.getByIndex(0);
-var y = map.apple;          // Same as calling map.get('apple');
+x = map[0];                 // Same as: x = map.getByIndex(0)
+map[1] = false;             // Same as: map.setByIndex(1, false)
 
-map[1] = false;             // Same as calling map.setByIndex(1, false);
-map.banana = 123;           // Same as calling map.set('banana', 123);</x:codeblock>
+y = map.apple;              // Same as: y = map.get('apple')
+map.banana = 123;           // Same as: map.set('banana', 123)</x:codeblock>
+            </div>
+          </div>
+
+          <div id='IndexSetter' class='section'>
+            <h4>[IndexSetter]</h4>
+
+            <p>
+              If the <a class='xattr' href='#IndexSetter'>[IndexSetter]</a> extended
+              attribute appears on an operation with a two arguments, the first of which
+              is <span class='idltype'>unsigned long</span>, it indicates that an object
+              that implements the interface can be indexed with an
+              <span class='idltype'>unsigned long</span> for assignment,
+              resulting in the same effect as calling the operation with the given
+              index and value to assign (for languages that support such object indexing).
+              If an object implements interfaces such that it has more than one
+              operation annotated with <a class='xattr' href='#IndexSetter'>[IndexSetter]</a>,
+              then which operation is invoked when an object is indexed with an
+              <span class='idltype'>unsigned long</span> value for assignment is undefined.
+            </p>
+            <p>
+              The <a class='xattr' href='#IndexSetter'>[IndexSetter]</a> extended attribute
+              takes no argument.
+            </p>
+            <div class='example'>
+              <p>
+                See <a href='#IndexGetter'>section <?sref IndexGetter?></a> for an
+                example of the use of <a class='xattr' href='#IndexSetter'>[IndexSetter]</a>.
+              </p>
+            </div>
+          </div>
+
+          <div id='NameGetter' class='section'>
+            <h4>[NameGetter]</h4>
+
+            <p>
+              If the <a class='xattr' href='#NameGetter'>[NameGetter]</a> extended
+              attribute appears on an operation with a single boxed
+              <span class='idltype'>sequence&lt;octet></span> valuetype argument, it
+              indicates that an object that implements the interface can be
+              indexed with a string, resulting in the same effect as calling the
+              operation with the given index name (for languages that support
+              such object indexing).
+              If an object has both a <a class='xattr' href='#Getter'>[NameGetter]</a>-
+              and <a class='xattr' href='#IndexGetter'>[IndexGetter]</a>-annotated
+              operation, then which operation is invoked when an object is indexed
+              is language binding specific.
+            </p>
+            <p>
+              The <a class='xattr' href='#NameGetter'>[NameGetter]</a> extended attribute
+              takes no argument.
+            </p>
+            <div class='example'>
+              <p>
+                See <a href='#IndexGetter'>section <?sref IndexGetter?></a> for an
+                example of the use of <a class='xattr' href='#NameGetter'>[NameGetter]</a>.
+              </p>
+            </div>
+          </div>
+
+          <div id='NameSetter' class='section'>
+            <h4>[NameSetter]</h4>
+
+            <p>
+              If the <a class='xattr' href='#NameSetter'>[NameSetter]</a> extended
+              attribute appears on an operation with a two arguments, the first of which
+              is a boxed <span class='idltype'>sequence&lt;octet></span> valuetype,
+              it indicates that an object that implements the interface can be
+              indexed with a string for assignment, resulting in the same effect
+              as calling the operation with the given index and value to assign
+              (for languages that support such object indexing).  If an object
+              implements interfaces such that it has more than one
+              operation annotated with <a class='xattr' href='#NameSetter'>[NameSetter]</a>,
+              then which operation is invoked when an object is indexed with a
+              boxed <span class='idltype'>sequence&lt;octet></span> value for
+              assignment is undefined.
+            </p>
+            <p>
+              The <a class='xattr' href='#NameSetter'>[NameSetter]</a> extended attribute
+              takes no argument.
+            </p>
+            <div class='example'>
+              <p>
+                See <a href='#IndexGetter'>section <?sref IndexGetter?></a> for an
+                example of the use of <a class='xattr' href='#NameSetter'>[NameSetter]</a>.
+              </p>
             </div>
           </div>
 
@@ -598,24 +668,14 @@ s.union(1, 4, 7);         // Passing three arguments corresponding to 'integers'
 
           <p>
             This sub-section describes how types in the IDL map to types in ECMAScript.
-            The phrase “to pass a value to a host object expecting type <span class='typevar'>T</span>” is used in this sub-section
+            The phrase “to pass a value to a host object expecting type <var>T</var>” is used in this sub-section
             to describe passing an ECMAScript value as an argument to a function whose corresponding operation in the IDL specifies that
-            the argument is of type <span class='typevar'>T</span>, or assigning to a property whose corresponding attribute in the IDL
-            is of type <span class='typevar'>T</span>.  Conversely, the phrase “to return a value of type
-            <span class='typevar'>T</span> from a host object” is used to describe obtaining the ECMAScript return value
-            from a function whose corresponding operation in the IDL specifies a return type <span class='typevar'>T</span>,
-            or retrieving a property whose corresponding attribute in the IDL is of type <span class='typevar'>T</span>.
+            the argument is of type <var>T</var>, or assigning to a property whose corresponding attribute in the IDL
+            is of type <var>T</var>.  Conversely, the phrase “to return a value of type
+            <var>T</var> from a host object” is used to describe obtaining the ECMAScript return value
+            from a function whose corresponding operation in the IDL specifies a return type <var>T</var>,
+            or retrieving a property whose corresponding attribute in the IDL is of type <var>T</var>.
           </p>
-
-          <div class='ednote'>
-            <p>
-              There will be some extended attributes that can override the behaviour
-              of stuff in this section.  For example, a [NoNull] extended attribute
-              on a function argument of type DOMString (which is a boxed
-              sequence&lt;octet> valuetype) indicates that a null value passed
-              to the function will be converted to the ES string <span class='esstring'>"null"</span>.
-            </p>
-          </div>
 
           <div id='type-any' class='section'>
             <h4>any</h4>
@@ -854,25 +914,25 @@ s.union(1, 4, 7);         // Passing three arguments corresponding to 'integers'
           </div>
 
           <div id='type-sequence' class='section'>
-            <h4>sequence&lt;<span class='typevar'>T</span>&gt;</h4>
+            <h4>sequence&lt;<var>T</var>&gt;</h4>
 
             <p>
               Values passed to a host object that expects a
-              <span class='idltype'>sequence&lt;<span class='typevar'>T></span></span>
+              <span class='idltype'>sequence&lt;<var>T</var>></span>
               must be objects with a <span class='prop'>length</span> property whose
               value is a non-negative integer <span class='estype'>Number</span> that indicates the number
               of elements in the sequence.  Such objects must return the element in
-              the sequence at position <i>n</i> when their
+              the sequence at position <var>n</var> when their
               <span class='prop'>[[Get]]</span> internal method is invoked with
-              <i>n</i> as its argument.  (An ECMAScript <span class='estype'>Array</span>
+              <var>n</var> as its argument.  (An ECMAScript <span class='estype'>Array</span>
               is an object that matches this description.)  When the host object
               gets an element of the sequence using the <span class='prop'>[[Get]]</span> method,
-              the returned valu will first be handled according to the rules in this section
-              for the type <span class='typevar'>T</span>.
+              the returned value will first be handled according to the rules in this section
+              for the type <var>T</var>.
             </p>
             <p>
               If a host object expecting a
-              <span class='idltype'>sequence&lt;<span class='typevar'>T></span></span>
+              <span class='idltype'>sequence&lt;<var>T</var>></span>
               is passed a value which is not an object with a non-negative integer
               <span class='estype'>Number</span> <span class='prop'>length</span> property,
               a <span class='estype'>TypeError</span> exception must be thrown.
@@ -905,8 +965,6 @@ results.numbers[0];                  // Evaluates to 5, since results.numbers is
             </div>
             <div class='ednote'>
               <p>
-                Nothing currently uses sequences of types other than octet, so
-                I just made the mapping do something I considered sensible.
                 Originally I had it use pass-by-value semantics, where passing
                 sequences would pass a copy, but I changed it to pass-by-reference
                 so that it could be used usefully for array-like things.
@@ -1112,26 +1170,6 @@ results.numbers[0];                  // Evaluates to 5, since results.numbers is
               </p>
             </div>
           </div>
-
-          <div id='custom-get-put' class='section'>
-            <h4>Custom [[Get]] and [[Put]] methods</h4>
-
-            <div class='ednote'>
-              <p>
-                What extended attributes on the interface in the IDL indicate
-                that non-standard [[Get]] methods are used.  Some
-                common cases (e.g. non-negative integer indexes
-                correspond to calling a method, like <code>NodeList.item()</code>)
-                should be able to be declared in the IDL.
-              </p>
-              <p>
-                Do any existing DOM objects have custom [[Put]] or [[Delete]] methods?
-                Yes, it seems: assigning to <code>window.location</code> is like assigning to
-                <code>window.location.href</code>, and assigning to <code>.style.width</code> is like assigning
-                to <code>.style.width.cssText</code> in the new CSSOM.
-              </p>
-            </div>
-          </div>
         </div>
 
         <div id='host-objects' class='section'>
@@ -1146,13 +1184,160 @@ results.numbers[0];                  // Evaluates to 5, since results.numbers is
             </p>
           </div>
 
+          <div id='get' class='section'>
+            <h4>[[Get]] method</h4>
+
+            <p>
+              The internal <span class='prop'>[[Get]]</span> method of every
+              host object <var>O</var> that implements at least one IDL interface
+              behaves, assuming <var>P</var> is the property name passed to
+              <span class='prop'>[[Get]]</span>, as follows:
+            </p>
+            <ol>
+              <li>
+                Determine the name of a
+                <a class='xattr' href='#IndexGetter'>[IndexGetter]</a>-annotated
+                operation on the interfaces that <var>O</var> implements.
+                If there is no such operation, go to step 7.
+              </li>
+              <li>Compute ToUint32(<var>P</var>).</li>
+              <li>If Result(2) is a non-negative integer, go to step 7.</li>
+              <li>
+                Invoke the <span class='prop'>[[Get]]</span> method of object <var>O</var> with Result(1)
+                as the argument.
+              </li>
+              <li>
+                Invoke the <span class='prop'>[[Call]]</span> method of Result(4), providing
+                <var>O</var> as the <span class='esvalue'>this</span> value and
+                Result(2) as the single argument value.
+              </li>
+              <li>Return Result(4).</li>
+              <li>
+                Determine the name of a
+                <a class='xattr' href='#Getter'>[Getter]</a>-annotated operation
+                on the interfaces that <var>O</var> implements.  If there is no
+                such operation, go to step 13.
+              </li>
+              <li>
+                Invoke the <span class='prop'>[[HasProperty]]</span> method of object <var>O</var> with
+                <var>P</var> as the argument.
+              </li>
+              <li>
+                If Result(7) is <span class='esvalue'>true</span>, go to step 13.
+              </li>
+              <li>
+                Invoke the <span class='prop'>[[Get]]</span> method of object <var>O</var> with Result(6)
+                as the argument.
+              </li>
+              <li>
+                Invoke the <span class='prop'>[[Call]]</span> method of Result(9), providing
+                <var>O</var> as the <span class='esvalue'>this</span> value and
+                <var>P</var> as the single argument value.
+              </li>
+              <li>Return Result(10).</li>
+              <li>
+                If <var>O</var> doesn’t have a property with name <var>P</var>,
+                go to step 16.
+              </li>
+              <li>Get the value of the property.</li>
+              <li>Return Result(14).</li>
+              <li>
+                If the <span class='prop'>[[Prototype]]</span> of <var>O</var> is
+                <span class='esvalue'>null</span>, return
+                <span class='esvalue'>undefined</span>.
+              </li>
+              <li>
+                Call the <span class='prop'>[[Get]]</span> method of <span class='prop'>[[Prototype]]</span> with property name
+                <var>P</var>.
+              </li>
+              <li>Return Result(17).</li>
+            </ol>
+          </div>
+
+          <div id='put' class='section'>
+            <h4>[[Put]] method</h4>
+
+            <p>
+              The internal <span class='prop'><span class='prop'>[[Put]]</span></span> method of every
+              host object <var>O</var> that implements at least one IDL interface
+              behaves, assuming <var>P</var> is the property name and <var>V</var>
+              is the property value passed to <span class='prop'><span class='prop'>[[Put]]</span></span>,
+              as follows:
+            </p>
+            <ol>
+              <li>
+                Determine the name of a
+                <a class='xattr' href='#IndexSetter'>[IndexSetter]</a>-annotated
+                operation on the interfaces that <var>O</var> implements.
+                If there is no such operation, go to step 7.
+              </li>
+              <li>Compute ToUint32(<var>P</var>).</li>
+              <li>If Result(2) is a non-negative integer, go to step 7.</li>
+              <li>
+                Invoke the <span class='prop'>[[Get]]</span> method of object <var>O</var> with Result(1)
+                as the argument.
+              </li>
+              <li>
+                Invoke the <span class='prop'>[[Call]]</span> method of Result(4), providing
+                <var>O</var> as the <span class='esvalue'>this</span> value and
+                Result(2) and <var>V</var> as the two argument values.
+              </li>
+              <li>Return Result(4).</li>
+              <li>
+                Determine the name of a
+                <a class='xattr' href='#Setter'>[Setter]</a>-annotated operation
+                on the interfaces that <var>O</var> implements.  If there is no
+                such operation, go to step 13.
+              </li>
+              <li>
+                Invoke the <span class='prop'>[[HasProperty]]</span> method of object <var>O</var> with
+                <var>P</var> as the argument.
+              </li>
+              <li>
+                If Result(7) is <span class='esvalue'>true</span>, go to step 13.
+              </li>
+              <li>
+                Invoke the <span class='prop'>[[Get]]</span> method of object <var>O</var> with Result(6)
+                as the argument.
+              </li>
+              <li>
+                Invoke the <span class='prop'>[[Call]]</span> method of Result(9), providing
+                <var>O</var> as the <span class='esvalue'>this</span> value and
+                <var>P</var> and <var>V</var> as the two argument values.
+              </li>
+              <li>Return Result(10).</li>
+              <li>
+                Call the <span class='prop'>[[CanPut]]</span> method of <var>O</var> with name
+                <var>P</var>.
+              </li>
+              <li>
+                If Result(13) is <span class='esvalue'>false</span>,
+                return.
+              </li>
+              <li>
+                If <var>O</var> doesn’t have a property with name <var>P</var>,
+                go to step 18.
+              </li>
+              <li>
+                Set the value of the property to <var>V</var>.  The attributes
+                of the property are not changed.
+              </li>
+              <li>Return.</li>
+              <li>
+                Create a property with name <var>P</var>, set its value to
+                <var>V</var> and give it empty attributes.
+              </li>
+              <li>Return.</li>
+            </ol>
+          </div>
+
           <div id='attributes' class='section'>
             <h4>Attributes</h4>
 
             <div class='ednote'>
               <p>
                 How attributes on an interface correspond to properties on the host object.
-                Perhaps a <tt>[PutForwards=<i>PropertyName</i>]</tt> to handle the
+                Perhaps a <tt>[PutForwards=<var>PropertyName</var>]</tt> to handle the
                 <code>window.location</code> assignment mentioned above.
               </p>
             </div>
@@ -1365,7 +1550,6 @@ results.numbers[0];                  // Evaluates to 5, since results.numbers is
         <div class='ednote'>
           <p>
             Still not sure how we should handle extensibility of extended attributes.
-            Need an array type to handle various things in HTML 5.
           </p>
         </div>
       </div>
