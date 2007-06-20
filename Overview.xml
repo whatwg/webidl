@@ -20,7 +20,7 @@
   <head>
     <title>Language Bindings for DOM Specifications</title>
     <meta http-equiv='Content-Type' content='application/xhtml+xml; charset=UTF-8'/>
-    <meta name='revision' content='$Id: Overview.xml,v 1.25 2007-06-19 11:11:55 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: Overview.xml,v 1.26 2007-06-20 01:15:58 cmccorma Exp $'/>
     <link rel='stylesheet' href='http://www.w3.org/StyleSheets/TR/base' type='text/css'/>
     <link rel='stylesheet' href='Binding4DOM.css' type='text/css'/>
 
@@ -54,7 +54,7 @@
 
       <div class='ednote'>
         <p>
-          This is revision $Id: Overview.xml,v 1.25 2007-06-19 11:11:55 cmccorma Exp $.
+          This is revision $Id: Overview.xml,v 1.26 2007-06-20 01:15:58 cmccorma Exp $.
         </p>
       </div>
     </div>
@@ -287,6 +287,75 @@ var y = new NodeList();  // This would throw a TypeError.</x:codeblock>
                 with a function that takes the given arguments.  For other languages,
                 this could perhaps map to a static method somewhere.
               </p>
+            </div>
+          </div>
+
+          <div id='Index' class='section'>
+            <h4>[Index]</h4>
+
+            <p>
+              If the <a class='xattr' href='#Index'>[Index]</a> extended
+              attribute appears on an operation that can accept a single
+              argument, it indicates that indexing for lookup an object that implements
+              the interface with a value of the operation’s argument type will
+              have the same effect as calling the operation with the given index.
+              Multiple single-argument accepting operations on an object may be
+              annotated with <a class='xattr' href='#Index'>[Index]</a>, however
+              each operation must have a different type as its argument.
+            </p>
+            <p>
+              If the <a class='xattr' href='#Index'>[Index]</a> extended
+              attribute appears on an operation that can accept two arguments,
+              it indicates that indexing an object that implements the interface
+              with a value of the operation’s first argument type and assigning
+              to that object index a value of the operation’s second argument
+              type will have the same effect as calling the operation with the
+              given index and value.  Multiple two-argument accepting operations
+              on an object may be annotated with
+              <a class='xattr' href='#Index'>[Index]</a>, however each operation
+              must have a different pair of argument types.
+            </p>
+            <p>
+              It is language binding specific how indexing the object for
+              value lookup or assignment with types other than the argument types
+              of one of the <a class='xattr' href='#Index'>[Index]</a>-annotated
+              operations is handled.
+            </p>
+            <p>
+              The <a class='xattr' href='#Index'>[Index]</a> extended attribute
+              takes no argument.
+            </p>
+            <div class='example'>
+              <p>
+                The following IDL fragment defines an interface
+                <span class='idltype'>OrderedMap</span> which allows
+                retrieving and setting values by name or by index number:
+              </p>
+              <x:codeblock language='idl'>valuetype DOMString sequence&lt;octet>;
+
+interface OrderedMap {
+  readonly attribute unsigned long size;
+
+  [Index] any get(in DOMString name);
+  [Index] any getByIndex(in unsigned long index);
+
+  [Index] void set(in DOMString name, in any value);
+  [Index] void setByIndex(in unsigned long index, in any value);
+};</x:codeblock>
+              <p>
+                An ECMAScript implementation would have an internal
+                <span class='prop'>[[Get]]</span> method that allows values
+                to be retrieved from the map as properties, and a corresponding
+                <span class='prop'>[[Put]]</span> method for setting values
+                in the map:
+              </p>
+              <x:codeblock language='es'>var map = getOrderedMap();  // Assume map is a host object implementing the OrderedMap interface.
+
+var x = map[0];             // Same as calling map.getByIndex(0);
+var y = map.apple;          // Same as calling map.get('apple');
+
+map[1] = false;             // Same as calling map.setByIndex(1, false);
+map.banana = 123;           // Same as calling map.set('banana', 123);</x:codeblock>
             </div>
           </div>
 
