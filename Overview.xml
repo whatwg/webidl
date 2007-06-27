@@ -20,7 +20,7 @@
   <head>
     <title>Language Bindings for DOM Specifications</title>
     <meta http-equiv='Content-Type' content='application/xhtml+xml; charset=UTF-8'/>
-    <meta name='revision' content='$Id: Overview.xml,v 1.28 2007-06-20 23:49:17 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: Overview.xml,v 1.29 2007-06-27 05:47:14 cmccorma Exp $'/>
     <link rel='stylesheet' href='http://www.w3.org/StyleSheets/TR/base' type='text/css'/>
     <link rel='stylesheet' href='Binding4DOM.css' type='text/css'/>
 
@@ -54,7 +54,7 @@
 
       <div class='ednote'>
         <p>
-          This is revision $Id: Overview.xml,v 1.28 2007-06-20 23:49:17 cmccorma Exp $.
+          This is revision $Id: Overview.xml,v 1.29 2007-06-27 05:47:14 cmccorma Exp $.
         </p>
       </div>
     </div>
@@ -158,8 +158,8 @@
         <p>
           An IDL fragment is a sequence of definitions that matches the
           <a class='nt' href='#prod-Definitions'>Definitions</a> non-terminal
-          in the grammar.  See Appendix <?sref idl-grammar?> for the complete
-          grammar and an explanation of the notation used.
+          in the grammar.  See <a href='#idl-grammar'>Appendix <?sref idl-grammar?></a>
+          for the complete grammar and an explanation of the notation used.
         </p>
 
         <p>…</p>
@@ -533,7 +533,11 @@ valuetype DOMStringOrNull DOMString;</x:codeblock>
               extended attribute takes a single, required argument,
               an <a class='nt' href='#prod-Identifier'>Identifier</a>,
               which specifies the name of the operation in the interface
-              this operation overloads.
+              this operation overloads.  The
+              <a class='nt' href='#prod-Identifier'>Identifier</a> must not
+              identify an operation that itself is declared with an
+              <a class='xattr' href='#Overloads'>[Overloads]</a> extended
+              attribute.
             </p>
             <div class='example'>
               <p>
@@ -560,8 +564,8 @@ var p1 = f.createPerson();     // Corresponds to the createPerson operation.
 var p2 = f.createPerson(26);   // Corresponds to the createPersonWithAge operation.</x:codeblock>
               <p>
                 However, a hypothetical C language binding would not, since
-                C does not support overloading.  Separate functions would be used
-                for the two operations:
+                C does not support overloading.  Separate functions would likely
+                be used for the two operations:
               </p>
               <x:codeblock language='c'>PersonFactory* f = getFactory();
 
@@ -759,7 +763,7 @@ s.union(1, 4, 7);         // Passing three arguments corresponding to 'integers'
               operator defined in section 9.6 of [<a href='#ref-ECMA-262'>ECMA-262</a>],
               as follows:
             </p>
-            <ol>
+            <ol class='algorithm'>
               <li>Call ToNumber on the input argument.</li>
               <li>If Result(1) is <span class='esvalue'>NaN</span>, +0, −0, +∞, or −∞, return +0.</li>
               <li>Compute sign(Result(1)) * floor(abs(Result(1))).</li>
@@ -783,7 +787,7 @@ s.union(1, 4, 7);         // Passing three arguments corresponding to 'integers'
               operator defined in section 9.5 of [<a href='#ref-ECMA-262'>ECMA-262</a>],
               as follows:
             </p>
-            <ol>
+            <ol class='algorithm'>
               <li>Call ToNumber on the input argument.</li>
               <li>If Result(1) is <span class='esvalue'>NaN</span>, +0, −0, +∞, or −∞, return +0.</li>
               <li>Compute sign(Result(1)) * floor(abs(Result(1))).</li>
@@ -853,7 +857,7 @@ s.union(1, 4, 7);         // Passing three arguments corresponding to 'integers'
               operator defined in section 9.5 of [<a href='#ref-ECMA-262'>ECMA-262</a>],
               as follows:
             </p>
-            <ol>
+            <ol class='algorithm'>
               <li>Call ToNumber on the input argument.</li>
               <li>If Result(1) is <span class='esvalue'>NaN</span>, +0, −0, +∞, or −∞, return +0.</li>
               <li>Compute sign(Result(1)) * floor(abs(Result(1))).</li>
@@ -887,7 +891,7 @@ s.union(1, 4, 7);         // Passing three arguments corresponding to 'integers'
               operator defined in section 9.6 of [<a href='#ref-ECMA-262'>ECMA-262</a>],
               as follows:
             </p>
-            <ol>
+            <ol class='algorithm'>
               <li>Call ToNumber on the input argument.</li>
               <li>If Result(1) is <span class='esvalue'>NaN</span>, +0, −0, +∞, or −∞, return +0.</li>
               <li>Compute sign(Result(1)) * floor(abs(Result(1))).</li>
@@ -1089,51 +1093,29 @@ results.numbers[0];                  // Evaluates to 5, since results.numbers is
             Every interface corresponds to a property on the global object,
             whose name is the same as its identifier in the IDL.  This identifier
             is not the qualified name of the interface, but the final
-            <a class='nt' href='#prod-Identifier'>Identifier</a> in the
-            <a class='nt' href='#prod-ScopedName'>ScopedName</a> production
-            that forms the complete qualified name.
-            The value of this property is
-            an object called the <dfn>interface object</dfn>, which provides
-            access to the constants and functions defined on the interface.
-            The property has the attributes
-            <span class='propattrset'>{ DontDelete, DontEnum }</span>.
+            <a class='nt' href='#prod-Identifier'>Identifier</a> in a derivation
+            of the <a class='nt' href='#prod-ScopedName'>ScopedName</a>
+            production that forms the complete qualified name.
+            The value of this property is an object called the
+            <dfn>interface object</dfn>, which provides access to the constants
+            and functions defined on the interface.  The property has the
+            attributes <span class='propattrset'>{ DontDelete, DontEnum }</span>.
           </p>
           
           <div id='interface-object' class='section'>
             <h4>Interface object</h4>
 
             <p>
-              The interface object has the following properties:
+              The interface object for a particular interface has an internal
+              <span class='prop'>[[Prototype]]</span> object whose value is
+              the <span class='esvalue'>Object</span> prototype object.
             </p>
-
-            <table class='proptable'>
-              <tr>
-                <th>Property name</th>
-                <th>Attributes</th>
-                <th>Type</th>
-                <th>Value</th>
-              </tr>
-              <tr>
-                <td><span class='prop'>[[Prototype]]</span></td>
-                <td>{ Internal }</td>
-                <td>object</td>
-                <td>The Object prototype object.</td>
-              </tr>
-              <tr>
-                <td><span class='prop'>prototype</span></td>
-                <td>{ DontDelete, ReadOnly }</td>
-                <td>object</td>
-                <td>The interface prototype object for this interface.</td>
-              </tr>
-            </table>
-
             <p>
               In addition, there is a property on the interface object for each
               constant defined on the interface with the same name as that constant.
               These properties have the attributes
               <span class='propattrset'>{ DontDelete }</span>.
             </p>
-
             <p>
               If the interface is declared with the
               <a class='xattr' href='#Constructor'>[Constructor]</a> extended attribute,
@@ -1144,59 +1126,524 @@ results.numbers[0];                  // Evaluates to 5, since results.numbers is
               necessarily the same as that described for Function objects in
               section 13.2.2 of <a href='#ref-ECMA-262'>[ECMA-262]</a>.
             </p>
+            <p>
+              The interface object also has a property named
+              <span class='prop'>prototype</span> with attributes
+              <span class='propattrset'>{ DontDelete, ReadOnly }</span>
+              whose value is an object called the <dfn>interface prototype
+                object</dfn>.  This object provides access to the functions
+              that correspond to the operations defined on the interface.
+            </p>
           </div>
 
           <div id='interface-prototype-object' class='section'>
             <h4>Interface prototype object</h4>
 
             <p>
-              The interface prototype object has the following properties:
+              The interface prototype object for a particular interface has
+              properties that correspond to the operations defined on that
+              interface.  Each such property has attribute
+              <span class='propattrset'>{ DontEnum }</span>.  These properties
+              are described in more detail in
+              <a href='#operations'>section <?sref operations?></a> below.
             </p>
-
-            <table class='proptable'>
-              <tr>
-                <th>Property name</th>
-                <th>Attributes</th>
-                <th>Type</th>
-                <th>Value</th>
-              </tr>
-              <tr>
-                <td><span class='prop'>[[Prototype]]</span></td>
-                <td>{ Internal }</td>
-                <td>object</td>
-                <td>
-                  If the interface inherits from another interface, then the
-                  value is the interface prototype object for the superinterface.
-                  Otherwise, the value is the Object prototype object.
-                </td>
-              </tr>
-              <tr>
-                <td><span class='prop'>constructor</span></td>
-                <td>{ DontEnum }</td>
-                <td>object</td>
-                <td>The interface object for this interface.</td>
-              </tr>
-            </table>
-
-            <div class='ednote'><p>Remove <code>constructor</code>, since the object wasn’t created with <code>[[Construct]]</code>?</p></div>
-
             <p>
-              In addition, there is a property on the interface prototype object
-              for each operation defined on the interface that does not have the
-              <a class='xattr' href='#Overloads'>[Overloads]</a>
-              extended attribute.  These properties have the attributes { DontEnum }.
+              If the interface is declared with the
+              <a class='xattr' href='#Constructor'>[Constructor]</a> extended
+              attribute, the interface prototype object also has a property
+              named <span class='prop'>constructor</span> with attribute
+              <span class='propattrset'>{ DontEnum }</span> whose value
+              is a reference to the interface object for the interface.
             </p>
+            <div class='ednote'>
+              <p>
+                Haven’t checked what attributes browsers use on the 
+                <span class='prop'>constructor</span> property.
+              </p>
+              <p>
+                Also, should the <span class='prop'>constructor</span> property
+                exist even for non-constructable objects?
+              </p>
+            </div>
+            <p>
+              No particular value must be used for the internal
+              <span class='prop'>[[Prototype]]</span> property of the
+              interface prototype object.  However, it must be an object
+              that provides access to the properties defined on all
+              superinterfaces of the interfaces.  Changes made to
+              the interface prototype objects of superinterfaces must be
+              reflected through this object.  If more than one superinterface
+              has a given property, it is implementation specific which
+              one is accessed.
+            </p>
+            <div class='example'>
+              <p>
+                Assume the following IDL:
+              </p>
+              <x:codeblock language='idl'>interface A {
+  void f();
+};
+
+interface B {
+  void g();
+};
+
+interface C : A, B {
+  void f();
+};
+
+interface D : C {
+  void h();
+};</x:codeblock>
+              <p>
+                The following is one way for an implementation to set up
+                the prototype chain for the interface objects:
+              </p>
+              <ul>
+                <li>
+                  The <span class='prop'>[[Prototype]]</span> internal property
+                  of the interface prototype objects for <span class='idltype'>A</span>
+                  and <span class='idltype'>B</span> is the
+                  <span class='prop'>Object</span> prototype object, since
+                  neither of these interfaces has a superinterface.
+                </li>
+                <li>
+                  The <span class='prop'>[[Get]]</span>,
+                  <span class='prop'>[[CanPut]]</span> and
+                  <span class='prop'>[[HasProperty]]</span> internal methods of the
+                  interface prototype object for <span class='idltype'>A</span>
+                  are the standard ones defined in section 8.6.2 of
+                  <a href='#ref-ECMA-262'>[ECMA-262]</a>.
+                </li>
+                <li>
+                  The <span class='prop'>[[Prototype]]</span> internal prototype
+                  of the interface prototype object for <span class='idltype'>C</span>
+                  is <span class='esvalue'>null</span>.
+                </li>
+                <li>
+                  The <span class='prop'>[[Get]]</span> internal method
+                  of the interface prototype object for <span class='idltype'>C</span>
+                  behaves as follows (where <var>O</var> is the object and
+                  <var>P</var> is the property name):
+                  <ol class='algorithm'>
+                    <li>
+                      If <var>O</var> doesn’t have a property with name
+                      <var>P</var>, go to step 4.
+                    </li>
+                    <li>Get the value of the property.</li>
+                    <li>Return Result(2).</li>
+                    <li>
+                      Call the <span class='prop'>[[HasProperty]]</span> method
+                      of the interface prototype object for
+                      <span class='idltype'>A</span> with property name <var>P</var>.
+                    </li>
+                    <li>
+                      If Result(4) is <span class='esvalue'>false</span>, go to
+                      step 8.
+                    </li>
+                    <li>
+                      Call the <span class='prop'>[[Get]]</span> method of the
+                      interface prototype object for <span class='idltype'>A</span>
+                      with property name <var>P</var>.
+                    </li>
+                    <li>Return Result(6).</li>
+                    <li>
+                      Call the <span class='prop'>[[HasProperty]]</span> method
+                      of the interface prototype object for
+                      <span class='idltype'>B</span> with property name <var>P</var>.
+                    </li>
+                    <li>
+                      If Result(8) is <span class='esvalue'>false</span>, go to
+                      step 12.
+                    </li>
+                    <li>
+                      Call the <span class='prop'>[[Get]]</span> method of the
+                      interface prototype object for <span class='idltype'>B</span>
+                      with property name <var>P</var>.
+                    </li>
+                    <li>Return Result(10).</li>
+                    <li>Return <span class='esvalue'>undefined</span>.</li>
+                  </ol>
+                </li>
+                <li>
+                  The <span class='prop'>[[CanPut]]</span> internal method
+                  of the interface prototype object for <span class='idltype'>C</span>
+                  behaves as follows (where <var>O</var> is the object and
+                  <var>P</var> is the property name):
+                  <ol class='algorithm'>
+                    <li>
+                      If <var>O</var> doesn’t have a property with name <var>P</var>,
+                      go to step 4.
+                    </li>
+                    <li>If the property has the ReadOnly attribute, return <span class='esvalue'>false</span>.</li>
+                    <li>Return <span class='esvalue'>true</span>.</li>
+                    <li>
+                      Call the <span class='prop'>[[CanPut]]</span> method of the
+                      interface prototype object for <span class='idltype'>A</span>
+                      with property name <var>P</var>.
+                    </li>
+                    <li>
+                      If Result(4) is <span class='esvalue'>false</span>, return
+                      <span class='esvalue'>false</span>.
+                    </li>
+                    <li>
+                      Call the <span class='prop'>[[CanPut]]</span> method of the
+                      interface prototype object for <span class='idltype'>B</span>
+                      with property name <var>P</var>.
+                    </li>
+                    <li>
+                      If Result(6) is <span class='esvalue'>false</span>, return
+                      <span class='esvalue'>false</span>.
+                    </li>
+                    <li>Return <span class='esvalue'>true</span>.</li>
+                  </ol>
+                </li>
+                <li>
+                  The <span class='prop'>[[HasProperty]]</span> internal method
+                  of the interface prototype object for <span class='idltype'>C</span>
+                  behaves as follows (where <var>O</var> is the object and
+                  <var>P</var> is the property name):
+                  <ol class='algorithm'>
+                    <li>
+                      If <var>O</var> has a property with name <var>P</var>,
+                      return <span class='esvalue'>true</span>.
+                    </li>
+                    <li>
+                      Call the <span class='prop'>[[HasProperty]]</span> method of the
+                      interface prototype object for <span class='idltype'>A</span>
+                      with property name <var>P</var>.
+                    </li>
+                    <li>
+                      If Result(3) is <span class='esvalue'>true</span>, return
+                      <span class='esvalue'>true</span>.
+                    </li>
+                    <li>
+                      Call the <span class='prop'>[[HasProperty]]</span> method of the
+                      interface prototype object for <span class='idltype'>B</span>
+                      with property name <var>P</var>.
+                    </li>
+                    <li>
+                      If Result(5) is <span class='esvalue'>true</span>, return
+                      <span class='esvalue'>true</span>.
+                    </li>
+                    <li>Return <span class='esvalue'>false</span>.</li>
+                  </ol>
+                </li>
+                <li>
+                  The <span class='prop'>[[Prototype]]</span> internal property
+                  of the interface prototype object for <span class='idltype'>D</span>
+                  is the interface prototype object for <span class='idltype'>C</span>,
+                  since <span class='idltype'>D</span> has only a single superinterface.
+                </li>
+                <li>
+                  The <span class='prop'>[[Get]]</span>,
+                  <span class='prop'>[[CanPut]]</span> and
+                  <span class='prop'>[[HasProperty]]</span> internal methods of the
+                  interface prototype object for <span class='idltype'>A</span>
+                  are the standard ones defined in section 8.6.2 of
+                  <a href='#ref-ECMA-262'>[ECMA-262]</a>.
+                </li>
+              </ul>
+            </div>
+            <div class='ednote'>
+              <p>
+                Should the prototype chain and internal methods given in the
+                example above be mandated, or just left as an example of how
+                to do it?
+              </p>
+            </div>
           </div>
 
           <div id='operations' class='section'>
             <h4>Operations</h4>
 
+            <p>
+              In order to describe how properties on the interface prototype
+              object corresponding to operations are chosen in the presence of
+              overloading, the notion of potential ambiguity is first defined.
+              Two operations on an interface, <var>O</var><sub>1</sub> and
+              <var>O</var><sub>2</sub>, are
+              <dfn id='dfn-potentially-ambiguous'>potentially ambiguous</dfn> if
+              the following algorithm returns true:
+            </p>
+            <ol class='algorithm'>
+              <li>…</li>
+              <!--
+              <li>
+                Let <var>variadic1</var> be whether <var>op1</var>
+                is declared with an argument with the
+                <a class='xattr' href='#Variadic'>[Variadic]</a> extended
+                attribute.
+              </li>
+              <li>
+                Let <var>variadic2</var> be whether <var>op1</var>
+                is declared with an argument with the
+                <a class='xattr' href='#Variadic'>[Variadic]</a> extended
+                attribute.
+              </li>
+              <li>
+                Let <var>arity1</var> be the number of arguments
+                without the <a class='xattr' href='#Variadic'>[Variadic]</a>
+                extended attribute that <var>op1</var> is declared with.
+              </li>
+              <li>
+                Let <var>arity2</var> be the number of arguments
+                without the <a class='xattr' href='#Variadic'>[Variadic]</a>
+                extended attribute that <var>op2</var> is declared with.
+              </li>
+              <li>Initialize <var>i</var> = 0.</li>
+              <li>
+                While <var>i</var> &lt; <var>arity1</var> and <var>i</var>
+                &lt; <var>arity2</var>:
+                <ol>
+                  <li>
+                    Let <var>type1</var> be the type of the argument
+                    <var>op1</var> is declared with at position
+                    <var>i</var>.
+                  </li>
+                  <li>
+                    Let <var>type2</var> be the type of the argument
+                    <var>op2</var> is declared with at position
+                    <var>i</var>.
+                  </li>
+                  <li>
+                    If none of the following statements about
+                    <var>type1</var> and <var>type2</var> are true,
+                    then return false:
+                    <ul>
+                      <li>
+                        Both <var>type1</var> and <var>type2</var>
+                        are one of the numeric types
+                        (<span class='idltype'>octet</span>,
+                        <span class='idltype'>short</span>,
+                        <span class='idltype'>unsigned short</span>,
+                        <span class='idltype'>long</span>,
+                        <span class='idltype'>unsigned long</span>,
+                        <span class='idltype'>long long</span>,
+                        <span class='idltype'>unsigned long long</span> and
+                        <span class='idltype'>float</span>).
+                      </li>
+                      <li>
+                        Both <var>type1</var> and <var>type2</var>
+                        are <span class='idltype'>boolean</span>.
+                      </li>
+                      <li>
+                        …
+                      </li>
+                    </ul>
+                  </li>
+                </ol>
+              </li>
+              -->
+            </ol>
             <div class='ednote'>
               <p>
-                Talk about properties of the methods on the interface prototype
-                object, and how overloaded methods map to the same single function
-                which will perform the resolution.  Also what happens with passing
-                fewer/more arguments than expected.
+                A useful way to handle method overloading is not obvious.
+              </p>
+              <p>
+                Three patterns of overloading seem to be desired, at least.
+                The first is overloading to handle optional arguments, such
+                as with XMLHttpRequest’s open method.  Handling this is
+                reasonably simple.
+              </p>
+              <p>
+                The second is distinguishing based on argument type, where
+                the values of those types do not intersect.  XHR’s send
+                method is an example of this, where there are two versions
+                that take an argument: one a DOMString, the other a Document.
+                It’s impossible for a non-null value to be both a DOMString
+                and a Document, so distinguishing these at run time seems fine.
+                It would be ambiguous for null though.  This could be avoided
+                by, say, putting a [NoNull] extended attribute on one of those
+                arguments, which would mean that the other method is invoked
+                when null is passed.
+              </p>
+              <p>
+                The third is distinguishing based on argument type, where
+                the values of those types do intersect.  This can be seen
+                with the createPattern methods on HTML 5’s CanvasRenderingContext2D
+                interface, which are currently defined as:
+              </p>
+              <x:codeblock language='idl'>interface CanvasRenderingContext2D {
+  …
+  CanvasPattern createPattern(in HTMLImageElement image, DOMString repetition);
+  CanvasPattern createPattern(in HTMLCanvasElement image, DOMString repetition);
+  …
+};</x:codeblock>
+              <p>
+                While in a normal web browser environment there’ll be no
+                object that implements both HTMLImageElement and
+                HTMLCanvasElement, in the general case objects can implement
+                more than one interface.  To disallow overloading like this
+                for all languages seems excessive, since there are languages
+                that can handle this sort of things (e.g. C++ will allow calls
+                to createPattern as long as it’s not ambiguous based on the
+                type of the value being passed, or the ambiguity can be
+                resolved explicitly).  Perhaps some sort of declaration in the
+                IDL that if the object does implement both interfaces, then
+                one of the operations is preferred (or defaults to arbitrary
+                selection by the UA).  It seems a little hacky, because there’d
+                be no way to explicitly disambiguate the call as you can do
+                in other languages.
+              </p>
+            </div>
+
+            <p>
+              The <dfn id='dfn-overload-set'>overload set</dfn> for an operation
+              <var>O</var> is defined as follows:
+            </p>
+            <ul>
+              <li>
+                If <var>O</var> is not declared with an
+                <a class='xattr' href='#Overloads'>[Overloads]</a> extended
+                attribute, then the set is equal to the union of { <var>O</var> }
+                and all other operations declared on the interface with the
+                <a class='xattr' href='#Overloads'>[Overloads]</a> extended
+                attribute whose argument is the name of <var>O</var>.
+              </li>
+              <li>
+                Otherwise, if <var>O</var> is declared with an
+                <a class='xattr' href='#Overloads'>[Overloads]</a> extended
+                attribute with argument <var>N</var>, then the set is equal
+                to the <a class='dfnref' href='#dfn-overload-set'>overload set</a>
+                for the operation with identifier <var>N</var> declared on the
+                interface.
+              </li>
+            </ul>
+            <p>
+              An operation <var>O</var> is a
+              <dfn id='dfn-non-overloadable-operation'>non-overloadable operation</dfn>
+              if it matches one of the following two criteria:
+            </p>
+            <ol>
+              <li>
+                The <a class='dfnref' href='#dfn-overload-set'>overload set</a>
+                of <var>O</var> is equal to { <var>O</var> }.
+              </li>
+              <li>
+                There exists two operations <var>O</var><sub>1</sub> and <var>O</var><sub>2</sub>
+                in the <a class='dfnref' href='#dfn-overload-set'>overload set</a>
+                for <var>O</var> such that <var>O</var><sub>1</sub> and <var>O</var><sub>2</sub> are
+                <a class='dfnref' href='#dfn-potentially-ambiguous'>potentially
+                  ambiguous</a>.
+              </li>
+            </ol>
+            <p>
+              An operation is an
+              <dfn id='dfn-overloaded-operation'>overloaded operation</dfn> if
+              it is not declared with an
+              <a class='xattr' href='#Overloads'>[Overloads]</a> extended
+              attribute and the cardinality of its
+              <a class='dfnref' href='#dfn-overload-set'>overload set</a>
+              is greater than 1.
+            </p>
+            <p>
+              For each
+              <a class='dfnref' href='#dfn-non-overloadable-operation'>non-overloadable
+                operation</a> <var>O</var> defined on the interface, a property exists on the
+              interface prototype object whose name is the name of the operation
+              and whose value is a <span class='estype'>Function</span> object
+              that behaves as follows:
+            </p>
+            <ol class='algorithm'>
+              <li>
+                Let <var>n</var> be the number of arguments passed to the
+                function.
+              </li>
+              <li>
+                Let <var>arity</var> be the number of arguments that <var>O</var>
+                is declared with if the final argument does not have the
+                <a class='xattr' href='#Variadic'>[Variadic]</a> extended
+                attribute, or the number of arguments that <var>O</var> is
+                declared with minus 1 otherwise.
+              </li>
+              <li>
+                If <var>n</var> &lt; <var>arity</var>, an implementation
+                specific exception is thrown and these steps are ended.
+              </li>
+              <li>
+                Let <var>arg</var><sub>0‥<var>n</var>−1</sub> be the arguments passed to the
+                function.
+              </li>
+              <li>Initialize <var>i</var> to 0.</li>
+              <li>
+                While <var>i</var> &lt; <var>arity</var>:
+                <ol>
+                  <li>
+                    Convert <var>arg<sub>i</sub></var>, according to the
+                    type of the formal argument in position <var>i</var>,
+                    by following the relevant steps from
+                    <a href='#type-mapping'>section <?sref type-mapping?></a>
+                    above.
+                  </li>
+                  <li>
+                    If the type of the formal argument in position <var>i</var>
+                    is a boxed <span class='idltype'>sequence&lt;octet></span>
+                    valuetype and is declared with the
+                    <a class='xattr' href='#NoNull'>[NoNull]</a> extended
+                    attribute, and <var>arg<sub>i</sub></var> is
+                    <span class='esvalue'>null</span>, set
+                    <var>arg<sub>i</sub></var> to the
+                    <span class='estype'>String</span> value
+                    <span class='esstring'>"null"</span>.
+                  </li>
+                  <li>
+                    Set <var>i</var> to <var>i</var> + 1.
+                  </li>
+                </ol>
+              </li>
+              <li>
+                Let <var>j</var> be <var>n</var>
+                if the final argument of <var>O</var> is declared with the
+                <a class='xattr' href='#Variadic'>[Variadic]</a> extended
+                attribute, or <var>arity</var> otherwise.
+              </li>
+              <li>
+                While <var>i</var> &lt; <var>j</var>:
+                <ol>
+                  <li>
+                    Convert <var>arg<sub>i</sub></var>, according to the
+                    type of the formal argument in position <var>arity</var> + 1,
+                    by following the relevant steps from
+                    <a href='#type-mapping'>section <?sref type-mapping?></a>
+                    above.
+                  </li>
+                  <li>
+                    If the type of the formal argument in position <var>arity</var> + 1
+                    is a boxed <span class='idltype'>sequence&lt;octet></span>
+                    valuetype and is declared with the
+                    <a class='xattr' href='#NoNull'>[NoNull]</a> extended
+                    attribute, and <var>arg<sub>i</sub></var> is
+                    <span class='esvalue'>null</span>, set
+                    <var>arg<sub>i</sub></var> to the
+                    <span class='estype'>String</span> value
+                    <span class='esstring'>"null"</span>.
+                  </li>
+                  <li>
+                    Set <var>i</var> to <var>i</var> + 1.
+                  </li>
+                </ol>
+              </li>
+              <li>
+                Perform the actions listed in the description of <var>O</var>
+                with <var>arg</var><sub>0‥<var>j</var>−1</sub> as the
+                argument values.
+              </li>
+            </ol>
+            <p>
+              For each
+              <a class='dfnref' href='#dfn-overloaded-operation'>overloaded
+                operation</a> defined on the interface, a property exists on the
+              interface prototype object whose name is the name of the operation
+              and whose value is a <span class='estype'>Function</span> object
+              that behaves as follows:
+            </p>
+            <ol class='algorithm'>
+              <li>…</li>
+            </ol>
+            <div class='ednote'>
+              <p>
+                This will be written once the overloading rules are more definite.
               </p>
             </div>
           </div>
@@ -1223,7 +1670,7 @@ results.numbers[0];                  // Evaluates to 5, since results.numbers is
               behaves, assuming <var>P</var> is the property name passed to
               <span class='prop'>[[Get]]</span>, as follows:
             </p>
-            <ol>
+            <ol class='algorithm'>
               <li>
                 Determine the name of a
                 <a class='xattr' href='#IndexGetter'>[IndexGetter]</a>-annotated
@@ -1231,7 +1678,7 @@ results.numbers[0];                  // Evaluates to 5, since results.numbers is
                 If there is no such operation, go to step 7.
               </li>
               <li>Compute ToUint32(<var>P</var>).</li>
-              <li>If Result(2) is a non-negative integer, go to step 7.</li>
+              <li>If Result(2) is not a non-negative integer, go to step 7.</li>
               <li>
                 Invoke the <span class='prop'>[[Get]]</span> method of object <var>O</var> with Result(1)
                 as the argument.
@@ -1294,7 +1741,7 @@ results.numbers[0];                  // Evaluates to 5, since results.numbers is
               is the property value passed to <span class='prop'><span class='prop'>[[Put]]</span></span>,
               as follows:
             </p>
-            <ol>
+            <ol class='algorithm'>
               <li>
                 Determine the name of a
                 <a class='xattr' href='#IndexSetter'>[IndexSetter]</a>-annotated
@@ -1302,7 +1749,7 @@ results.numbers[0];                  // Evaluates to 5, since results.numbers is
                 If there is no such operation, go to step 7.
               </li>
               <li>Compute ToUint32(<var>P</var>).</li>
-              <li>If Result(2) is a non-negative integer, go to step 7.</li>
+              <li>If Result(2) is not a non-negative integer, go to step 7.</li>
               <li>
                 Invoke the <span class='prop'>[[Get]]</span> method of object <var>O</var> with Result(1)
                 as the argument.
@@ -1395,7 +1842,7 @@ results.numbers[0];                  // Evaluates to 5, since results.numbers is
         <h2>Conformance</h2>
 
         <div class='ednote'>
-          <p>Two products: conforming IDL, conforming ES implementation of some IDL.</p>
+          <p>Two conformance classes: conforming IDL, conforming UA w.r.t. some IDL.</p>
         </div>
       </div>
 
