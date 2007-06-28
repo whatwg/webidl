@@ -20,7 +20,7 @@
   <head>
     <title>Language Bindings for DOM Specifications</title>
     <meta http-equiv='Content-Type' content='application/xhtml+xml; charset=UTF-8'/>
-    <meta name='revision' content='$Id: Overview.xml,v 1.30 2007-06-27 12:02:23 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: Overview.xml,v 1.31 2007-06-28 00:22:23 cmccorma Exp $'/>
     <link rel='stylesheet' href='http://www.w3.org/StyleSheets/TR/base' type='text/css'/>
     <link rel='stylesheet' href='Binding4DOM.css' type='text/css'/>
 
@@ -54,7 +54,7 @@
 
       <div class='ednote'>
         <p>
-          This is revision $Id: Overview.xml,v 1.30 2007-06-27 12:02:23 cmccorma Exp $.
+          This is revision $Id: Overview.xml,v 1.31 2007-06-28 00:22:23 cmccorma Exp $.
         </p>
       </div>
     </div>
@@ -1140,7 +1140,7 @@ results.numbers[0];                  // Evaluates to 5, since results.numbers is
 
               <p>
                 The internal <span class='prop'>[[HasInstance]]</span> method of every
-                interface object <var>I</var>, assuming <var>V</var> is the object
+                interface object <var>I</var> behaves, assuming <var>V</var> is the object
                 argument passed to <span class='prop'>[[HasInstance]]</span>, as follows:
               </p>
               <ol class='algorithm'>
@@ -1188,6 +1188,9 @@ results.numbers[0];                  // Evaluates to 5, since results.numbers is
                 Also, should the <span class='prop'>constructor</span> property
                 exist even for non-constructable objects?
               </p>
+              <p>
+                Constants should be in here as well as in the interface object.
+              </p>
             </div>
             <p>
               No particular value must be used for the internal
@@ -1200,7 +1203,7 @@ results.numbers[0];                  // Evaluates to 5, since results.numbers is
               has a given property, it is implementation specific which
               one is accessed.
             </p>
-            <div class='example'>
+            <div id='interface-prototype-object-example' class='example'>
               <p>
                 Assume the following IDL:
               </p>
@@ -1225,7 +1228,7 @@ interface D : C {
               </p>
               <ul>
                 <li>
-                  The <span class='prop'>[[Prototyp methode]]</span> internal property
+                  The <span class='prop'>[[Prototype]]</span> internal property
                   of the interface prototype objects for <span class='idltype'>A</span>
                   and <span class='idltype'>B</span> is the
                   <span class='prop'>Object</span> prototype object, since
@@ -1363,7 +1366,7 @@ interface D : C {
                   The <span class='prop'>[[Get]]</span>,
                   <span class='prop'>[[CanPut]]</span> and
                   <span class='prop'>[[HasProperty]]</span> internal methods of the
-                  interface prototype object for <span class='idltype'>A</span>
+                  interface prototype object for <span class='idltype'>D</span>
                   are the standard ones defined in section 8.6.2 of
                   <a href='#ref-ECMA-262'>[ECMA-262]</a>.
                 </li>
@@ -1677,8 +1680,178 @@ interface D : C {
           <h3>Host objects implementing interfaces</h3>
 
           <p>
-            …
+            A host object that implements a particular interface has properties
+            that correspond to the attributes declared on that interface.  If the
+            attribute is declared <code>readonly</code>, the corresponding property
+            has attributes <span class='propattrset'>{ DontDelete, ReadOnly }</span>,
+            while if it is not declared <code>readonly</code>, it is
+            <span class='propattrset'>{ DontDelete }</span>.  If a host object
+            implements more than one interface with an attribute of a given name,
+            it is implementation specific which attribute the property corresponds to.
           </p>
+
+          <p>
+            No particular value must be used for the internal
+            <span class='prop'>[[Prototype]]</span> property of the host object.
+            However, it must be an object that provides access to the properties
+            corresponding to the operations and constants defined on all
+            interfaces the host object implements.  Changes made to the interface
+            prototype objects of interfaces implemented by the host object must
+            be reflected through this object.  If more than one interface prototype
+            object has a given property, it is implementation specific which one
+            is accessed.
+          </p>
+
+          <div class='example'>
+            <p>
+              Assume the IDL and interface prototype objects given in the
+              <a href='#interface-prototype-object-example'>section
+                <?sref interface-prototype-object?> example</a>.
+            </p>
+            <p>
+              Now assume that <var>ab</var> is a host object that implements
+              <span class='idltype'>A</span> and <span class='idltype'>B</span>
+              and <var>d</var> is a host object that implements
+              <span class='idltype'>D</span>.
+              The following is one way for an implementation to connect the
+              host objects to the interface prototype objects:
+            </p>
+            <ul>
+              <li>
+                The <span class='prop'>[[Prototype]]</span> internal property of
+                the host object <var>ab</var> is an object that provides access
+                to the properties from the interface prototype objects for both
+                <span class='idltype'>A</span> and <span class='idltype'>B</span>:
+                <ul>
+                  <li>
+                    The <span class='prop'>[[Prototype]]</span> internal property
+                    of the <span class='prop'>[[Prototype]]</span> object for <var>ab</var>
+                    is <span class='esvalue'>null</span>.
+                  </li>
+                  <li>
+                    The <span class='prop'>[[Get]]</span> internal method
+                    of the <span class='prop'>[[Prototype]]</span> object for <var>ab</var>
+                    behaves as follows (where <var>O</var> is the object and
+                    <var>P</var> is the property name):
+                    <ol class='algorithm'>
+                      <li>
+                        If <var>O</var> doesn’t have a property with name
+                        <var>P</var>, go to step 4.
+                      </li>
+                      <li>Get the value of the property.</li>
+                      <li>Return Result(2).</li>
+                      <li>
+                        Call the <span class='prop'>[[HasProperty]]</span> method
+                        of the interface prototype object for
+                        <span class='idltype'>A</span> with property name <var>P</var>.
+                      </li>
+                      <li>
+                        If Result(4) is <span class='esvalue'>false</span>, go to
+                        step 8.
+                      </li>
+                      <li>
+                        Call the <span class='prop'>[[Get]]</span> method of the
+                        interface prototype object for <span class='idltype'>A</span>
+                        with property name <var>P</var>.
+                      </li>
+                      <li>Return Result(6).</li>
+                      <li>
+                        Call the <span class='prop'>[[HasProperty]]</span> method
+                        of the interface prototype object for
+                        <span class='idltype'>B</span> with property name <var>P</var>.
+                      </li>
+                      <li>
+                        If Result(8) is <span class='esvalue'>false</span>, go to
+                        step 12.
+                      </li>
+                      <li>
+                        Call the <span class='prop'>[[Get]]</span> method of the
+                        interface prototype object for <span class='idltype'>B</span>
+                        with property name <var>P</var>.
+                      </li>
+                      <li>Return Result(10).</li>
+                      <li>Return <span class='esvalue'>undefined</span>.</li>
+                    </ol>
+                  </li>
+                  <li>
+                    The <span class='prop'>[[CanPut]]</span> internal method
+                    of the <span class='prop'>[[Prototype]]</span> object for <var>ab</var>
+                    behaves as follows (where <var>O</var> is the object and
+                    <var>P</var> is the property name):
+                    <ol class='algorithm'>
+                      <li>
+                        If <var>O</var> doesn’t have a property with name <var>P</var>,
+                        go to step 4.
+                      </li>
+                      <li>If the property has the ReadOnly attribute, return <span class='esvalue'>false</span>.</li>
+                      <li>Return <span class='esvalue'>true</span>.</li>
+                      <li>
+                        Call the <span class='prop'>[[CanPut]]</span> method of the
+                        interface prototype object for <span class='idltype'>A</span>
+                        with property name <var>P</var>.
+                      </li>
+                      <li>
+                        If Result(4) is <span class='esvalue'>false</span>, return
+                        <span class='esvalue'>false</span>.
+                      </li>
+                      <li>
+                        Call the <span class='prop'>[[CanPut]]</span> method of the
+                        interface prototype object for <span class='idltype'>B</span>
+                        with property name <var>P</var>.
+                      </li>
+                      <li>
+                        If Result(6) is <span class='esvalue'>false</span>, return
+                        <span class='esvalue'>false</span>.
+                      </li>
+                      <li>Return <span class='esvalue'>true</span>.</li>
+                    </ol>
+                    <p>
+                      Note that this method shouldn’t strictly be required, since
+                      there would be no way for script to get access to the
+                      <span class='prop'>[[Prototype]]</span> object for <var>ab</var>.
+                    </p>
+                  </li>
+                  <li>
+                    The <span class='prop'>[[HasProperty]]</span> internal method
+                    of the <span class='prop'>[[Prototype]]</span> object for <var>ab</var>
+                    behaves as follows (where <var>O</var> is the object and
+                    <var>P</var> is the property name):
+                    <ol class='algorithm'>
+                      <li>
+                        If <var>O</var> has a property with name <var>P</var>,
+                        return <span class='esvalue'>true</span>.
+                      </li>
+                      <li>
+                        Call the <span class='prop'>[[HasProperty]]</span> method of the
+                        interface prototype object for <span class='idltype'>A</span>
+                        with property name <var>P</var>.
+                      </li>
+                      <li>
+                        If Result(3) is <span class='esvalue'>true</span>, return
+                        <span class='esvalue'>true</span>.
+                      </li>
+                      <li>
+                        Call the <span class='prop'>[[HasProperty]]</span> method of the
+                        interface prototype object for <span class='idltype'>B</span>
+                        with property name <var>P</var>.
+                      </li>
+                      <li>
+                        If Result(5) is <span class='esvalue'>true</span>, return
+                        <span class='esvalue'>true</span>.
+                      </li>
+                      <li>Return <span class='esvalue'>false</span>.</li>
+                    </ol>
+                  </li>
+                </ul>
+              </li>
+              <li>
+                The <span class='prop'>[[Prototype]]</span> internal property of
+                the host object <var>d</var> is the interface prototype object
+                for <span class='idltype'>D</span>, since <span class='idltype'>D</span>
+                is the only interface the object directly implements.
+              </li>
+            </ul>
+          </div>
 
           <div id='get' class='section'>
             <h4>[[Get]] method</h4>
@@ -1803,23 +1976,39 @@ interface D : C {
               </li>
               <li>Return Result(10).</li>
               <li>
+                If <var>O</var> has a property with name <var>P</var> and that property does not correspond
+                to an IDL operation declared <code>readonly</code>, then go to step 18.
+              </li>
+              <li>
+                If the property on <var>O</var> with name <var>P</var> does not correspond
+                to an IDL operation declared with a <a class='xattr' href='#PutForwards'>[PutForwards]</a>
+                extended attribute, then an implementation specific exception is thrown and these steps
+                are ended.
+              </li>
+              <li>
+                Call the <span class='prop'>[[Get]]</span> method of <var>O</var> with name
+                <var>P</var>.
+              </li>
+              <li>
+                Call the <span class='prop'>[[Put]]</span> method of Result(15) with the property
+                name being the argument to the <a class='xattr' href='#PutForwards'>[PutForwards]</a>
+                extended attribute, and value <var>V</var>.
+              </li>
+              <li>Return.</li>
+
+              <li>
                 Call the <span class='prop'>[[CanPut]]</span> method of <var>O</var> with name
                 <var>P</var>.
               </li>
               <li>
-                If Result(13) is <span class='esvalue'>false</span>,
+                If Result(18) is <span class='esvalue'>false</span>,
                 return.
               </li>
               <li>
                 If <var>O</var> doesn’t have a property with name <var>P</var>,
-                go to step 18.
+                go to step 23.
               </li>
-              <li>
-                If the property on <var>O</var> with name <var>P</var> corresponds
-                to an IDL operation declared <code>readonly</code>, then
-                an implementation specific exception is thrown and these steps
-                are ended.
-              </li>
+
               <li>
                 Set the value of the property to <var>V</var>.  The attributes
                 of the property are not changed.
@@ -1847,18 +2036,6 @@ interface D : C {
             </ol>
           </div>
           -->
-
-          <div id='attributes' class='section'>
-            <h4>Attributes</h4>
-
-            <div class='ednote'>
-              <p>
-                How attributes on an interface correspond to properties on the host object.
-                Perhaps a <tt>[PutForwards=<var>PropertyName</var>]</tt> to handle the
-                <code>window.location</code> assignment mentioned above.
-              </p>
-            </div>
-          </div>
         </div>
 
         <div id='native-objects' class='section'>
