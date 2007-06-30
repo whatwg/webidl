@@ -6,8 +6,8 @@
                 version='1.0' id='xslt'>
 
   <xsl:output method='xml' encoding='UTF-8'
-              doctype-public='-//W3C//DTD XHTML 1.1//EN'
-              doctype-system='http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd'
+              doctype-public='-//W3C//DTD XHTML 1.0 Strict//EN'
+              doctype-system='http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd'
               media-type='application/xhtml+xml; charset=UTF-8'/>
 
   <xsl:variable name='options' select='/*/h:head/x:options'/>
@@ -34,10 +34,29 @@
     </xsl:copy>
   </xsl:template>
 
+  <xsl:template match='h:head'>
+    <xsl:copy>
+      <xsl:copy-of select='@*[namespace-uri()="" or namespace-uri="http://www.w3.org/XML/1998/namespace"]'/>
+      <xsl:apply-templates select='node()'/>
+      <xsl:choose>
+        <xsl:when test='$options/x:maturity="ED"'>
+          <link rel='stylesheet' href='http://www.w3.org/StyleSheets/TR/base' type='text/css'/>
+        </xsl:when>
+        <xsl:when test='$options/x:maturity="WD" or $options/x:maturity="FPWD" or $options/x:maturity="LCWD" or $options/x:maturity="FPWDLC"'>
+          <link rel='stylesheet' href='http://www.w3.org/StyleSheets/TR/W3C-WD' type='text/css'/>
+        </xsl:when>
+        <xsl:otherwise>
+          <link rel='stylesheet' href='http://www.w3.org/StyleSheets/TR/W3C-{$options/x:maturity}' type='text/css'/>
+        </xsl:otherwise>
+      </xsl:choose>
+    </xsl:copy>
+  </xsl:template>
+
   <xsl:template name='monthName'>
     <xsl:param name='n' select='1'/>
     <xsl:param name='s' select='"January February March April May June July August September October November December "'/>
     <xsl:choose>
+      <xsl:when test='string(number($n))="NaN"'>@@</xsl:when>
       <xsl:when test='$n = 1'>
         <xsl:value-of select='substring-before($s, " ")'/>
       </xsl:when>
@@ -51,105 +70,224 @@
   </xsl:template>
 
   <xsl:template match='processing-instruction("top")'>
-    <div><a href="http://www.w3.org/"><img src="http://www.w3.org/Icons/w3c_home" width="72" height="48" alt="W3C"></img></a></div>
-    <h1><xsl:value-of select='/*/h:head/h:title'/></h1>
-    <h2>
-      W3C Editor’s Draft
-      <em>
-        <xsl:variable name='date' select='substring-before(substring-after(substring-after(substring-after($id, " "), " "), " "), " ")'/>
-        <xsl:value-of select='number(substring($date, 9))'/>
-        <xsl:text> </xsl:text>
-        <xsl:call-template name='monthName'>
-          <xsl:with-param name='n' select='number(substring($date, 6, 2))'/>
-        </xsl:call-template>
-        <xsl:text> </xsl:text>
-        <xsl:value-of select='substring($date, 1, 4)'/>
-      </em>
-    </h2>
-
-    <dl>
-      <dt>This version:</dt>
-      <dd>
+    <div class='head'>
+      <div><a href="http://www.w3.org/"><img src="http://www.w3.org/Icons/w3c_home" width="72" height="48" alt="W3C"></img></a></div>
+      <h1><xsl:value-of select='/*/h:head/h:title'/></h1>
+      <h2>
+        W3C
         <xsl:choose>
-          <xsl:when test='$options/x:versions/x:this[@cvsweb="true"]'>
-            <xsl:variable name='href' select='concat(substring-before($options/x:versions/x:this/@href, "~checkout~/"), substring-after($options/x:versions/x:this/@href, "~checkout~/"))'/>
-            <xsl:variable name='href2' select='concat($href, "?rev=", $rev, "&amp;content-type=text/xml")'/>
-            <a id='thisVersionLink' href='{$href}'><xsl:value-of select='$href'/></a>
-            <script type='text/ecmascript'>
-              var id = "&#x24;Id$";
-              var a = document.getElementById('thisVersionLink');
-              var xs = id.match(/ ([0-9]\.[0-9.]+) /);
-              if (xs) {
-                var rev = xs[1];
-                a.href = "<xsl:value-of select='$options/x:versions/x:this/@href'/>?rev=" + rev + String.fromCharCode(38) + "content-type=text/html; charset=utf-8";
-                a.firstChild.data = a.href;
-              }
-            </script>
+          <xsl:when test='$options/x:maturity="WD" or $options/x:maturity="FPWD" or $options/x:maturity="LCWD" or $options/x:maturity="FPWDLC"'>Working Draft</xsl:when>
+          <xsl:when test='$options/x:maturity="CR"'>Candidate Recommendation</xsl:when>
+          <xsl:when test='$options/x:maturity="PR"'>Proposed Recommendation</xsl:when>
+          <xsl:when test='$options/x:maturity="PER"'>Proposed Edited Recommendation</xsl:when>
+          <xsl:when test='$options/x:maturity="REC"'>Recommendation</xsl:when>
+          <xsl:when test='$options/x:maturity="WG-NOTE"'>Working Group Note</xsl:when>
+          <xsl:otherwise>Editor’s Draft</xsl:otherwise>
+        </xsl:choose>
+        <xsl:text> </xsl:text>
+        <em>
+          <xsl:call-template name='date'/>
+        </em>
+      </h2>
+
+      <dl>
+        <xsl:choose>
+          <xsl:when test='$options/x:versions/x:cvs and $options/x:maturity="ED"'>
+            <dt>Latest Editor’s Draft:</dt>
+            <dd>
+              <xsl:variable name='href' select='concat(substring-before($options/x:versions/x:cvs/@href, "~checkout~/"), substring-after($options/x:versions/x:cvs/@href, "~checkout~/"))'/>
+              <xsl:variable name='href2' select='concat($href, "?rev=", $rev, "&amp;content-type=text/xml")'/>
+              <a id='cvsVersionLink' href='{$href}'><xsl:value-of select='$href'/></a>
+              <script type='text/ecmascript'>
+                var id = "&#x24;Id$";
+                var a = document.getElementById('cvsVersionLink');
+                var xs = id.match(/ ([0-9]\.[0-9.]+) /);
+                if (xs) {
+                  var rev = xs[1];
+                  a.href = "<xsl:value-of select='$options/x:versions/x:cvs/@href'/>?rev=" + rev + String.fromCharCode(38) + "content-type=text/html; charset=utf-8";
+                  a.firstChild.data = a.href;
+                }
+              </script>
+            </dd>
+            <dt>Latest Published Version:</dt>
+            <xsl:if test='$options/x:versions/x:latest/@href != ""'>
+              <dd><a href='{$options/x:versions/x:latest/@href}'><xsl:value-of select='$options/x:versions/x:latest/@href'/></a></dd>
+            </xsl:if>
           </xsl:when>
           <xsl:otherwise>
-            <a href='{$options/x:versions/x:this/@href}'><xsl:value-of select='$options/x:versions/x:this/@href'/></a>
+            <dt>This Version:</dt>
+            <dd>
+              <a href='{$options/x:versions/x:this/@href}'><xsl:value-of select='$options/x:versions/x:this/@href'/></a>
+            </dd>
+            <dt>Latest Version:</dt>
+            <xsl:if test='$options/x:versions/x:latest/@href != ""'>
+              <dd><a href='{$options/x:versions/x:latest/@href}'><xsl:value-of select='$options/x:versions/x:latest/@href'/></a></dd>
+            </xsl:if>
           </xsl:otherwise>
         </xsl:choose>
-      </dd>
-      <dt>Latest version:</dt>
-      <xsl:if test='$options/x:versions/x:latest/@href != ""'>
-        <dd><a href='{$options/x:versions/x:latest/@href}'><xsl:value-of select='$options/x:versions/x:latest/@href'/></a></dd>
-      </xsl:if>
-      <dt>Previous version:</dt>
-      <xsl:if test='$options/x:versions/x:previous/@href != ""'>
-        <xsl:for-each select='$options/x:versions/x:previous/@href'>
-          <dd><a href='{$options/x:versions/x:previous/@href}'><xsl:value-of select='$options/x:versions/x:previous/@href'/></a></dd>
-        </xsl:for-each>
-      </xsl:if>
-      <dt>Editor<xsl:if test='count($options/x:editors/x:person) &gt; 1'>s</xsl:if>:</dt>
-      <xsl:for-each select='$options/x:editors/x:person'>
-        <dd>
-          <xsl:choose>
-            <xsl:when test='@homepage'>
-              <a href='{@homepage}'><xsl:value-of select='x:name'/></a>
-            </xsl:when>
-            <xsl:otherwise>
-              <xsl:value-of select='x:name'/>
-            </xsl:otherwise>
-          </xsl:choose>
-          <xsl:if test='x:affiliation'>
-            <xsl:text> (</xsl:text>
+        <xsl:if test='$options/x:versions/x:previous[@href!=""]'>
+          <dt>Previous Version<xsl:if test='count($options/x:versions/x:previous[@href!=""]) > 1'>s</xsl:if>:</dt>
+          <xsl:if test='$options/x:versions/x:previous/@href != ""'>
+            <xsl:for-each select='$options/x:versions/x:previous/@href'>
+              <dd><a href='{$options/x:versions/x:previous/@href}'><xsl:value-of select='$options/x:versions/x:previous/@href'/></a></dd>
+            </xsl:for-each>
+          </xsl:if>
+        </xsl:if>
+        <dt>Editor<xsl:if test='count($options/x:editors/x:person) &gt; 1'>s</xsl:if>:</dt>
+        <xsl:for-each select='$options/x:editors/x:person'>
+          <dd>
             <xsl:choose>
-              <xsl:when test='x:affiliation/@homepage'>
-                <a href='{x:affiliation/@homepage}'><xsl:value-of select='x:affiliation'/></a>
+              <xsl:when test='@homepage'>
+                <a href='{@homepage}'><xsl:value-of select='x:name'/></a>
               </xsl:when>
               <xsl:otherwise>
-                <xsl:value-of select='x:affiliation'/>
+                <xsl:value-of select='x:name'/>
               </xsl:otherwise>
             </xsl:choose>
-            <xsl:text>)</xsl:text>
-          </xsl:if>
-          <xsl:if test='@email'>
-            <xsl:text> &lt;</xsl:text>
-            <xsl:value-of select='@email'/>
-            <xsl:text>&gt;</xsl:text>
-          </xsl:if>
-        </dd>
-      </xsl:for-each>
-    </dl>
-    <p class="copyright">
-      <a href="http://www.w3.org/Consortium/Legal/ipr-notice#Copyright">Copyright</a> ©<xsl:value-of select='concat($options/x:years, " ")'/>
-      <a href="http://www.w3.org/"><acronym title="World Wide Web Consortium">W3C</acronym></a><sup>®</sup>
-      (<a href="http://www.csail.mit.edu/"><acronym title="Massachusetts Institute of Technology">MIT</acronym></a>,
-      <a href="http://www.ercim.org/"><acronym title="European Research Consortium for Informatics and Mathematics">ERCIM</acronym></a>,
-      <a href="http://www.keio.ac.jp/">Keio</a>), All Rights Reserved. W3C
-      <a href="http://www.w3.org/Consortium/Legal/ipr-notice#Legal_Disclaimer">liability</a>,
-      <a href="http://www.w3.org/Consortium/Legal/ipr-notice#W3C_Trademarks">trademark</a> and 
-      <a href="http://www.w3.org/Consortium/Legal/copyright-documents">document use</a> rules apply.
-    </p>
+            <xsl:if test='x:affiliation'>
+              <xsl:text>, </xsl:text>
+              <xsl:choose>
+                <xsl:when test='x:affiliation/@homepage'>
+                  <a href='{x:affiliation/@homepage}'><xsl:value-of select='x:affiliation'/></a>
+                </xsl:when>
+                <xsl:otherwise>
+                  <xsl:value-of select='x:affiliation'/>
+                </xsl:otherwise>
+              </xsl:choose>
+            </xsl:if>
+            <xsl:if test='@email'>
+              <xsl:text> &lt;</xsl:text>
+              <xsl:value-of select='@email'/>
+              <xsl:text>&gt;</xsl:text>
+            </xsl:if>
+          </dd>
+        </xsl:for-each>
+      </dl>
+      <p class="copyright">
+        <a href="http://www.w3.org/Consortium/Legal/ipr-notice#Copyright">Copyright</a> ©<xsl:value-of select='concat($options/x:years, " ")'/>
+        <a href="http://www.w3.org/"><acronym title="World Wide Web Consortium">W3C</acronym></a><sup>®</sup>
+        (<a href="http://www.csail.mit.edu/"><acronym title="Massachusetts Institute of Technology">MIT</acronym></a>,
+        <a href="http://www.ercim.org/"><acronym title="European Research Consortium for Informatics and Mathematics">ERCIM</acronym></a>,
+        <a href="http://www.keio.ac.jp/">Keio</a>), All Rights Reserved. W3C
+        <a href="http://www.w3.org/Consortium/Legal/ipr-notice#Legal_Disclaimer">liability</a>,
+        <a href="http://www.w3.org/Consortium/Legal/ipr-notice#W3C_Trademarks">trademark</a> and 
+        <a href="http://www.w3.org/Consortium/Legal/copyright-documents">document use</a> rules apply.
+      </p>
+    </div>
     <hr/>
+  </xsl:template>
+
+  <xsl:template name='date'>
+    <xsl:variable name='date'>
+      <xsl:choose>
+        <xsl:when test='$options/x:maturity="ED"'>
+          <xsl:value-of select='translate(substring-before(substring-after(substring-after(substring-after($id, " "), " "), " "), " "), "/", "")'/>
+        </xsl:when>
+        <xsl:otherwise>
+          <xsl:value-of select='substring($options/x:versions/x:this/@href, string-length($options/x:versions/x:this/@href) - 8, 8)'/>
+        </xsl:otherwise>
+      </xsl:choose>
+    </xsl:variable>
+    <xsl:value-of select='number(substring($date, 7))'/>
+    <xsl:text> </xsl:text>
+    <xsl:call-template name='monthName'>
+      <xsl:with-param name='n' select='number(substring($date, 5, 2))'/>
+    </xsl:call-template>
+    <xsl:text> </xsl:text>
+    <xsl:value-of select='substring($date, 1, 4)'/>
+  </xsl:template>
+
+  <xsl:template name='maturity'>
+    <xsl:choose>
+      <xsl:when test='$options/x:maturity="FPWD"'>First Public Working Draft</xsl:when>
+      <xsl:when test='$options/x:maturity="LCWD"'>Last Call Working Draft</xsl:when>
+      <xsl:when test='$options/x:maturity="FPWDLC"'>First Public Working Draft and Last Call Working Draft</xsl:when>
+      <xsl:when test='$options/x:maturity="WD"'>Working Draft</xsl:when>
+      <xsl:when test='$options/x:maturity="CR"'>Candidate Recommendation</xsl:when>
+      <xsl:when test='$options/x:maturity="PR"'>Proposed Recommendation</xsl:when>
+      <xsl:when test='$options/x:maturity="PER"'>Proposed Edited Recommendation</xsl:when>
+      <xsl:when test='$options/x:maturity="REC"'>Recommendation</xsl:when>
+      <xsl:when test='$options/x:maturity="WG-NOTE"'>Working Group Note</xsl:when>
+      <xsl:otherwise>Editor’s Draft</xsl:otherwise>
+    </xsl:choose>
+  </xsl:template>
+
+  <xsl:template match='processing-instruction("sotd-top")'>
+    <xsl:variable name='mail' select='substring-before(., " ")'/>
+    <xsl:variable name='temp' select='substring-after(., " ")'/>
+    <xsl:variable name='archive'>
+      <xsl:choose>
+        <xsl:when test='contains($temp, " ")'><xsl:value-of select='substring-before($temp, " ")'/></xsl:when>
+        <xsl:otherwise><xsl:value-of select='$temp'/></xsl:otherwise>
+      </xsl:choose>
+    </xsl:variable>
+    <xsl:variable name='prefix'>
+      <xsl:if test='contains($temp, " ")'><xsl:value-of select='substring-after($temp, " ")'/></xsl:if>
+    </xsl:variable>
+    <p>
+      <em>
+        This section describes the status of this document at the time of
+        its publication.  Other documents may supersede this document. A list
+        of current W3C publications and the latest revision of this technical
+        report can be found in the <a href="http://www.w3.org/TR/">W3C technical
+          reports index</a> at http://www.w3.org/TR/.
+      </em>
+    </p>
+    <p>
+      <xsl:if test='$options/x:maturity!="REC" and $options/x:maturity!="WG-NOTE"'>
+        This document is the <xsl:call-template name='date'/><xsl:text> </xsl:text>
+        <b><xsl:call-template name='maturity'/></b> of the
+        “<xsl:value-of select='/*/h:head/h:title'/>” specification.
+      </xsl:if>
+      Please send comments about this document to
+      <a href='mailto:{$mail}'><xsl:value-of select='$mail'/></a>
+      (<a href='{$archive}'>archived</a>)<xsl:if test='$prefix'>
+      with “<xsl:value-of select='$prefix'/>” at the start of the subject line</xsl:if>.
+    </p>
+  </xsl:template>
+
+  <xsl:template match='processing-instruction("sotd-bottom")'>
+    <xsl:variable name='ipp' select='.'/>
+    <p>
+      <xsl:choose>
+        <xsl:when test='$options/x:maturity="REC"'>
+          This document has been reviewed by W3C Members, by software developers,
+          and by other W3C groups and interested parties, and is endorsed by the
+          Director as a W3C Recommendation. It is a stable document and may be
+          used as reference material or cited from another document. W3C’s role
+          in making the Recommendation is to draw attention to the specification
+          and to promote its widespread deployment. This enhances the
+          functionality and interoperability of the Web.
+        </xsl:when>
+        <xsl:otherwise>
+          Publication as a <xsl:call-template name='maturity'/> does not imply endorsement by the
+          W3C Membership.  This is a draft document and may be updated, replaced
+          or obsoleted by other documents at any time. It is inappropriate to cite
+          this document as other than work in progress.
+        </xsl:otherwise>
+      </xsl:choose>
+    </p>
+    <p>
+      This document was produced by a group operating under the
+      <a href='http://www.w3.org/Consortium/Patent-Policy-20040205/'>5 February
+        2004 W3C Patent Policy</a>. W3C maintains a
+      <a href='{$ipp}'>public list of
+        any patent disclosures</a> made in connection with the deliverables of
+      the group; that page also includes instructions for disclosing a patent.
+      An individual who has actual knowledge of a patent which the individual
+      believes contains
+      <a href='http://www.w3.org/Consortium/Patent-Policy-20040205/#def-essential'>Essential
+        Claim(s)</a> must disclose the information in accordance with
+      <a href='http://www.w3.org/Consortium/Patent-Policy-20040205/#sec-Disclosure'>section
+        6 of the W3C Patent Policy</a>.
+    </p>
   </xsl:template>
 
   <xsl:template match='processing-instruction("productions")'>
     <xsl:variable name='id' select='substring-before(., " ")'/>
     <xsl:variable name='names' select='concat(" ", substring-after(., " "), " ")'/>
     <table class='grammar'>
-      <xsl:apply-templates select='id($id)/x:prod[contains($names, concat(" ", @nt, " "))]' mode='def'/>
+      <xsl:apply-templates select='//*[@id=$id]/x:prod[contains($names, concat(" ", @nt, " "))]' mode='def'/>
     </table>
   </xsl:template>
 
@@ -158,10 +296,10 @@
     <xsl:variable name='appendicesID' select='substring-after(., " ")'/>
 
     <div class='toc'>
-      <xsl:for-each select='id($sectionsID)'>
+      <xsl:for-each select='//*[@id=$sectionsID]'>
         <xsl:call-template name='toc1'/>
       </xsl:for-each>
-      <xsl:for-each select='id($appendicesID)'>
+      <xsl:for-each select='//*[@id=$appendicesID]'>
         <xsl:call-template name='toc1'>
           <xsl:with-param name='alpha' select='true()'/>
         </xsl:call-template>
@@ -170,7 +308,8 @@
   </xsl:template>
 
   <xsl:template match='processing-instruction("sref")'>
-    <xsl:variable name='s' select='id(string(.))/self::h:div[@class="section"]'/>
+    <xsl:variable name='id' select='string(.)'/>
+    <xsl:variable name='s' select='//*[@id=$id]/self::h:div[@class="section"]'/>
     <xsl:choose>
       <xsl:when test='$s'>
         <xsl:call-template name='section-number'>
@@ -222,8 +361,8 @@
 
   <xsl:template name='section-number'>
     <xsl:param name='section'/>
-    <xsl:variable name='sections' select='id(substring-before($tocpi, " "))'/>
-    <xsl:variable name='appendices' select='id(substring-after($tocpi, " "))'/>
+    <xsl:variable name='sections' select='//*[@id=substring-before($tocpi, " ")]'/>
+    <xsl:variable name='appendices' select='//*[@id=substring-after($tocpi, " ")]'/>
     <xsl:choose>
       <xsl:when test='$section/ancestor::* = $sections'>
         <xsl:for-each select='$section/ancestor-or-self::h:div[@class="section"]'>
