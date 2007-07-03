@@ -28,14 +28,14 @@
   </xsl:template>
 
   <xsl:template match='h:*'>
-    <xsl:copy>
+    <xsl:element name="{name()}" namespace="{namespace-uri()}">
       <xsl:copy-of select='@*[namespace-uri()="" or namespace-uri="http://www.w3.org/XML/1998/namespace"]'/>
       <xsl:apply-templates select='node()'/>
-    </xsl:copy>
+    </xsl:element>
   </xsl:template>
 
   <xsl:template match='h:head'>
-    <xsl:copy>
+    <head>
       <xsl:copy-of select='@*[namespace-uri()="" or namespace-uri="http://www.w3.org/XML/1998/namespace"]'/>
       <xsl:apply-templates select='node()'/>
       <xsl:choose>
@@ -49,7 +49,7 @@
           <link rel='stylesheet' href='http://www.w3.org/StyleSheets/TR/W3C-{$options/x:maturity}' type='text/css'/>
         </xsl:otherwise>
       </xsl:choose>
-    </xsl:copy>
+    </head>
   </xsl:template>
 
   <xsl:template name='monthName'>
@@ -391,7 +391,7 @@
   </xsl:template>
 
   <xsl:template match='h:div[@class="section"]/h:h2 | h:div[@class="section"]/h:h3 | h:div[@class="section"]/h:h4 | h:div[@class="section"]/h:h5 | h:div[@class="section"]/h:h6'>
-    <xsl:copy>
+    <xsl:element name="{name()}" namespace="{namespace-uri()}">
       <xsl:copy-of select='@*[namespace-uri()="" or namespace-uri="http://www.w3.org/XML/1998/namespace"]'/>
       <xsl:if test='$tocpi'>
         <xsl:variable name='num'>
@@ -405,23 +405,23 @@
         </xsl:if>
       </xsl:if>
       <xsl:apply-templates select='node()'/>
-    </xsl:copy>
+    </xsl:element>
   </xsl:template>
 
   <xsl:template match='h:div[@class="ednote"]'>
-    <xsl:copy>
+    <div>
       <xsl:copy-of select='@*[namespace-uri()="" or namespace-uri="http://www.w3.org/XML/1998/namespace"]'/>
       <div class='ednoteHeader'>Editorial note</div>
       <xsl:apply-templates select='node()'/>
-    </xsl:copy>
+    </div>
   </xsl:template>
 
   <xsl:template match='h:div[@class="example"]'>
-    <xsl:copy>
+    <div>
       <xsl:copy-of select='@*[namespace-uri()="" or namespace-uri="http://www.w3.org/XML/1998/namespace"]'/>
       <div class='exampleHeader'>Example</div>
       <xsl:apply-templates select='node()'/>
-    </xsl:copy>
+    </div>
   </xsl:template>
 
   <xsl:template match='x:codeblock'>
