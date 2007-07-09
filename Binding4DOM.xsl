@@ -52,6 +52,22 @@
     </head>
   </xsl:template>
 
+  <xsl:template match='h:span[@class="idltype"]'>
+    <xsl:variable name='id' select='concat("idl-", translate(., " ", "-"))'/>
+    <xsl:variable name='def' select='//*[@id=$id]'/>
+    <xsl:choose>
+      <xsl:when test='$def'>
+        <a class='idltype' href='#{$id}'><xsl:apply-templates select='node()'/></a>
+      </xsl:when>
+      <xsl:otherwise>
+        <span>
+          <xsl:copy-of select='@*[namespace-uri()="" or namespace-uri="http://www.w3.org/XML/1998/namespace"]'/>
+          <xsl:apply-templates select='node()'/>
+        </span>
+      </xsl:otherwise>
+    </xsl:choose>
+  </xsl:template>
+
   <xsl:template name='monthName'>
     <xsl:param name='n' select='1'/>
     <xsl:param name='s' select='"January February March April May June July August September October November December "'/>
@@ -212,6 +228,21 @@
     </xsl:choose>
   </xsl:template>
 
+  <xsl:template name='maturity-short'>
+    <xsl:choose>
+      <xsl:when test='$options/x:maturity="FPWD"'>Working Draft</xsl:when>
+      <xsl:when test='$options/x:maturity="LCWD"'>Working Draft</xsl:when>
+      <xsl:when test='$options/x:maturity="FPWDLC"'>Working Draft</xsl:when>
+      <xsl:when test='$options/x:maturity="WD"'>Working Draft</xsl:when>
+      <xsl:when test='$options/x:maturity="CR"'>Candidate Recommendation</xsl:when>
+      <xsl:when test='$options/x:maturity="PR"'>Proposed Recommendation</xsl:when>
+      <xsl:when test='$options/x:maturity="PER"'>Proposed Edited Recommendation</xsl:when>
+      <xsl:when test='$options/x:maturity="REC"'>Recommendation</xsl:when>
+      <xsl:when test='$options/x:maturity="WG-NOTE"'>Working Group Note</xsl:when>
+      <xsl:otherwise>Editor’s Draft</xsl:otherwise>
+    </xsl:choose>
+  </xsl:template>
+
   <xsl:template match='processing-instruction("sotd-top")'>
     <xsl:variable name='mail' select='substring-before(., " ")'/>
     <xsl:variable name='temp' select='substring-after(., " ")'/>
@@ -260,7 +291,7 @@
           functionality and interoperability of the Web.
         </xsl:when>
         <xsl:otherwise>
-          Publication as a <xsl:call-template name='maturity'/> does not imply endorsement by the
+          Publication as a <xsl:call-template name='maturity-short'/> does not imply endorsement by the
           W3C Membership.  This is a draft document and may be updated, replaced
           or obsoleted by other documents at any time. It is inappropriate to cite
           this document as other than work in progress.
@@ -316,6 +347,15 @@
           <xsl:with-param name='section' select='$s'/>
         </xsl:call-template>
       </xsl:when>
+      <xsl:otherwise>@@</xsl:otherwise>
+    </xsl:choose>
+  </xsl:template>
+
+  <xsl:template match='processing-instruction("sdir")'>
+    <xsl:variable name='id' select='string(.)'/>
+    <xsl:choose>
+      <xsl:when test='preceding::h:div[@id=$id][@class="section"]'>above</xsl:when>
+      <xsl:when test='following::h:div[@id=$id][@class="section"]'>below</xsl:when>
       <xsl:otherwise>@@</xsl:otherwise>
     </xsl:choose>
   </xsl:template>
