@@ -15,13 +15,13 @@
   <head>
     <title>Language Bindings for DOM Specifications</title>
     <meta http-equiv='Content-Type' content='application/xhtml+xml; charset=UTF-8'/>
-    <meta name='revision' content='$Id: Overview.xml,v 1.39 2007-07-09 10:48:50 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: Overview.xml,v 1.40 2007-07-10 05:16:37 cmccorma Exp $'/>
     <link rel='stylesheet' href='Binding4DOM.css' type='text/css'/>
 
     <options xmlns='http://mcc.id.au/ns/local'>
       <versions>
         <cvs href='http://dev.w3.org/cvsweb/~checkout~/2006/webapi/Binding4DOM/Overview.html'/>
-        <this href='http://www.w3.org/TR/2007/WD-dom-bindings-20070709/'/>
+        <this href='http://www.w3.org/TR/2007/WD-dom-bindings-20070710/'/>
         <latest href='http://www.w3.org/TR/dom-bindings/'/>
         <previous href=''/>
       </versions>
@@ -50,7 +50,7 @@
 
       <div class='ednote'>
         <p>
-          This is revision $Id: Overview.xml,v 1.39 2007-07-09 10:48:50 cmccorma Exp $.
+          This is revision $Id: Overview.xml,v 1.40 2007-07-10 05:16:37 cmccorma Exp $.
         </p>
       </div>
     </div>
@@ -218,6 +218,27 @@
           <span class='rfc2119'>should not</span> have any non-<a class='dfnref' href='#dfn-module'>module</a>
           definitions declared at the outermost scope.
         </p>
+
+        <p>
+          A definition has been <dfn id='dfn-declared-previously'>declared previously</dfn>,
+          relative to a given <a class='dfnref' href='#dfn-scoped-name'>scoped name</a> that
+          <a class='dfnref' href='#dfn-resolve'>resolved</a> to the definition, if:
+        </p>
+        <ul>
+          <li>
+            the scoped name resolves to a definition other than an
+            <a class='dfnref' href='#dfn-interface'>interface</a>, and
+            the first terminal symbol of the <a class='nt' href='#dfn-Definition'>Definition</a>
+            for the interface occurs before scoped name; or,
+          </li>
+          <li>
+            the scoped name resolves to an
+            <a class='dfnref' href='#dfn-interface'>interface</a>, and
+            the first terminal symbol of the <a class='nt' href='#dfn-Definition'>Definition</a>
+            for the interface or a <a class='dfnref' href='#dfn-interface-forward-declaration'>forward declaration</a>
+            for the interface occurs before scoped name.
+          </li>
+        </ul>
 
         <?productions grammar Definitions Definition?>
 
@@ -432,6 +453,16 @@
             case the mapping of IDL interfaces to language interfaces is simple.
           </p>
           <p>
+            An <dfn id='dfn-interface-forward-declaration'>interface forward declaration</dfn>
+            is a definition that matches the <a class='nt' href='#prod-Interface'>Interface</a> non-terminal
+            whose <a class='nt' href='#prod-InterfaceBody'>InterfaceBody</a> is empty
+            (i.e., <a class='nt' href='#prod-InterfaceBody'>InterfaceBody</a> ⇒ ε).  A forward declaration
+            is used to introduce an interface name to allow for the definition of mutually
+            recursive interfaces, since <a class='dfnref' href='#dfn-scoped-name'>scoped names</a>
+            need to resolve to types that have been
+            <a class='dfnref' href='#dfn-declared-previously'>declared previously</a>.
+          </p>
+          <p>
             The following extended attributes are applicable to interfaces:
             <a class='xattr' href='#Constructor'>[Constructor]</a>.
           </p>
@@ -616,6 +647,10 @@
               A constant <span class='rfc2119'>must</span> be assigned a value of the
               same type that the constant is declared to be.
             </p>
+            <p>
+              No <a class='dfnref' href='#dfn-extended-attributes'>extended attributes</a>
+              are applicable to constants.
+            </p>
 
             <?productions grammar Const ConstExpr BooleanLiteral?>
           </div>
@@ -630,11 +665,50 @@
               <a class='dfnref' href='#dfn-identifier'>identifier</a> that can be
               assigned and retrieved.
             </p>
-            <!--p>
-              The type of the attribute is given by the <a class='nt' href='#prod-Type'>Type</a>
-              non-terminal.  If the <a class='nt' href='#prod-Type'>Type</a> is a
-              <a href='
-            </p-->
+            <p>
+              The type of the attribute is given by the <a class='nt' href='#prod-DeclarationType'>DeclarationType</a>
+              non-terminal.  If the <a class='nt' href='#prod-DeclarationType'>DeclarationType</a> is a
+              <a class='dfnref' href='#dfn-scoped-name'>scoped name</a>, then it <span class='rfc2119'>must</span>
+              <a class='dfnref' href='#dfn-resolve'>resolve</a>,
+              with respect to the <a class='dfnref' href='#dfn-enclosing-module'>enclosing module</a>
+              of the <a class='dfnref' href='#dfn-interface'>interface</a> on which the attribute
+              is defined, to an interface, <a class='dfnref' href='#dfn-typedef'>typedef</a>
+              or <a class='dfnref' href='#dfn-boxed-valuetype'>boxed valuetype</a> that has
+              been <a class='dfnref' href='#dfn-declared-previously'>declared previously</a>.
+            </p>
+            <p>
+              The attribute is <dfn id='dfn-read-only'>read only</dfn> if the
+              <span class='terminal'>"readonly"</span> terminal is used in the definition.
+              An object that implements the interface on which a read only attribute
+              is defined will not allow assignment to that attribute.  It is language
+              binding specific whether assignment is simply disallowed by the language,
+              ignored or an exception is thrown.
+            </p>
+            <p>
+              The <a class='nt' href='#prod-GetRaises'>GetRaises</a> and
+              <a class='nt' href='#prod-SetRaises'>SetRaises</a> clauses are used
+              to declare the possible exceptions that can be thrown when retrieving
+              the value of and assigning a value to the attribute, respectively.
+              Each <a class='dfnref' href='#dfn-scoped-name'>scoped name</a> in the 
+              <a class='nt' href='#prod-GetRaises'>GetRaises</a> and
+              <a class='nt' href='#prod-SetRaises'>SetRaises</a> clauses
+              <span class='rfc2119'>must</span> <a class='dfnref' href='#dfn-resolve'>resolve</a>,
+              with respect to the <a class='dfnref' href='#dfn-enclosing-module'>enclosing module</a>
+              of the <a class='dfnref' href='#dfn-interface'>interface</a> on which the attribute
+              is defined, to an <a class='dfnref' href='#dfn-exception'>exception</a> that
+              has been <a class='dfnref' href='#dfn-previously-declared'>previously declared</a>.
+            </p>
+            <div class='ednote'>
+              <p>Should conforming implementations have a requirement that they must not
+                raise an exception (that was defined in the IDL) that is not in the 
+                getraises/setraises list?</p>
+            </div>
+            <p>
+              The following <a class='dfnref' href='#dfn-extended-attributes'>extended attributes</a>
+              are applicable to attributes:
+              <a class='xattr' href='#NoNull'>[NoNull]</a>,
+              <a class='xattr' href='#PutForwards'>[PutForwards]</a>.
+            </p>
 
             <?productions grammar Attribute ReadOnly GetRaises SetRaises ExceptionList?>
           </div>
@@ -642,7 +716,75 @@
           <div id='idl-operations' class='section'>
             <h4>Operations</h4>
 
-            <p>…</p>
+            <p>
+              An <dfn id='dfn-operation'>operation</dfn> is a definition that matches the
+              <a class='nt' href='#prod-Operation'>Operation</a> non-terminal, and is used
+              to declare that objects implementing the interface will have a method with 
+              the given <a class='dfnref' href='#dfn-identifier'>identifier</a>.
+            </p>
+            <p>
+              The <dfn id='dfn-return-type'>return type</dfn> of the operation is given
+              by the <a class='nt' href='#prod-ReturnType'>ReturnType</a> non-terminal.
+              A return type of <span class='terminal'>"void"</span> indicates that the operation returns no value.
+              If the <a class='nt' href='#prod-DeclarationType'>DeclarationType</a> is a
+              <a class='dfnref' href='#dfn-scoped-name'>scoped name</a>, then it <span class='rfc2119'>must</span>
+              <a class='dfnref' href='#dfn-resolve'>resolve</a>,
+              with respect to the <a class='dfnref' href='#dfn-enclosing-module'>enclosing module</a>
+              of the <a class='dfnref' href='#dfn-interface'>interface</a> on which the operation
+              is defined, to an interface, <a class='dfnref' href='#dfn-typedef'>typedef</a>
+              or <a class='dfnref' href='#dfn-boxed-valuetype'>boxed valuetype</a> that has
+              been <a class='dfnref' href='#dfn-declared-previously'>declared previously</a>.
+            </p>
+            <p>
+              The <a class='nt' href='#prod-ArgumentList'>ArgumentList</a> non-terminal gives
+              the list of arguments for the operation.  The <a class='dfnref' href='#dfn-identifier'>identifier</a>
+              of an argument is given by the <a class='nt' href='#prod-identifier'>identifier</a>
+              terminal in the <a class='dfnref' href='#prod-Argument'>Argument</a>, and the type
+              of the argument is given by the <a class='nt' href='#prod-DeclarationType'>DeclarationType</a>.
+              If the <a class='nt' href='#prod-DeclarationType'>DeclarationType</a> is a
+              <a class='dfnref' href='#dfn-scoped-name'>scoped name</a>, then it <span class='rfc2119'>must</span>
+              <a class='dfnref' href='#dfn-resolve'>resolve</a>,
+              with respect to the <a class='dfnref' href='#dfn-enclosing-module'>enclosing module</a>
+              of the <a class='dfnref' href='#dfn-interface'>interface</a> on which the operation
+              is defined, to an interface, <a class='dfnref' href='#dfn-typedef'>typedef</a>
+              or <a class='dfnref' href='#dfn-boxed-valuetype'>boxed valuetype</a> that has
+              been <a class='dfnref' href='#dfn-declared-previously'>declared previously</a>.
+            </p>
+            <p>
+              Each argument can be preceded by a list of
+              <a class='dfnref' href='#dfn-extended-attribute'>extended attributes</a> (matching
+              <a class='nt' href='#prod-ExtendedAttributeList'>ExtendedAttributeList</a>),
+              which can control how a value passed as the argument value will be handled in
+              language bindings.
+            </p>
+            <p>
+              The <a class='nt' href='#prod-Raises'>Raises</a> clause is used
+              to declare the possible exceptions that can be thrown when invoking
+              the operation.
+              Each <a class='dfnref' href='#dfn-scoped-name'>scoped name</a> in the 
+              <a class='nt' href='#prod-Raises'>Raises</a> clause
+              <span class='rfc2119'>must</span> <a class='dfnref' href='#dfn-resolve'>resolve</a>,
+              with respect to the <a class='dfnref' href='#dfn-enclosing-module'>enclosing module</a>
+              of the <a class='dfnref' href='#dfn-interface'>interface</a> on which the operation
+              is defined, to an <a class='dfnref' href='#dfn-exception'>exception</a> that
+              has been <a class='dfnref' href='#dfn-previously-declared'>previously declared</a>.
+            </p>
+            <p>
+              The following <a class='dfnref' href='#dfn-extended-attributes'>extended attributes</a>
+              are applicable to operations:
+              <a class='xattr' href='#IndexGetter'>[IndexGetter]</a>,
+              <a class='xattr' href='#IndexSetter'>[IndexSetter]</a>,
+              <a class='xattr' href='#NameGetter'>[NameGetter]</a>,
+              <a class='xattr' href='#NameSetter'>[NameSetter]</a>,
+              <a class='xattr' href='#NoNull'>[NoNull]</a>,
+              <a class='xattr' href='#Overloads'>[Overloads]</a>.
+            </p>
+            <p>
+              The following extended attributes are applicable to operation arguments:
+              <a class='xattr' href='#NoNull'>[NoNull]</a>,
+              <a class='xattr' href='#Variadic'>[Variadic]</a>.
+            </p>
+
             <?productions grammar Operation ReturnType ArgumentList Arguments Argument Raises?>
           </div>
         </div>
@@ -682,7 +824,7 @@
 
           <p>…</p>
 
-          <?productions grammar Type UnsignedIntegerType IntegerType OptionalLong?>
+          <?productions grammar DeclarationType Type UnsignedIntegerType IntegerType OptionalLong?>
 
           <div id='idl-any' class='section'>
             <h4>any</h4>
@@ -2441,52 +2583,53 @@ interface D : C {
             </p>
             <ol class='algorithm'>
               <li>
-                Determine the name of a
+                Determine the name of an
                 <a class='xattr' href='#IndexGetter'>[IndexGetter]</a>-annotated
                 operation on the interfaces that <var>O</var> implements.
-                If there is no such operation, go to step 7.
+                If there is no such operation, go to step 8.
               </li>
               <li>Compute ToUint32(<var>P</var>).</li>
-              <li>If Result(2) is not a non-negative integer, go to step 7.</li>
+              <li>Compute ToString(Result(2)).</li>
+              <li>If Result(3) is equal to <var>P</var> and Result(2) is not equal to 2<sup>32</sup> − 1, go to step 8.</li>
               <li>
                 Invoke the <span class='prop'>[[Get]]</span> method of object <var>O</var> with Result(1)
                 as the argument.
               </li>
               <li>
-                Invoke the <span class='prop'>[[Call]]</span> method of Result(4), providing
+                Invoke the <span class='prop'>[[Call]]</span> method of Result(5), providing
                 <var>O</var> as the <span class='esvalue'>this</span> value and
                 Result(2) as the single argument value.
               </li>
-              <li>Return Result(4).</li>
+              <li>Return Result(5).</li>
               <li>
                 Determine the name of a
                 <a class='xattr' href='#NameGetter'>[NameGetter]</a>-annotated operation
                 on the interfaces that <var>O</var> implements.  If there is no
-                such operation, go to step 13.
+                such operation, go to step 14.
               </li>
               <li>
                 Invoke the <span class='prop'>[[HasProperty]]</span> method of object <var>O</var> with
                 <var>P</var> as the argument.
               </li>
               <li>
-                If Result(7) is <span class='esvalue'>true</span>, go to step 13.
+                If Result(8) is <span class='esvalue'>true</span>, go to step 14.
               </li>
               <li>
-                Invoke the <span class='prop'>[[Get]]</span> method of object <var>O</var> with Result(6)
+                Invoke the <span class='prop'>[[Get]]</span> method of object <var>O</var> with Result(7)
                 as the argument.
               </li>
               <li>
-                Invoke the <span class='prop'>[[Call]]</span> method of Result(9), providing
+                Invoke the <span class='prop'>[[Call]]</span> method of Result(10), providing
                 <var>O</var> as the <span class='esvalue'>this</span> value and
                 <var>P</var> as the single argument value.
               </li>
-              <li>Return Result(10).</li>
+              <li>Return Result(11).</li>
               <li>
                 If <var>O</var> doesn’t have a property with name <var>P</var>,
-                go to step 16.
+                go to step 17.
               </li>
               <li>Get the value of the property.</li>
-              <li>Return Result(14).</li>
+              <li>Return Result(15).</li>
               <li>
                 If the <span class='prop'>[[Prototype]]</span> of <var>O</var> is
                 <span class='esvalue'>null</span>, return
@@ -2496,7 +2639,7 @@ interface D : C {
                 Call the <span class='prop'>[[Get]]</span> method of <span class='prop'>[[Prototype]]</span> with property name
                 <var>P</var>.
               </li>
-              <li>Return Result(17).</li>
+              <li>Return Result(18).</li>
             </ol>
           </div>
 
@@ -2515,46 +2658,47 @@ interface D : C {
                 Determine the name of a
                 <a class='xattr' href='#IndexSetter'>[IndexSetter]</a>-annotated
                 operation on the interfaces that <var>O</var> implements.
-                If there is no such operation, go to step 7.
+                If there is no such operation, go to step 8.
               </li>
               <li>Compute ToUint32(<var>P</var>).</li>
-              <li>If Result(2) is not a non-negative integer, go to step 7.</li>
+              <li>Compute ToString(Result(2)).</li>
+              <li>If Result(3) is equal to <var>P</var> and Result(2) is not equal to 2<sup>32</sup> − 1, go to step 8.</li>
               <li>
                 Invoke the <span class='prop'>[[Get]]</span> method of object <var>O</var> with Result(1)
                 as the argument.
               </li>
               <li>
-                Invoke the <span class='prop'>[[Call]]</span> method of Result(4), providing
+                Invoke the <span class='prop'>[[Call]]</span> method of Result(5), providing
                 <var>O</var> as the <span class='esvalue'>this</span> value and
                 Result(2) and <var>V</var> as the two argument values.
               </li>
-              <li>Return Result(4).</li>
+              <li>Return Result(5).</li>
               <li>
                 Determine the name of a
                 <a class='xattr' href='#NameSetter'>[NameSetter]</a>-annotated operation
                 on the interfaces that <var>O</var> implements.  If there is no
-                such operation, go to step 13.
+                such operation, go to step 14.
               </li>
               <li>
                 Invoke the <span class='prop'>[[HasProperty]]</span> method of object <var>O</var> with
                 <var>P</var> as the argument.
               </li>
               <li>
-                If Result(7) is <span class='esvalue'>true</span>, go to step 13.
+                If Result(8) is <span class='esvalue'>true</span>, go to step 14.
               </li>
               <li>
-                Invoke the <span class='prop'>[[Get]]</span> method of object <var>O</var> with Result(6)
+                Invoke the <span class='prop'>[[Get]]</span> method of object <var>O</var> with Result(7)
                 as the argument.
               </li>
               <li>
-                Invoke the <span class='prop'>[[Call]]</span> method of Result(9), providing
+                Invoke the <span class='prop'>[[Call]]</span> method of Result(10), providing
                 <var>O</var> as the <span class='esvalue'>this</span> value and
                 <var>P</var> and <var>V</var> as the two argument values.
               </li>
-              <li>Return Result(10).</li>
+              <li>Return Result(11).</li>
               <li>
                 If <var>O</var> has a property with name <var>P</var> and that property does not correspond
-                to an IDL operation declared <code>readonly</code>, then go to step 18.
+                to an IDL operation declared <code>readonly</code>, then go to step 19.
               </li>
               <li>
                 If the property on <var>O</var> with name <var>P</var> does not correspond
@@ -2567,7 +2711,7 @@ interface D : C {
                 <var>P</var>.
               </li>
               <li>
-                Call the <span class='prop'>[[Put]]</span> method of Result(15) with the property
+                Call the <span class='prop'>[[Put]]</span> method of Result(16) with the property
                 name being the argument to the <a class='xattr' href='#PutForwards'>[PutForwards]</a>
                 extended attribute, and value <var>V</var>.
               </li>
@@ -2578,7 +2722,7 @@ interface D : C {
                 <var>P</var>.
               </li>
               <li>
-                If Result(18) is <span class='esvalue'>false</span>,
+                If Result(19) is <span class='esvalue'>false</span>,
                 return.
               </li>
               <li>
@@ -3372,10 +3516,10 @@ module html {
           <prod nt='ExceptionMembers'>ExtendedAttributeList ExceptionMember ExceptionMembers | ε</prod>
           <prod nt='Typedef'>"typedef" Type identifier ";"</prod>
           <prod nt='Valuetype'>"valuetype" identifier Type ";"</prod>
-          <prod nt='Const'>"const" Type identifier "=" ConstExpr ";"</prod>
+          <prod nt='Const'>"const" DeclarationType identifier "=" ConstExpr ";"</prod>
           <prod nt='ConstExpr'>BooleanLiteral | integer | float</prod>
           <prod nt='BooleanLiteral'>"TRUE" | "FALSE"</prod>
-          <prod nt='Attribute'>ReadOnly "attribute" Type identifier GetRaises SetRaises ";"</prod>
+          <prod nt='Attribute'>ReadOnly "attribute" DeclarationType identifier GetRaises SetRaises ";"</prod>
           <prod nt='ReadOnly'>"readonly" | ε</prod>
           <prod nt='GetRaises'>"getraises" ExceptionList | ε</prod>
           <prod nt='SetRaises'>"setraises" ExceptionList | ε</prod>
@@ -3384,18 +3528,19 @@ module html {
           <prod nt='ExceptionList'>"(" ScopedNameList ")"</prod>
           <prod nt='ArgumentList'>Argument Arguments | ε</prod>
           <prod nt='Arguments'>"," Argument Arguments | ε</prod>
-          <prod nt='Argument'>ExtendedAttributeList "in" Type identifier</prod>
-          <prod nt='ExceptionMember'>Type identifier ";"</prod>
+          <prod nt='Argument'>ExtendedAttributeList "in" DeclarationType identifier</prod>
+          <prod nt='ExceptionMember'>DeclarationType identifier ";"</prod>
           <prod nt='ExtendedAttributeList'>"[" ExtendedAttribute ExtendedAttributes "]"</prod>
           <prod nt='ExtendedAttributes'>"," ExtendedAttribute ExtendedAttributes | ε</prod>
           <prod nt='ExtendedAttribute'>identifier ExtendedAttributeAssignment</prod>
           <prod nt='ExtendedAttributeAssignment'>"=" ExtendedAttributeArgument | ε</prod>
           <prod nt='ExtendedAttributeArgument'>identifier</prod>
-          <prod nt='Type'>UnsignedIntegerType | ScopedName | "any" | "boolean" | "octet" | "float" | "Object" | "sequence" "&lt;" Type ">"</prod>
+          <prod nt='DeclarationType'>UnsignedIntegerType | ScopedName | "any" | "boolean" | "octet" | "float" | "Object"</prod>
+          <prod nt='Type'>DeclarationType | "sequence" "&lt;" Type ">"</prod>
           <prod nt='UnsignedIntegerType'>"unsigned" IntegerType | IntegerType</prod>
           <prod nt='IntegerType'>"short" | "long" OptionalLong</prod>
           <prod nt='OptionalLong'>"long" | ε</prod>
-          <prod nt='ReturnType'>Type | "void"</prod>
+          <prod nt='ReturnType'>DeclarationType | "void"</prod>
           <prod nt='ScopedNameList'>ScopedName ScopedNames</prod>
           <prod nt='ScopedNames'>"," ScopedName ScopedNames | ε</prod>
           <prod nt='ScopedName'>"::" identifier ScopedNameParts | identifier ScopedNameParts</prod>

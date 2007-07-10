@@ -580,7 +580,7 @@
             <xsl:with-param name='mode' select='$newMode'/>
           </xsl:call-template>
         </xsl:when>
-        <xsl:when test="$c = '['">
+        <xsl:when test="$c = '[' and $mode = 0">
           <xsl:value-of select='$c'/>
           <xsl:choose>
             <xsl:when test='substring($s, 2, 1) = "]"'>
