@@ -464,6 +464,14 @@
     </div>
   </xsl:template>
 
+  <xsl:template match='h:div[@class="note"]'>
+    <div>
+      <xsl:copy-of select='@*[namespace-uri()="" or namespace-uri="http://www.w3.org/XML/1998/namespace"]'/>
+      <div class='noteHeader'>Note</div>
+      <xsl:apply-templates select='node()'/>
+    </div>
+  </xsl:template>
+
   <xsl:template match='x:codeblock'>
     <div class='block'>
       <div class='blockTitleDiv'>
