@@ -40,7 +40,7 @@
       <xsl:apply-templates select='node()'/>
       <xsl:choose>
         <xsl:when test='$options/x:maturity="ED"'>
-          <link rel='stylesheet' href='http://www.w3.org/StyleSheets/TR/W3C-ED' type='text/css'/>
+          <link rel='stylesheet' href='http://www.w3.org/StyleSheets/TR/base' type='text/css'/>
         </xsl:when>
         <xsl:when test='$options/x:maturity="WD" or $options/x:maturity="FPWD" or $options/x:maturity="LCWD" or $options/x:maturity="FPWDLC"'>
           <link rel='stylesheet' href='http://www.w3.org/StyleSheets/TR/W3C-WD' type='text/css'/>
