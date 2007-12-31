@@ -15,14 +15,14 @@
   <head>
     <title>Language Bindings for DOM Specifications</title>
     <meta http-equiv='Content-Type' content='application/xhtml+xml; charset=UTF-8'/>
-    <meta name='revision' content='$Id: Overview.xml,v 1.49 2007-08-09 02:33:23 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: Overview.xml,v 1.50 2007-12-31 01:45:27 cmccorma Exp $'/>
     <link rel='stylesheet' href='Binding4DOM.css' type='text/css'/>
 
     <options xmlns='http://mcc.id.au/ns/local'>
       <versions>
         <cvs href='http://dev.w3.org/cvsweb/~checkout~/2006/webapi/Binding4DOM/Overview.html'/>
-        <this href='http://www.w3.org/TR/2007/WD-dom-bindings-20070809/'/>
-        <latest href='http://www.w3.org/TR/dom-bindings/'/>
+        <this href='http://www.w3.org/TR/2007/WD-DOM-Bindings-20071011/'/>
+        <latest href='http://www.w3.org/TR/DOM-Bindings/'/>
         <previous href=''/>
       </versions>
       <editors>
@@ -48,11 +48,7 @@
         ECMAScript and Java execution environments is also detailed.
       </p>
 
-      <div class='ednote'>
-        <p>
-          This is revision $Id: Overview.xml,v 1.49 2007-08-09 02:33:23 cmccorma Exp $.
-        </p>
-      </div>
+      <?revision-note?>
     </div>
 
     <div class='section'>
@@ -1156,6 +1152,10 @@
             listed in the sub-sections below.
           </p>
 
+          <div class='ednote'>
+            <p>Have an extended attribute that specifies what properties get enumerated in a for..in loop?</p>
+          </div>
+
           <?productions grammar ExtendedAttributeList ExtendedAttribute ExtendedAttributes ExtendedAttributeAssignment ExtendedAttributeArgument?>
 
           <div id='Constructor' class='section'>
@@ -1564,7 +1564,7 @@ Person* p2 = PersonFactory_createPersonWithAge(f, 26);  // Corresponds to the cr
               of the attribute being assigned to.
             </p>
             <p>
-              It is binding language specific what behavior occurs when assigning
+              It is language binding specific what behavior occurs when assigning
               to such an attribute when its value is <span class='idlvalue'>null</span>.
             </p>
             <p>
@@ -1609,6 +1609,88 @@ p.name.full = 'John Citizen';  // ...has the same behavior as this one.</x:codeb
             </div>
           </div>
 
+          <div id='Stringifies' class='section'>
+            <h4>[Stringifies]</h4>
+
+            <p>
+              If the <a class='xattr' href='#Stringifies'>[Stringifies]</a>
+              <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
+              appears on an <a class='dfnref' href='#dfn-interface'>interface</a>,
+              it indicates that, for language bindings that support object stringification,
+              an object that implements the interface will stringify in a non-default
+              manner.
+            </p>
+            <p>
+              The <a class='xattr' href='#Stringifies'>[Stringifies]</a> extended
+              attribute <span class='rfc2119'>may</span> take a single argument, an
+              <a class='terminal' href='#prod-identifier'>identifier</a>, which
+              identifies an attribute on the interface whose value will be
+              used as the result of the stringification.  If the argument is
+              not supplied, the stringification behavior <span class='rfc2119'>must</span>
+              be described in prose.
+            </p>
+            <div class='example'>
+              <p>
+                The following <a class='dfnref' href='#dfn-idl-fragment'>IDL fragment</a>
+                defines an interface that will stringify to the value of its
+                <a class='idlattr'>name</a> attribute:
+              </p>
+              <x:codeblock language='idl'>[Constructor, Stringifies=name]
+interface Student {
+  unsigned long id;
+  DOMString name;
+};</x:codeblock>
+              <p>
+                In the ECMAScript binding, using a <span class='idltype'>Student</span>
+                object in a context where a string is expected will result in the
+                value of the object’s <span class='prop'>name</span> property being
+                used:
+              </p>
+              <x:codeblock language='es'>var s = new Student();
+s.id = 12345678;
+s.name = '周杰倫';
+
+var greeting = 'Hello, ' + s + '!';  // Now greeting == 'Hello, 周杰倫!'.</x:codeblock>
+              <p>
+                The following <a class='dfnref' href='#dfn-idl-fragment'>IDL fragment</a>
+                defines an interface that has custom stringification behavior that is
+                not specified in the IDL itself.
+              </p>
+              <x:codeblock language='idl'>[Constructor, Stringifies]
+interface Student {
+  unsigned long id;
+  DOMString familyName;
+  [NoNull] DOMString givenName;
+};</x:codeblock>
+              <p>
+                Thus, prose is required to explain the stringification behavior, such
+                as the following paragraph:
+              </p>
+              <blockquote>
+                Objects that implement the <span class='idltype'>Student</span>
+                interface must stringify as follows.  If the value of the
+                <span class='idlattr'>familyName</span> attribute is
+                <span class='idlvalue'>null</span>, the stringification of the
+                object is the value of the <span class='idlattr'>givenName</span>
+                attribute.  Otherwise, if the value of the
+                <span class='idlattr'>familyName</span> attribute is not null,
+                the stringification of the object is the concatenation of the
+                the value of the <span class='idlattr'>givenName</span> attribute,
+                the string <span class='idlvalue'>" "</span> and the value of
+                the <span class='idlattr'>familyName</span> attribute.
+              </blockquote>
+              <p>
+                An ECMAScript implementation of the IDL would behave as follows:
+              </p>
+              <x:codeblock language='es'>var s = new Student();
+s.id = 12345679;
+s.familyName = 'Smithee';
+s.givenName = 'Alan';
+
+var greeting = 'Hi ' + s;  // Now greeting == 'Hi Alan Smithee'.</x:codeblock>
+            </div>
+          </div>
+
           <div id='Variadic' class='section'>
             <h4>[Variadic]</h4>
 
@@ -1649,6 +1731,18 @@ s.union(1, 4, 7);         // Passing three arguments corresponding to 'integers'
                 A binding for a language that does not support variadic functions
                 may specify that an explicit array or list of integers be passed
                 to such an operation.
+              </p>
+            </div>
+            <div class='ednote'>
+              <p>
+                HTML 5 may want to use <a class='xattr' href='#Variadic'>[Variadic]</a>
+                in the middle of the argument list, something like this:
+              </p>
+              <x:codeblock language='idl'>any executeSql(DOMString q, [Variadic] DOMString p, Callback c);
+any executeSql(Array a, Callback f);</x:codeblock>
+              <p>
+                Having <a class='xattr' href='#Variadic'>[Variadic]</a> in the middle
+                isn’t so common in languages, as it tends to cause ambiguities.
               </p>
             </div>
           </div>
@@ -2706,6 +2800,41 @@ interface D : C {
                 This will be written once the overloading rules are more definite.
               </p>
             </div>
+            <p>
+              In addition, if the interface is declared with the
+              <a class='xattr' href='#Stringifies'>[Stringifies]</a> extended
+              attribute, a property <span class='rfc2119'>must</span> exist on
+              the interface prototype object whose name is
+              <span class='prop'>toString</span> and whose value is a
+              <span class='estype'>Function</span> object.  If the
+              <a class='xattr' href='#Stringifies'>[Stringifies]</a>
+              extended attribute on the interface has an identifier argument
+              <var>P</var>, assuming <var>O</var> is the object on which
+              the function was invoked, the behavior of the
+              <span class='prop'>toString</span> function is as follows:
+            </p>
+            <ol class='algorithm'>
+              <li>
+                Invoke the <span class='prop'>[[Get]]</span> method of object
+                <var>O</var> with <var>P</var> as the argument.
+              </li>
+              <li>Compute ToString(Result(1)).</li>
+              <li>Return Result(2).</li>
+            </ol>
+            <p>
+              If the <a class='xattr' href='#Stringifies'>[Stringifies]</a>
+              extended attribute on the interface was not given an argument,
+              then the behavior of the <span class='prop'>toString</span>
+              function is the stringification behavior of the interface, as
+              described in the prose for the interface.
+            </p>
+            <div class='ednote'>
+              <p>
+                Should say what happens if <a class='xattr' href='#Stringifies'>[Stringifies]</a>
+                is used on an interface that also has a <span class='prop'>toString</span>
+                operation.
+              </p>
+            </div>
           </div>
         </div>
 
@@ -2771,7 +2900,7 @@ interface D : C {
                         If <var>O</var> doesn’t have a property with name
                         <var>P</var>, go to step 4.
                       </li>
-                      <li>Get the value of the property.</li>
+                      <li>Get the value of the property <var>P</var> on object <var>O</var>.</li>
                       <li>Return Result(2).</li>
                       <li>
                         Call the <span class='prop'>[[HasProperty]]</span> method
@@ -2860,7 +2989,7 @@ interface D : C {
                         with property name <var>P</var>.
                       </li>
                       <li>
-                        If Result(3) is <span class='esvalue'>true</span>, return
+                        If Result(2) is <span class='esvalue'>true</span>, return
                         <span class='esvalue'>true</span>.
                       </li>
                       <li>
@@ -2926,7 +3055,7 @@ interface D : C {
                 <var>P</var> as the argument.
               </li>
               <li>
-                If Result(8) is <span class='esvalue'>true</span>, go to step 14.
+                If Result(9) is <span class='esvalue'>true</span>, go to step 14.
               </li>
               <li>
                 Invoke the <span class='prop'>[[Get]]</span> method of object <var>O</var> with Result(7)
@@ -2998,7 +3127,7 @@ interface D : C {
                 <var>P</var> as the argument.
               </li>
               <li>
-                If Result(8) is <span class='esvalue'>true</span>, go to step 14.
+                If Result(9) is <span class='esvalue'>true</span>, go to step 14.
               </li>
               <li>
                 Invoke the <span class='prop'>[[Get]]</span> method of object <var>O</var> with Result(7)
@@ -4010,6 +4139,43 @@ interface HTMLDocument {
             <span class='rfc2119'>must</span> be of a Java class that implements the Java interface
             that corresponds to the IDL interface.
           </p>
+          <p>
+            If the IDL <a class='dfnref' href='#dfn-interface'>interface</a> is
+            declared with the
+            <a class='xattr' href='#Stringifies'>[Stringifies]</a> extended
+            attribute, the <code>String toString()</code> method
+            <span class='rfc2119'>must</span> be overridden to allow
+            stringification of the object as required by the IDL
+            <a class='dfnref' href='#dfn-interface'>interface</a>.
+            If the <a class='xattr' href='#Stringifies'>[Stringifies]</a>
+            extended attribute on the IDL interface has an identifier argument
+            <var>A</var>, assuming <var>O</var> is the object on which
+            the method was invoked, the behavior of the overridden
+            <code>toString</code> method is as follows:
+          </p>
+          <ol class='algorithm'>
+            <li>
+              Invoke the <a class='dfnref' href='#dfn-getter-method'>getter
+                method</a> on <var>O</var> that corresponds to the IDL
+              <a class='dfnref' href='#dfn-attribute'>attribute</a>
+              <var>A</var>.
+            </li>
+            <li>Return Result(1).</li>
+          </ol>
+          <p>
+            If the <a class='xattr' href='#Stringifies'>[Stringifies]</a>
+            extended attribute on the IDL interface was not given an argument,
+            then the behavior of the overridden <code>toString</code>
+            method is the stringification behavior of the IDL interface, as
+            described in the prose for the IDL interface.
+          </p>
+          <div class='ednote'>
+            <p>
+              Should say what happens if <a class='xattr' href='#Stringifies'>[Stringifies]</a>
+              is used on an interface that also has a <span class='prop'>toString</span>
+              operation.
+            </p>
+          </div>
         </div>
 
         <div id='java-exceptions' class='section'>
@@ -4347,6 +4513,43 @@ interface HTMLDocument {
           <dd>
             <cite><a href='http://ietf.org/rfc/rfc2119'>Key words for use in RFCs to Indicate Requirement Levels</a></cite>,
             S. Bradner.  IETF, March 1997.  Available at http://ietf.org/rfc/rfc2119.
+          </dd>
+        </dl>
+      </div>
+
+      <div id='changes' class='section'>
+        <h2>Changes</h2>
+        <p>
+          The following is a list of changes to the document on each publication.
+        </p>
+        <dl class='changes'>
+          <dt>Current editor’s draft</dt>
+          <dd>
+            <ul>
+              <li>
+                <p>Added a <span class='xattr'>[Stringifies]</span> extended attribute.</p>
+              </li>
+              <li>
+                <p>
+                  Fixed small bugs in <span class='prop'>[[HasProperty]]</span>,
+                  <span class='prop'>[[Get]]</span> and <span class='prop'>[[Put]]</span>
+                  algorithms for ECMAScript host objects.
+                </p>
+              </li>
+              <li>
+                <p>
+                  Added an editorial note about the possibility of an extended
+                  attribute that specifies what properties get enumerated in
+                  a for..in loop in ECMAScript.
+                </p>
+              </li>
+            </ul>
+          </dd>
+          <dt>17 October 2007 – FPWD</dt>
+          <dd>
+            <ul>
+              <li><p>Initial publication.</p></li>
+            </ul>
           </dd>
         </dl>
       </div>
