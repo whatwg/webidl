@@ -360,6 +360,15 @@
     </xsl:choose>
   </xsl:template>
 
+  <xsl:template match='processing-instruction("revision-note")'>
+    <xsl:if test='$options/x:maturity="ED"'>
+      <div class='ednote'>
+        <div class='ednoteHeader'>Editorial note</div>
+        <p>This is revision <xsl:value-of select='$id'/>.</p>
+      </div>
+    </xsl:if>
+  </xsl:template>
+
   <xsl:template match='processing-instruction()|comment()'/>
 
   <xsl:template name='toc1'>
