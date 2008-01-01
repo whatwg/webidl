@@ -15,7 +15,7 @@
   <head>
     <title>Language Bindings for DOM Specifications</title>
     <meta http-equiv='Content-Type' content='application/xhtml+xml; charset=UTF-8'/>
-    <meta name='revision' content='$Id: Overview.xml,v 1.52 2008-01-01 03:30:03 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: Overview.xml,v 1.53 2008-01-01 07:37:44 cmccorma Exp $'/>
     <link rel='stylesheet' href='Binding4DOM.css' type='text/css'/>
 
     <options xmlns='http://mcc.id.au/ns/local'>
@@ -31,7 +31,7 @@
           <affiliation>Invited Expert</affiliation>
         </person>
       </editors>
-      <years>2007</years>
+      <years>2007–2008</years>
       <maturity>ED</maturity>
     </options>
   </head>
@@ -484,6 +484,14 @@
             <a class='xattr' href='#Constructor'>[Constructor]</a>,
             <a class='xattr' href='#Stringifies'>[Stringifies]</a>.
           </p>
+
+          <div class='ednote'>
+            <p>
+              Should there be a way to define constructors on the interface with
+              particular names, to support HTML 5’s <code>Audio</code>,
+              <code>Image</code> and <code>Option</code> constructors?
+            </p>
+          </div>
 
           <?productions grammar Interface InterfaceInheritance InterfaceBody InterfaceMembers InterfaceMember ScopedNameList ScopedNames?>
 
@@ -1356,6 +1364,63 @@ map.banana = 123;           // Same as: map.set('banana', 123)</x:codeblock>
             </div>
           </div>
 
+          <div id='NoInterfaceObject' class='section'>
+            <h4>[NoInterfaceObject]</h4>
+
+            <p>
+              If the <a class='xattr' href='#NoInterfaceObject'>[NoInterfaceObject]</a>
+              <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
+              appears on an <a class='dfnref' href='#dfn-interface'>interface</a>,
+              it indicates that an
+              <a class='dfnref' href='#dfn-interface-object'>interface object</a>
+              will not exist for the interface in the ECMAScript binding.  Similarly,
+              if it appears on an <a class='dfnref' href='#dfn-exception'>exception</a>
+              it indicates that an
+              <a class='dfnref' href='#dfn-exception-interface-object'>exception interface object</a>
+              will not exist for the exception in the ECMAScript binding.
+            </p>
+            <p>
+              The <a class='xattr' href='#NoInterfaceObject'>[NoInterfaceObject]</a>
+              <span class='rfc2119'>must</span> take no argument.
+            </p>
+            <div class='ednote'>
+              <p>Should this be [InterfaceObject] instead, and default to not having one?</p>
+            </div>
+            <div class='example'>
+              <p>
+                The following <a class='dfnref' href='#dfn-idl-fragment'>IDL
+                  fragment</a> defines two interfaces, one whose interface object
+                is exposed on the ECMAScript global object, and one whose isn’t:
+              </p>
+              <x:codeblock language='idl'>interface Storage {
+  void addEntry(in unsigned long key, in any value);
+};
+
+[NoInterfaceObject]
+interface Query {
+  any lookupEntry(in unsigned long key);
+};</x:codeblock>
+              <p>
+                An ECMAScript implementation of the above IDL would allow
+                manipulation of <span class='idltype'>Storage</span>’s
+                prototype, but not <span class='idltype'>Query</span>’s.
+              </p>
+              <x:codeblock language='es'>
+typeof Storage;                        // evaluates to "object"
+
+// Add some tracing alert() call to Storage.addEntry.
+var fn = Storage.prototype.addEntry;
+Storage.prototype.addEntry = function(key, value) {
+  alert('Calling addEntry()');
+  return fn.call(this, key, value);
+};
+
+typeof Query;                          // evaluates to "undefined"
+var fn = Query.prototype.lookupEntry;  // exception, Query isn’t defined
+</x:codeblock>
+            </div>
+          </div>
+
           <div id='NameGetter' class='section'>
             <h4>[NameGetter]</h4>
 
@@ -2210,7 +2275,9 @@ results.numbers[0];                  // Evaluates to 5, since results.numbers is
           </div>
 
           <p>
-            Every interface corresponds to a property on the global object,
+            For every interface that is not declared with the
+            <a class='xattr' href='#NoInterfaceObject'>[NoInterfaceObject]</a> extended
+            attribute, a corresponding property on the global object exists
             whose name is the same as its identifier in the IDL.  This identifier
             is not the qualified name of the interface, but the final
             <a class='terminal' href='#prod-identifier'>identifier</a> in a derivation
@@ -2284,7 +2351,10 @@ results.numbers[0];                  // Evaluates to 5, since results.numbers is
             <h4>Interface prototype object</h4>
 
             <p>
-              The interface prototype object for a particular interface has
+              There exists an interface prototype object for every interface
+              defined, regardless of whether the interface was declared with the
+              <a class='xattr' href='#NoInterfaceObject'>[NoInterfaceObject]</a> extended
+              attribute.  The interface prototype object for a particular interface has
               properties that correspond to the operations defined on that
               interface.  Each such property has attribute
               <span class='propattrset'>{ DontEnum }</span>.  These properties
@@ -3257,7 +3327,9 @@ interface D : C {
           <h3>Exceptions</h3>
 
           <p>
-            Every exception corresponds to a property on the global object,
+            For every exception that is not declared with the
+            <a class='xattr' href='#NoInterfaceObject'>[NoInterfaceObject]</a> extended
+            attribute, a corresponding property on the global object exists
             whose name is the same as its identifier in the IDL.  The value
             of this property is an object called the <dfn>exception interface
               object</dfn>, which provides access to any constants that
@@ -3269,7 +3341,10 @@ interface D : C {
             <h4>Exception interface object</h4>
 
             <p>
-              The exception interface object for a particular exception has an
+              There exists an exception interface object for every exception defined,
+              regardless of whether the exception was declared with the
+              <a class='xattr' href='#NoInterfaceObject'>[NoInterfaceObject]</a> extended
+              attribute.  The exception interface object for a particular exception has an
               internal <span class='prop'>[[Prototype]]</span> object whose
               value is the <span class='esvalue'>Object</span> prototype object.
             </p>
@@ -4528,6 +4603,19 @@ interface HTMLDocument {
           <dt>Current editor’s draft</dt>
           <dd>
             <ul>
+              <li>
+                <p>
+                  Added an editorial note about the possibility of somehow
+                  specifying HTML 5’s <code>Image</code> constructor.
+                </p>
+              </li>
+              <li>
+                <p>
+                  Added a <span class='xattr'>[NoInterfaceObject]</span> extended attribute,
+                  which prevents an ECMAScript interface object being created for the interface
+                  on which it appears.
+                </p>
+              </li>
               <li>
                 <p>Added a <span class='xattr'>[Stringifies]</span> extended attribute.</p>
               </li>
