@@ -12,7 +12,7 @@
   <head>
     <title>Language Bindings for DOM Specifications</title>
     <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-    <meta name="revision" content="$Id: Overview.html,v 1.61 2008-03-23 05:21:37 cmccorma Exp $" />
+    <meta name="revision" content="$Id: Overview.html,v 1.62 2008-03-23 06:20:31 cmccorma Exp $" />
     <link rel="stylesheet" href="Binding4DOM.css" type="text/css" />
 
     
@@ -22,7 +22,7 @@
     <div class="head"><div><a href="http://www.w3.org/"><img src="http://www.w3.org/Icons/w3c_home" width="72" height="48" alt="W3C" /></a></div><h1>Language Bindings for DOM Specifications</h1><h2>
         W3C
         Editor’s Draft <em>23 March 2008</em></h2><dl><dt>Latest Editor’s Draft:</dt><dd><a id="cvsVersionLink" href="http://dev.w3.org/cvsweb/2006/webapi/Binding4DOM/Overview.html">http://dev.w3.org/cvsweb/2006/webapi/Binding4DOM/Overview.html</a><script type="text/ecmascript">
-                var id = "$Id: Overview.html,v 1.61 2008-03-23 05:21:37 cmccorma Exp $";
+                var id = "$Id: Overview.html,v 1.62 2008-03-23 06:20:31 cmccorma Exp $";
                 var a = document.getElementById('cvsVersionLink');
                 var xs = id.match(/ ([0-9]\.[0-9.]+) /);
                 if (xs) {
@@ -48,7 +48,7 @@
         ECMAScript and Java execution environments is also detailed.
       </p>
 
-      <div class="ednote"><div class="ednoteHeader">Editorial note</div><p>This is revision $Id: Overview.html,v 1.61 2008-03-23 05:21:37 cmccorma Exp $.</p></div>
+      <div class="ednote"><div class="ednoteHeader">Editorial note</div><p>This is revision $Id: Overview.html,v 1.62 2008-03-23 06:20:31 cmccorma Exp $.</p></div>
     </div>
 
     <div class="section">
@@ -2155,45 +2155,61 @@ any executeSql(Array a, Callback f);</code></pre></div></div>
               Values passed to a host object that expects a
               <a class="idltype" href="#idl-sequence">sequence&lt;<var>T</var>&gt;</a>
               <span class="rfc2119">must</span> be objects with a <span class="prop">length</span> property whose
-              value is a non-negative integer <span class="estype">Number</span> that specifies the number
-              of elements in the sequence.  Such objects <span class="rfc2119">must</span> return the element in
-              the sequence at position <var>n</var> when their
+              value, after being converted to a <span class="estype">Number</span> by the
+              ToUint32 operator, is a non-negative integer that specifies the number
+              of elements in the sequence.  This number <span class="rfc2119">must</span> also be equal
+              to the result of passing the original <span class="prop">length</span> property value to the ToNumber algorithm.
+              Assigning to the <span class="prop">length</span> property a non-negative
+              integer <span class="estype">Number</span> <span class="rfc2119">must</span> change the length of the sequence
+              to be the given number.  If the sequence is lengthened, new elements <span class="rfc2119">must</span> be given
+              the value that the <span class="esvalue">undefined</span> value is converted to
+              when handling it according to the rules in this section for the type <var>T</var>.
+              If the sequence is shortened, the values beyond the new length of the sequence
+              are lost.
+              The object representing the sequence <span class="rfc2119">must</span> return the element in
+              the sequence at position <var>n</var> when its
               <span class="prop">[[Get]]</span> internal method is invoked with
-              <var>n</var> as its argument.  (An ECMAScript <span class="estype">Array</span>
-              is an object that matches this description.)  When the host object
+              <var>n</var> as its argument.
+            </p>
+            <p>
+              Note that an ECMAScript <span class="estype">Array</span>
+              is an object that matches this description.  Implementations are free,
+              however, to use a host object to implement the sequence in the
+              interests of efficiency.
+            </p>
+            <p>
+              When the host object
               gets an element of the sequence using the <span class="prop">[[Get]]</span> method,
               the returned value <span class="rfc2119">must</span> first be handled according to
               the rules in this section for the type <var>T</var>.
             </p>
-            <div class="ednote"><div class="ednoteHeader">Editorial note</div>
-              <p>
-                The above paragraph needs to have tighter language for the behaviour
-                of [[Get]], like the definition for [[Get]] in section 4.3.1.
-              </p>
-            </div>
             <p>
               If a host object expecting a
               <a class="idltype" href="#idl-sequence">sequence&lt;<var>T</var>&gt;</a>
-              is passed a value which is not an object with a non-negative integer
-              <span class="estype">Number</span> <span class="prop">length</span> property,
+              is passed a value which is not an object that conforms to the above rules
+              (for example, it has a <span class="prop">length</span> property whose value
+              is not a non-negative integer), then
               a <span class="estype">TypeError</span> exception <span class="rfc2119">must</span> be thrown.
             </p>
             <p>
-              Sequences are passed by reference.  If a reference to a sequence
-              passed to a host object is kept (whether internally or as the
-              value of an attribute), and the passed sequence is not an ECMAScript
-              <span class="estype">Array</span> object, the kept reference must
-              be a newly created ECMAScript <span class="estype">Array</span> object
-              whose contents is the elements of the sequence.
+              While sequences are passed by reference (being objects), it is
+              of course up to the interface designer whether, for example,
+              after assigning a sequence to a property on a host object
+              that same seqence object is returned when getting the property.
+              The behavior of storing sequences in the host object in this
+              manner should be made clear in prose describing the interface.
             </p>
+            
             <div class="ednote"><div class="ednoteHeader">Editorial note</div>
-              <p>Change the above para according to comments in
-                <a href="http://www.w3.org/mid/op.tumn9hy664w2qv@annevk-t60.oslo.opera.com">this thread</a>.</p>
+              <p>
+                Should there be a way to declare a sequence whose length cannot be changed
+                from script?
+              </p>
             </div>
             <div class="example"><div class="exampleHeader">Example</div>
               <p>
-                The following IDL and ECMAScript code fragments illustrate how
-                sequences are handled:
+                The following IDL defines an interface that has a
+                <span class="idltype">sequence&lt;unsigned short&gt;</span> attribute.
               </p>
               <div class="block"><div class="blockTitleDiv"><span class="blockTitle">IDL</span></div><div class="blockContent"><pre class="code"><code class="idl-code">typedef sequence&lt;unsigned short&gt; Integers;
 
@@ -2201,12 +2217,35 @@ any executeSql(Array a, Callback f);</code></pre></div></div>
 interface LotteryResults {
   attribute Integers numbers;
 };</code></pre></div></div>
+              <p>
+                The following paragraph is used to clarify the behavior of assigning
+                a value to the numbers property:
+              </p>
+              <blockquote>
+                In the ECMAScript language binding, assigning an array-like object
+                to the numbers property results in a copy of those values being
+                stored in the <span class="idltype">LotteryResults</span> object.
+                The array-like object returned when the numbers property is retrieved,
+                however, will not change over the lifetime of the
+                <span class="idltype">object</span>.
+              </blockquote>
+              <p>
+                The following ECMAScript code illustrates how the sequence
+                attribute in the above interface would behave:
+              </p>
               <div class="block"><div class="blockTitleDiv"><span class="blockTitle">ECMAScript</span></div><div class="blockContent"><pre class="code"><code class="es-code">var results = new LotteryResults();  // results is a new host object implementing the LotteryResults interface.
 var a = [4, 8, 15, 16, 23, 42];      // An object that can serve as a sequence&lt;unsigned short&gt;.
 
-results.numbers = a;                 // Assign the sequence.
+results.numbers = a;                 // Assign the sequence, resulting in the values being copied into the host object.
 a[0] = 5;                            // Change the array.
-results.numbers[0];                  // Evaluates to 5, since results.numbers is a reference to 'a'.</code></pre></div></div>
+results.numbers[0];                  // Evaluates to 4, since results.numbers is not a reference to 'a'.
+
+results.numbers[0] = 5;              // Modifies the sequence stored in the host object.
+results.numbers[0];                  // Now evaluates to 5.
+
+results.length = 7;                  // Increase the length of the sequence.
+results.numbers[6];                  // Evaluates to 0, since that is how 'undefined' is converted to an 'unsigned short'.
+</code></pre></div></div>
             </div>
           </div>
 
