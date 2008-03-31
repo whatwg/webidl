@@ -17,13 +17,15 @@
 
   <xsl:template match='/'>
     <xsl:text>&#xa;</xsl:text>
-    <xsl:comment>
+    <xsl:if test='$options/x:maturity="ED"'>
+      <xsl:comment>
   Overview.html
   Language Bindings for DOM Specifications
 
   Note: This file is generated from Overview.xml.  Run “make” to regenerate it.
   </xsl:comment>
-    <xsl:text>&#xa;</xsl:text>
+      <xsl:text>&#xa;</xsl:text>
+    </xsl:if>
     <xsl:apply-templates select='/*'/>
   </xsl:template>
 
@@ -179,16 +181,7 @@
           </dd>
         </xsl:for-each>
       </dl>
-      <p class="copyright">
-        <a href="http://www.w3.org/Consortium/Legal/ipr-notice#Copyright">Copyright</a> ©<xsl:value-of select='concat($options/x:years, " ")'/>
-        <a href="http://www.w3.org/"><acronym title="World Wide Web Consortium">W3C</acronym></a><sup>®</sup>
-        (<a href="http://www.csail.mit.edu/"><acronym title="Massachusetts Institute of Technology">MIT</acronym></a>,
-        <a href="http://www.ercim.org/"><acronym title="European Research Consortium for Informatics and Mathematics">ERCIM</acronym></a>,
-        <a href="http://www.keio.ac.jp/">Keio</a>), All Rights Reserved. W3C
-        <a href="http://www.w3.org/Consortium/Legal/ipr-notice#Legal_Disclaimer">liability</a>,
-        <a href="http://www.w3.org/Consortium/Legal/ipr-notice#W3C_Trademarks">trademark</a> and 
-        <a href="http://www.w3.org/Consortium/Legal/copyright-documents">document use</a> rules apply.
-      </p>
+      <p class="copyright"><a href="http://www.w3.org/Consortium/Legal/ipr-notice#Copyright">Copyright</a><xsl:text disable-output-escaping='yes'> &amp;copy; </xsl:text><xsl:value-of select='concat(substring($options/x:versions/x:this/@href, string-length($options/x:versions/x:this/@href) - 8, 4), " ")'/><a href="http://www.w3.org/"><acronym title="World Wide Web Consortium">W3C</acronym></a><sup><xsl:text disable-output-escaping='yes'>&amp;reg;</xsl:text></sup> (<a href="http://www.csail.mit.edu/"><acronym title="Massachusetts Institute of Technology">MIT</acronym></a>, <a href="http://www.ercim.org/"><acronym title="European Research Consortium for Informatics and Mathematics">ERCIM</acronym></a>, <a href="http://www.keio.ac.jp/">Keio</a>), All Rights Reserved. W3C <a href="http://www.w3.org/Consortium/Legal/ipr-notice#Legal_Disclaimer">liability</a>, <a href="http://www.w3.org/Consortium/Legal/ipr-notice#W3C_Trademarks">trademark</a> and <a href="http://www.w3.org/Consortium/Legal/copyright-documents">document use</a> rules apply.</p>
     </div>
     <hr/>
   </xsl:template>
