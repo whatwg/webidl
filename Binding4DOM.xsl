@@ -20,7 +20,7 @@
     <xsl:if test='$options/x:maturity="ED"'>
       <xsl:comment>
   Overview.html
-  Language Bindings for DOM Specifications
+  Web IDL
 
   Note: This file is generated from Overview.xml.  Run “make” to regenerate it.
   </xsl:comment>
@@ -261,7 +261,7 @@
       <xsl:if test='$options/x:maturity!="REC" and $options/x:maturity!="WG-NOTE"'>
         This document is the <xsl:call-template name='date'/><xsl:text> </xsl:text>
         <b><xsl:call-template name='maturity'/></b> of the
-        “<xsl:value-of select='/*/h:head/h:title'/>” specification.
+        <cite><xsl:value-of select='/*/h:head/h:title'/></cite> specification.
       </xsl:if>
       Please send comments about this document to
       <a href='mailto:{$mail}'><xsl:value-of select='$mail'/></a>
