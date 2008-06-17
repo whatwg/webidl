@@ -362,6 +362,17 @@
     </xsl:if>
   </xsl:template>
 
+  <xsl:template match='processing-instruction("stepref")'>
+    <xsl:variable name='step' select='string(.)'/>
+    <xsl:variable name='li' select='ancestor::*[@class="algorithm"]/*[@x:step=$step]'/>
+    <xsl:choose>
+      <xsl:when test='$li'>
+        <xsl:value-of select='count($li/preceding-sibling::*) + 1'/>
+      </xsl:when>
+      <xsl:otherwise>@@</xsl:otherwise>
+    </xsl:choose>
+  </xsl:template>
+
   <xsl:template match='processing-instruction()|comment()'/>
 
   <xsl:template name='toc1'>

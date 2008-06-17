@@ -15,7 +15,7 @@
   <head>
     <title>Web IDL</title>
     <meta http-equiv='Content-Type' content='application/xhtml+xml; charset=UTF-8'/>
-    <meta name='revision' content='$Id: Overview.xml,v 1.68 2008-06-16 10:54:02 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: Overview.xml,v 1.69 2008-06-17 06:03:09 cmccorma Exp $'/>
     <link rel='stylesheet' href='Binding4DOM.css' type='text/css'/>
 
     <options xmlns='http://mcc.id.au/ns/local'>
@@ -542,7 +542,7 @@
             </ul>
             <p>
               The value of an <a class='nt' href='#prod-integer'>integer</a> terminal
-              is determined as follows:
+              is an integer, and is determined as follows:
             </p>
             <ol class='algorithm'>
               <li>Let <var>S</var> be the string value of the <a class='nt' href='#prod-integer'>integer</a> terminal.</li>
@@ -553,24 +553,24 @@
               <li>Initialize <var>i</var> to 0.</li>
               <li>
                 If the first character of <var>S</var> is not <span class='char'>U+002D HYPHEN-MINUS ("-")</span>,
-                then go to step 10.
+                then go to step <?stepref a?>.
               </li>
               <li>Set <var>sign</var> to −1.</li>
               <li>Set <var>i</var> to 1.</li>
-              <li>
+              <li x:step='a'>
                 If the <var>i</var>th zero-based character of <var>S</var> is not
-                <span class='char'>U+0030 DIGIT ZERO ("0")</span>, then go to step 16.
+                <span class='char'>U+0030 DIGIT ZERO ("0")</span>, then go to step <?stepref b?>.
               </li>
               <li>Set <var>base</var> to 8.</li>
               <li>Set <var>i</var> to <var>i</var> + 1.</li>
               <li>
                 If the <var>i</var>th zero-based character of <var>S</var> is not
                 <span class='char'>U+0058 LATIN CAPITAL LETTER X ("X")</span> or
-                <span class='char'>U+0078 LATIN SMALL LETTER X ("x")</span>, then go to step 16.
+                <span class='char'>U+0078 LATIN SMALL LETTER X ("x")</span>, then go to step <?stepref b?>.
               </li>
               <li>Set <var>base</var> to 16.</li>
               <li>Set <var>i</var> to <var>i</var> + 1.</li>
-              <li>
+              <li x:step='b'>
                 Let <var>digit</var> be the value obtained by looking up the <var>i</var>th
                 zero-based character of <var>S</var> in the table below:
                 <table class='vert'>
@@ -601,7 +601,7 @@
               </li>
               <li>Set <var>mag</var> to <var>mag</var> * <var>base</var> + <var>digit</var>.</li>
               <li>Set <var>i</var> to <var>i</var> + 1.</li>
-              <li>If <var>i</var> &lt; <var>n</var>, go to step 16.</li>
+              <li>If <var>i</var> &lt; <var>n</var>, go to step <?stepref b?>.</li>
               <li>
                 The value of the <a class='nt' href='#prod-integer'>integer</a> terminal
                 is <var>sign</var> * <var>mag</var>.
@@ -615,8 +615,10 @@
               <a href='#idl-types'>section <?sref idl-types?></a> <?sdir idl-types?>.
             </p>
             <p>
-              The type of a <a class='nt' href='#prod-float'>float</a> terminal is
-              <a class='idltype' href='#idl-float'>float</a>, and its value is determined as follows:
+              The type of a <a class='nt' href='#prod-float'>float</a> terminal
+              is <a class='idltype' href='#idl-float'>float</a>, and its value
+              is an IEEE 754 single-precision floating pointer number determined
+              as follows:
             </p>
             <ol class='algorithm'>
               <li>Let <var>S</var> be the string value of the <a class='nt' href='#prod-float'>float</a> terminal.</li>
@@ -626,57 +628,56 @@
               <li>Initialize <var>exp1</var> to 0.</li>
               <li>Initialize <var>exp2</var> to 0.</li>
               <li>Initialize <var>expSign</var> to 1.</li>
-              <li>Iniitalize <var>afterDot</var> to <b>false</b>.</li>
+              <li>Initialize <var>afterDot</var> to <b>false</b>.</li>
               <li>Initialize <var>i</var> to 0.</li>
               <li>
                 If the first character of <var>S</var> is not <span class='char'>U+002D HYPHEN-MINUS ("-")</span>,
-                then go to step 13.
+                then go to step <?stepref a?>.
               </li>
               <li>Set <var>sign</var> to −1.</li>
               <li>Set <var>i</var> to 1.</li>
-              <li>
+              <li x:step='b'>
                 If the <var>i</var>th zero-based character of <var>S</var> is
                 <span class='char'>U+0045 LATIN CAPITAL LETTER E ("E")</span> or
-                <span class='char'>U+0045 LATIN SMALL LETTER E ("e")</span>, then go to step 23.
+                <span class='char'>U+0045 LATIN SMALL LETTER E ("e")</span>, then go to step <?stepref c?>.
               </li>
-              <li>
+              <li x:step='a'>
                 If the <var>i</var>th zero-based character of <var>S</var> is not
-                <span class='char'>U+002E FULL STOP (".")</span>, then go to step 17.
+                <span class='char'>U+002E FULL STOP (".")</span>, then go to step <?stepref d?>.
               </li>
               <li>Set <var>afterDot</var> to <b>true</b>.</li>
-              <li>Go to step 20.</li>
-              <li>
+              <li>Go to step <?stepref e?>.</li>
+              <li x:step='d'>
                 Let <var>digit</var> be the Unicode codepoint of the <var>i</var>th
                 zero-based character of <var>S</var> minus 48.
               </li>
               <li>Set <var>mant</var> to <var>mant</var> * 10 + <var>digit</var>.</li>
               <li>If <var>afterDot</var> is <b>true</b>, set <var>exp1</var> to <var>exp1</var> − 1.</li>
-              <li>Set <var>i</var> to <var>i</var> + 1.</li>
-              <li>If <var>i</var> &lt; <var>n</var>, go to step 13.</li>
-              <li>Go to step 33.</li>
-              <li>Set <var>i</var> to <var>i</var> + 1.</li>
+              <li x:step='e'>Set <var>i</var> to <var>i</var> + 1.</li>
+              <li>If <var>i</var> &lt; <var>n</var>, go to step <?stepref b?>.</li>
+              <li>Go to step <?stepref f?>.</li>
+              <li x:step='c'>Set <var>i</var> to <var>i</var> + 1.</li>
               <li>
                 If the <var>i</var>th zero-based character of <var>S</var> is not
-                <span class='char'>U+002D HYPHEN-MINUS ("-")</span>, then go to step 27.
+                <span class='char'>U+002D HYPHEN-MINUS ("-")</span>, then go to step <?stepref g?>.
               </li>
               <li>Set <var>expSign</var> to −1.</li>
               <li>Set <var>i</var> to <var>i</var> + 1.</li>
-              <li>
-                If the <var>i</var>th zero-based character of <var>S</var> is not
+              <li x:step='g'>
+                If the <var>i</var>th zero-based character of <var>S</var> is
                 <span class='char'>U+002B PLUS SIGN ("+")</span>, then set
                 <var>i</var> to <var>i</var> + 1.
               </li>
-              <li>
+              <li x:step='h'>
                 Let <var>digit</var> be the Unicode codepoint of the <var>i</var>th
                 zero-based character of <var>S</var> minus 48.
               </li>
               <li>Set <var>exp2</var> to <var>exp2</var> * 10 + <var>digit</var>.</li>
               <li>Set <var>i</var> to <var>i</var> + 1.</li>
-              <li>If <var>i</var> &lt; <var>n</var>, go to step 33.</li>
-              <li>Go to step 28.</li>
-              <li>
+              <li>If <var>i</var> &lt; <var>n</var>, go to step <?stepref h?>.</li>
+              <li x:step='f'>
                 The value of the <a class='nt' href='#prod-float'>float</a> terminal
-                is the IEEE 754 floating point number closest to
+                is the IEEE 754 single-precision floating point number closest to
                 <var>sign</var> * <var>mant</var> * 10<sup><var>expSign</var> * <var>exp2</var> + <var>exp1</var></sup>.
                 <a href='#ref-IEEE-754'>[IEEE-754]</a>
               </li>
@@ -2683,18 +2684,18 @@ c.isMemberOfBreed(undefined);  // This passes the string "" to the isMemberOfBre
               </p>
               <ol class='algorithm'>
                 <li>If <var>V</var> is not an object, return <span class='esvalue'>false</span>.</li>
-                <li>Call the <span class='prop'>[[Get]]</span> method of <var>I</var> with property name <span class='esstring'>"prototype"</span>.</li>
-                <li>Let <var>O</var> be Result(2).</li>
+                <li x:step='a'>Call the <span class='prop'>[[Get]]</span> method of <var>I</var> with property name <span class='esstring'>"prototype"</span>.</li>
+                <li>Let <var>O</var> be Result(<?stepref a?>).</li>
                 <li>If <var>O</var> is not an object, throw a <span class='estype'>TypeError</span> exception.</li>
                 <li>If <var>V</var> is a host object that implements the
                   interface for which <var>O</var> is the interface prototype object,
                   return <span class='esvalue'>true</span>.</li>
-                <li>Let <var>V</var> be the value of the <span class='prop'>[[Prototype]]</span> property of <var>V</var>.</li>
+                <li x:step='b'>Let <var>V</var> be the value of the <span class='prop'>[[Prototype]]</span> property of <var>V</var>.</li>
                 <li>If <var>V</var> is <span class='esvalue'>null</span>, return <span class='esvalue'>false</span>.</li>
                 <li>If <var>O</var> and <var>V</var> refer to the same object or if they refer to objects joined to each other (see section 13.1.2 of the
                   <cite>ECMAScript Language Specification, 3rd Edition</cite> <a href='#ref-ECMA-262'>[ECMA-262]</a>),
                   return <span class='esvalue'>true</span>.</li>
-                <li>Go to step 6.</li>
+                <li>Go to step <?stepref b?>.</li>
               </ol>
             </div>
           </div>
@@ -3660,64 +3661,64 @@ a['g(::dom::Document)'](document);  // explicitly call the second g()
               <span class='prop'>[[Get]]</span>:
             </p>
             <ol class='algorithm'>
-              <li>
+              <li x:step='d'>
                 Determine the name of an
                 <a class='xattr' href='#IndexGetter'>[IndexGetter]</a>-annotated
                 <a class='dfnref' href='#dfn-operation'>operation</a> on the interfaces that <var>O</var> implements.
-                If there is no such operation, go to step 8.
+                If there is no such operation, go to step <?stepref a?>.
               </li>
-              <li>Compute ToUint32(<var>P</var>).</li>
-              <li>Compute ToString(Result(2)).</li>
-              <li>If Result(3) is equal to <var>P</var> and Result(2) is not equal to 2<sup>32</sup> − 1, go to step 8.</li>
-              <li>
-                Invoke the <span class='prop'>[[Get]]</span> method of object <var>O</var> with Result(1)
+              <li x:step='b'>Compute ToUint32(<var>P</var>).</li>
+              <li x:step='c'>Compute ToString(Result(<?stepref b?>)).</li>
+              <li>If Result(<?stepref c?>) is not equal to <var>P</var> or Result(<?stepref b?>) is equal to 2<sup>32</sup> − 1, go to step <?stepref a?>.</li>
+              <li x:step='e'>
+                Invoke the <span class='prop'>[[Get]]</span> method of object <var>O</var> with Result(<?stepref d?>)
                 as the argument.
               </li>
-              <li>
-                Invoke the <span class='prop'>[[Call]]</span> method of Result(5), providing
+              <li x:step='f'>
+                Invoke the <span class='prop'>[[Call]]</span> method of Result(<?stepref e?>), providing
                 <var>O</var> as the <span class='esvalue'>this</span> value and
-                Result(2) as the single argument value.
+                Result(<?stepref b?>) as the single argument value.
               </li>
-              <li>Return Result(5).</li>
-              <li>
+              <li>Return Result(<?stepref f?>).</li>
+              <li x:step='a'>
                 Determine the name of a
                 <a class='xattr' href='#NameGetter'>[NameGetter]</a>-annotated operation
                 on the interfaces that <var>O</var> implements.  If there is no
-                such operation, go to step 14.
+                such operation, go to step <?stepref g?>.
               </li>
-              <li>
+              <li x:step='h'>
                 Invoke the <span class='prop'>[[HasProperty]]</span> method of object <var>O</var> with
                 <var>P</var> as the argument.
               </li>
               <li>
-                If Result(9) is <span class='esvalue'>true</span>, go to step 14.
+                If Result(<?stepref h?>) is <span class='esvalue'>true</span>, go to step <?stepref g?>.
               </li>
-              <li>
-                Invoke the <span class='prop'>[[Get]]</span> method of object <var>O</var> with Result(7)
+              <li x:step='i'>
+                Invoke the <span class='prop'>[[Get]]</span> method of object <var>O</var> with Result(<?stepref a?>)
                 as the argument.
               </li>
-              <li>
-                Invoke the <span class='prop'>[[Call]]</span> method of Result(10), providing
+              <li x:step='j'>
+                Invoke the <span class='prop'>[[Call]]</span> method of Result(<?stepref i?>), providing
                 <var>O</var> as the <span class='esvalue'>this</span> value and
                 <var>P</var> as the single argument value.
               </li>
-              <li>Return Result(11).</li>
-              <li>
+              <li>Return Result(<?stepref j?>).</li>
+              <li x:step='g'>
                 If <var>O</var> doesn’t have a property with name <var>P</var>,
-                go to step 17.
+                go to step <?stepref k?>.
               </li>
-              <li>Get the value of the property.</li>
-              <li>Return Result(15).</li>
-              <li>
+              <li x:step='l'>Get the value of the property.</li>
+              <li>Return Result(<?stepref l?>).</li>
+              <li x:step='k'>
                 If the <span class='prop'>[[Prototype]]</span> of <var>O</var> is
                 <span class='esvalue'>null</span>, return
                 <span class='esvalue'>undefined</span>.
               </li>
-              <li>
+              <li x:step='m'>
                 Call the <span class='prop'>[[Get]]</span> method of <span class='prop'>[[Prototype]]</span> with property name
                 <var>P</var>.
               </li>
-              <li>Return Result(18).</li>
+              <li>Return Result(<?stepref m?>).</li>
             </ol>
           </div>
 
@@ -3731,92 +3732,93 @@ a['g(::dom::Document)'](document);  // explicitly call the second g()
               is the property value passed to <span class='prop'><span class='prop'>[[Put]]</span></span>:
             </p>
             <ol class='algorithm'>
-              <li>
-                Determine the name of a
+              <li x:step='a'>
+                Determine the name of an
                 <a class='xattr' href='#IndexSetter'>[IndexSetter]</a>-annotated
                 <a class='dfnref' href='#dfn-operation'>operation</a> on the interfaces that <var>O</var> implements.
-                If there is no such operation, go to step 8.
+                If there is no such operation, go to step <?stepref h?>.
               </li>
-              <li>Compute ToUint32(<var>P</var>).</li>
-              <li>Compute ToString(Result(2)).</li>
-              <li>If Result(3) is equal to <var>P</var> and Result(2) is not equal to 2<sup>32</sup> − 1, go to step 8.</li>
-              <li>
-                Invoke the <span class='prop'>[[Get]]</span> method of object <var>O</var> with Result(1)
+              <li x:step='b'>Compute ToUint32(<var>P</var>).</li>
+              <li x:step='c'>Compute ToString(Result(<?stepref b?>)).</li>
+              <li x:step='d'>If Result(<?stepref c?>) is not equal to <var>P</var> or Result(<?stepref b?>) is equal to 2<sup>32</sup> − 1, go to step <?stepref h?>.</li>
+              <li x:step='e'>
+                Invoke the <span class='prop'>[[Get]]</span> method of object <var>O</var> with Result(<?stepref a?>)
                 as the argument.
               </li>
-              <li>
-                Invoke the <span class='prop'>[[Call]]</span> method of Result(5), providing
+              <li x:step='f'>
+                Invoke the <span class='prop'>[[Call]]</span> method of Result(<?stepref e?>), providing
                 <var>O</var> as the <span class='esvalue'>this</span> value and
-                Result(2) and <var>V</var> as the two argument values.
+                Result(<?stepref b?>) and <var>V</var> as the two argument values.
               </li>
-              <li>Return Result(5).</li>
-              <li>
+              <li x:step='g'>Return Result(<?stepref f?>).</li>
+              <li x:step='h'>
                 Determine the name of a
                 <a class='xattr' href='#NameSetter'>[NameSetter]</a>-annotated operation
                 on the interfaces that <var>O</var> implements.  If there is no
-                such operation, go to step 14.
+                such operation, go to step <?stepref n?>.
               </li>
-              <li>
+              <li x:step='i'>
                 Invoke the <span class='prop'>[[HasProperty]]</span> method of object <var>O</var> with
                 <var>P</var> as the argument.
               </li>
-              <li>
-                If Result(9) is <span class='esvalue'>true</span>, go to step 14.
+              <li x:step='j'>
+                If Result(<?stepref i?>) is <span class='esvalue'>true</span>, go to step <?stepref n?>.
               </li>
-              <li>
-                Invoke the <span class='prop'>[[Get]]</span> method of object <var>O</var> with Result(7)
+              <li x:step='k'>
+                Invoke the <span class='prop'>[[Get]]</span> method of object <var>O</var> with Result(<?stepref h?>)
                 as the argument.
               </li>
-              <li>
-                Invoke the <span class='prop'>[[Call]]</span> method of Result(10), providing
+              <li x:step='l'>
+                Invoke the <span class='prop'>[[Call]]</span> method of Result(<?stepref k?>), providing
                 <var>O</var> as the <span class='esvalue'>this</span> value and
                 <var>P</var> and <var>V</var> as the two argument values.
               </li>
-              <li>Return Result(11).</li>
-              <li>
-                If <var>O</var> has a property with name <var>P</var> and that property does not correspond
-                to an IDL operation declared <code>readonly</code>, then go to step 19.
+              <li x:step='m'>Return.</li>
+              <li x:step='n'>
+                If <var>O</var> does not have a property with name <var>P</var>,
+                then go to step <?stepref x?>.
               </li>
-              <li>
+              <li x:step='o'>
                 If the property on <var>O</var> with name <var>P</var> does not correspond
-                to an IDL operation declared with a <a class='xattr' href='#PutForwards'>[PutForwards]</a>
+                to an <a class='dfnref' href='#dfn-attribute'>attribute</a> declared with a
+                <a class='xattr' href='#PutForwards'>[PutForwards]</a>
                 <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>,
-                then an implementation specific exception is thrown and these steps are ended.
+                then go to step <?stepref s?>.
               </li>
-              <li>
+              <li x:step='p'>
                 Call the <span class='prop'>[[Get]]</span> method of <var>O</var> with name
                 <var>P</var>.
               </li>
-              <li>
-                Call the <span class='prop'>[[Put]]</span> method of Result(16) with the property
+              <li x:step='q'>
+                Call the <span class='prop'>[[Put]]</span> method of Result(<?stepref p?>) with the property
                 name being the argument to the <a class='xattr' href='#PutForwards'>[PutForwards]</a>
                 extended attribute, and value <var>V</var>.
               </li>
-              <li>Return.</li>
+              <li x:step='r'>Return.</li>
 
-              <li>
+              <li x:step='s'>
                 Call the <span class='prop'>[[CanPut]]</span> method of <var>O</var> with name
                 <var>P</var>.
               </li>
-              <li>
-                If Result(19) is <span class='esvalue'>false</span>,
+              <li x:step='t'>
+                If Result(<?stepref s?>) is <span class='esvalue'>false</span>,
                 return.
               </li>
-              <li>
+              <li x:step='u'>
                 If <var>O</var> doesn’t have a property with name <var>P</var>,
-                go to step 23.
+                go to step <?stepref x?>.
               </li>
 
-              <li>
+              <li x:step='v'>
                 Set the value of the property to <var>V</var>.  The attributes
                 of the property are not changed.
               </li>
-              <li>Return.</li>
-              <li>
+              <li x:step='w'>Return.</li>
+              <li x:step='x'>
                 Create a property with name <var>P</var>, set its value to
                 <var>V</var> and give it empty attributes.
               </li>
-              <li>Return.</li>
+              <li x:step='y'>Return.</li>
             </ol>
           </div>
 
@@ -3985,7 +3987,7 @@ a['g(::dom::Document)'](document);  // explicitly call the second g()
               <li>The name of the property is the <a class='dfnref' href='#dfn-identifier'>identifier</a> of the constant.</li>
               <li>The value of the property is the ECMAScript value that is equivalent to the constant’s IDL value, according
                 to the rules in <a href='#es-type-mapping'>section <?sref es-type-mapping?></a> <?sdir es-type-mapping?>.</li>
-              <li>The property has attributes <span class='propattrset'>{ DontDelete }</span>.</li>
+              <li>The property has attributes <span class='propattrset'>{ DontDelete, ReadOnly }</span>.</li>
             </ul>
           </div>
         </div>
@@ -4631,7 +4633,7 @@ interface HTMLDocument {
               For each <a class='dfnref' href='#dfn-constant'>constant</a> defined on
               the IDL <a class='dfnref' href='#dfn-interface'>interface</a>, there
               <span class='rfc2119'>MUST</span> be a corresponding constant declared on the Java interface
-              with the following properties:
+              with the following characteristics:
             </p>
             <ul>
               <li>The constant has no modifiers.</li>
@@ -4658,7 +4660,7 @@ interface HTMLDocument {
               For each <a class='dfnref' href='#dfn-operation'>operation</a> defined on
               the IDL <a class='dfnref' href='#dfn-interface'>interface</a>, there
               <span class='rfc2119'>MUST</span> be a corresponding method declared on the Java interface
-              with the following properties:
+              with the following characteristics:
             </p>
             <ul>
               <li>The method has no modifiers.</li>
@@ -4724,7 +4726,7 @@ interface HTMLDocument {
               For each <a class='dfnref' href='#dfn-attribute'>attribute</a> defined on
               the IDL <a class='dfnref' href='#dfn-interface'>interface</a>, there
               <span class='rfc2119'>MUST</span> be a corresponding <dfn id='dfn-getter-method'>getter method</dfn>
-              declared on the Java interface with the following properties:
+              declared on the Java interface with the following characteristics:
             </p>
             <ul>
               <li>The method has no modifiers.</li>
@@ -4762,7 +4764,7 @@ interface HTMLDocument {
               For each attribute defined on the IDL interface that is not
               <a class='dfnref' href='#dfn-read-only'>read only</a>, there
               <span class='rfc2119'>MUST</span> be a corresponding <dfn id='dfn-setter-method'>setter method</dfn>
-              declared on the Java interface with the following properties:
+              declared on the Java interface with the following characteristics:
             </p>
             <ul>
               <li>The method has no modifiers.</li>
@@ -4801,7 +4803,7 @@ interface HTMLDocument {
               <a class='xattr' href='#PutForwards'>[PutForwards]</a>
               <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>, there
               <span class='rfc2119'>MUST</span> be a corresponding setter method
-              declared on the Java interface with the following properties:
+              declared on the Java interface with the following characteristics:
             </p>
             <ul>
               <li>The method has no modifiers.</li>
@@ -4914,7 +4916,7 @@ interface HTMLDocument {
               has been declared with the <a class='xattr' href='#ExceptionConsts'>[ExceptionConsts]</a>
               <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>, there
               <span class='rfc2119'>MUST</span> be a corresponding constant declared on the Java class
-              with the following properties:
+              with the following characteristics:
             </p>
             <ul>
               <li>The constant has no modifiers.</li>
@@ -4941,7 +4943,7 @@ interface HTMLDocument {
               For each <a class='dfnref' href='#dfn-exception-member'>exception member</a> defined on the
               <a class='dfnref' href='#dfn-exception'>exception</a>, there
               <span class='rfc2119'>MUST</span> be a corresponding instance variable declared on the Java class
-              with the following properties:
+              with the following characteristics:
             </p>
             <ul>
               <li>The instance variable has only the modifier <code>public</code>.</li>
@@ -5021,6 +5023,7 @@ interface HTMLDocument {
           Gorm Haug Eriksen,
           Ian Hickson,
           Björn Höhrmann,
+          Magnus Kristiansen,
           Lachlan Hunt,
           Anne van Kesteren,
           Jim Ley,
@@ -5260,6 +5263,17 @@ interface HTMLDocument {
           <dt>Current editor’s draft</dt>
           <dd>
             <ul>
+              <li>
+                <p>
+                  Fixed errors in a couple of algorithms that were introduced by
+                  steps being renumbered.
+                </p>
+              </li>
+              <li>
+                <p>
+                  Properties corresponding to IDL constants are now ReadOnly.
+                </p>
+              </li>
               <li>
                 <p>
                   Removed <span class='xattr'>[NoNull]</span>, and added
