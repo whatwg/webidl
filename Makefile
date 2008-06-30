@@ -1,2 +1,2 @@
-Overview.html : Overview.xml Binding4DOM.xsl
-	xsltproc --nodtdattr Binding4DOM.xsl Overview.xml >Overview.html
+Overview.html : Overview.xml WebIDL.xsl
+	xsltproc --nodtdattr WebIDL.xsl Overview.xml >Overview.html
