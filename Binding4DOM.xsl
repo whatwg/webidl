@@ -113,19 +113,8 @@
           <xsl:when test='$options/x:versions/x:cvs and $options/x:maturity="ED"'>
             <dt>Latest Editor’s Draft:</dt>
             <dd>
-              <xsl:variable name='href' select='concat(substring-before($options/x:versions/x:cvs/@href, "~checkout~/"), substring-after($options/x:versions/x:cvs/@href, "~checkout~/"))'/>
-              <xsl:variable name='href2' select='concat($href, "?rev=", $rev, "&amp;content-type=text/xml")'/>
-              <a id='cvsVersionLink' href='{$href}'><xsl:value-of select='$href'/></a>
-              <script type='text/ecmascript'>
-                var id = "&#x24;Id$";
-                var a = document.getElementById('cvsVersionLink');
-                var xs = id.match(/ ([0-9]\.[0-9.]+) /);
-                if (xs) {
-                  var rev = xs[1];
-                  a.href = "<xsl:value-of select='$options/x:versions/x:cvs/@href'/>?rev=" + rev + String.fromCharCode(38) + "content-type=text/html; charset=utf-8";
-                  a.firstChild.data = a.href;
-                }
-              </script>
+              <xsl:variable name='href' select='$options/x:versions/x:cvs/@href'/>
+              <a href='{$href}'><xsl:value-of select='$href'/></a>
             </dd>
             <dt>Latest Published Version:</dt>
             <xsl:if test='$options/x:versions/x:latest/@href != ""'>
