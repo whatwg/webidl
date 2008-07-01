@@ -15,7 +15,7 @@
   <head>
     <title>Web IDL</title>
     <meta http-equiv='Content-Type' content='application/xhtml+xml; charset=UTF-8'/>
-    <meta name='revision' content='$Id: Overview.xml,v 1.75 2008-06-30 05:57:30 mike Exp $'/>
+    <meta name='revision' content='$Id: Overview.xml,v 1.76 2008-07-01 01:06:49 cmccorma Exp $'/>
     <link rel='stylesheet' href='WebIDL.css' type='text/css'/>
 
     <options xmlns='http://mcc.id.au/ns/local'>
@@ -492,6 +492,7 @@
           <p>
             The following extended attributes are applicable to interfaces:
             <a class='xattr' href='#Constructor'>[Constructor]</a>,
+            <a class='xattr' href='#NativeObject'>[NativeObject]</a>,
             <a class='xattr' href='#NoInterfaceObject'>[NoInterfaceObject]</a>,
             <a class='xattr' href='#Stringifies'>[Stringifies]</a>.
           </p>
@@ -1442,63 +1443,6 @@ map.banana = 123;           // Same as: map.set('banana', 123)</x:codeblock>
             </div>
           </div>
 
-          <div id='NoInterfaceObject' class='section'>
-            <h4>[NoInterfaceObject]</h4>
-
-            <p>
-              If the <a class='xattr' href='#NoInterfaceObject'>[NoInterfaceObject]</a>
-              <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
-              appears on an <a class='dfnref' href='#dfn-interface'>interface</a>,
-              it indicates that an
-              <a class='dfnref' href='#dfn-interface-object'>interface object</a>
-              will not exist for the interface in the ECMAScript binding.  Similarly,
-              if it appears on an <a class='dfnref' href='#dfn-exception'>exception</a>
-              it indicates that an
-              <a class='dfnref' href='#dfn-exception-interface-object'>exception interface object</a>
-              will not exist for the exception in the ECMAScript binding.
-            </p>
-            <p>
-              The <a class='xattr' href='#NoInterfaceObject'>[NoInterfaceObject]</a>
-              <span class='rfc2119'>MUST</span> take no argument.
-            </p>
-            <div class='ednote'>
-              <p>Should this be [InterfaceObject] instead, and default to not having one?</p>
-            </div>
-            <div class='example'>
-              <p>
-                The following <a class='dfnref' href='#dfn-idl-fragment'>IDL
-                  fragment</a> defines two interfaces, one whose interface object
-                is exposed on the ECMAScript global object, and one whose isn’t:
-              </p>
-              <x:codeblock language='idl'>interface Storage {
-  void addEntry(in unsigned long key, in any value);
-};
-
-[NoInterfaceObject]
-interface Query {
-  any lookupEntry(in unsigned long key);
-};</x:codeblock>
-              <p>
-                An ECMAScript implementation of the above IDL would allow
-                manipulation of <span class='idltype'>Storage</span>’s
-                prototype, but not <span class='idltype'>Query</span>’s.
-              </p>
-              <x:codeblock language='es'>
-typeof Storage;                        // evaluates to "object"
-
-// Add some tracing alert() call to Storage.addEntry.
-var fn = Storage.prototype.addEntry;
-Storage.prototype.addEntry = function(key, value) {
-  alert('Calling addEntry()');
-  return fn.call(this, key, value);
-};
-
-typeof Query;                          // evaluates to "undefined"
-var fn = Query.prototype.lookupEntry;  // exception, Query isn’t defined
-</x:codeblock>
-            </div>
-          </div>
-
           <div id='NameGetter' class='section'>
             <h4>[NameGetter]</h4>
 
@@ -1622,7 +1566,7 @@ d.isMemberOfBreed(null);  // This passes the string "null" to the isMemberOfBree
               or <a class='dfnref' href='#dfn-operation'>operation</a> argument whose type is
               <a class='idltype' href='#idl-DOMString'>DOMString</a>,
               it indicates that a <span class='idlvalue'>null</span> value
-              assigned to the attribute or passed as the operation argument will
+              assigned to the attribute or passed as the operation argument will be
               handled differently from its default handling (which is to be stringified
               to <span class='idlstring'>"null"</span>).
             </p>
@@ -2545,6 +2489,120 @@ results.numbers[6];                  // Evaluates to 0, since that is how 'undef
             <a class='dfnref' href='#dfn-extended-attribute'>extended attributes</a>
             whose presence affects only the ECMAScript binding.
           </p>
+
+          <div id='NativeObject' class='section'>
+            <h4>[NativeObject]</h4>
+
+            <p>
+              If the <a class='xattr' href='#NativeObject'>[NativeObject]</a>
+              <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
+              appears on an <a class='dfnref' href='#dfn-interface'>interface</a>,
+              it indicates that the interface can be implemented by an ECMAScript native object
+              (see <a href='#native-objects'>section <?sref native-objects?></a>
+              <?sdir native-objects?>), and such an object can be
+              <a class='dfnref' href='#dfn-pass-to-host-object'>passed to a host
+                object</a> expecting an object that implements the interface.
+            </p>
+            <p>
+              The <a class='xattr' href='#NativeObject'>[NativeObject]</a>
+              <span class='rfc2119'>MUST</span> take either no argument
+              or the <span class='idlident'>FunctionOnly</span> argument.
+              If no argument is given, then any native object is considered
+              to implement the interface.  Otherwise, if the
+              <span class='idlident'>FunctionOnly</span> argument is given,
+              then only <span class='estype'>Function</span> objects can
+              be considered to implement the interface.
+            </p>
+            <div class='example'>
+              <p>
+                The following <a class='dfnref' href='#dfn-idl-fragment'>IDL
+                  fragment</a> defines a simple callback interface and an
+                interface for an object that expects an object that
+                implements that callback:
+              </p>
+              <x:codeblock language='idl'>[NativeObject] interface Listener {
+  void eventOccurred();
+};
+
+interface Thing {
+  void addListener(in Listener listener);
+};</x:codeblock>
+              <p>
+                An ECMAScript implementation of the above two interfaces
+                allows any native object to be passed to <span class='prop'>addListener</span>:
+              </p>
+              <x:codeblock language='es'>var t = getThing();                                // Assume t is a host object implementing the Thing interface.
+
+t.addListener(function() { });                     // The function is the implementation of the eventOccurred
+                                                   // operation on the Listener interface.
+
+var x = function() { /* 1 */ };                    // This also works, but it is the function with /* 1 */
+x.eventOccurred = function() { /* 2 */ };          // in it that is the implementation of eventOccurred.
+t.addListener(x);
+
+t.addListener({ eventOccurred: function() { } });  // This works too, and the value of the eventOccurred property
+                                                   // is the implementation of the operation.  If Listener had been
+                                                   // declared with [NativeObject=FunctionOnly] however, this would
+                                                   // have thrown a TypeError.</x:codeblock>
+            </div>
+          </div>
+
+          <div id='NoInterfaceObject' class='section'>
+            <h4>[NoInterfaceObject]</h4>
+
+            <p>
+              If the <a class='xattr' href='#NoInterfaceObject'>[NoInterfaceObject]</a>
+              <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
+              appears on an <a class='dfnref' href='#dfn-interface'>interface</a>,
+              it indicates that an
+              <a class='dfnref' href='#dfn-interface-object'>interface object</a>
+              will not exist for the interface in the ECMAScript binding.  Similarly,
+              if it appears on an <a class='dfnref' href='#dfn-exception'>exception</a>
+              it indicates that an
+              <a class='dfnref' href='#dfn-exception-interface-object'>exception interface object</a>
+              will not exist for the exception in the ECMAScript binding.
+            </p>
+            <p>
+              The <a class='xattr' href='#NoInterfaceObject'>[NoInterfaceObject]</a>
+              <span class='rfc2119'>MUST</span> take no argument.
+            </p>
+            <div class='ednote'>
+              <p>Should this be [InterfaceObject] instead, and default to not having one?</p>
+            </div>
+            <div class='example'>
+              <p>
+                The following <a class='dfnref' href='#dfn-idl-fragment'>IDL
+                  fragment</a> defines two interfaces, one whose interface object
+                is exposed on the ECMAScript global object, and one whose isn’t:
+              </p>
+              <x:codeblock language='idl'>interface Storage {
+  void addEntry(in unsigned long key, in any value);
+};
+
+[NoInterfaceObject]
+interface Query {
+  any lookupEntry(in unsigned long key);
+};</x:codeblock>
+              <p>
+                An ECMAScript implementation of the above IDL would allow
+                manipulation of <span class='idltype'>Storage</span>’s
+                prototype, but not <span class='idltype'>Query</span>’s.
+              </p>
+              <x:codeblock language='es'>
+typeof Storage;                        // evaluates to "object"
+
+// Add some tracing alert() call to Storage.addEntry.
+var fn = Storage.prototype.addEntry;
+Storage.prototype.addEntry = function(key, value) {
+  alert('Calling addEntry()');
+  return fn.call(this, key, value);
+};
+
+typeof Query;                          // evaluates to "undefined"
+var fn = Query.prototype.lookupEntry;  // exception, Query isn’t defined
+</x:codeblock>
+            </div>
+          </div>
 
           <div id='Undefined' class='section'>
             <h4>[Undefined]</h4>
@@ -3851,51 +3909,98 @@ a['g(::dom::Document)'](document);  // explicitly call the second g()
           <h3>Native objects implementing interfaces</h3>
 
           <p>
-            A native ECMAScript object is considered to implement a particular
-            <a class='dfnref' href='#dfn-interface'>interface</a> if it has properties corresponding to all
-            <a class='dfnref' href='#dfn-operation'>operations</a>
-            on that interface, whose values are <span class='estype'>Function</span>
-            objects.  The rules for which operations correspond to properties
-            in the presence of overloaded operations is the same as described
-            for host objects in <a href='#es-operations'>section <?sref es-operations?></a>
-            <?sdir es-operations?>.
+            Some <a class='dfnref' href='#dfn-interface'>interfaces</a> can be
+            implemented in script by an ECMAScript native object.  Only interfaces
+            with the following characteristics can have native object implementations:
           </p>
+          <ul>
+            <li>
+              The interface does not <a class='dfnref' href='#dfn-inherit'>inherit</a>
+              from any other interface.
+            </li>
+            <li>
+              The interface has a 
+              <a class='xattr' href='#NativeObject'>[NativeObject]</a>
+              <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
+              on it.
+            </li>
+            <li>
+              The interface does not have a
+              <a class='xattr' href='#Constructor'>[Constructor]</a> or
+              <a class='xattr' href='#Stringifies'>[Stringifies]</a>
+              extended attribute on it.
+            </li>
+            <li>
+              The interface has no <a class='dfnref' href='#dfn-constant'>constants</a>.
+            </li>
+            <li>
+              No <a class='dfnref' href='#dfn-attribute'>attribute</a> on the interface
+              has a <a class='xattr' href='#Null'>[Null]</a>,
+              <a class='xattr' href='#PutForwards'>[PutForwards]</a> or
+              <a class='xattr' href='#Undefined'>[Undefined]</a>
+              extended attribute on it.
+            </li>
+            <li>
+              No <a class='dfnref' href='#dfn-operation'>operation</a> on the interface
+              has an <a class='xattr' href='#IndexGetter'>[IndexGetter]</a>,
+              <a class='xattr' href='#IndexSetter'>[IndexSetter]</a>,
+              <a class='xattr' href='#NameGetter'>[NameGetter]</a> or
+              <a class='xattr' href='#NameSetter'>[NameSetter]</a>
+              extended attribute on it.
+            </li>
+          </ul>
+          <p>
+            The following cases determine whether a given native object implements
+            an interface with the above characteristics:
+          </p>
+          <ul>
+            <li>
+              If the interface is declared with one or more operations that all
+              have the same <a class='dfnref' href='#dfn-identifier'>identifier</a>
+              and the <a class='xattr' href='#NativeObject'>[NativeObject]</a>
+              extended attribute on the interface has the <span class='idlident'>FunctionOnly</span>
+              argument, then the native object is considered to implement that interface if
+              it is a <span class='estype'>Function</span> object.  The native object
+              itself is the implementation of the operation.
+            </li>
+            <li>
+              Otherwise, if the interface is declared with one or more operations that all
+              have the same identifier but the <a class='xattr' href='#NativeObject'>[NativeObject]</a>
+              extended attribute on the interface does not have the <span class='idlident'>FunctionOnly</span>
+              argument, then any native object is considered to implement that interface.
+              If the native object is a <span class='estype'>Function</span> object,
+              then the function itself is the implementation of the operation.
+              Otherwise, the implementation of the operation is the result of
+              invoking <span class='prop'>[[Get]]</span> on the native object
+              with a property name that is the identifier of the operation.
+            </li>
+            <li>
+              Otherwise, the operations declared on the interface have zero or more than
+              one distinct identifiers, and any native object is considered to implement the interface.
+              For each operation declared on the interface, the implementation
+              of that operation is the result of invoking
+              <span class='prop'>[[Get]]</span> on the native object with a
+              property name that is the identifier of the operation.
+            </li>
+          </ul>
+          <p>
+            A user agent calls a native object’s operation implementation with an argument
+            list <var>L</var> as follows:
+          </p>
+          <ol class='algorithm'>
+            <li>Let <var>O</var> be the native object.</li>
+            <li>Let <var>X</var> be the implementation of the operation.</li>
+            <li>If Type(<var>X</var>) is not Object, throw a <span class='estype'>TypeError</span> exception.</li>
+            <li>If <var>X</var> does not implement the internal <span class='prop'>[[Call]]</span> method, throw a <span class='estype'>TypeError</span> exception.</li>
+            <li x:step='a'>Call the <span class='prop'>[[Call]]</span> method of <var>X</var>, providing <var>O</var> as the <span class='esvalue'>this</span> value and <var>L</var> as the argument values.</li>
+            <li>Return Result(<?stepref a?>).</li>
+          </ol>
           <div class='ednote'>
-            <p>
-              How operations correspond to attributes on native objects
-              could be fleshed out about, rather than just refering to the
-              host object Operations section earlier.
-            </p>
+            <p>HTML will want to override the <span class='esvalue'>this</span> value for
+              native object EventListener implementations to be the object the listener
+              was added to, when the native object is a <span class='estype'>Function</span> object.
+              Do we need to add anything here for this?</p>
           </div>
-          <p>
-            Note that if the interface has <a class='dfnref' href='#dfn-attribute'>attributes</a>
-            declared on it, corresponding properties are not required to exist on the native object.
-            Since native objects cannot have properties with attributes (such as
-            ReadOnly), a property that does exist on the object that corresponds
-            to a <code>readonly</code> attribute declared on the interface
-            does not have to be read-only.
-          </p>
-          <p>
-            Since native objects cannot have custom internal properties,
-            such objects implementing the interface are not required to honor the
-            <a class='xattr' href='#IndexGetter'>[IndexGetter]</a>,
-            <a class='xattr' href='#IndexSetter'>[IndexSetter]</a>,
-            <a class='xattr' href='#NameGetter'>[NameGetter]</a>,
-            <a class='xattr' href='#NameSetter'>[NameSetter]</a> or
-            <a class='xattr' href='#PutForwards'>[PutForwards]</a>
-            extended attributes.
-          </p>
-          <p>
-            As a special case, a <span class='estype'>Function</span> object
-            <var>F</var> is considered to implement an interface if that interface is
-            declared with exactly one operation.  The function itself is
-            the implementation of the operation.  If the
-            <span class='estype'>Function</span> object also has a property
-            <var>P</var> whose name is the name of the operation and whose
-            value is a <span class='estype'>Function</span> object, then
-            that <var>P</var> is used as the implementation of the operation
-            rather than <var>F</var>.
-          </p>
         </div>
 
         <div id='es-exceptions' class='section'>
@@ -5273,6 +5378,20 @@ interface HTMLDocument {
           <dt>Current editor’s draft</dt>
           <dd>
             <ul>
+              <li>
+                <p>
+                  Added a <span class='xattr'>[NativeObject]</span> extended attribute
+                  that restricts which interfaces may be implemented by ECMAScript
+                  native objects, and updated the “Native objects implementing interfaces”
+                  section to be more restricted and precise.
+                </p>
+              </li>
+              <li>
+                <p>
+                  Moved <span class='xattr'>[NoInterfaceObject]</span> into the
+                  ECMAScript-specific extended attributes section.
+                </p>
+              </li>
               <li>
                 <p>
                   Fixed errors in a couple of algorithms that were introduced by
