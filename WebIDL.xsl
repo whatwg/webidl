@@ -212,16 +212,16 @@
 
   <xsl:template name='maturity-short'>
     <xsl:choose>
-      <xsl:when test='$options/x:maturity="FPWD"'>Working Draft</xsl:when>
-      <xsl:when test='$options/x:maturity="LCWD"'>Working Draft</xsl:when>
-      <xsl:when test='$options/x:maturity="FPWDLC"'>Working Draft</xsl:when>
-      <xsl:when test='$options/x:maturity="WD"'>Working Draft</xsl:when>
-      <xsl:when test='$options/x:maturity="CR"'>Candidate Recommendation</xsl:when>
-      <xsl:when test='$options/x:maturity="PR"'>Proposed Recommendation</xsl:when>
-      <xsl:when test='$options/x:maturity="PER"'>Proposed Edited Recommendation</xsl:when>
-      <xsl:when test='$options/x:maturity="REC"'>Recommendation</xsl:when>
-      <xsl:when test='$options/x:maturity="WG-NOTE"'>Working Group Note</xsl:when>
-      <xsl:otherwise>Editor’s Draft</xsl:otherwise>
+      <xsl:when test='$options/x:maturity="FPWD"'>a Working Draft</xsl:when>
+      <xsl:when test='$options/x:maturity="LCWD"'>a Working Draft</xsl:when>
+      <xsl:when test='$options/x:maturity="FPWDLC"'>a Working Draft</xsl:when>
+      <xsl:when test='$options/x:maturity="WD"'>a Working Draft</xsl:when>
+      <xsl:when test='$options/x:maturity="CR"'>a Candidate Recommendation</xsl:when>
+      <xsl:when test='$options/x:maturity="PR"'>a Proposed Recommendation</xsl:when>
+      <xsl:when test='$options/x:maturity="PER"'>a Proposed Edited Recommendation</xsl:when>
+      <xsl:when test='$options/x:maturity="REC"'>a Recommendation</xsl:when>
+      <xsl:when test='$options/x:maturity="WG-NOTE"'>a Working Group Note</xsl:when>
+      <xsl:otherwise>an Editor’s Draft</xsl:otherwise>
     </xsl:choose>
   </xsl:template>
 
@@ -273,7 +273,7 @@
           functionality and interoperability of the Web.
         </xsl:when>
         <xsl:otherwise>
-          Publication as a <xsl:call-template name='maturity-short'/> does not imply endorsement by the
+          Publication as <xsl:call-template name='maturity-short'/> does not imply endorsement by the
           W3C Membership.  This is a draft document and may be updated, replaced
           or obsoleted by other documents at any time. It is inappropriate to cite
           this document as other than work in progress.
