@@ -15,7 +15,7 @@
   <head>
     <title>Web IDL</title>
     <meta http-equiv='Content-Type' content='application/xhtml+xml; charset=UTF-8'/>
-    <meta name='revision' content='$Id: Overview.xml,v 1.76 2008-07-01 01:06:49 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: Overview.xml,v 1.77 2008-07-03 00:07:01 cmccorma Exp $'/>
     <link rel='stylesheet' href='WebIDL.css' type='text/css'/>
 
     <options xmlns='http://mcc.id.au/ns/local'>
@@ -491,19 +491,12 @@
           </p>
           <p>
             The following extended attributes are applicable to interfaces:
+            <a class='xattr' href='#AdditionalConstructor'>[AdditionalConstructor]</a>,
             <a class='xattr' href='#Constructor'>[Constructor]</a>,
             <a class='xattr' href='#NativeObject'>[NativeObject]</a>,
             <a class='xattr' href='#NoInterfaceObject'>[NoInterfaceObject]</a>,
             <a class='xattr' href='#Stringifies'>[Stringifies]</a>.
           </p>
-
-          <div class='ednote'>
-            <p>
-              Should there be a way to define constructors on the interface with
-              particular names, to support HTML 5’s <code>Audio</code>,
-              <code>Image</code> and <code>Option</code> constructors?
-            </p>
-          </div>
 
           <?productions grammar Interface InterfaceInheritance InterfaceBody InterfaceMembers InterfaceMember ScopedNameList ScopedNames?>
 
@@ -1229,22 +1222,27 @@
           </p>
           <p>
             An extended attribute is specified as an
-            <a class='nt' href='#prod-identifier'>identifier</a>.  Some extended
-            attributes are defined to take an argument.  The argument is given
-            by following the <a class='nt' href='#prod-identifier'>identifier</a>
-            with a <span class='terminal'>"="</span> terminal and the
-            <a class='nt' href='#prod-identifier'>identifier</a> argument.
+            <a class='nt' href='#prod-identifier'>identifier</a>, optionally followed
+            by some additional information.  There are four forms an extended
+            attribute may have:
           </p>
+          <ul>
+            <li><code>[TheExtendedAttribute]</code>, where it <dfn id='dfn-xattr-no-argument'>takes no argument</dfn>;</li>
+            <li><code>[TheExtendedAttribute(<a class='nt' href='#prod-ArgumentList'>ArgumentList</a>)]</code>, where it <dfn id='dfn-xattr-argument'>takes an argument list</dfn>;</li>
+            <li><code>[TheExtendedAttribute=<a class='nt' href='#prod-identifier'>identifier</a>]</code>, where it <dfn id='dfn-xattr-identifier'>takes an identifier</dfn>; and,</li>
+            <li><code>[TheExtendedAttribute=<a class='nt' href='#prod-identifier'>identifier</a>(<a class='nt' href='#prod-ArgumentList'>ArgumentList</a>)]</code>, where it <dfn id='dfn-xattr-identifier-argument-list'>takes a named argument list</dfn>.</li>
+          </ul>
           <p>
             This specification defines a number of extended attributes, which are
-            listed in the sub-sections below.
+            listed in the sub-sections below.  Each definition will state which of the above
+            four forms are allowed.
           </p>
 
           <div class='ednote'>
             <p>Have an extended attribute that specifies what properties get enumerated in a for..in loop?</p>
           </div>
 
-          <?productions grammar ExtendedAttributeList ExtendedAttribute ExtendedAttributes ExtendedAttributeAssignment ExtendedAttributeArgument?>
+          <?productions grammar ExtendedAttributeList ExtendedAttribute ExtendedAttributes ExtendedAttributeDetails ExtendedAttributeAssignment ExtendedAttributeAssignmentArguments?>
 
           <div id='Constructor' class='section'>
             <h4>[Constructor]</h4>
@@ -1255,10 +1253,19 @@
               appears on an <a class='dfnref' href='#dfn-interface'>interface</a>, it indicates that
               there must be a way to construct objects that implement this interface.
               How such objects can be constructed is specific to the language binding.
+              Multiple <a class='xattr' href='#Constructor'>[Constructor]</a> extended
+              attributes may appear on a given interface.
             </p>
             <p>
               The <a class='xattr' href='#Constructor'>[Constructor]</a>
-              extended attribute <span class='rfc2119'>MUST</span> take no argument.
+              extended attribute <span class='rfc2119'>MUST</span> either
+              <a class='dfnref' href='#dfn-xattr-no-argument'>take no argument</a> or
+              <a class='dfnref' href='#dfn-xattr-argument-list'>take an argument list</a>.
+              The bare form (<code>[Constructor]</code>) has the same meaning as
+              using an empty argument list (<code>[Constructor()]</code>).  For each
+              <a class='xattr' href='#Constructor'>[Constructor]</a> extended attribute
+              on the interface, there must be a way to construct an object that implements
+              the interface by passing the specified arguments.
             </p>
             <div class='example'>
               <p>
@@ -1271,7 +1278,8 @@
   readonly attribute unsigned long length;
 };
 
-[Constructor]
+[Constructor,
+ Constructor(in float radius)]
 interface Circle {
   attribute float r;
   attribute float cx;
@@ -1282,32 +1290,18 @@ interface Circle {
                 An ECMAScript implementation supporting these interfaces would
                 have a <span class='prop'>[[Construct]]</span> property on the
                 <span class='idltype'>Circle</span> interface object which would
-                return a new object that implements the interface.  The
+                return a new object that implements the interface.  It would take
+                either zero or one argument.  The
                 <span class='idltype'>NodeList</span> interface object would not
                 have a <span class='prop'>[[Construct]]</span> property.
               </p>
-              <x:codeblock language='es'>var x = new Circle();    // x is now a reference to a host object that implements the Circle interface.
-var y = new NodeList();  // This would throw a TypeError.</x:codeblock>
-            </div>
-            <div class='ednote'>
-              <p>
-                This doesn’t allow for constructors which take arguments, and
-                that’s probably something that will be wanted.  Maybe the
-                extended attribute should be on operations instead, e.g.:
-              </p>
-              <x:codeblock language='idl'>interface Circle {
-  attribute float r;
-  attribute float cx;
-  attribute float cy;
-  readonly attribute float circumference;
+              <x:codeblock language='es'>var x = new Circle();      // The uses the zero-argument constructor to create a reference to a host
+                           // object that implements the Circle interface.
 
-  [Constructor] Circle createCircle(in float r, in float cx, in float cy);
-};</x:codeblock>
-              <p>
-                For ES, such operations map to a [[Construct]] property
-                with a function that takes the given arguments.  For other languages,
-                this could perhaps map to a static method somewhere.
-              </p>
+var y = new Circle(1.25);  // This also creates a Circle object, this time using the one-argument
+                           // constructor.
+
+var z = new NodeList();    // This would throw a TypeError, since no [Constructor] is declared.</x:codeblock>
             </div>
           </div>
 
@@ -1325,10 +1319,9 @@ var y = new NodeList();  // This would throw a TypeError.</x:codeblock>
               are exposed is language binding specific.
             </p>
             <p>
-              The <a class='xattr' href='#ExceptionConsts'>[ExceptionConsts]</a>
-              <span class='rfc2119'>MUST</span> take a single argument, an
-              <a class='terminal' href='#prod-identifier'>identifier</a>, which
-              <span class='rfc2119'>MUST</span> be the <a class='dfnref' href='#dfn-identifier'>identifier</a>
+              The <a class='xattr' href='#ExceptionConsts'>[ExceptionConsts]</a> extended attribute
+              <span class='rfc2119'>MUST</span> <a class='dfnref' href='#dfn-xattr-identifier'>take an identifier</a>
+              that is the <a class='dfnref' href='#dfn-identifier'>identifier</a>
               of an exception defined in that module, on which the constants declared at the
               module scope should live.
             </p>
@@ -1377,7 +1370,7 @@ FileIOException.FILE_NOT_FOUND;  // evaluates to 1</x:codeblock>
             </p>
             <p>
               The <a class='xattr' href='#IndexGetter'>[IndexGetter]</a> extended attribute
-              <span class='rfc2119'>MUST</span> take no argument.
+              <span class='rfc2119'>MUST</span> <a class='dfnref' href='#dfn-xattr-no-argument'>take no argument</a>.
             </p>
             <div class='example'>
               <p>
@@ -1433,7 +1426,7 @@ map.banana = 123;           // Same as: map.set('banana', 123)</x:codeblock>
             </p>
             <p>
               The <a class='xattr' href='#IndexSetter'>[IndexSetter]</a> extended attribute
-              <span class='rfc2119'>MUST</span> take no argument.
+              <span class='rfc2119'>MUST</span> <a class='dfnref' href='#dfn-xattr-no-argument'>take no argument</a>.
             </p>
             <div class='example'>
               <p>
@@ -1464,7 +1457,7 @@ map.banana = 123;           // Same as: map.set('banana', 123)</x:codeblock>
             </p>
             <p>
               The <a class='xattr' href='#NameGetter'>[NameGetter]</a> extended attribute
-              <span class='rfc2119'>MUST</span> take no argument.
+              <span class='rfc2119'>MUST</span> <a class='dfnref' href='#dfn-xattr-no-argument'>take no argument</a>.
             </p>
             <div class='example'>
               <p>
@@ -1496,7 +1489,7 @@ map.banana = 123;           // Same as: map.set('banana', 123)</x:codeblock>
             </p>
             <p>
               The <a class='xattr' href='#NameSetter'>[NameSetter]</a> extended attribute
-              <span class='rfc2119'>MUST</span> take no argument.
+              <span class='rfc2119'>MUST</span> <a class='dfnref' href='#dfn-xattr-no-argument'>take no argument</a>.
             </p>
             <div class='example'>
               <p>
@@ -1595,8 +1588,8 @@ d.isMemberOfBreed(null);  // This passes the string "null" to the isMemberOfBree
             </p>
             <p>
               The <a class='xattr' href='#Null'>[Null]</a>
-              extended attribute <span class='rfc2119'>MUST</span> take a single identifier
-              argument: either <span class='idlident'>Empty</span> or <span class='idlident'>Null</span>.
+              extended attribute <span class='rfc2119'>MUST</span> <a class='dfnref' href='#dfn-xattr-identifier'>take an identifier</a>:
+              either <span class='idlident'>Empty</span> or <span class='idlident'>Null</span>.
             </p>
             <div class='example'>
               <p>
@@ -1710,12 +1703,11 @@ Person* p2 = PersonFactory_createPersonWithAge(f, 26);  // Corresponds to the cr
             </p>
             <p>
               The <a class='xattr' href='#PutForwards'>[PutForwards]</a> extended
-              attribute <span class='rfc2119'>MUST</span> take a single argument, an
-              <a class='terminal' href='#prod-identifier'>identifier</a>, which
-              <span class='rfc2119'>MUST</span> be the <a class='dfnref' href='#dfn-identifier'>identifier</a>
-              of an attribute that exists on the interface that is the type of
-              this attribute, which is the attribute that assignments will
-              be forward to.
+              attribute <span class='rfc2119'>MUST</span> <a class='dfnref' href='#dfn-xattr-identifier'>take an identifier</a>
+              that is the <a class='dfnref' href='#dfn-identifier'>identifier</a>
+              of an attribute that exists on the interface and which has the same type as
+              this attribute.  Assignments to the attribute with <a class='xattr' href='#PutForwards'>[PutForwards]</a>
+              will be forwarded to that identified attribute.
             </p>
             <div class='example'>
               <p>
@@ -1761,11 +1753,14 @@ p.name.full = 'John Citizen';  // ...has the same behavior as this one.</x:codeb
             </p>
             <p>
               The <a class='xattr' href='#Stringifies'>[Stringifies]</a> extended
-              attribute <span class='rfc2119'>MAY</span> take a single argument, an
-              <a class='terminal' href='#prod-identifier'>identifier</a>, which
-              identifies an attribute on the interface whose value will be
-              used as the result of the stringification.  If the argument is
-              not supplied, the stringification behavior <span class='rfc2119'>MUST</span>
+              attribute <span class='rfc2119'>MUST</span> either
+              <a class='dfnref' href='#dfn-xattr-no-argument'>take no argument</a>
+              or <a class='dfnref' href='#dfn-xattr-identifier'>take an identifier</a>.
+              If the <a class='terminal' href='#prod-identifier'>identifier</a>
+              is present, it <span class='rfc2119'>MUST</span> be the identifier of
+              an attribute on the interface, whose value will be used as the result
+              of the stringification.  If the identifier is not supplied,
+              the stringification behavior <span class='rfc2119'>MUST</span>
               be described in prose.
             </p>
             <div class='example'>
@@ -1847,7 +1842,7 @@ var greeting = 'Hi ' + s;  // Now greeting == 'Hi Alan Smithee'.</x:codeblock>
             </p>
             <p>
               The <a class='xattr' href='#Variadic'>[Variadic]</a>
-              extended attribute <span class='rfc2119'>MUST</span> take no argument.
+              extended attribute <span class='rfc2119'>MUST</span> <a class='dfnref' href='#dfn-xattr-no-argument'>take no argument</a>.
             </p>
             <div class='example'>
               <p>
@@ -2490,6 +2485,63 @@ results.numbers[6];                  // Evaluates to 0, since that is how 'undef
             whose presence affects only the ECMAScript binding.
           </p>
 
+          <div id='AdditionalConstructor' class='section'>
+            <h4>[AdditionalConstructor]</h4>
+            <p>
+              If the <a class='xattr' href='#AdditionalConstructor'>[AdditionalConstructor]</a>
+              <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
+              appears on an <a class='dfnref' href='#dfn-interface'>interface</a>,
+              it indicates the ECMAScript global object will have an additional property with the
+              specified name whose value is a constructor function that can
+              create objects that implement the interface.
+              Multiple <a class='xattr' href='#AdditionalConstructor'>[AdditionalConstructor]</a> extended
+              attributes may appear on a given interface.
+            </p>
+            <p>
+              The <a class='xattr' href='#AdditionalConstructor'>[AdditionalConstructor]</a>
+              extended attribute <span class='rfc2119'>MUST</span> either
+              <a class='dfnref' href='#dfn-xattr-identifier'>take an identifier</a> or
+              <a class='dfnref' href='#dfn-xattr-named-argument-list'>take a named argument list</a>.
+              The first form (<code>[AdditionalConstructor=<a class='terminal' href='#prod-identifier'>identifier</a>]</code>) has the same meaning as
+              using an empty argument list (<code>[AdditionalConstructor=<a class='terminal' href='#prod-identifier'>identifier</a>()]</code>).  For each
+              <a class='xattr' href='#AdditionalConstructor'>[AdditionalConstructor]</a> extended attribute
+              on the interface, there must be a way to construct an object that implements
+              the interface by passing the specified arguments to the constructor function
+              that is the value of the aforementioned property.
+            </p>
+            <p>
+              The identifier used for the additional constructor <span class='rfc2119'>MUST NOT</span>
+              be the same as that used by an <a class='xattr' href='#AdditionalConstructor'>[AdditionalConstructor]</a>
+              extended attribute on another interface, and it <span class='rfc2119'>MUST NOT</span>
+              be the same as an identifier of an interface (or <a class='dfnref' href='#dfn-exception'>exception</a>)
+              that has an <a class='dfnref' href='#dfn-interface-object'>interface object</a>
+              (or <a class='dfnref' href='#dfn-exception-interface-object'>exception interface object</a>).
+            </p>
+            <div class='example'>
+              <p>
+                The following IDL defines an interface that uses the
+                <a class='xattr' href='#AdditionalConstructor'>[AdditionalConstructor]</a> extended
+                attribute.
+              </p>
+              <x:codeblock language='idl'>[AdditionalConstructor=Image,
+ AdditionalConstructor=Image(in DOMString src)]
+interface HTMLImageElement : HTMLElement {
+  …
+};</x:codeblock>
+              <p>
+                An ECMAScript implementation that supports this interface will
+                allow the construction of <span class='estype'>HTMLImageElement</span>
+                objects using the <span class='estype'>Image</span> constructor.
+              </p>
+              <x:codeblock language='es'>typeof Image;                   // Evaluates to 'function'.
+
+var im1 = new Image();          // Creates a new object that implements HTMLImageElement, using the
+                                // zero-argument constructor.
+
+var im2 = new Image('a.png');   // Creates an HTMLImageElement using the one-argument constructor.</x:codeblock>
+            </div>
+          </div>
+
           <div id='NativeObject' class='section'>
             <h4>[NativeObject]</h4>
 
@@ -2504,9 +2556,9 @@ results.numbers[6];                  // Evaluates to 0, since that is how 'undef
                 object</a> expecting an object that implements the interface.
             </p>
             <p>
-              The <a class='xattr' href='#NativeObject'>[NativeObject]</a>
-              <span class='rfc2119'>MUST</span> take either no argument
-              or the <span class='idlident'>FunctionOnly</span> argument.
+              The <a class='xattr' href='#NativeObject'>[NativeObject]</a> extended attribute
+              <span class='rfc2119'>MUST</span> either <a class='dfnref' href='#dfn-xattr-no-argument'>take no argument</a>
+              or <a class='dfnref' href='#dfn-xattr-identifier'>take the identifier</a> <span class='idlident'>FunctionOnly</span>.
               If no argument is given, then any native object is considered
               to implement the interface.  Otherwise, if the
               <span class='idlident'>FunctionOnly</span> argument is given,
@@ -2563,8 +2615,8 @@ t.addListener({ eventOccurred: function() { } });  // This works too, and the va
               will not exist for the exception in the ECMAScript binding.
             </p>
             <p>
-              The <a class='xattr' href='#NoInterfaceObject'>[NoInterfaceObject]</a>
-              <span class='rfc2119'>MUST</span> take no argument.
+              The <a class='xattr' href='#NoInterfaceObject'>[NoInterfaceObject]</a> extended attribute
+              <span class='rfc2119'>MUST</span> <a class='dfnref' href='#dfn-xattr-no-argument'>take no argument</a>.
             </p>
             <div class='ednote'>
               <p>Should this be [InterfaceObject] instead, and default to not having one?</p>
@@ -2643,8 +2695,8 @@ var fn = Query.prototype.lookupEntry;  // exception, Query isn’t defined
             </p>
             <p>
               The <a class='xattr' href='#Undefined'>[Undefined]</a>
-              extended attribute <span class='rfc2119'>MUST</span> take a single identifier
-              argument: either <span class='idlident'>Empty</span> or <span class='idlident'>Null</span>.
+              extended attribute <span class='rfc2119'>MUST</span> <a class='dfnref' href='#dfn-xattr-identifier'>take an identifier</a>:
+              either <span class='idlident'>Empty</span> or <span class='idlident'>Null</span>.
             </p>
             <div class='example'>
               <p>
@@ -2688,8 +2740,24 @@ c.isMemberOfBreed(undefined);  // This passes the string "" to the isMemberOfBre
             <a class='dfnref' href='#dfn-constant'>constants</a>
             and <a class='dfnref' href='#dfn-operation'>operations</a> defined on the interface.
             The property has the attributes <span class='propattrset'>{ DontDelete, DontEnum }</span>.
+            The characteristics of an interface object is described in <a href='#interface-object'>section <?sref interface-object?></a>
+            <?sdir interface-object?>.
           </p>
           
+          <p>
+            In addition, for every <a class='xattr' href='#AdditionalConstructor'>[AdditionalConstructor]</a>
+            extended attribute on an interface, a corresponding property <span class='rfc2119'>MUST</span>
+            exist on the ECMAScript global object whose name is the
+            <a class='terminal' href='#prod-identifier'>identifier</a> that occurs directly after the
+            “<span class='terminal'>=</span>”.  The value of this property is an object called an
+            <dfn id='dfn-additional-constructor'>additional constructor</dfn>, which allows
+            construction of objects that implement the interface.  The property has the
+            attributes <span class='propattrset'>{ DontDelete, DontEnum }</span>.
+            The characteristics of an additional constructor is described in
+            <a href='#additional-constructors'>section <?sref additional-constructors?></a>
+            <?sdir additional-constructors?>.
+          </p>
+
           <div id='interface-object' class='section'>
             <h4>Interface object</h4>
 
@@ -2704,7 +2772,7 @@ c.isMemberOfBreed(undefined);  // This passes the string "" to the isMemberOfBre
               <a href='#es-constants'>section <?sref es-constants?></a> <?sdir es-constants?>.
             </p>
             <p>
-              If the interface is declared with the
+              If the interface is declared with a
               <a class='xattr' href='#Constructor'>[Constructor]</a> <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>,
               then the interface object <span class='rfc2119'>MUST</span> also have a
               <span class='prop'>[[Construct]]</span> internal property, which allows
@@ -2718,6 +2786,9 @@ c.isMemberOfBreed(undefined);  // This passes the string "" to the isMemberOfBre
               the given interface if it returns normally (that is, if it does not
               throw an exception).
             </p>
+            <div class='ednote'>
+              <p>Specify here how multiple constructors are handled (like operation overloading).</p>
+            </div>
             <p>
               The interface object <span class='rfc2119'>MUST</span> also have a property named
               <span class='prop'>prototype</span> with attributes
@@ -2755,6 +2826,31 @@ c.isMemberOfBreed(undefined);  // This passes the string "" to the isMemberOfBre
                   return <span class='esvalue'>true</span>.</li>
                 <li>Go to step <?stepref b?>.</li>
               </ol>
+            </div>
+          </div>
+
+          <div id='additional-constructors' class='section'>
+            <h4>Additional constructors</h4>
+
+            <p>
+              An <a class='dfnref' href='#dfn-interface'>interface</a> will have an additional constructor
+              for each unique <a class='terminal' href='#prod-identifier'>identifier</a> used in an
+              <a class='xattr' href='#AdditionalConstructor'>[AdditionalConstructor]</a> extended attribute
+              on that interface.  This additional constructor <span class='rfc2119'>MUST</span> have
+              a <span class='prop'>[[Construct]]</span> internal property, which allows construction of
+              objects that implement the interface.  The behavior of this <span class='prop'>[[Construct]]</span>
+              method is not necessarily the same as that described for <span class='estype'>Function</span> objects in
+              section 13.2.2 of the <cite>ECMAScript Language Specification, 3rd Edition</cite>
+              <a href='#ref-ECMA-262'>[ECMA-262]</a>, but it <span class='rfc2119'>MUST</span>
+              return an object that implements the given interface if it returns normally
+              (that is, if it does not throw an exception).
+            </p>
+            <p>
+              The <span class='prop'>[[Call]]</span> internal property <span class='rfc2119'>MUST</span>
+              have the same behavior as <span class='prop'>[[Construct]]</span>.
+            </p>
+            <div class='ednote'>
+              <p>Specify additional constructor overloading here.</p>
             </div>
           </div>
 
@@ -2982,6 +3078,13 @@ interface D : C {
                   <a href='#ref-ECMA-262'>[ECMA-262]</a>.
                 </li>
               </ul>
+            </div>
+            <div class='ednote'>
+              <p>
+                The above example algorithm is broken according to
+                <a href='http://www.w3.org/mid/cee13aa30804102141n3c48a5c2mfddebe284d636cdb@mail.gmail.com'>David Andersson</a>,
+                so this will probably change to using <a href='http://en.wikipedia.org/wiki/C3_linearization'>C3</a> as suggested.
+              </p>
             </div>
             <div class='ednote'>
               <p>
@@ -5251,9 +5354,10 @@ interface HTMLDocument {
           <prod nt='ExceptionMember'>DeclarationType identifier ";"</prod>
           <prod nt='ExtendedAttributeList'>"[" ExtendedAttribute ExtendedAttributes "]" | ε</prod>
           <prod nt='ExtendedAttributes'>"," ExtendedAttribute ExtendedAttributes | ε</prod>
-          <prod nt='ExtendedAttribute'>identifier ExtendedAttributeAssignment</prod>
-          <prod nt='ExtendedAttributeAssignment'>"=" ExtendedAttributeArgument | ε</prod>
-          <prod nt='ExtendedAttributeArgument'>identifier</prod>
+          <prod nt='ExtendedAttribute'>identifier ExtendedAttributeDetails</prod>
+          <prod nt='ExtendedAttributeDetails'>"=" ExtendedAttributeAssignment | "(" ArgumentList ")" | ε</prod>
+          <prod nt='ExtendedAttributeAssignment'>identifier ExtendedAttributeAssignmentArguments</prod>
+          <prod nt='ExtendedAttributeAssignmentArguments'>"(" ArgumentList ")" | ε</prod>
           <prod nt='DeclarationType'>UnsignedIntegerType | ScopedName | "any" | "boolean" | "octet" | "float" | "DOMString" | "Object"</prod>
           <prod nt='BoxedType'>UnsignedIntegerType | ScopedName | "boolean" | "octet" | "float" | "sequence" "&lt;" Type ">"</prod>
           <prod nt='Type'>DeclarationType | "sequence" "&lt;" Type ">"</prod>
@@ -5378,6 +5482,18 @@ interface HTMLDocument {
           <dt>Current editor’s draft</dt>
           <dd>
             <ul>
+              <li>
+                <p>
+                  Added an <span class='xattr'>[AdditionalConstructor]</span> extended attribute
+                  to handle peculiarities like HTML 5’s <code>Image</code> constructor.
+                </p>
+              </li>
+              <li>
+                <p>
+                  <span class='xattr'>[Constructor]</span> extended attributes may now
+                  take an argument list, and more than one can be used on an interface.
+                </p>
+              </li>
               <li>
                 <p>
                   Added a <span class='xattr'>[NativeObject]</span> extended attribute
