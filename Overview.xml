@@ -15,7 +15,7 @@
   <head>
     <title>Web IDL</title>
     <meta http-equiv='Content-Type' content='application/xhtml+xml; charset=UTF-8'/>
-    <meta name='revision' content='$Id: Overview.xml,v 1.77 2008-07-03 00:07:01 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: Overview.xml,v 1.78 2008-07-03 00:28:17 cmccorma Exp $'/>
     <link rel='stylesheet' href='WebIDL.css' type='text/css'/>
 
     <options xmlns='http://mcc.id.au/ns/local'>
@@ -491,8 +491,8 @@
           </p>
           <p>
             The following extended attributes are applicable to interfaces:
-            <a class='xattr' href='#AdditionalConstructor'>[AdditionalConstructor]</a>,
             <a class='xattr' href='#Constructor'>[Constructor]</a>,
+            <a class='xattr' href='#NamedConstructor'>[NamedConstructor]</a>,
             <a class='xattr' href='#NativeObject'>[NativeObject]</a>,
             <a class='xattr' href='#NoInterfaceObject'>[NoInterfaceObject]</a>,
             <a class='xattr' href='#Stringifies'>[Stringifies]</a>.
@@ -2485,33 +2485,33 @@ results.numbers[6];                  // Evaluates to 0, since that is how 'undef
             whose presence affects only the ECMAScript binding.
           </p>
 
-          <div id='AdditionalConstructor' class='section'>
-            <h4>[AdditionalConstructor]</h4>
+          <div id='NamedConstructor' class='section'>
+            <h4>[NamedConstructor]</h4>
             <p>
-              If the <a class='xattr' href='#AdditionalConstructor'>[AdditionalConstructor]</a>
+              If the <a class='xattr' href='#NamedConstructor'>[NamedConstructor]</a>
               <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
               appears on an <a class='dfnref' href='#dfn-interface'>interface</a>,
-              it indicates the ECMAScript global object will have an additional property with the
+              it indicates the ECMAScript global object will have a property with the
               specified name whose value is a constructor function that can
               create objects that implement the interface.
-              Multiple <a class='xattr' href='#AdditionalConstructor'>[AdditionalConstructor]</a> extended
+              Multiple <a class='xattr' href='#NamedConstructor'>[NamedConstructor]</a> extended
               attributes may appear on a given interface.
             </p>
             <p>
-              The <a class='xattr' href='#AdditionalConstructor'>[AdditionalConstructor]</a>
+              The <a class='xattr' href='#NamedConstructor'>[NamedConstructor]</a>
               extended attribute <span class='rfc2119'>MUST</span> either
               <a class='dfnref' href='#dfn-xattr-identifier'>take an identifier</a> or
               <a class='dfnref' href='#dfn-xattr-named-argument-list'>take a named argument list</a>.
-              The first form (<code>[AdditionalConstructor=<a class='terminal' href='#prod-identifier'>identifier</a>]</code>) has the same meaning as
-              using an empty argument list (<code>[AdditionalConstructor=<a class='terminal' href='#prod-identifier'>identifier</a>()]</code>).  For each
-              <a class='xattr' href='#AdditionalConstructor'>[AdditionalConstructor]</a> extended attribute
+              The first form (<code>[NamedConstructor=<a class='terminal' href='#prod-identifier'>identifier</a>]</code>) has the same meaning as
+              using an empty argument list (<code>[NamedConstructor=<a class='terminal' href='#prod-identifier'>identifier</a>()]</code>).  For each
+              <a class='xattr' href='#NamedConstructor'>[NamedConstructor]</a> extended attribute
               on the interface, there must be a way to construct an object that implements
               the interface by passing the specified arguments to the constructor function
               that is the value of the aforementioned property.
             </p>
             <p>
-              The identifier used for the additional constructor <span class='rfc2119'>MUST NOT</span>
-              be the same as that used by an <a class='xattr' href='#AdditionalConstructor'>[AdditionalConstructor]</a>
+              The identifier used for the named constructor <span class='rfc2119'>MUST NOT</span>
+              be the same as that used by an <a class='xattr' href='#NamedConstructor'>[NamedConstructor]</a>
               extended attribute on another interface, and it <span class='rfc2119'>MUST NOT</span>
               be the same as an identifier of an interface (or <a class='dfnref' href='#dfn-exception'>exception</a>)
               that has an <a class='dfnref' href='#dfn-interface-object'>interface object</a>
@@ -2520,25 +2520,25 @@ results.numbers[6];                  // Evaluates to 0, since that is how 'undef
             <div class='example'>
               <p>
                 The following IDL defines an interface that uses the
-                <a class='xattr' href='#AdditionalConstructor'>[AdditionalConstructor]</a> extended
+                <a class='xattr' href='#NamedConstructor'>[NamedConstructor]</a> extended
                 attribute.
               </p>
-              <x:codeblock language='idl'>[AdditionalConstructor=Image,
- AdditionalConstructor=Image(in DOMString src)]
-interface HTMLImageElement : HTMLElement {
+              <x:codeblock language='idl'>[NamedConstructor=Audio,
+ NamedConstructor=Audio(in DOMString src)]
+interface HTMLAudioElement : HTMLMediaElement {
   …
 };</x:codeblock>
               <p>
                 An ECMAScript implementation that supports this interface will
-                allow the construction of <span class='estype'>HTMLImageElement</span>
-                objects using the <span class='estype'>Image</span> constructor.
+                allow the construction of <span class='estype'>HTMLAudioElement</span>
+                objects using the <span class='estype'>Audio</span> constructor.
               </p>
-              <x:codeblock language='es'>typeof Image;                   // Evaluates to 'function'.
+              <x:codeblock language='es'>typeof Audio;                   // Evaluates to 'function'.
 
-var im1 = new Image();          // Creates a new object that implements HTMLImageElement, using the
+var a1 = new Audio();           // Creates a new object that implements HTMLAudioElement, using the
                                 // zero-argument constructor.
 
-var im2 = new Image('a.png');   // Creates an HTMLImageElement using the one-argument constructor.</x:codeblock>
+var a2 = new Audio('a.flac');   // Creates an HTMLAudioElement using the one-argument constructor.</x:codeblock>
             </div>
           </div>
 
@@ -2745,17 +2745,17 @@ c.isMemberOfBreed(undefined);  // This passes the string "" to the isMemberOfBre
           </p>
           
           <p>
-            In addition, for every <a class='xattr' href='#AdditionalConstructor'>[AdditionalConstructor]</a>
+            In addition, for every <a class='xattr' href='#NamedConstructor'>[NamedConstructor]</a>
             extended attribute on an interface, a corresponding property <span class='rfc2119'>MUST</span>
             exist on the ECMAScript global object whose name is the
             <a class='terminal' href='#prod-identifier'>identifier</a> that occurs directly after the
             “<span class='terminal'>=</span>”.  The value of this property is an object called an
-            <dfn id='dfn-additional-constructor'>additional constructor</dfn>, which allows
+            <dfn id='dfn-named-constructor'>named constructor</dfn>, which allows
             construction of objects that implement the interface.  The property has the
             attributes <span class='propattrset'>{ DontDelete, DontEnum }</span>.
-            The characteristics of an additional constructor is described in
-            <a href='#additional-constructors'>section <?sref additional-constructors?></a>
-            <?sdir additional-constructors?>.
+            The characteristics of a named constructor is described in
+            <a href='#named-constructors'>section <?sref named-constructors?></a>
+            <?sdir named-constructors?>.
           </p>
 
           <div id='interface-object' class='section'>
@@ -2829,14 +2829,14 @@ c.isMemberOfBreed(undefined);  // This passes the string "" to the isMemberOfBre
             </div>
           </div>
 
-          <div id='additional-constructors' class='section'>
-            <h4>Additional constructors</h4>
+          <div id='named-constructors' class='section'>
+            <h4>Named constructors</h4>
 
             <p>
-              An <a class='dfnref' href='#dfn-interface'>interface</a> will have an additional constructor
+              An <a class='dfnref' href='#dfn-interface'>interface</a> will have a named constructor
               for each unique <a class='terminal' href='#prod-identifier'>identifier</a> used in an
-              <a class='xattr' href='#AdditionalConstructor'>[AdditionalConstructor]</a> extended attribute
-              on that interface.  This additional constructor <span class='rfc2119'>MUST</span> have
+              <a class='xattr' href='#NamedConstructor'>[NamedConstructor]</a> extended attribute
+              on that interface.  This named constructor <span class='rfc2119'>MUST</span> have
               a <span class='prop'>[[Construct]]</span> internal property, which allows construction of
               objects that implement the interface.  The behavior of this <span class='prop'>[[Construct]]</span>
               method is not necessarily the same as that described for <span class='estype'>Function</span> objects in
@@ -2850,7 +2850,7 @@ c.isMemberOfBreed(undefined);  // This passes the string "" to the isMemberOfBre
               have the same behavior as <span class='prop'>[[Construct]]</span>.
             </p>
             <div class='ednote'>
-              <p>Specify additional constructor overloading here.</p>
+              <p>Specify named constructor overloading here.</p>
             </div>
           </div>
 
@@ -5484,7 +5484,7 @@ interface HTMLDocument {
             <ul>
               <li>
                 <p>
-                  Added an <span class='xattr'>[AdditionalConstructor]</span> extended attribute
+                  Added an <span class='xattr'>[NamedConstructor]</span> extended attribute
                   to handle peculiarities like HTML 5’s <code>Image</code> constructor.
                 </p>
               </li>
