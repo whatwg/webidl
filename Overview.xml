@@ -15,7 +15,7 @@
   <head>
     <title>Web IDL</title>
     <meta http-equiv='Content-Type' content='application/xhtml+xml; charset=UTF-8'/>
-    <meta name='revision' content='$Id: Overview.xml,v 1.89 2008-09-03 23:00:15 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: Overview.xml,v 1.90 2008-11-08 12:04:09 cmccorma Exp $'/>
     <link rel='stylesheet' href='WebIDL.css' type='text/css'/>
 
     <options xmlns='http://mcc.id.au/ns/local'>
@@ -1226,19 +1226,20 @@
           <p>
             An extended attribute is specified as an
             <a class='nt' href='#prod-identifier'>identifier</a>, optionally followed
-            by some additional information.  There are four forms an extended
+            by some additional information.  There are five forms an extended
             attribute may have:
           </p>
           <ul>
             <li><code>[TheExtendedAttribute]</code>, where it <dfn id='dfn-xattr-no-argument'>takes no argument</dfn>;</li>
             <li><code>[TheExtendedAttribute(<a class='nt' href='#prod-ArgumentList'>ArgumentList</a>)]</code>, where it <dfn id='dfn-xattr-argument'>takes an argument list</dfn>;</li>
-            <li><code>[TheExtendedAttribute=<a class='nt' href='#prod-identifier'>identifier</a>]</code>, where it <dfn id='dfn-xattr-identifier'>takes an identifier</dfn>; and,</li>
+            <li><code>[TheExtendedAttribute=<a class='nt' href='#prod-identifier'>identifier</a>]</code>, where it <dfn id='dfn-xattr-identifier'>takes an identifier</dfn>;</li>
+            <li><code>[TheExtendedAttribute=<a class='nt' href='#prod-IdentifierList'>IdentifierList</a>]</code>, where it <dfn id='dfn-xattr-identifier-list'>takes an identifier list</dfn>; and,</li>
             <li><code>[TheExtendedAttribute=<a class='nt' href='#prod-identifier'>identifier</a>(<a class='nt' href='#prod-ArgumentList'>ArgumentList</a>)]</code>, where it <dfn id='dfn-xattr-identifier-argument-list'>takes a named argument list</dfn>.</li>
           </ul>
           <p>
             This specification defines a number of extended attributes, which are
             listed in the sub-sections below.  Each definition will state which of the above
-            four forms are allowed.
+            five forms are allowed.
           </p>
 
           <div class='ednote'>
@@ -1350,6 +1351,61 @@ module fileio {
               </p>
               <x:codeblock language='es'>typeof FileIOException;          // evaluates to "object"
 FileIOException.FILE_NOT_FOUND;  // evaluates to 1</x:codeblock>
+            </div>
+          </div>
+
+          <div id='ImplementedOn' class='section'>
+            <h4>[ImplementedOn]</h4>
+
+            <p>
+              If the <a class='xattr' href='#ImplementedOn'>[ImplementedOn]</a>
+              <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
+              appears on an <a class='dfnref' href='#dfn-interface'>interface</a>, it
+              indicates that the interface is implemented by all objects that
+              implement certain other interfaces.
+            </p>
+            <p>
+              The <a class='xattr' href='#ImplementedOn'>[ImplementedOn]</a>
+              extended attribute <span class='rfc2119'>must</span>
+              <a class='dfnref' href='#dfn-xattr-argument-list'>take an identifier list</a>,
+              where each <a class='dfnref' href='#dfn-identifier'>identifier</a>
+              <span class='rfc2119'>must</span> <a class='dfnref' href='#dfn-resolve'>resolve</a>
+              to an interface other than the one the extended attribute appears
+              on.  Any object that implements at least one of the interfaces
+              in the list will implement the interface the
+              <a class='xattr' href='#ImplementedOn'>[ImplementedOn]</a>
+              extended attribute appears on.
+            </p>
+            <div class='example'>
+              <p>
+                The following <a class='dfnref' href='#dfn-idl-fragment'>IDL fragment</a>
+                defines two interfaces, and uses the <a class='xattr' href='#ImplementedOn'>[ImplementedOn]</a>
+                <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
+                to require that any object implementing the first must also
+                implement the second.
+              </p>
+              <x:codeblock language='idl'>interface Node {
+  // …
+};
+
+[ImplementedOn=Node]
+interface EventTarget {
+  void addEventListener(in DOMString type, in EventListener l, in bool useCapture);
+  // …
+};</x:codeblock>
+              <p>
+                An ECMAScript implementation would thus have an
+                <span class='prop'>addEventListener</span> property in the
+                prototype chain of every <span class='estype'>Node</span>:
+              </p>
+              <x:codeblock language='es'>var n = getNode();          // Obtain an instance of Node.
+typeof n.addEventListener;  // Evaluates to "function".</x:codeblock>
+              <p>
+                Similarly, in Java, any <span class='javatype'>Node</span>
+                object could be cast to <span class='javatype'>EventTarget</span>:
+              </p>
+              <x:codeblock language='java'>Node n = getNode();         // Obtain an instance of Node.
+EventTarget et = (Node) n;  // This should never throw ClassCastException.</x:codeblock>
             </div>
           </div>
 
@@ -1948,8 +2004,8 @@ any executeSql(Array a, Callback f);</x:codeblock>
             <p>
               There should be a definition here for how to coerce an ECMAScript
               value according to the IDL type expected.  This definition should
-              then be explicitly referenced in the <span class='esprop'>[[Get]]</span>,
-              <span class='esprop'>[[Put]]</span> and function calling
+              then be explicitly referenced in the <span class='prop'>[[Get]]</span>,
+              <span class='prop'>[[Put]]</span> and function calling
               definitions below, rather than the current wording "must be handled
               according to the rules in section <?sref es-type-mapping?>".
             </p>
@@ -2659,6 +2715,42 @@ var fn = Query.prototype.lookupEntry;  // exception, Query isn’t defined
             </div>
           </div>
 
+          <div id='PrototypeRoot' class='section'>
+            <h4>[PrototypeRoot]</h4>
+
+            <p>
+              If the <a class='xattr' href='#PrototypeRoot'>[PrototypeRoot]</a>
+              <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
+              appears on an <a class='dfnref' href='#dfn-interface'>interface</a>
+              <var>A</var>, it indicates that it serves as the root of a prototype
+              ancestor hierarchy.  For any interface <var>B</var> that has
+              <var>A</var> as an ancestor, each interface in the inheritance
+              tree starting with an interface that <var>B</var> inherits from and
+              ending with <var>A</var> will be a
+              <a class='dfnref' href='#dfn-prototype-ancestor'>prototype ancestor</a>
+              of <var>B</var>.  It also plays a role in determining the value
+              of a host object’s internal <span class='prop'>[[Prototype]]</span>
+              property value when the object implements more than one interface.
+              See <a href='#interface-prototype-object'>section <?sref interface-prototype-object?></a>
+              and <a href='#host-objects'>section <?sref host-objects?></a> for details.
+            </p>
+            <p>
+              The <a class='xattr' href='#PrototypeRoot'>[PrototypeRoot]</a>
+              extended attribute <span class='rfc2119'>MUST</span> <a class='dfnref' href='#dfn-xattr-no-argument'>take no argument</a>,
+              and <span class='rfc2119'>MUST NOT</span> appear on an
+              <a class='dfnref' href='#dfn-interface'>interface</a> that
+              <a class='dfnref' href='#dfn-inherit'>inherits</a> from another
+              interface.  An interface inheritance hierarchy
+              <span class='rfc2119'>must not</span> have multiple paths from
+              one interface to another that has the
+              <a class='xattr' href='#PrototypeRoot'>[PrototypeRoot]</a>
+              extended attribute.
+            </p>
+            <div class='ednote'>
+              <p>Example needed here.</p>
+            </div>
+          </div>
+
           <div id='Undefined' class='section'>
             <h4>[Undefined]</h4>
 
@@ -2897,6 +2989,7 @@ c.isMemberOfBreed(undefined);  // This passes the string "" to the isMemberOfBre
                 exist even for non-constructable objects?
               </p>
             </div>
+            <!--
             <p>
               No particular value must be used for the internal
               <span class='prop'>[[Prototype]]</span> property of the
@@ -3095,6 +3188,93 @@ interface D : C {
                 example above be mandated, or just left as an example of how
                 to do it?
               </p>
+            </div>
+            -->
+            <p>
+              The value of the internal <span class='prop'>[[Prototype]]</span>
+              property of the <a class='dfnref' href='#dfn-interface-prototype-object'>interface
+                prototype object</a> depends on the structure of the interface’s
+              inheritance hierarchy — specifically, what the interface’s <em>prototype
+                parent</em> is, and whether it has any <em>mixin</em> interfaces.
+            </p>
+            <p>
+              The <dfn id='dfn-prototype-parent'>prototype parent</dfn> of an interface,
+              <var>A</var>, is defined as follows.  If interface <var>A</var> is declared to
+              <a class='dfnref' href='#dfn-inherit'>inherit</a> from one or more
+              other interfaces then the first interface identified by the
+              <a class='nt' href='#prod-InterfaceInheritance'>InterfaceInheritance</a>
+              non-terminal that has an ancestor interface with the
+              <a class='xattr' href='#PrototypeRoot'>[PrototypeRoot]</a>
+              <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
+              is interface <var>A</var>’s prototype parent.  Otherwise,
+              interface <var>A</var> has no prototype parent.  The
+              <dfn id='dfn-prototype-ancestor'>prototype ancestors</dfn> of <var>A</var>
+              is the set of interfaces that includes <var>A</var>’s prototype
+              parent (if it exists), and the prototype parent of any other prototype ancestor
+              of <var>A</var>.
+            </p>
+            <p>
+              A <dfn id='dfn-mixin'>mixin</dfn> of an interface, <var>A</var>, is
+              any interface that is not one of <var>A</var>’s
+              <a class='dfnref' href='#prototype-ancestor'>prototype ancestors</a>,
+              and also:
+            </p>
+            <ul>
+              <li>is an explicit ancestor interface of <var>A</var>;</li>
+              <li>is identified by an
+                <a class='xattr' href='#ImplementedOn'>[ImplementedOn]</a>
+                <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
+                as being implemented on all objects of type <var>A</var></li>
+              <li>is a mixin of any other of <var>A</var>’s mixins; or</li>
+              <li>is an explicit ancestor interface of any other of <var>A</var>’s mixins.</li>
+            </ul>
+            <p>
+              The value of the internal <span class='prop'>[[Prototype]]</span>
+              property of an interface’s
+              <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype object</a>
+              is determined as follows:
+            </p>
+            <ul>
+              <li>If the interface has no <a class='dfnref' href='#dfn-mixin'>mixins</a> and
+                no <a class='dfnref' href='#dfn-prototype-parent'>prototype parent</a>, then
+                the internal <span class='prop'>[[Prototype]]</span> property’s
+                value is a reference to the <span class='estype'>Object</span> prototype object.</li>
+              <li>Otherwise, if the interface has no <a class='dfnref' href='#dfn-mixin'>mixins</a>
+                but does have a <a class='dfnref' href='#dfn-prototype-parent'>prototype parent</a>,
+                then the internal <span class='prop'>[[Prototype]]</span> property’s
+                value is a reference to the <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype object</a>
+                of that prototype parent.</li>
+              <li>Otherwise, the interface does have <a class='dfnref' href='#dfn-mixin'>mixins</a>.
+                The internal <span class='prop'>[[Prototype]]</span> property’s value
+                is a reference to the <a class='dfnref' href='#dfn-mixin-prototype-object'>mixin prototype object</a>
+                for the interface (defined below).</li>
+            </ul>
+
+            <div id='mixin-prototype' class='section'>
+              <h5>Mixin prototype object</h5>
+              <p>
+                The <dfn id='dfn-mixin-prototype-object'>mixin prototype object</dfn>
+                for an interface is an object as follows:
+              </p>
+              <ul>
+                <li>The object has properties that are the union of all
+                  properties that exist on the interface’s
+                  <a class='dfnref' href='#dfn-mixin'>mixins</a>’
+                  <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype objects</a>.</li>
+                <li>
+                  The object’s internal <span class='prop'>[[Prototype]]</span> property
+                  value is a reference to the <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype object</a>
+                  for the interface’s <a class='dfnref' href='#dfn-prototype-parent'>prototype parent</a>,
+                  or, if the interface has no prototype parent, a reference to the <span class='estype'>Object</span>
+                  prototype object.</li>
+              </ul>
+              <div class='ednote'>
+                <p>
+                  Need to say what happens when there are conflicting properties
+                  from different mixin interface prototype objects that need to
+                  be put on the mixin prototype object.
+                </p>
+              </div>
             </div>
           </div>
 
@@ -3650,6 +3830,7 @@ a['g(::dom::Document)'](document);  // explicitly call the second g()
             it is implementation specific which attribute the property corresponds to.
           </p>
 
+          <!--
           <p>
             No particular value must be used for the internal
             <span class='prop'>[[Prototype]]</span> property of the host object.
@@ -3813,6 +3994,96 @@ a['g(::dom::Document)'](document);  // explicitly call the second g()
                 is the only interface the object directly implements.
               </li>
             </ul>
+          </div>
+          -->
+
+          <p>
+            The value of the internal <span class='prop'>[[Prototype]]</span>
+            property of the host object depends on what
+            <a class='dfnref' href='#dfn-interface'>interfaces</a> it implements,
+            and in particular what its <em>primary prototype interface</em> is.
+          </p>
+          <p>
+            If the host object implements an
+            <a class='dfnref' href='#dfn-interface'>interface</a> that has
+            the <a class='xattr' href='#PrototypeRoot'>[PrototypeRoot]</a>
+            <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>,
+            then the interface the host object implements that has the largest
+            <a class='dfnref' href='#dfn-prototype-ancestor'>prototype ancestor</a>
+            set is deemed to be the <dfn id='dfn-primary-prototype-interface'>primary prototype interface</dfn>
+            of the host object.  (If there are multiple such sets, then it is
+            undefined what value the internal <span class='prop'>[[Prototype]]</span>
+            property has.)  Otherwise, the host object has no
+            primary prototype interface.
+          </p>
+          <p>
+            The value of the host object’s internal <span class='prop'>[[Prototype]]</span>
+            property is determined as follows:
+          </p>
+          <ul>
+            <li>
+              If the host object implements no <a class='dfnref' href='#dfn-interface'>interfaces</a>,
+              then its internal <span class='prop'>[[Prototype]]</span> property
+              value is a reference to the <span class='estype'>Object</span>
+              prototype object.
+            </li>
+            <li>
+              If the host object implements a single
+              <a class='dfnref' href='#dfn-interface'>interface</a>, then its
+              internal <span class='prop'>[[Prototype]]</span> property is a
+              reference to the
+              <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype object</a>
+              of that interface.
+            </li>
+            <li>
+              Otherwise, if the host object has a <a class='dfnref' href='#dfn-primary-prototype-interface'>primary prototype interface</a>
+              and implements no interfaces other than its primary
+              prototype interface and all of its ancestors, then the value of
+              the internal <span class='prop'>[[Prototype]]</span> property is
+              a reference to the
+              <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype object</a>
+              for the host object’s primary prototype interface.
+            </li>
+            <li>
+              Otherwise, the host object implements at least two
+              <a class='dfnref' href='#dfn-interface'>interfaces</a>, and has no
+              <a class='dfnref' href='#dfn-primary-prototype-interface'>primary prototype interface</a>
+              or implements some interfaces other than its primary prototype
+              interface and all of its ancestors.  The value of the
+              internal <span class='prop'>[[Prototype]]</span> property is
+              a reference to the <a class='dfnref' href='#dfn-host-object-mixin-prototype-object'>host
+                object mixin prototype object</a> for the host object (defined below).
+            </li>
+          </ul>
+
+          <div id='host-object-mixin-prototype' class='section'>
+            <h4>Host object mixin prototype object</h4>
+
+            <p>
+              The <dfn id='dfn-host-object-mixin-prototype-object'>host object mixin prototype object</dfn>
+              for a given host object is an object as follows:
+            </p>
+            <ul>
+              <li>The object has properties that are the union of all
+                properties that exist on the <a class='dfnref' href='#dfn-interface'>interfaces</a>
+                that the host object implements and which are not the host object’s
+                <a class='dfnref' href='#dfn-primary-prototype-interface'>primary prototype interface</a>
+                or one of its ancestors.</li>
+              <li>The object’s internal <span class='prop'>[[Prototype]]</span> property value
+                is a reference to the <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype object</a>
+                for the host object’s <a class='dfnref' href='#dfn-primary-prototype-interface'>primary prototype interface</a>,
+                or, if the host object has no primary prototype interface, a reference to the
+                <span class='estype'>Object</span> prototype object.</li>
+            </ul>
+            <p>
+              If two host objects implement the same set of
+              <a class='dfnref' href='#dfn-interface'>interfaces</a>
+              and have have references to
+              <a class='dfnref' href='#dfn-host-object-mixin-prototype-object'>host object mixin prototype objects</a>
+              as their internal <span class='prop'>[[Prototype]]</span> property values,
+              then these host object mixin prototype objects
+              <span class='rfc2119'>must</span> be the same object.
+            </p>
           </div>
 
           <div id='get' class='section'>
@@ -5327,6 +5598,16 @@ interface HTMLDocument {
           The following LL(1) grammar matches an <a class='dfnref' href='#dfn-idl-fragment'>IDL fragment</a>:
         </p>
 
+        <div class='ednote'>
+          <p>
+            The grammar doesn’t allow for extended attribute identifier list arguments.
+          </p>
+          <p>
+            Probably the grammar should be changed to allow for any string of tokens
+            within the square brackets, which should then be parsed subsequently, to
+            be resistant to extended attribute syntax that is not defined in this spec.
+          </p>
+        </div>
         <grammar id='grammar' xmlns='http://mcc.id.au/ns/local'>
           <prod nt='Definitions'>ExtendedAttributeList Definition Definitions | ε</prod>
           <prod nt='Definition'>Module | Interface | Exception | Typedef | Valuetype | Const</prod>
@@ -5375,6 +5656,8 @@ interface HTMLDocument {
           <prod nt='ScopedNameAfterColon'>identifier ScopedNameParts | "DOMString"</prod>
           <prod nt='ScopedNameParts'>"::" ScopedNamePartsAfterColon | ε</prod>
           <prod nt='ScopedNamePartsAfterColon'>identifier ScopedNameParts | "DOMString"</prod>
+          <prod nt='IdentifierList'>identifier Identifiers</prod>
+          <prod nt='Identifiers'>"," identifier Identifiers | ε</prod>
 
           <!--prod nt='Keyword'>"any" | "attribute" | "boolean" | "const" | "exception" | "float" | "getraises" | "in" | "interface" | "long" | "module" | "Object" | "octet" | "raises" | "readonly" | "sequence" | "setraises" | "short" | "typedef" | "unsigned | "void"</prod-->
           <!-- the following are the remaining OMG IDL 3 keywords:
@@ -5491,6 +5774,15 @@ interface HTMLDocument {
           <dt>Current editor’s draft</dt>
           <dd>
             <ul>
+              <li>
+                <p>
+                  Removed the suggestion to perform tricksy multiple inheritance
+                  simulation in ECMAScript with a mandated way to map multiple
+                  inheritance into a single inheritance prototype chain.  Added
+                  <span class='xattr'>[ImplementedOn]</span> and
+                  <span class='xattr'>[PrototypeRoot]</span> to help with this.
+                </p>
+              </li>
               <li>
                 <p>
                   Made an explicit mention of the <cite>Web Interface Definition
