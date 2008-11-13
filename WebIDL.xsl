@@ -445,6 +445,9 @@
         </xsl:if>
       </xsl:if>
       <xsl:apply-templates select='node()'/>
+      <xsl:if test='../@id'>
+        <span class='section-link'> <a href='#{../@id}'>[link]</a></span>
+      </xsl:if>
     </xsl:element>
   </xsl:template>
 
@@ -472,6 +475,7 @@
     </div>
   </xsl:template>
 
+  <!--
   <xsl:template match='h:tr'>
     <xsl:copy>
       <xsl:attribute name='class'>
@@ -485,6 +489,7 @@
       <xsl:copy-of select='node()[not(self::class)]'/>
     </xsl:copy>
   </xsl:template>
+  -->
 
   <xsl:template match='x:codeblock'>
     <div class='block'>
