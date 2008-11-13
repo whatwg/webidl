@@ -6,6 +6,7 @@
                 version='1.0' id='xslt'>
 
   <xsl:output method='xml' encoding='UTF-8'
+              omit-xml-declaration='yes'
               doctype-public='-//W3C//DTD XHTML 1.0 Strict//EN'
               doctype-system='http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd'
               media-type='application/xhtml+xml; charset=UTF-8'/>
@@ -469,6 +470,20 @@
       <div class='noteHeader'>Note</div>
       <xsl:apply-templates select='node()'/>
     </div>
+  </xsl:template>
+
+  <xsl:template match='h:tr'>
+    <xsl:copy>
+      <xsl:attribute name='class'>
+        <xsl:value-of select='@class'/>
+        <xsl:if test='@class'><xsl:text> </xsl:text></xsl:if>
+        <xsl:choose>
+          <xsl:when test='count(preceding-sibling::h:tr) mod 2 = 0'>odd</xsl:when>
+          <xsl:otherwise>even</xsl:otherwise>
+        </xsl:choose>
+      </xsl:attribute>
+      <xsl:copy-of select='node()[not(self::class)]'/>
+    </xsl:copy>
   </xsl:template>
 
   <xsl:template match='x:codeblock'>
