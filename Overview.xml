@@ -15,7 +15,7 @@
   <head>
     <title>Web IDL</title>
     <meta http-equiv='Content-Type' content='application/xhtml+xml; charset=UTF-8'/>
-    <meta name='revision' content='$Id: Overview.xml,v 1.94 2008-11-13 22:14:46 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: Overview.xml,v 1.95 2008-11-17 08:09:26 cmccorma Exp $'/>
     <link rel='stylesheet' href='WebIDL.css' type='text/css'/>
 
     <options xmlns='http://mcc.id.au/ns/local'>
@@ -497,7 +497,9 @@
             <a class='xattr' href='#Constructor'>[Constructor]</a>,
             <a class='xattr' href='#ImplementedOn'>[ImplementedOn]</a>,
             <a class='xattr' href='#NamedConstructor'>[NamedConstructor]</a>,
+            <a class='xattr' href='#NamedIndex'>[NamedIndex]</a>,
             <a class='xattr' href='#NativeObject'>[NativeObject]</a>,
+            <a class='xattr' href='#NumberedIndex'>[NumberedIndex]</a>,
             <a class='xattr' href='#NoInterfaceObject'>[NoInterfaceObject]</a>,
             <a class='xattr' href='#PrototypeRoot'>[PrototypeRoot]</a>,
             <a class='xattr' href='#Stringifies'>[Stringifies]</a>.
@@ -809,13 +811,14 @@
               has been declared previously.
             </p>
             <p>
-              The following extended attributes
+              No extended attributes are applicable to operations.
+              <!--The following extended attributes
               are applicable to operations:
               <a class='xattr' href='#IndexGetter'>[IndexGetter]</a>,
               <a class='xattr' href='#IndexSetter'>[IndexSetter]</a>,
               <a class='xattr' href='#NameGetter'>[NameGetter]</a>,
-              <a class='xattr' href='#NameSetter'>[NameSetter]</a><!--,
-              <a class='xattr' href='#Overloads'>[Overloads]</a>-->.
+              <a class='xattr' href='#NameSetter'>[NameSetter]</a>--><!--,
+              <a class='xattr' href='#Overloads'>[Overloads]</a>--><!--.-->
             </p>
             <p>
               The following extended attributes are applicable to operation arguments:
@@ -1235,7 +1238,7 @@
             <li><code>[TheExtendedAttribute]</code>, where it <dfn id='dfn-xattr-no-argument'>takes no argument</dfn>;</li>
             <li><code>[TheExtendedAttribute(<a class='nt' href='#prod-ArgumentList'>ArgumentList</a>)]</code>, where it <dfn id='dfn-xattr-argument-list'>takes an argument list</dfn>;</li>
             <li><code>[TheExtendedAttribute=<a class='nt' href='#prod-identifier'>identifier</a>]</code>, where it <dfn id='dfn-xattr-identifier'>takes an identifier</dfn>;</li>
-            <li><code>[TheExtendedAttribute=<a class='nt' href='#prod-IdentifierList'>IdentifierList</a>]</code>, where it <dfn id='dfn-xattr-identifier-list'>takes an identifier list</dfn>; and,</li>
+            <li><code>[TheExtendedAttribute=(<a class='nt' href='#prod-IdentifierList'>IdentifierList</a>)]</code>, where it <dfn id='dfn-xattr-identifier-list'>takes an identifier list</dfn>; and,</li>
             <li><code>[TheExtendedAttribute=<a class='nt' href='#prod-identifier'>identifier</a>(<a class='nt' href='#prod-ArgumentList'>ArgumentList</a>)]</code>, where it <dfn id='dfn-xattr-named-argument-list'>takes a named argument list</dfn>.</li>
           </ul>
           <p>
@@ -1368,10 +1371,10 @@ FileIOException.FILE_NOT_FOUND;  // evaluates to 1</x:codeblock>
             </p>
             <p>
               The <a class='xattr' href='#ImplementedOn'>[ImplementedOn]</a>
-              extended attribute <span class='rfc2119'>must</span>
+              extended attribute <span class='rfc2119'>MUST</span>
               <a class='dfnref' href='#dfn-xattr-argument-list'>take an identifier list</a>,
               where each <a class='dfnref' href='#dfn-identifier'>identifier</a>
-              <span class='rfc2119'>must</span> <a class='dfnref' href='#dfn-resolve'>resolve</a>
+              <span class='rfc2119'>MUST</span> <a class='dfnref' href='#dfn-resolve'>resolve</a>
               to an interface other than the one the extended attribute appears
               on.  Any object that implements at least one of the interfaces
               in the list will implement the interface the
@@ -1411,183 +1414,195 @@ EventTarget et = (Node) n;  // This should never throw ClassCastException.</x:co
             </div>
           </div>
 
-          <div id='IndexGetter' class='section'>
-            <h4>[IndexGetter]</h4>
+          <div id='NamedIndex' class='section'>
+            <h4>[NamedIndex]</h4>
 
             <p>
-              If the <a class='xattr' href='#IndexGetter'>[IndexGetter]</a>
+              If the <a class='xattr' href='#NamedIndex'>[NamedIndex]</a>
               <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
-              appears on an <a class='dfnref' href='#dfn-operation'>operation</a> with
-              a single <a class='idltype' href='#idl-unsigned-long'>unsigned long</a>
-              argument, it indicates that an object that implements the
-              <a class='dfnref' href='#dfn-interface'>interface</a>
-              can be indexed with an <a class='idltype' href='#idl-unsigned-long'>unsigned long</a>,
-              resulting in the same effect as calling the operation with the given
-              index (for languages that support such object indexing).
-              If an object implements interfaces such that it has more than one
-              operation annotated with <a class='xattr' href='#IndexGetter'>[IndexGetter]</a>,
-              then which operation is invoked when an object is indexed with an
-              <a class='idltype' href='#idl-unsigned-long'>unsigned long</a> value is undefined.
+              appears on an
+              <a class='dfnref' href='#dfn-interface'>interface</a>, it
+              indicates that an object that implements the
+              <a class='dfnref' href='#dfn-interface'>interface</a> can be
+              indexed with a string, resulting in a particular value
+              being returned (if the particular language binding supports
+              indexing objects in this manner).  The object has an
+              associated set of entries called the
+              <dfn id='dfn-named-index'>named index</dfn>,
+              where each entry is a tuple of a key,
+              which is a <a class='idltype' href='#idl-DOMString'>DOMString</a>
+              (and which must be unique in the set), and a value, which can be
+              of any type.  Indexing the object with a key will return
+              the associated value.
             </p>
             <p>
-              The <a class='xattr' href='#IndexGetter'>[IndexGetter]</a> extended attribute
-              <span class='rfc2119'>MUST</span> either
-              <a class='dfnref' href='#dfn-xattr-no-argument'>take no argument</a> or
-              <a class='dfnref' href='#dfn-xattr-identifier'>take the identifier</a>
-              <code>NoFunction</code>.  If it takes the <code>NoFunction</code>
-              identifier, then this indicates that, for languages that support
-              object indexing, objects implementing the interface will not have
-              a function that corresponds to the operation.  In this case, the only
-              way to invoke the operation would be by indexing the object.
+              If an object
+              has both a <a class='dfnref' href='#dfn-named-index'>named index</a>
+              and a <a class='dfnref' href='#dfn-numbered-index'>numbered index</a>
+              (specified with the
+              <a class='xattr' href='#NumberedIndex'>[NumberedIndex]</a>
+              <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>),
+              then whether the value of the corresponding entry in the named
+              index or the numbered index is returned when indexing the
+              object is language binding specific.
             </p>
-            <div class='ednote'>
-              <p>The example should demonstrate the use of the <code>NoFunction</code> argument.</p>
-            </div>
+            <p>
+              The <a class='xattr' href='#NamedIndex'>[NamedIndex]</a> extended
+              attribute <span class='rfc2119'>MUST</span> either
+              <a class='dfnref' href='#dfn-xattr-no-argument'>take no argument</a>,
+              or <a class='dfnref' href='#dfn-xattr-identifier-list'>take an
+                identifier list</a> with one or more (but at most one of each)
+              of the following identifiers:
+            </p>
+            <dl>
+              <dt><code>Creatable</code></dt>
+              <dd>
+                If the this identifier is specified, it indicates that new
+                entries can be created in the
+                <a class='dfnref' href='#dfn-named-index'>named index</a> in a
+                language binding specific manner.
+              </dd>
+              <dt><code>Modifiable</code></dt>
+              <dd>
+                If the this identifier is specified, it indicates that values
+                of existing entries in the
+                <a class='dfnref' href='#dfn-named-index'>named index</a> can be
+                modified in a language binding specific manner.
+              </dd>
+              <dt><code>Removable</code></dt>
+              <dd>
+                If the this identifier is specified, it indicates that
+                existing entries in the
+                <a class='dfnref' href='#dfn-named-index'>named index</a> can be
+                removed in a language binding specific manner.
+              </dd>
+            </dl>
+            <p>
+              If the <a class='xattr' href='#NamedIndex'>[NamedIndex]</a>
+              attribute is specified on an interface, then prose describing
+              that interface <span class='rfc2119'>MUST</span> specify
+              what the keys in the <a class='dfnref' href='#dfn-named-index'>named index</a>
+              are, and what value an entry with a given key has.  The
+              description of the interface will likely need to state some
+              behavior that occurs when a named index entry is created,
+              modified or removed (if such actions are allowed).
+            </p>
             <div class='example'>
               <p>
                 The following <a class='dfnref' href='#dfn-idl-fragment'>IDL fragment</a> defines an interface
                 <span class='idltype'>OrderedMap</span> which allows
                 retrieving and setting values by name or by index number:
               </p>
-              <x:codeblock language='idl'>interface OrderedMap {
+              <x:codeblock language='idl'>[NumberedIndex=(Modifiable,Removable),
+ NamedIndex=(Creatable,Modifiable,Removable)]
+interface OrderedMap {
 
   readonly attribute unsigned long size;
 
-  [IndexGetter] any getByIndex(in unsigned long index);
-  [IndexSetter] void setByIndex(in unsigned long index, in any value);
+  any getByIndex(in unsigned long index);
+  void setByIndex(in unsigned long index, in any value);
+  void removeByIndex(in unsigned long index);
 
-  [NameGetter] any get(in DOMString name);
-  [NameSetter] void set(in DOMString name, in any value);
+  any get(in DOMString name);
+  void set(in DOMString name, in any value);
+  void remove(in DOMString name);
 };</x:codeblock>
               <p>
-                An ECMAScript implementation would have an internal
-                <span class='prop'>[[Get]]</span> method that allows values
-                to be retrieved from the map as properties, and a corresponding
-                <span class='prop'>[[Put]]</span> method for setting values
-                in the map:
+                If the intention is to expose the same functionality that
+                is available with the <code>getByIndex()</code>,
+                <code>setByIndex()</code>, <code>get()</code> and
+                <code>set()</code> operations, and assuming that
+                attempting to retrieve a value with <code>get()</code>
+                using a non-existent name returns <span class='idlvalue'>null</span>,
+                then the following prose can be used in the description of the
+                interface:
               </p>
-              <x:codeblock language='es'>var map = getOrderedMap();  // Assume map is a host object implementing the OrderedMap interface.
+              <blockquote>
+                <p>
+                  The numbered index has entries with keys in the range
+                  0 ≤ <var>key</var> &lt; <code>OrderedMap::length</code>,
+                  and whose values are the value that would be returned if the
+                  <code>getByIndex()</code> operation were invoked with the
+                  given key.
+                </p>
+                <p>
+                  When the value of a numbered index entry is modified,
+                  the entry in the ordered map is similarly modified as
+                  if the <code>setByIndex()</code> operation were invoked
+                  with the given entry’s key and its new value.
+                </p>
+                <p>
+                  When a numbered index entry is removed, the corresponding
+                  entry in the ordered map is removed as if the
+                  <code>removeByIndex()</code> operation were invoked with the
+                  given index.
+                </p>
+                <p>
+                  The named index has an entry for every string that when
+                  passed to the <code>get()</code> operation would
+                  return a non-<span class='idlvalue'>null</span> value,
+                  where the entry’s key is that entry and the entry’s
+                  value is the value that would be returned from that
+                  invocation of <code>get()</code>.
+                </p>
+                <p>
+                  When a named index entry is created or modified, an
+                  entry in the ordered map is similarly created or
+                  modified, as if the <code>set()</code> operation were
+                  invoked with the named index entry’s key and value.
+                </p>
+                <p>
+                  When a named index entry is removed, the corresponding
+                  entry in the ordered map is removed, as if the
+                  <code>remove()</code> operation were invoked with
+                  the named index entry’s key.
+                </p>
+              </blockquote>
+              <p>
+                An ECMAScript implementation would create properties on a
+                host object implementing <span class='idltype'>OrderedMap</span>
+                that correspond to entries in both the numbered and named
+                indices.  These properties can then be used to interact
+                with the object in the same way as invoking the object’s
+                methods, as demonstrated below:
+              </p>
+              <x:codeblock language='es'>// Assume map is a host object implementing the OrderedMap interface.
+var map = getOrderedMap();
 var x, y;
 
-x = map[0];                 // Same as: x = map.getByIndex(0)
-map[1] = false;             // Same as: map.setByIndex(1, false)
+x = map[0];        // If map.length > 0, then this is equivalent to:
+                   //
+                   //   x = map.getByIndex(0)
+                   //
+                   // since a property named "0" will have been placed on map.
+                   // Otherwise, x will be set to undefined, since there will be
+                   // no property named "0" on map.
+                      
+map[1] = false;    // If map.length > 1, then this will set the property named
+                   // "1" on map to false, and then will do the equivalent of:
+                   //
+                   //   map.setByIndex(1, false)
+                   //
+                   // Otherwise, if map.length ≤ 1, then it will set the
+                   // property but have no other effect (since Creatable was not
+                   // specified on [NumberedIndex]).
 
-y = map.apple;              // Same as: y = map.get('apple')
-map.banana = 123;           // Same as: map.set('banana', 123)</x:codeblock>
-            </div>
-          </div>
+y = map.apple;     // If the named index has an entry whose key is "apple", then
+                   // this will be equivalent to:
+                   //
+                   //   y = map.get('apple')
+                   //
+                   // since a property named "apple" will have been placed on
+                   // map.  Otherwise, y will be set to undefined, since there
+                   // will be no property named "apple" on map.
 
-          <div id='IndexSetter' class='section'>
-            <h4>[IndexSetter]</h4>
-
-            <p>
-              If the <a class='xattr' href='#IndexSetter'>[IndexSetter]</a>
-              <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
-              appears on an <a class='dfnref' href='#dfn-operation'>operation</a>
-              with two arguments, the first of which is <a class='idltype' href='#idl-unsigned-long'>unsigned long</a>,
-              it indicates that an object that implements the <a class='dfnref' href='#dfn-interface'>interface</a>
-              can be indexed with an
-              <a class='idltype' href='#idl-unsigned-long'>unsigned long</a> for assignment,
-              resulting in the same effect as calling the operation with the given
-              index and value to assign (for languages that support such object indexing).
-              If an object implements interfaces such that it has more than one
-              operation annotated with <a class='xattr' href='#IndexSetter'>[IndexSetter]</a>,
-              then which operation is invoked when an object is indexed with an
-              <a class='idltype' href='#idl-unsigned-long'>unsigned long</a> value for assignment is undefined.
-            </p>
-            <p>
-              The <a class='xattr' href='#IndexSetter'>[IndexSetter]</a> extended attribute
-              <span class='rfc2119'>MUST</span> either
-              <a class='dfnref' href='#dfn-xattr-no-argument'>take no argument</a> or
-              <a class='dfnref' href='#dfn-xattr-identifier'>take the identifier</a>
-              <code>NoFunction</code>.  If it takes the <code>NoFunction</code>
-              identifier, then this indicates that, for languages that support
-              object indexing, objects implementing the interface will not have
-              a function that corresponds to the operation.  In this case, the only
-              way to invoke the operation would be by indexing the object.
-            </p>
-            <div class='example'>
-              <p>
-                See <a href='#IndexGetter'>section <?sref IndexGetter?></a> for an
-                example of the use of <a class='xattr' href='#IndexSetter'>[IndexSetter]</a>.
-              </p>
-            </div>
-          </div>
-
-          <div id='NameGetter' class='section'>
-            <h4>[NameGetter]</h4>
-
-            <p>
-              If the <a class='xattr' href='#NameGetter'>[NameGetter]</a>
-              <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
-              appears on an
-              <a class='dfnref' href='#dfn-operation'>operation</a> with a single
-              <a class='idltype' href='#idl-DOMString'>DOMString</a> argument, it
-              indicates that an object that implements the
-              <a class='dfnref' href='#dfn-interface'>interface</a> can be
-              indexed with a string, resulting in the same effect as calling the
-              operation with the given index name (for languages that support
-              such object indexing).
-              If an object has both a <a class='xattr' href='#NameGetter'>[NameGetter]</a>-
-              and <a class='xattr' href='#IndexGetter'>[IndexGetter]</a>-annotated
-              operation, then which operation is invoked when an object is indexed
-              is language binding specific.
-            </p>
-            <p>
-              The <a class='xattr' href='#NameGetter'>[NameGetter]</a> extended attribute
-              <span class='rfc2119'>MUST</span> either
-              <a class='dfnref' href='#dfn-xattr-no-argument'>take no argument</a> or
-              <a class='dfnref' href='#dfn-xattr-identifier'>take the identifier</a>
-              <code>NoFunction</code>.  If it takes the <code>NoFunction</code>
-              identifier, then this indicates that, for languages that support
-              object indexing, objects implementing the interface will not have
-              a function that corresponds to the operation.  In this case, the only
-              way to invoke the operation would be by indexing the object.
-            </p>
-            <div class='example'>
-              <p>
-                See <a href='#IndexGetter'>section <?sref IndexGetter?></a> for an
-                example of the use of <a class='xattr' href='#NameGetter'>[NameGetter]</a>.
-              </p>
-            </div>
-          </div>
-
-          <div id='NameSetter' class='section'>
-            <h4>[NameSetter]</h4>
-
-            <p>
-              If the <a class='xattr' href='#NameSetter'>[NameSetter]</a>
-              <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
-              appears on an
-              <a class='dfnref' href='#dfn-operation'>operation</a>
-              with two arguments, the first of which
-              is a <a class='idltype' href='#idl-DOMString'>DOMString</a>,
-              it indicates that an object that implements the
-              <a class='dfnref' href='#dfn-interface'>interface</a> can be
-              indexed with a string for assignment, resulting in the same effect
-              as calling the operation with the given index and value to assign
-              (for languages that support such object indexing).  If an object
-              implements interfaces such that it has more than one
-              operation annotated with <a class='xattr' href='#NameSetter'>[NameSetter]</a>,
-              then which operation is invoked when an object is indexed with a
-              string value for assignment is undefined.
-            </p>
-            <p>
-              The <a class='xattr' href='#NameSetter'>[NameSetter]</a> extended attribute
-              <span class='rfc2119'>MUST</span> either
-              <a class='dfnref' href='#dfn-xattr-no-argument'>take no argument</a> or
-              <a class='dfnref' href='#dfn-xattr-identifier'>take the identifier</a>
-              <code>NoFunction</code>.  If it takes the <code>NoFunction</code>
-              identifier, then this indicates that, for languages that support
-              object indexing, objects implementing the interface wil not have
-              a function that corresponds to the operation.  In this case, the only
-              way to invoke the operation would be by indexing the object.
-            </p>
-            <div class='example'>
-              <p>
-                See <a href='#IndexGetter'>section <?sref IndexGetter?></a> for an
-                example of the use of <a class='xattr' href='#NameSetter'>[NameSetter]</a>.
-              </p>
+map.banana = 123;  // Regardless of whether the named index already has an entry
+                   // whose key is "banana", this will be equivalent to:
+                   // 
+                   //   map.set('banana', 123)
+                   //
+                   // resulting in the "banana" property on map being set to
+                   // 123.</x:codeblock>
             </div>
           </div>
 
@@ -1707,6 +1722,88 @@ d.isMemberOfBreed(null);  // This passes the string "null" to the isMemberOfBree
 d.name = null;            // This assigns the string "null" to the .name property.
 d.owner = null;           // This assigns the null value to the .owner property.
 d.isMemberOfBreed(null);  // This passes the string "" to the isMemberOfBreed function.</x:codeblock>
+            </div>
+          </div>
+
+          <div id='NumberedIndex' class='section'>
+            <h4>[NumberedIndex]</h4>
+
+            <p>
+              If the <a class='xattr' href='#NumberedIndex'>[NumberedIndex]</a>
+              <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
+              appears on an
+              <a class='dfnref' href='#dfn-interface'>interface</a>, it
+              indicates that an object that implements the
+              <a class='dfnref' href='#dfn-interface'>interface</a> can be
+              indexed with an <a class='idltype' href='#idl-unsigned-long'>unsigned long</a>,
+              resulting in a particular value
+              being returned (if the particular language binding supports
+              indexing objects in this manner).  The object has an
+              associated set of entries called the
+              <dfn id='dfn-numbered-index'>numbered index</dfn>,
+              where each entry is a tuple of a key,
+              which is an <a class='idltype' href='#idl-unsigned-long'>unsigned long</a>
+              (and which must be unique in the set), and a value, which can be
+              of any type.  Indexing the object with a key will return
+              the associated value.
+            </p>
+            <p>
+              If an object
+              has both a <a class='dfnref' href='#dfn-numbered-index'>numbered index</a>
+              and a <a class='dfnref' href='#dfn-named-index'>named index</a>
+              (specified with the
+              <a class='xattr' href='#NamedIndex'>[NamedIndex]</a>
+              <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>),
+              then whether the value of the corresponding entry in the numbered
+              index or the named index is returned when indexing the
+              object is language binding specific.
+            </p>
+            <p>
+              The <a class='xattr' href='#NumberedIndex'>[NamedIndex]</a> extended
+              attribute <span class='rfc2119'>MUST</span> either
+              <a class='dfnref' href='#dfn-xattr-no-argument'>take no argument</a>,
+              or <a class='dfnref' href='#dfn-xattr-identifier-list'>take an
+                identifier list</a> with one or more (but at most one of each)
+              of the following identifiers:
+            </p>
+            <dl>
+              <dt><code>Creatable</code></dt>
+              <dd>
+                If the this identifier is specified, it indicates that new
+                entries can be created in the
+                <a class='dfnref' href='#dfn-numbered-index'>numbered index</a> in a
+                language binding specific manner.
+              </dd>
+              <dt><code>Modifiable</code></dt>
+              <dd>
+                If the this identifier is specified, it indicates that values
+                of existing entries in the
+                <a class='dfnref' href='#dfn-numbered-index'>numbered index</a> can be
+                modified in a language binding specific manner.
+              </dd>
+              <dt><code>Removable</code></dt>
+              <dd>
+                If the this identifier is specified, it indicates that
+                existing entries in the
+                <a class='dfnref' href='#dfn-numbered-index'>numbered index</a> can be
+                removed in a language binding specific manner.
+              </dd>
+            </dl>
+            <p>
+              If the <a class='xattr' href='#NumberedIndex'>[NumberedIndex]</a>
+              attribute is specified on an interface, then prose describing
+              that interface <span class='rfc2119'>MUST</span> specify
+              what the keys in the <a class='dfnref' href='#dfn-numbered-index'>numbered index</a>
+              are, and what value an entry with a given key has.  The
+              description of the interface will likely need to state some
+              behavior that occurs when a numbered index entry is created,
+              modified or removed (if such actions are allowed).
+            </p>
+            <div class='example'>
+              <p>
+                See <a href='#NamedIndex'>section <?sref NamedIndex?></a> for an
+                example of the use of <a class='xattr' href='#NumberedIndex'>[NumberedIndex]</a>.
+              </p>
             </div>
           </div>
 
@@ -2037,8 +2134,8 @@ any executeSql(Array a, Callback f);</x:codeblock>
             <p>
               There should be a definition here for how to coerce an ECMAScript
               value according to the IDL type expected.  This definition should
-              then be explicitly referenced in the <span class='prop'>[[Get]]</span>,
-              <span class='prop'>[[Put]]</span> and function calling
+              then be explicitly referenced in the interface prototype object,
+              host object, <span class='prop'>[[Put]]</span> and function calling
               definitions below, rather than the current wording "must be handled
               according to the rules in section <?sref es-type-mapping?>".
             </p>
@@ -2443,14 +2540,14 @@ interface LotteryResults {
                 a value to the numbers property:
               </p>
               <blockquote>
-                <div>
+                <p>
                   In the ECMAScript language binding, assigning an array-like object
                   to the numbers property results in a copy of those values being
                   stored in the <span class='idltype'>LotteryResults</span> object.
                   The array-like object returned when the numbers property is retrieved,
                   however, will not change over the lifetime of the
                   <span class='idltype'>LotteryResults</span> object.
-                </div>
+                </p>
               </blockquote>
               <p>
                 The following ECMAScript code illustrates how the sequence
@@ -4141,79 +4238,111 @@ a['g(::dom::Document)'](document);  // explicitly call the second g()
               <a class='dfnref' href='#dfn-host-object-mixin-prototype-object'>host object mixin prototype objects</a>
               as their internal <span class='prop'>[[Prototype]]</span> property values,
               then these host object mixin prototype objects
-              <span class='rfc2119'>must</span> be the same object.
+              <span class='rfc2119'>MUST</span> be the same object.
             </p>
           </div>
 
-          <div id='get' class='section'>
-            <h4>Host object [[Get]] method</h4>
+          <div id='index-properties' class='section'>
+            <h4>Index properties</h4>
 
             <p>
-              The internal <span class='prop'>[[Get]]</span> method of every
-              host object <var>O</var> that implements at least one IDL <a class='dfnref' href='#dfn-interface'>interface</a>
-              <span class='rfc2119'>MUST</span> behave as follows, assuming <var>P</var> is the property name passed to
-              <span class='prop'>[[Get]]</span>:
+              If a host object that implements an
+              <a class='dfnref' href='#dfn-interface'>interface</a> with the
+              <a class='xattr' href='#NamedIndex'>[NamedIndex]</a>
+              <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>,
+              the object will have additional properties that correspond to the
+              entries in the <a class='dfnref' href='#dfn-named-index'>named index</a>.
+              If the host object implements multiple
+              <a class='xattr' href='#NamedIndex'>[NamedIndex]</a>-annotated
+              interfaces, then it is undefined what additional properties
+              will exist due to these named indices.
+            </p>
+            <p>
+              Similarly, if a host object that implements an
+              <a class='dfnref' href='#dfn-interface'>interface</a> with the
+              <a class='xattr' href='#NumberedIndex'>[NumberedIndex]</a>
+              <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>,
+              the object will have additional properties that correspond to the
+              entries in the <a class='dfnref' href='#dfn-numbered-index'>numbered index</a>.
+              The names of these additional properties will be
+              <dfn id='dfn-array-index-property-name'>array index property names</dfn>,
+              which are property names for which the following algorithm
+              returns <span class='esvalue'>true</span>:
             </p>
             <ol class='algorithm'>
-              <li x:step='d'>
-                Determine the name of an
-                <a class='xattr' href='#IndexGetter'>[IndexGetter]</a>-annotated
-                <a class='dfnref' href='#dfn-operation'>operation</a> on the interfaces that <var>O</var> implements.
-                If there is no such operation, go to step <?stepref a?>.
-              </li>
-              <li x:step='b'>Compute ToUint32(<var>P</var>).</li>
-              <li x:step='c'>Compute ToString(Result(<?stepref b?>)).</li>
-              <li>If Result(<?stepref c?>) is not equal to <var>P</var> or Result(<?stepref b?>) is equal to 2<sup>32</sup> − 1, go to step <?stepref a?>.</li>
-              <li x:step='e'>
-                Invoke the <span class='prop'>[[Get]]</span> method of object <var>O</var> with Result(<?stepref d?>)
-                as the argument.
-              </li>
-              <li x:step='f'>
-                Invoke the <span class='prop'>[[Call]]</span> method of Result(<?stepref e?>), providing
-                <var>O</var> as the <span class='esvalue'>this</span> value and
-                Result(<?stepref b?>) as the single argument value.
-              </li>
-              <li>Return Result(<?stepref f?>).</li>
-              <li x:step='a'>
-                Determine the name of a
-                <a class='xattr' href='#NameGetter'>[NameGetter]</a>-annotated operation
-                on the interfaces that <var>O</var> implements.  If there is no
-                such operation, go to step <?stepref g?>.
-              </li>
-              <li x:step='h'>
-                Invoke the <span class='prop'>[[HasProperty]]</span> method of object <var>O</var> with
-                <var>P</var> as the argument.
-              </li>
-              <li>
-                If Result(<?stepref h?>) is <span class='esvalue'>true</span>, go to step <?stepref g?>.
-              </li>
-              <li x:step='i'>
-                Invoke the <span class='prop'>[[Get]]</span> method of object <var>O</var> with Result(<?stepref a?>)
-                as the argument.
-              </li>
-              <li x:step='j'>
-                Invoke the <span class='prop'>[[Call]]</span> method of Result(<?stepref i?>), providing
-                <var>O</var> as the <span class='esvalue'>this</span> value and
-                <var>P</var> as the single argument value.
-              </li>
-              <li>Return Result(<?stepref j?>).</li>
-              <li x:step='g'>
-                If <var>O</var> doesn’t have a property with name <var>P</var>,
-                go to step <?stepref k?>.
-              </li>
-              <li x:step='l'>Get the value of the property.</li>
-              <li>Return Result(<?stepref l?>).</li>
-              <li x:step='k'>
-                If the <span class='prop'>[[Prototype]]</span> of <var>O</var> is
-                <span class='esvalue'>null</span>, return
-                <span class='esvalue'>undefined</span>.
-              </li>
-              <li x:step='m'>
-                Call the <span class='prop'>[[Get]]</span> method of <span class='prop'>[[Prototype]]</span> with property name
-                <var>P</var>.
-              </li>
-              <li>Return Result(<?stepref m?>).</li>
+              <li x:step='a'>Compute ToUint32(<var>P</var>).</li>
+              <li x:step='b'>Compute ToString(Result(<?stepref a?>)).</li>
+              <li>If Result(<?stepref b?>) is not equal to <var>P</var> or Result(<?stepref a?>) is equal to 2<sup>32</sup> − 1, return <span class='esvalue'>false</span>.</li>
+              <li>Return <span class='esvalue'>true</span>.</li>
             </ol>
+            <p>
+              If the host object implements multiple
+              <a class='xattr' href='#NumberedIndex'>[NumberedIndex]</a>-annotated
+              interfaces, then it is undefined what additional properties
+              will exist due to these numbered indices.
+            </p>
+            <p>
+              When an entry in the <a class='xattr' href='#NamedIndex'>[NamedIndex]</a>
+              with key <var>K</var> is created, a corresponding property on the
+              host object <span class='rfc2119'>MUST</span> be created, but only if:
+            </p>
+            <ul>
+              <li>the host object does not already have a property named <var>K</var>,</li>
+              <li>none of the objects in the host object’s prototype chain have a property named <var>K</var>, and
+                <!--
+                <div class='ednote'>
+                  <p>Maybe this should say "<var>K</var> is not the name of a property that corresponds to a constant, operation or attribute on an interface that the host object implements".</p>
+                </div>
+                -->
+              </li>
+              <li>the host object does not also have a <a class='dfnref' href='#dfn-numbered-index'>numbered index</a> <strong>or</strong> <var>K</var> is not an <a class='dfnref' href='#dfn-array-index-property-name'>array index property name</a>.</li>
+            </ul>
+            <p>
+              Similarly, when an entry in the <a class='dfnref' href='#dfn-numbered-index'>numbered index</a>
+              with key <var>K</var> is created, a corresponding property on the
+              host object <span class='rfc2119'>MUST</span> be created, but only if:
+            </p>
+            <ul>
+              <li>the host object does not have a property named <var>K</var>, and</li>
+              <li>none of the objects in the host object’s prototype chain have a property named <var>K</var>.</li>
+            </ul>
+            <p>
+              The created property will have the <span class='propattrset'>DontEnum</span>
+              attribute only if it is the corresponding property for a
+              <a class='dfnref' href='#dfn-named-index'>named index</a> entry.
+              In addition, if the <code>Modifiable</code> identifier
+              was not specified on the <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>,
+              then the property will also have the <span class='propattrset'>ReadOnly</span>
+              attribute, and if the <code>Removable</code> identifier was not specified,
+              then the property will also have the <span class='propattrset'>DontDelete</span>
+              attribute.  The value of the property will be the value of the
+              new named index or <a clas='dfnref' href='#dfn-numbered-index'>numbered index</a>
+              entry.
+            </p>
+            <p>
+              When the value of an entry in the
+              <a class='dfnref' href='#dfn-named-index'>named index</a> or
+              <a class='dfnref' href='#dfn-numbered-index'>numbered index</a>
+              with key <var>K</var> is modified, the value of the corresponding
+              property on the host object (if it exists) <span class='rfc2119'>MUST</span>
+              be changed to the entry’s new value.
+            </p>
+            <p>
+              When an entry in the
+              <a class='dfnref' href='#dfn-named-index'>named index</a> or
+              <a class='dfnref' href='#dfn-numbered-index'>numbered index</a>
+              is removed, the corresponding property on the host object (if it
+              exists) <span class='rfc2119'>MUST</span> be deleted.
+            </p>
+            <p>
+              Any behavior that is specified to happen when the above events
+              occur (creation, modification or removal of entries in a
+              <a class='dfnref' href='#dfn-named-index'>named index</a> or
+              <a class='dfnref' href='#dfn-numbered-index'>numbered index</a>)
+              <span class='rfc2119'>MUST</span> happen after the
+              creation, modification or deletion of the corresponding property
+              on the host object has occurred.
+            </p>
           </div>
 
           <div id='put' class='section'>
@@ -4226,58 +4355,6 @@ a['g(::dom::Document)'](document);  // explicitly call the second g()
               is the property value passed to <span class='prop'><span class='prop'>[[Put]]</span></span>:
             </p>
             <ol class='algorithm'>
-              <li x:step='a'>
-                Determine the name of an
-                <a class='xattr' href='#IndexSetter'>[IndexSetter]</a>-annotated
-                <a class='dfnref' href='#dfn-operation'>operation</a> on the interfaces that <var>O</var> implements.
-                If there is no such operation, go to step <?stepref h?>.
-              </li>
-              <li x:step='b'>Compute ToUint32(<var>P</var>).</li>
-              <li x:step='c'>Compute ToString(Result(<?stepref b?>)).</li>
-              <li x:step='d'>If Result(<?stepref c?>) is not equal to <var>P</var> or Result(<?stepref b?>) is equal to 2<sup>32</sup> − 1, go to step <?stepref h?>.
-                <div class='ednote'>
-                  <p>
-                    Do we need to disallow 2<sup>32</sup> − 1 as an index number,
-                    <a href='http://bclary.com/2004/11/07/#a-15.4'>just like
-                      <span class='estype'>Array</span> does</a>?  Host objects
-                    with index setters won’t necessarily have a
-                    <span class='prop'>length</span> property.
-                  </p>
-                </div>
-              </li>
-              <li x:step='e'>
-                Invoke the <span class='prop'>[[Get]]</span> method of object <var>O</var> with Result(<?stepref a?>)
-                as the argument.
-              </li>
-              <li x:step='f'>
-                Invoke the <span class='prop'>[[Call]]</span> method of Result(<?stepref e?>), providing
-                <var>O</var> as the <span class='esvalue'>this</span> value and
-                Result(<?stepref b?>) and <var>V</var> as the two argument values.
-              </li>
-              <li x:step='g'>Return.</li>
-              <li x:step='h'>
-                Determine the name of a
-                <a class='xattr' href='#NameSetter'>[NameSetter]</a>-annotated operation
-                on the interfaces that <var>O</var> implements.  If there is no
-                such operation, go to step <?stepref n?>.
-              </li>
-              <li x:step='i'>
-                Invoke the <span class='prop'>[[HasProperty]]</span> method of object <var>O</var> with
-                <var>P</var> as the argument.
-              </li>
-              <li x:step='j'>
-                If Result(<?stepref i?>) is <span class='esvalue'>true</span>, go to step <?stepref n?>.
-              </li>
-              <li x:step='k'>
-                Invoke the <span class='prop'>[[Get]]</span> method of object <var>O</var> with Result(<?stepref h?>)
-                as the argument.
-              </li>
-              <li x:step='l'>
-                Invoke the <span class='prop'>[[Call]]</span> method of Result(<?stepref k?>), providing
-                <var>O</var> as the <span class='esvalue'>this</span> value and
-                <var>P</var> and <var>V</var> as the two argument values.
-              </li>
-              <li x:step='m'>Return.</li>
               <li x:step='n'>
                 If <var>O</var> does not have a property with name <var>P</var>,
                 then go to step <?stepref s?>.
@@ -4325,20 +4402,6 @@ a['g(::dom::Document)'](document);  // explicitly call the second g()
               <li x:step='y'>Return.</li>
             </ol>
           </div>
-
-          <!--
-          <div id='delete' class='section'>
-            <h4>[[Delete]] method</h4>
-            <p>
-              The internal <span class='prop'><span class='prop'>[[Delete]]</span></span> method of every
-              host object <var>O</var> that implements at least one IDL interface
-              behaves as follows, assuming <var>P</var> is the name of the property
-              passed to <span class='prop'><span class='prop'>[[Delete]]</span></span>:
-            </p>
-            <ol class='algorithm'>
-            </ol>
-          </div>
-          -->
         </div>
 
         <div id='native-objects' class='section'>
@@ -5586,6 +5649,7 @@ interface HTMLDocument {
           Jim Ley,
           Simon Pieters,
           Jonas Sicking,
+          Garrett Smith,
           Maciej Stachowiak,
           Collin Xu,
           Boris Zbarsky.
@@ -5706,7 +5770,7 @@ interface HTMLDocument {
           <prod nt='ExtendedAttributes'>"," ExtendedAttribute ExtendedAttributes | ε</prod>
           <prod nt='ExtendedAttribute'>identifier ExtendedAttributeDetails</prod>
           <prod nt='ExtendedAttributeDetails'>"=" ExtendedAttributeAssignment | "(" ArgumentList ")" | ε</prod>
-          <prod nt='ExtendedAttributeAssignment'>identifier ExtendedAttributeAssignmentArguments</prod>
+          <prod nt='ExtendedAttributeAssignment'>identifier ExtendedAttributeAssignmentArguments | "(" IdentifierList ")"</prod>
           <prod nt='ExtendedAttributeAssignmentArguments'>"(" ArgumentList ")" | ε</prod>
           <prod nt='DeclarationType'>UnsignedIntegerType | ScopedName | "any" | "boolean" | "octet" | "float" | "DOMString" | "Object"</prod>
           <prod nt='BoxedType'>UnsignedIntegerType | ScopedName | "boolean" | "octet" | "float" | "sequence" "&lt;" Type ">"</prod>
@@ -5839,6 +5903,21 @@ interface HTMLDocument {
           <dt>Current editor’s draft</dt>
           <dd>
             <ul>
+              <li>
+                <p>
+                  Removed the <span class='xattr'>[IndexGetter]</span>,
+                  <span class='xattr'>[IndexSetter]</span>,
+                  <span class='xattr'>[NameSetter]</span> &amp;
+                  <span class='xattr'>[NameSetter]</span> extended
+                  attributes and the definition of <span class='prop'>[[Get]]</span>
+                  for ECMAScript host objects implementing interfaces.
+                  Replaced them with <span class='xattr'>[NamedIndex]</span>
+                  and <span class='xattr'>[NumberedIndex]</span>
+                  extended attributes, and modified the definition
+                  of <span class='prop'>[[Put]]</span> for host objects
+                  accordingly.
+                </p>
+              </li>
               <li>
                 <p>
                   Specified the value of <span class='prop'>[[Class]]</span>
