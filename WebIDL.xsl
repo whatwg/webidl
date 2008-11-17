@@ -446,7 +446,7 @@
       </xsl:if>
       <xsl:apply-templates select='node()'/>
       <xsl:if test='../@id'>
-        <span class='section-link'> <a href='#{../@id}'>[link]</a></span>
+        <span class='section-link'> <a href='#{../@id}'>¶</a></span>
       </xsl:if>
     </xsl:element>
   </xsl:template>
