@@ -11,7 +11,7 @@
   <head>
     <title>Web IDL</title>
     <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-    <meta name="revision" content="$Id: Overview.html,v 1.106 2008-11-24 03:18:06 cmccorma Exp $" />
+    <meta name="revision" content="$Id: Overview.html,v 1.107 2008-11-24 03:55:37 cmccorma Exp $" />
     <link rel="stylesheet" href="WebIDL.css" type="text/css" />
 
     
@@ -34,7 +34,7 @@
         Java execution environments is also detailed.
       </p>
 
-      <div class="ednote"><div class="ednoteHeader">Editorial note</div><p>This is revision $Id: Overview.html,v 1.106 2008-11-24 03:18:06 cmccorma Exp $.</p></div>
+      <div class="ednote"><div class="ednoteHeader">Editorial note</div><p>This is revision $Id: Overview.html,v 1.107 2008-11-24 03:55:37 cmccorma Exp $.</p></div>
     </div>
 
     <div class="section">
@@ -3061,7 +3061,7 @@ results.numbers[6];                  // Evaluates to 0, since that is how 'undef
             <p>
               The <a class="xattr" href="#Callback">[Callback]</a> extended attribute
               <span class="rfc2119">MUST</span> either <a class="dfnref" href="#dfn-xattr-no-argument">take no argument</a>
-              or <a class="dfnref" href="#dfn-xattr-identifier">take the identifier</a> <span class="idlident">FunctionOnly</span>.
+              or <a class="dfnref" href="#dfn-xattr-identifier">take the identifier</a> <span class="idlident">FunctionOnly</span> or <span class="idlident">PropertyOnly</span>.
               If no argument is given, then any native object is considered
               to implement the interface.  Otherwise, if the
               <span class="idlident">FunctionOnly</span> argument is given,
@@ -3089,7 +3089,9 @@ interface Thing {
               <div class="block"><div class="blockTitleDiv"><span class="blockTitle">ECMAScript</span></div><div class="blockContent"><pre class="code"><code class="es-code">var t = getThing();                                // Assume t is a host object implementing the Thing interface.
 
 t.addListener(function() { });                     // The function is the implementation of the eventOccurred
-                                                   // operation on the Listener interface.
+                                                   // operation on the Listener interface.  If Listener had been
+                                                   // declared with [Callback=PropertyOnly] however, this would
+                                                   // have thrown a TypeError.
 
 var x = function() { /* 1 */ };                    // This also works, but it is the function with /* 1 */
 x.eventOccurred = function() { /* 2 */ };          // in it that is the implementation of eventOccurred.
@@ -4236,7 +4238,16 @@ c.isMemberOfBreed(undefined);  // This passes the string "" to the isMemberOfBre
             </li>
             <li>
               The interface does not have a
-              <a class="xattr" href="#Constructor">[Constructor]</a> or
+              <a class="xattr" href="#Constructor">[Constructor]</a>,
+              <a class="xattr" href="#IndexCreator">[IndexCreator]</a>,
+              <a class="xattr" href="#IndexDeleter">[IndexDeleter]</a>,
+              <a class="xattr" href="#IndexGetter">[IndexGetter]</a>,
+              <a class="xattr" href="#IndexSetter">[IndexSetter]</a>,
+              <a class="xattr" href="#NameCreator">[NameCreator]</a>,
+              <a class="xattr" href="#NameDeleter">[NameDeleter]</a>,
+              <a class="xattr" href="#NameGetter">[NameGetter]</a>,
+              <a class="xattr" href="#NameSetter">[NameSetter]</a>,
+              or
               <a class="xattr" href="#Stringifies">[Stringifies]</a>
               extended attribute on it.
             </li>
@@ -4278,7 +4289,9 @@ c.isMemberOfBreed(undefined);  // This passes the string "" to the isMemberOfBre
               have the same identifier but the <a class="xattr" href="#Callback">[Callback]</a>
               extended attribute on the interface does not have the <span class="idlident">FunctionOnly</span>
               argument, then any native object is considered to implement that interface.
-              If the native object is a <span class="estype">Function</span> object,
+              If the native object is a <span class="estype">Function</span> object
+              and the <a class="xattr" href="#Callback">[Callback]</a> extended attribute
+              does not have the <span class="idlident">PropertyOnly</span> argument,
               then the function itself is the implementation of the operation.
               Otherwise, the implementation of the operation is the result of
               invoking <span class="prop">[[Get]]</span> on the native object
@@ -5686,7 +5699,8 @@ interface HTMLDocument {
               <li>
                 <p>
                   Renamed <span class="xattr">[NativeObject]</span> to
-                  <span class="xattr">[Callback]</span>.
+                  <span class="xattr">[Callback]</span>, and gave it an
+                  additional <code>PropertyOnly</code> argument.
                 </p>
               </li>
               <li>
@@ -5701,12 +5715,6 @@ interface HTMLDocument {
                   Reworked operation overloading in IDL so that it is
                   much more restrictive.  Updated the overloaded
                   operation resolution in ECMAScript accordingly.
-                </p>
-              </li>
-              <li>
-                <p>
-                  Renamed <span class="xattr">[NativeObject]</span> to
-                  <span class="xattr">[Callback]</span>.
                 </p>
               </li>
               <li>
