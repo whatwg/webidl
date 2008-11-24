@@ -15,7 +15,7 @@
   <head>
     <title>Web IDL</title>
     <meta http-equiv='Content-Type' content='application/xhtml+xml; charset=UTF-8'/>
-    <meta name='revision' content='$Id: Overview.xml,v 1.98 2008-11-24 03:17:30 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: Overview.xml,v 1.99 2008-11-24 03:48:56 cmccorma Exp $'/>
     <link rel='stylesheet' href='WebIDL.css' type='text/css'/>
 
     <options xmlns='http://mcc.id.au/ns/local'>
@@ -3147,7 +3147,7 @@ results.numbers[6];                  // Evaluates to 0, since that is how 'undef
             <p>
               The <a class='xattr' href='#Callback'>[Callback]</a> extended attribute
               <span class='rfc2119'>MUST</span> either <a class='dfnref' href='#dfn-xattr-no-argument'>take no argument</a>
-              or <a class='dfnref' href='#dfn-xattr-identifier'>take the identifier</a> <span class='idlident'>FunctionOnly</span>.
+              or <a class='dfnref' href='#dfn-xattr-identifier'>take the identifier</a> <span class='idlident'>FunctionOnly</span> or <span class='idlident'>PropertyOnly</span>.
               If no argument is given, then any native object is considered
               to implement the interface.  Otherwise, if the
               <span class='idlident'>FunctionOnly</span> argument is given,
@@ -3175,7 +3175,9 @@ interface Thing {
               <x:codeblock language='es'>var t = getThing();                                // Assume t is a host object implementing the Thing interface.
 
 t.addListener(function() { });                     // The function is the implementation of the eventOccurred
-                                                   // operation on the Listener interface.
+                                                   // operation on the Listener interface.  If Listener had been
+                                                   // declared with [Callback=PropertyOnly] however, this would
+                                                   // have thrown a TypeError.
 
 var x = function() { /* 1 */ };                    // This also works, but it is the function with /* 1 */
 x.eventOccurred = function() { /* 2 */ };          // in it that is the implementation of eventOccurred.
@@ -4736,7 +4738,9 @@ interface D : C {
               have the same identifier but the <a class='xattr' href='#Callback'>[Callback]</a>
               extended attribute on the interface does not have the <span class='idlident'>FunctionOnly</span>
               argument, then any native object is considered to implement that interface.
-              If the native object is a <span class='estype'>Function</span> object,
+              If the native object is a <span class='estype'>Function</span> object
+              and the <a class='xattr' href='#Callback'>[Callback]</a> extended attribute
+              does not have the <span class='idlident'>PropertyOnly</span> argument,
               then the function itself is the implementation of the operation.
               Otherwise, the implementation of the operation is the result of
               invoking <span class='prop'>[[Get]]</span> on the native object
@@ -6196,7 +6200,8 @@ interface HTMLDocument {
               <li>
                 <p>
                   Renamed <span class='xattr'>[NativeObject]</span> to
-                  <span class='xattr'>[Callback]</span>.
+                  <span class='xattr'>[Callback]</span>, and gave it an
+                  additional <code>PropertyOnly</code> argument.
                 </p>
               </li>
               <li>
@@ -6211,12 +6216,6 @@ interface HTMLDocument {
                   Reworked operation overloading in IDL so that it is
                   much more restrictive.  Updated the overloaded
                   operation resolution in ECMAScript accordingly.
-                </p>
-              </li>
-              <li>
-                <p>
-                  Renamed <span class='xattr'>[NativeObject]</span> to
-                  <span class='xattr'>[Callback]</span>.
                 </p>
               </li>
               <li>
