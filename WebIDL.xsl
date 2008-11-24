@@ -56,7 +56,7 @@
     <xsl:variable name='id' select='concat("idl-", translate(., " ", "-"))'/>
     <xsl:variable name='def' select='//*[@id=$id]'/>
     <xsl:choose>
-      <xsl:when test='$def'>
+      <xsl:when test='not(ancestor::h:a) and $def'>
         <a class='idltype' href='#{$id}'><xsl:apply-templates select='node()'/></a>
       </xsl:when>
       <xsl:otherwise>

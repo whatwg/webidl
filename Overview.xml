@@ -15,7 +15,7 @@
   <head>
     <title>Web IDL</title>
     <meta http-equiv='Content-Type' content='application/xhtml+xml; charset=UTF-8'/>
-    <meta name='revision' content='$Id: Overview.xml,v 1.96 2008-11-18 10:28:41 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: Overview.xml,v 1.97 2008-11-24 03:08:04 cmccorma Exp $'/>
     <link rel='stylesheet' href='WebIDL.css' type='text/css'/>
 
     <options xmlns='http://mcc.id.au/ns/local'>
@@ -447,16 +447,6 @@
             to each of the interface’s members.
           </p>
           <p>
-            The <a class='dfnref' href='#dfn-identifier'>identifier</a> of an
-            <a class='dfnref' href='#dfn-interface-member'>interface member</a> is given
-            by the first <a class='nt' href='#prod-identifier'>identifier</a> terminal in
-            a derivation of the non-terminal that represents the
-            interface member.  The identifier of an interface member
-            (except for operations, which can be overloaded)
-            <span class='rfc2119'>MUST</span> be unique within the
-            interface on which it is defined.
-          </p>
-          <p>
             An interface <dfn id='dfn-inherit'>inherits</dfn> from another if there is a
             <a class='dfnref' href='#dfn-scoped-name'>scoped name</a> in the
             <a class='nt' href='#prod-ScopedNameList'>ScopedNameList</a> that,
@@ -494,6 +484,7 @@
           </p>
           <p>
             The following extended attributes are applicable to interfaces:
+            <a class='xattr' href='#Callback'>[Callback]</a>,
             <a class='xattr' href='#Constructor'>[Constructor]</a>,
             <a class='xattr' href='#ImplementedOn'>[ImplementedOn]</a>,
             <a class='xattr' href='#IndexCreator'>[IndexCreator]</a>,
@@ -505,7 +496,6 @@
             <a class='xattr' href='#NameDeleter'>[NameDeleter]</a>,
             <a class='xattr' href='#NameGetter'>[NameGetter]</a>,
             <a class='xattr' href='#NameSetter'>[NameSetter]</a>,
-            <a class='xattr' href='#NativeObject'>[NativeObject]</a>,
             <a class='xattr' href='#NoInterfaceObject'>[NoInterfaceObject]</a>,
             <a class='xattr' href='#PrototypeRoot'>[PrototypeRoot]</a>,
             <a class='xattr' href='#Stringifies'>[Stringifies]</a>.
@@ -525,6 +515,13 @@
               <a class='dfnref' href='#dfn-outermost-scope'>outermost scope</a>.
             </p>
             <p>
+              The <a class='dfnref' href='#dfn-identifier'>identifier</a> of a
+              <a class='dfnref' href='#dfn-constant'>constant</a>
+              <span class='rfc2119'>MUST NOT</span> be the same as the identifier
+              of another <a class='dfnref' href='#dfn-interface-member'>interface member</a>
+              defined on the same <a class='dfnref' href='#dfn-interface'>interface</a>.
+            </p>
+            <p>
               The <a class='nt' href='#prod-ConstExpr'>ConstExpr</a> part of a
               constant definition gives the value of the constant, which can be
               one of the two boolean literal terminals (<span class='terminal'>"TRUE"</span>
@@ -538,12 +535,12 @@
             <ul>
               <li>
                 The value of the <span class='terminal'>"TRUE"</span> terminal
-                is a value of type <a class='idltype' href='#idl-boolean'>boolean</a>:
+                is the <a class='idltype' href='#idl-boolean'>boolean</a> value
                 <span class='idlvalue'>true</span>.
               </li>
               <li>
                 The value of the <span class='terminal'>"FALSE"</span> terminal
-                is a value of type <a class='idltype' href='#idl-boolean'>boolean</a>:
+                is the <a class='idltype' href='#idl-boolean'>boolean</a> value
                 <span class='idlvalue'>false</span>.
               </li>
             </ul>
@@ -624,7 +621,7 @@
             <p>
               The type of a <a class='nt' href='#prod-float'>float</a> terminal
               is <a class='idltype' href='#idl-float'>float</a>, and its value
-              is an IEEE 754 single-precision floating pointer number determined
+              is the IEEE 754 single-precision floating pointer number determined
               as follows:
             </p>
             <ol class='algorithm'>
@@ -687,6 +684,9 @@
                 is the IEEE 754 single-precision floating point number closest to
                 <var>sign</var> * <var>mant</var> * 10<sup><var>expSign</var> * <var>exp2</var> + <var>exp1</var></sup>.
                 <a href='#ref-IEEE-754'>[IEEE-754]</a>
+                <div class='ednote'>
+                  <p>This should probably do some extra trickery like the definition for the “number value” in ECMA-262.</p>
+                </div>
               </li>
             </ol>
             <p>
@@ -708,8 +708,15 @@
               An <dfn id='dfn-attribute'>attribute</dfn> is an <a class='dfnref' href='#dfn-interface-member'>interface member</a>
               that matches the <a class='nt' href='#prod-Attribute'>Attribute</a> non-terminal, and is used to declare that
               objects implementing the <a class='dfnref' href='#dfn-interface'>interface</a> will have an attribute with the given
-              <a class='dfnref' href='#dfn-identifier'>identifier</a> that can be
-              assigned and retrieved.
+              <a class='dfnref' href='#dfn-identifier'>identifier</a> whose value can
+              be retrieved and (in some cases) changed.
+            </p>
+            <p>
+              The <a class='dfnref' href='#dfn-identifier'>identifier</a> of an
+              <a class='dfnref' href='#dfn-attribute'>attribute</a>
+              <span class='rfc2119'>MUST NOT</span> be the same as the identifier
+              of another <a class='dfnref' href='#dfn-interface-member'>interface member</a>
+              defined on the same <a class='dfnref' href='#dfn-interface'>interface</a>.
             </p>
             <p>
               The type of the attribute is given by the <a class='nt' href='#prod-DeclarationType'>DeclarationType</a>
@@ -744,11 +751,6 @@
               is defined, to an <a class='dfnref' href='#dfn-exception'>exception</a> that
               has been <a class='dfnref' href='#dfn-declared-previously'>declared previously</a>.
             </p>
-            <div class='ednote'>
-              <p>Should conforming implementations have a requirement that they must not
-                raise an exception (that was defined in the IDL) that is not in the 
-                getraises/setraises list?</p>
-            </div>
             <p>
               The following <a class='dfnref' href='#dfn-extended-attribute'>extended attributes</a>
               are applicable to attributes:
@@ -768,6 +770,14 @@
               <a class='nt' href='#prod-Operation'>Operation</a> non-terminal, and is used
               to declare that objects implementing the <a class='dfnref' href='#dfn-interface'>interface</a> will have a method with 
               the given <a class='dfnref' href='#dfn-identifier'>identifier</a>.
+            </p>
+            <p>
+              The <a class='dfnref' href='#dfn-identifier'>identifier</a> of an
+              <a class='dfnref' href='#dfn-operation'>operation</a>
+              <span class='rfc2119'>MUST NOT</span> be the same as the identifier
+              of a <a class='dfnref' href='#dfn-constant'>constant</a> or
+              <a class='dfnref' href='#dfn-attribute'>attribute</a>
+              defined on the same <a class='dfnref' href='#dfn-interface'>interface</a>.
             </p>
             <p>
               The <dfn id='dfn-return-type'>return type</dfn> of the operation is given
@@ -817,6 +827,148 @@
               has been declared previously.
             </p>
             <p>
+              If an <a class='dfnref' href='#dfn-operation'>operation</a>
+              defined on an <a class='dfnref' href='#dfn-interface'>interface</a>
+              has an <a class='dfnref' href='#dfn-identifier'>identifier</a>
+              that is the same as the identifier of another operation on that
+              interface, then the operation is said to be
+              <dfn id='dfn-overloaded'>overloaded</dfn>.  When the identifier
+              of an overloaded operation is used to invoke one of the
+              operations on an object that implements the interface, the
+              number and types of the arguments passed to the operation
+              determine which of the overloaded operations is actually
+              invoked.  There are some restrictions on the arguments that
+              overloaded operations can be specified to take, and in
+              order to describe these restrictions, the notion of an
+              <em>effective overload set</em> is used.
+            </p>
+            <p>
+              The <dfn id='dfn-effective-overload-set'>effective overload set</dfn>
+              for a given <a class='dfnref' href='#dfn-identifier'>identifier</a>
+              and <a class='dfnref' href='#dfn-interface'>interface</a> is a
+              set of pairs &lt;<var>op</var>, <var>types</var>>, where <var>op</var>
+              is an <a class='dfnref' href='#dfn-operation'>operation</a> and
+              <var>types</var> is a list of IDL types.  Each pair represents an
+              allowable invocation of the operation with an argument value list of
+              the given types.  Due to the use of optional arguments and
+              variadic operations (see the definitions of
+              <a class='xattr' href='#Optional'>[Optional]</a> and
+              <a class='xattr' href='#Variadic'>[Variadic]</a>), there may
+              be multiple entries in an effective overload set identifying
+              the same operation.  The effective overload set for identifier
+              <var>A</var> and interface <var>X</var> is constructed as
+              follows:
+            </p>
+            <ol class='algorithm'>
+              <li>Initialize <var>S</var> to ∅.</li>
+              <li>Let <var>m</var> be the maximum number of arguments any <a class='dfnref' href='#dfn-operation'>operation</a> with <a class='dfnref' href='#dfn-identifier'>identifier</a> <var>A</var> on <a class='dfnref' href='#dfn-interface'>interface</a> <var>I</var> is defined to take.</li>
+              <li>For each operation <var>O</var> with identifier <var>A</var> defined on interface <var>I</var>:
+                <ol class='algorithm'>
+                  <li>Let <var>n</var> be the number of arguments <var>O</var> is defined to take.</li>
+                  <li>Let <var>t</var><sub>0‥<var>n</var>−1</sub> be the types of the arguments <var>O</var> is defined to take.</li>
+                  <li>Add to <var>S</var> the pair &lt;<var>O</var>, <var>t</var><sub>0‥<var>n</var>−1</sub>>.</li>
+                  <li>If <var>n</var> > 0 and the final argument of <var>O</var> is annotated with the <a class='xattr' href='#Variadic'>[Variadic]</a> <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>, then:
+                    <ol class='algorithm'>
+                      <li>Add to <var>S</var> the pair &lt;<var>O</var>, <var>t</var><sub>0‥<var>n</var>−2</sub>>.</li>
+                      <li>For every integer <var>i</var>, such that <var>n</var> ≤ <var>i</var> ≤ <var>m</var>−1:
+                        <ol class='algorithm'>
+                          <li>Let <var>u</var><sub>0‥<var>i</var></sub> be a list of types, where <var>u</var><sub>j</sub> = <var>t</var><sub>j</sub> (for <var>j</var> &lt; <var>n</var>) and <var>u</var><sub>j</sub> = <var>t</var><sub><var>n</var>−1</sub> (for <var>j</var> ≥ <var>n</var>).</li>
+                          <li>Add to <var>S</var> the pair &lt;<var>O</var>, <var>u</var><sub>0‥<var>i</var></sub>>.</li>
+                        </ol>
+                      </li>
+                    </ol>
+                  </li>
+                  <li>For every integer <var>i</var>, such that 0 &lt; <var>i</var> &lt; <var>n</var>:
+                    <ol class='algorithm'>
+                      <li>If argument <var>i</var> of <var>O</var> is annotated with the <a class='xattr' href='#Optional'>[Optional]</a> extended attribute, then add to <var>S</var> the pair &lt;<var>O</var>, <var>t</var><sub>0‥<var>i−1</var></sub>>.</li>
+                    </ol>
+                  </li>
+                  <li>If <var>n</var> > 0 and the first argument of <var>O</var> is annotated with the <a class='xattr' href='#Optional'>[Optional]</a> extended attribute, then add to <var>S</var> the pair &lt;<var>O</var>, ()> (where “()” represents the empty list).</li>
+                </ol>
+              </li>
+            </ol>
+            <p>
+              For each pair of entries in an
+              <a class='dfnref' href='#dfn-effective-overload-set'>effective overload set</a>
+              at least one of the following <span class='rfc2119'>MUST</span> be true:
+            </p>
+            <ul>
+              <li>the type list lengths of the two entries are different, or</li>
+              <li>there is an index <var>i</var> such that the types in the two length lists at index <var>i</var> are <a class='dfnref' href='#dfn-distinguishable'>distinguishable</a>.</li>
+            </ul>
+            <p>
+              Two types, <var>t</var> and <var>u</var>, are
+              <dfn id='dfn-distinguishable'>distinguishable</dfn> if
+              both are <a class='dfnref' href='#idl-interface'>objects implementing an interface</a>
+              (where two different <a class='dfnref' href='#dfn-interface'>interfaces</a>
+              are identified) or if one is an <a class='dfnref' href='#idl-interface'>object implementing an interface</a>
+              and the other is a <a class='dfnref' href='#dfn-primitive-type'>primitive type</a>.
+            </p>
+            <p>
+              These restrictions on argument types of <a class='dfnref' href='#dfn-overloaded'>overloaded operations</a>
+              reduce the possibility of resolution ambiguity, but do not
+              eliminate it.  In the ECMAScript language binding, the
+              restrictions still can result in overloaded operation invocations
+              that cannot be distinguished solely based on the values passed to
+              the corresponding function.  For example, with the following
+              <a class='dfnref' href='#dfn-interface'>interfaces</a>:
+            </p>
+            <x:codeblock language='idl'>interface A {
+  // …
+};
+
+interface B {
+  // …
+};
+
+interface C {
+
+  void f(in A x);
+  void f(in B x);
+};</x:codeblock>
+            <p>
+              it is possible to pass an object that implements both <span class='idlvalue'>A</span>
+              and <span class='idlvalue'>B</span> to <code>f</code>.  Similarly,
+              passing <span class='esvalue'>null</span> to <code>f</code>
+              would also be ambiguous.  Since the ECMAScript
+              language binding provides no way to disambiguate such calls,
+              the interface description <span class='rfc2119'>SHOULD</span>
+              describe which operation is invoked in these cases.  (It is
+              acceptable not to describe this if there is no observable
+              difference in behavior for a particular choice of operation
+              to disambiguate the call, or if no object will actually
+              implement the two interfaces, for example.)
+            </p>
+            <div class='example'>
+              <p>
+               For the following interface:
+              </p>
+              <x:codeblock language='idl'>interface A {
+
+  /* f1 */ void f(in DOMString a);
+  /* f2 */ void f(in DOMString a, in DOMString b, [Variadic] in float c);
+  /* f3 */ void f([Optional] in long a, in DOMString b, [Optional] in DOMString c, [Variadic] in float d);
+};</x:codeblock>
+              <p>
+                the <a class='dfnref' href='#dfn-effective-overload-set'>effective overload set</a>
+                for identifier <code>f</code> is:
+              </p>
+              <div class='set'>
+                { &lt;f1, (DOMString)><br/>
+                  &lt;f2, (DOMString, DOMString)><br/>
+                  &lt;f2, (DOMString, DOMString, float)><br/>
+                  &lt;f2, (DOMString, DOMString, float, float)><br/>
+                  &lt;f3, ()><br/>
+                  &lt;f3, (long, DOMString)><br/>
+                  &lt;f3, (long, DOMString, DOMString)><br/>
+                  &lt;f3, (long, DOMString, DOMString, float)> }
+              </div>
+              <p>
+                There are thus no overloaded operation resolution ambiguities
+                for the interface.
+              </p>
+            </div>
+            <p>
               The following extended attributes
               are applicable to operations:
               <a class='xattr' href='#IndexCreator'>[IndexCreator]</a>,
@@ -832,6 +984,7 @@
             <p>
               The following extended attributes are applicable to operation arguments:
               <a class='xattr' href='#Null'>[Null]</a>,
+              <a class='xattr' href='#Optional'>[Optional]</a>,
               <a class='xattr' href='#Undefined'>[Undefined]</a>,
               <a class='xattr' href='#Variadic'>[Variadic]</a>.
             </p>
@@ -869,10 +1022,6 @@
             <a class='dfnref' href='#dfn-declared-previously'>declared previously</a>.
           </p>
           <p>
-            The identifier of an
-            exception member is given
-            by the first <a class='nt' href='#prod-identifier'>identifier</a> terminal in
-            a derivation of <a class='nt' href='#prod-ExceptionMember'>ExceptionMember</a>.
             The identifier of an exception member <span class='rfc2119'>MUST</span> be
             unique within the exception on which it is defined.
           </p>
@@ -933,6 +1082,14 @@
         <div id='idl-valuetypes' class='section'>
           <h3>Valuetypes</h3>
 
+          <div class='ednote'>
+            <p>
+              I think we should consider dropping valuetypes altogether.  It 
+              was really only included because the DOMString type as defined
+              in DOM Core used it, and now DOMString has become an
+              intrinsic type.
+            </p>
+          </div>
           <p>
             Valuetypes in OMG IDL are used to define types similar to structs in C.
             That is, they define composite types that can have zero or more
@@ -983,7 +1140,22 @@
           <h3>Types</h3>
 
           <p>
-            This section lists the types supported by the IDL.
+            This section lists the types supported by the IDL, the set of values
+            each type correspond to, and how <a class='dfnref' href='#dfn-constant'>constants</a>
+            of that type are represented.
+          </p>
+          <p>
+            The following types are known as <dfn id='dfn-primitive-type'>primitive types</dfn>:
+            <a class='idltype' href='#idl-boolean'>boolean</a>,
+            <a class='idltype' href='#idl-octet'>octet</a>,
+            <a class='idltype' href='#idl-short'>short</a>,
+            <a class='idltype' href='#idl-unsigned-short'>unsigned short</a>,
+            <a class='idltype' href='#idl-long'>long</a>,
+            <a class='idltype' href='#idl-unsigned-long'>unsigned long</a>,
+            <a class='idltype' href='#idl-long-long'>long long</a>,
+            <a class='idltype' href='#idl-unsigned-long-long'>unsigned long long</a>,
+            <a class='idltype' href='#idl-float'>float</a> and
+            <a class='idltype' href='#idl-DOMString'>DOMString</a>.
           </p>
 
           <?productions grammar DeclarationType BoxedType Type UnsignedIntegerType IntegerType OptionalLong?>
@@ -1121,12 +1293,6 @@
               represented with <a class='nt' href='#prod-float'>float</a>
               terminals.
             </p>
-            <div class='ednote'>
-              <p>
-                Do we need to mention anything about different NaNs, zeroes, infinities
-                or denormalised numbers?
-              </p>
-            </div>
           </div>
 
           <div id='idl-DOMString' class='section'>
@@ -1134,7 +1300,8 @@
 
             <p>
               The <a class='idltype' href='#idl-DOMString'>DOMString</a> type
-              corresponds to the set of all possible strings of Unicode characters,
+              corresponds to the set of all possible sequences of
+              16 bit unsigned integer code units (to be interpreted as UTF-16 encoded strings <a href='#ref-RFC2781'>[RFC2781]</a>)
               plus the special value <span class='idlvalue'>null</span>, which
               indicates no string.  While <span class='idltype'>DOMString</span>
               is defined to be an OMG IDL boxed
@@ -1240,27 +1407,27 @@
           <p>
             An extended attribute is specified as an
             <a class='nt' href='#prod-identifier'>identifier</a>, optionally followed
-            by some additional information.  There are five forms an extended
+            by some additional information.  There are four forms an extended
             attribute may have:
           </p>
           <ul>
             <li><code>[TheExtendedAttribute]</code>, where it <dfn id='dfn-xattr-no-argument'>takes no argument</dfn>;</li>
             <li><code>[TheExtendedAttribute(<a class='nt' href='#prod-ArgumentList'>ArgumentList</a>)]</code>, where it <dfn id='dfn-xattr-argument-list'>takes an argument list</dfn>;</li>
-            <li><code>[TheExtendedAttribute=<a class='nt' href='#prod-identifier'>identifier</a>]</code>, where it <dfn id='dfn-xattr-identifier'>takes an identifier</dfn>;</li>
-            <li><code>[TheExtendedAttribute=(<a class='nt' href='#prod-IdentifierList'>IdentifierList</a>)]</code>, where it <dfn id='dfn-xattr-identifier-list'>takes an identifier list</dfn>; and,</li>
+            <li><code>[TheExtendedAttribute=<a class='nt' href='#prod-identifier'>identifier</a>]</code>, where it <dfn id='dfn-xattr-identifier'>takes an identifier</dfn>; and,</li>
+            <!--li><code>[TheExtendedAttribute=(<a class='nt' href='#prod-IdentifierList'>IdentifierList</a>)]</code>, where it <dfn id='dfn-xattr-identifier-list'>takes an identifier list</dfn>; and,</li-->
             <li><code>[TheExtendedAttribute=<a class='nt' href='#prod-identifier'>identifier</a>(<a class='nt' href='#prod-ArgumentList'>ArgumentList</a>)]</code>, where it <dfn id='dfn-xattr-named-argument-list'>takes a named argument list</dfn>.</li>
           </ul>
           <p>
             This specification defines a number of extended attributes, which are
             listed in the sub-sections below.  Each definition will state which of the above
-            five forms are allowed.
+            four forms are allowed.
           </p>
 
           <div class='ednote'>
             <p>Have an extended attribute that specifies what properties get enumerated in a for..in loop?</p>
           </div>
 
-          <?productions grammar ExtendedAttributeList ExtendedAttribute ExtendedAttributes ExtendedAttributeDetails ExtendedAttributeAssignment ExtendedAttributeAssignmentArguments IdentifierList Identifiers?>
+          <?productions grammar ExtendedAttributeList ExtendedAttribute ExtendedAttributes ExtendedAttributeDetails ExtendedAttributeAssignment ExtendedAttributeAssignmentArguments?>
 
           <div id='Constructor' class='section'>
             <h4>[Constructor]</h4>
@@ -1269,7 +1436,7 @@
               If the <a class='xattr' href='#Constructor'>[Constructor]</a>
               <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
               appears on an <a class='dfnref' href='#dfn-interface'>interface</a>, it indicates that
-              there must be a way to construct objects that implement this interface.
+              there will be a way to construct objects that implement this interface.
               How such objects can be constructed is specific to the language binding.
               Multiple <a class='xattr' href='#Constructor'>[Constructor]</a> extended
               attributes may appear on a given interface.
@@ -1282,7 +1449,7 @@
               The bare form (<code>[Constructor]</code>) has the same meaning as
               using an empty argument list (<code>[Constructor()]</code>).  For each
               <a class='xattr' href='#Constructor'>[Constructor]</a> extended attribute
-              on the interface, there must be a way to construct an object that implements
+              on the interface, there will be a way to construct an object that implements
               the interface by passing the specified arguments.
             </p>
             <div class='example'>
@@ -1856,6 +2023,59 @@ d.isMemberOfBreed(null);  // This passes the string "" to the isMemberOfBreed fu
             </div>
           </div>
 
+          <div id='Optional' class='section'>
+            <h4>[Optional]</h4>
+
+            <p>
+              If the <a class='xattr' href='#Optional'>[Optional]</a>
+              <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
+              appears on an <a class='dfnref' href='#dfn-operation'>operation</a>
+              argument, it indicates that the operation can be invoked
+              by passing values only for the those arguments appearing
+              before the <a class='xattr' href='#Optional'>[Optional]</a>-annotated
+              argument in the operation’s argument list, for language
+              bindings that support such invocation.  If the extended
+              attribute appears on an operation’s first argument, then the
+              operation can be invoked with zero arguments.
+            </p>
+            <p>
+              Specifying <a class='xattr' href='#Optional'>[Optional]</a>
+              on an <a class='dfnref' href='#dfn-operation'>operation argument</a>
+              is equivalent to using <a class='dfnref' href='#dfn-overloaded'>operation overloading</a>
+              to declare one operation that takes all of the arguments
+              and another that takes only those preceding the
+              <a class='xattr' href='#Optional'>[Optional]</a>-annotated argument.
+            </p>
+            <p>
+              The <a class='xattr' href='#Overloads'>[Overloads]</a>
+              extended attribute <span class='rfc2119'>MUST</span>
+              <a class='dfnref' href='#dfn-xattr-no-argument'>take no argument</a>.
+            </p>
+            <div class='example'>
+              <p>
+                The following <a class='dfnref' href='#dfn-idl-fragment'>IDL fragment</a>
+                defines an <a class='dfnref' href='#dfn-interface'>interface</a>
+                with a single <a class='dfnref' href='#dfn-operation'>operation</a>
+                that can be invoked with three different argument list lengths:
+              </p>
+              <x:codeblock language='idl'>interface ColorCreator {
+
+  Object createColor(in float v1, [Optional] in float v2, in float v3, [Optional] in float alpha);
+};</x:codeblock>
+              <p>
+                It is equivalent to an <a class='dfnref' href='#dfn-interface'>interface</a>
+                that has three <a class='dfnref' href='#dfn-overloaded'>overloaded</a>
+                <a class='dfnref' href='#dfn-operation'>operations</a>:
+              </p>
+              <x:codeblock language='idl'>interface ColorCreator {
+
+  Object createColor(in float v1);
+  Object createColor(in float v1, in float v2, in float v3);
+  Object createColor(in float v1, in float v2, in float v3, in float alpha);
+};</x:codeblock>
+            </div>
+          </div>
+
           <!--
           <div id='Overloads' class='section'>
             <h4>[Overloads]</h4>
@@ -2001,6 +2221,14 @@ p.name.full = 'John Citizen';  // ...has the same behavior as this one.</x:codeb
               the stringification behavior <span class='rfc2119'>MUST</span>
               be described in prose.
             </p>
+            <p>
+              The <a class='xattr' href='#Stringifies'>[Stringifies]</a> extended
+              attribute <span class='rfc2119'>MUST NOT</span> appear on
+              an <a class='dfnref' href='#dfn-interface'>interface</a> that
+              has an <a class='dfnref' href='#dfn-operation'>operation</a>
+              whose <a class='dfnref' href='#dfn-identifier'>identifier</a>
+              is <span class='prop'>toString</span>.
+            </p>
             <div class='example'>
               <p>
                 The following <a class='dfnref' href='#dfn-idl-fragment'>IDL fragment</a>
@@ -2039,7 +2267,7 @@ interface Student {
                 as the following paragraph:
               </p>
               <blockquote>
-                <div>
+                <p>
                   Objects that implement the <span class='idltype'>Student</span>
                   interface must stringify as follows.  If the value of the
                   <span class='idlattr'>familyName</span> attribute is
@@ -2051,7 +2279,7 @@ interface Student {
                   the value of the <span class='idlattr'>givenName</span> attribute,
                   the string <span class='idlvalue'>" "</span> and the value of
                   the <span class='idlattr'>familyName</span> attribute.
-                </div>
+                </p>
               </blockquote>
               <p>
                 An ECMAScript implementation of the IDL would behave as follows:
@@ -2152,6 +2380,13 @@ any executeSql(Array a, Callback f);</x:codeblock>
           <span class='prop'>[[Class]]</span> is not given for a particular
           object, its value is implementation specific.
         </p>
+        <p>
+          The ToBoolean, ToNumber, ToUint16, ToInt32,
+          ToUint32, ToString and ToObject operators referenced in this
+          section are defined in 
+          <cite>ECMAScript Language Specification, 3rd Edition</cite>
+          <a href='#ref-ECMA-262'>[ECMA-262]</a>.
+        </p>
 
         <div id='es-type-mapping' class='section'>
           <h3>ECMAScript type mapping</h3>
@@ -2173,35 +2408,79 @@ any executeSql(Array a, Callback f);</x:codeblock>
             or retrieving a property whose corresponding attribute or exception member in the IDL is of type <var>T</var>.
           </p>
           <p>
-            Each sub-section below describes how a values of a given IDL type are represented
+            Each sub-section below describes how values of a given IDL type are represented
             in ECMAScript.  For each IDL type, it is described how ECMAScript values are
-            converted to an IDL value when passed to a host object expecting that type,
-            and how IDL values of that type are converted to ECMAScript values when returned
-            from a host object.
+            <dfn id='dfn-convert-ecmascript-to-idl-value'>converted to an IDL value</dfn>
+            when passed to a host object expecting that type, and how IDL values
+            of that type are <dfn id='dfn-convert-idl-to-ecmascript-value'>converted to ECMAScript values</dfn>
+            when returned from a host object.
           </p>
-          <div class='ednote'>
-            <p>
-              There should be a definition here for how to coerce an ECMAScript
-              value according to the IDL type expected.  This definition should
-              then be explicitly referenced in the interface prototype object,
-              host object, <span class='prop'>[[Put]]</span> and function calling
-              definitions below, rather than the current wording "must be handled
-              according to the rules in section <?sref es-type-mapping?>".
-            </p>
-          </div>
 
           <div id='es-any' class='section'>
             <h4>any</h4>
 
             <p>
-              The IDL <a class='idltype' href='#idl-any'>any</a> type can correspond to any
-              ECMAScript type.
+              Since the IDL <a class='idltype' href='#idl-any'>any</a> type
+              is the union of all other IDL types, it can correspond to any
+              ECMAScript value type.
             </p>
             <p>
-              Since there is no ECMAScript value that does
-              correspond to an IDL value, no conversion is performed when passing
-              an ECMAScript value to a host object expecting <a class='idltype' href='#idl-any'>any</a>,
-              or when a host object returns a value of type <a class='idltype' href='#idl-any'>any</a>.
+              How to <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>convert an ECMAScript value</a> to an IDL <span class='idltype'>any</span> value depends on the type of the
+              ECMAScript value:
+            </p>
+            <dl class='switch'>
+              <dt>The <span class='esvalue'>undefined</span> value</dt>
+              <dd>
+                The IDL value is an
+                <a class='idltype' href='#idl-Object'>Object</a> reference
+                to a special object that represents the ECMAScript
+                <span class='esvalue'>undefined</span> value.
+              </dd>
+              <dt>The <span class='esvalue'>null</span> value</dt>
+              <dd>
+                The IDL value is the <span class='idlvalue'>null</span>
+                <a class='idltype' href='#idl-Object'>Object</a> reference.
+              </dd>
+              <dt>A <span class='estype'>Boolean</span> value</dt>
+              <dd>
+                The IDL value is the
+                <a class='idltype' href='#idl-boolean'>boolean</a>
+                value that represents the same truth value.
+              </dd>
+              <dt>A <span class='estype'>Number</span> value</dt>
+              <dd>
+                The IDL value is that which is obtained
+                by following the rules for converting the
+                <span class='estype'>Number</span> to an IDL
+                <a class='idltype' href='#idl-float'>float</a> value,
+                as described in <a href='#es-float'>section <?sref es-float?></a>,
+                <?sdir es-float?>.
+              </dd>
+              <dt>A <span class='estype'>String</span> value</dt>
+              <dd>
+                The IDL value is that which is obtained
+                by following the rules for converting the
+                <span class='estype'>String</span> to an IDL
+                <a class='idltype' href='#idl-DOMString'>DOMString</a> value,
+                as described in <a href='#es-DOMString'>section <?sref es-DOMString?></a>,
+                <?sdir es-DOMString?>.
+              </dd>
+              <dt>An <span class='estype'>Object</span> value</dt>
+              <dd>
+                The IDL value is an
+                <a class='idltype' href='#idl-Object'>Object</a> value that
+                references the same object.
+              </dd>
+            </dl>
+            <p>
+              An IDL <a class='idltype' href='#idl-any'>any</a> value is
+              <a class='dfnref' href='#dfn-convert-idl-to-ecmascript-value'>converted to an ECMAScript value</a>
+              as follows.  If the value is an <a class='idltype' href='#idl-Object'>Object</a>
+              reference to a special object that represents an ECMAScript <span class='esvalue'>undefined</span>
+              value, then it is converted to the ECMAScript
+              <span class='esvalue'>undefined</span> value.  Otherwise,
+              the rules for converting the specific type of the IDL value
+              are performed.
             </p>
           </div>
 
@@ -2231,16 +2510,22 @@ any executeSql(Array a, Callback f);</x:codeblock>
               ECMAScript <span class='estype'>Boolean</span> values.
             </p>
             <p>
-              Values <a class='dfnref' href='#dfn-pass-to-host-object'>passed to a host object</a> expecting a
-              <a class='idltype' href='#idl-boolean'>boolean</a> <span class='rfc2119'>MUST</span> first be converted
-              to an ECMAScript <span class='estype'>Boolean</span> value by the
-              ToBoolean operator defined in section 9.2 of the
-              <cite>ECMAScript Language Specification, 3rd Edition</cite>
-              <a href='#ref-ECMA-262'>[ECMA-262]</a>.
+              An ECMAScript value is
+              <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converted</a>
+              to an IDL <span class='idltype'>boolean</span> value
+              by running the following algorithm (where <var>V</var> is the
+              ECMAScript value):
             </p>
+            <ol class='algorithm'>
+              <li>Compute ToBoolean(<var>V</var>).</li>
+              <li>Return the IDL <a class='idltype' href='#idl-boolean'>boolean</a> value is the one that represents the same truth value as the ECMAScript <span class='estype'>Boolean</span> value Result(1).</li>
+            </ol>
             <p>
-              <a class='idltype' href='#idl-boolean'>boolean</a> values <a class='dfnref' href='#dfn-return-from-host-object'>returned from a host object</a>
-              <span class='rfc2119'>MUST</span> be ECMAScript <span class='estype'>Boolean</span> values.
+              The result of <a class='dfnref' href='#dfn-convert-idl-to-ecmascript-value'>converting
+                an IDL <span class='idltype'>boolean</span> value to an ECMAScript
+                value</a> is a <span class='estype'>Boolean</span> that
+              represents the same truth value as the IDL
+              <span class='idltype'>boolean</span> value.
             </p>
           </div>
 
@@ -2252,26 +2537,25 @@ any executeSql(Array a, Callback f);</x:codeblock>
               integer ECMAScript <span class='estype'>Number</span> values in the range [0, 255].
             </p>
             <p>
-              Values <a class='dfnref' href='#dfn-pass-to-host-object'>passed to a host object</a> expecting an
-              <a class='idltype' href='#idl-octet'>octet</a> <span class='rfc2119'>MUST</span> first be converted to an
-              ECMAScript <span class='estype'>Number</span> value by the
-              ToUint8 operator, which functions (analogously to the ToUint32
-              operator defined in section 9.6 of the
-              <cite>ECMAScript Language Specification, 3rd Edition</cite>
-              <a href='#ref-ECMA-262'>[ECMA-262]</a>)
-              as follows:
+              An ECMAScript value is
+              <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converted</a>
+              to an IDL <span class='idltype'>octet</span> value
+              by running the following algorithm (where <var>V</var> is the
+              ECMAScript value):
             </p>
             <ol class='algorithm'>
-              <li>Call ToNumber on the input argument.</li>
-              <li>If Result(1) is <span class='esvalue'>NaN</span>, +0, −0, +∞, or −∞, return +0.</li>
-              <li>Compute sign(Result(1)) * floor(abs(Result(1))).</li>
-              <li>Compute Result(3) modulo 2<sup>8</sup>.</li>
-              <li>Return Result(4).</li>
+              <li x:step='a'>Compute ToNumber(<var>V</var>).</li>
+              <li>If Result(<?stepref a?>) is <span class='esvalue'>NaN</span>, +0, −0, +∞, or −∞, then return the IDL <span class='idltype'>octet</span> value that represents 0.</li>
+              <li x:step='b'>Compute sign(Result(<?stepref a?>)) * floor(abs(Result(<?stepref a?>))).</li>
+              <li x:step='c'>Compute Result(<?stepref b?>) modulo 2<sup>8</sup>.</li>
+              <li>Return the IDL <span class='idltype'>octet</span> value that represents the same numeric value as Result(<?stepref c?>).</li>
             </ol>
             <p>
-              <a class='idltype' href='#idl-octet'>octet</a> values <a class='dfnref' href='#dfn-return-from-host-object'>returned from a host object</a>
-              <span class='rfc2119'>MUST</span> be integer ECMAScript <span class='estype'>Number</span> values
-              in the range [0, 255].
+              The result of <a class='dfnref' href='#dfn-convert-idl-to-ecmascript-value'>converting</a>
+              an IDL <span class='idltype'>octet</span> value to an ECMAScript
+              value is a <span class='estype'>Number</span> that represents
+              the same numeric value as the IDL
+              <span class='idltype'>octet</span> value.
             </p>
           </div>
 
@@ -2283,27 +2567,26 @@ any executeSql(Array a, Callback f);</x:codeblock>
               ECMAScript <span class='estype'>Number</span> values in the range [−32768, 32767].
             </p>
             <p>
-              Values <a class='dfnref' href='#dfn-pass-to-host-object'>passed to a host object</a> expecting a
-              <a class='idltype' href='#idl-short'>short</a> <span class='rfc2119'>MUST</span> first be converted
-              to an ECMAScript <span class='estype'>Number</span> value by
-              the ToInt16 operator, which functions (analogously to the ToInt32
-              operator defined in section 9.5 of the
-              <cite>ECMAScript Language Specification, 3rd Edition</cite>
-              <a href='#ref-ECMA-262'>[ECMA-262]</a>)
-              as follows:
+              An ECMAScript value is
+              <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converted</a>
+              to an IDL <span class='idltype'>short</span> value
+              by running the following algorithm (where <var>V</var> is the
+              ECMAScript value):
             </p>
             <ol class='algorithm'>
-              <li>Call ToNumber on the input argument.</li>
-              <li>If Result(1) is <span class='esvalue'>NaN</span>, +0, −0, +∞, or −∞, return +0.</li>
-              <li>Compute sign(Result(1)) * floor(abs(Result(1))).</li>
-              <li>Compute Result(3) modulo 2<sup>16</sup>.</li>
-              <li>If Result(4) is greater than or equal to 2<sup>15</sup>, return Result(4) − 2<sup>16</sup>.
-                Otherwise, return Result(4).</li>
+              <li x:step='a'>Compute ToNumber(<var>V</var>).</li>
+              <li>If Result(<?stepref a?>) is <span class='esvalue'>NaN</span>, +0, −0, +∞, or −∞, then return the IDL <span class='idltype'>short</span> value that represents 0.</li>
+              <li x:step='b'>Compute sign(Result(<?stepref a?>)) * floor(abs(Result(<?stepref a?>))).</li>
+              <li x:step='c'>Compute Result(<?stepref b?>) modulo 2<sup>16</sup>.</li>
+              <li>If Result(<?stepref c?>) is greater than or equal to 2<sup>15</sup>, return the IDL <span class='idltype'>short</span> value that represents the same numeric value as Result(<?stepref c?>) − 2<sup>16</sup>.
+                Otherwise, return the IDL <span class='idltype'>short</span> value that represents the same numeric value as Result(<?stepref c?>).</li>
             </ol>
             <p>
-              <a class='idltype' href='#idl-short'>short</a> values <a class='dfnref' href='#dfn-return-from-host-object'>returned from a host object</a>
-              <span class='rfc2119'>MUST</span> be integer ECMAScript <span class='estype'>Number</span> values
-              in the range [−32768, 32767].
+              The result of <a class='dfnref' href='#dfn-convert-idl-to-ecmascript-value'>converting</a>
+              an IDL <span class='idltype'>short</span> value to an ECMAScript
+              value is a <span class='estype'>Number</span> that represents the
+              same numeric value as the IDL
+              <span class='idltype'>short</span> value.
             </p>
           </div>
 
@@ -2315,17 +2598,22 @@ any executeSql(Array a, Callback f);</x:codeblock>
               ECMAScript <span class='estype'>Number</span> values in the range [0, 65535].
             </p>
             <p>
-              Values <a class='dfnref' href='#dfn-pass-to-host-object'>passed to a host object</a> expecting an
-              <a class='idltype' href='#idl-unsigned-short'>unsigned short</a> <span class='rfc2119'>MUST</span> first be converted to an
-              ECMAScript <span class='estype'>Number</span> value by the
-              ToUint16 operator defined in section 9.7 of the
-              <cite>ECMAScript Language Specification, 3rd Edition</cite>
-              <a href='#ref-ECMA-262'>[ECMA-262]</a>.
+              An ECMAScript value is
+              <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converted</a>
+              to an IDL <span class='idltype'>unsigned short</span> value
+              by running the following algorithm (where <var>V</var> is the
+              ECMAScript value):
             </p>
+            <ol class='algorithm'>
+              <li x:step='a'>Compute ToUint16(<var>V</var>).</li>
+              <li>Return the IDL <span class='idltype'>unsigned short</span> value that represents the same numeric value as Result(<?stepref a?>).</li>
+            </ol>
             <p>
-              <a class='idltype' href='#idl-unsigned-short'>unsigned short</a> values <a class='dfnref' href='#dfn-return-from-host-object'>returned from a host object</a>
-              <span class='rfc2119'>MUST</span> be integer ECMAScript <span class='estype'>Number</span> values
-              in the range [0, 65535].
+              The result of <a class='dfnref' href='#dfn-convert-idl-to-ecmascript-value'>converting</a>
+              an IDL <span class='idltype'>unsigned short</span> value to an ECMAScript
+              value is a <span class='estype'>Number</span> that
+              represents the same numeric value as the IDL
+              <span class='idltype'>unsigned short</span> value.
             </p>
           </div>
 
@@ -2337,17 +2625,22 @@ any executeSql(Array a, Callback f);</x:codeblock>
               ECMAScript <span class='estype'>Number</span> values in the range [−2147483648, 2147483647].
             </p>
             <p>
-              Values <a class='dfnref' href='#dfn-pass-to-host-object'>passed to a host object</a> expecting an
-              <a class='idltype' href='#idl-long'>long</a> <span class='rfc2119'>MUST</span> first be converted to an
-              ECMAScript <span class='estype'>Number</span> value by the
-              ToInt32 operator defined in section 9.5 of the
-              <cite>ECMAScript Language Specification, 3rd Edition</cite>
-              <a href='#ref-ECMA-262'>[ECMA-262]</a>.
+              An ECMAScript value is
+              <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converted</a>
+              to an IDL <span class='idltype'>long</span> value
+              by running the following algorithm (where <var>V</var> is the
+              ECMAScript value):
             </p>
+            <ol class='algorithm'>
+              <li x:step='a'>Compute ToInt32(<var>V</var>).</li>
+              <li>Return the IDL <span class='idltype'>long</span> value that represents the same numeric value as Result(<?stepref a?>).</li>
+            </ol>
             <p>
-              <a class='idltype' href='#idl-long'>long</a> values <a class='dfnref' href='#dfn-return-from-host-object'>returned from a host object</a>
-              <span class='rfc2119'>MUST</span> be integer ECMAScript <span class='estype'>Number</span> values
-              in the range [−2147483648, 2147483647].
+              The result of <a class='dfnref' href='#dfn-convert-idl-to-ecmascript-value'>converting</a>
+              an IDL <span class='idltype'>long</span> value to an ECMAScript
+              value is a <span class='estype'>Number</span> that
+              represents the same numeric value as the IDL
+              <span class='idltype'>long</span> value.
             </p>
           </div>
 
@@ -2359,17 +2652,22 @@ any executeSql(Array a, Callback f);</x:codeblock>
               ECMAScript <span class='estype'>Number</span> values in the range [0, 4294967295].
             </p>
             <p>
-              Values <a class='dfnref' href='#dfn-pass-to-host-object'>passed to a host object</a> expecting an
-              <a class='idltype' href='#idl-unsigned-long'>unsigned long</a> <span class='rfc2119'>MUST</span> first be converted to an
-              ECMAScript <span class='estype'>Number</span> value by the
-              ToUint32 operator defined in section 9.5 of the
-              <cite>ECMAScript Language Specification, 3rd Edition</cite>
-              <a href='#ref-ECMA-262'>[ECMA-262]</a>.
+              An ECMAScript value is
+              <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converted</a>
+              to an IDL <span class='idltype'>unsigned long</span> value
+              by running the following algorithm (where <var>V</var> is the
+              ECMAScript value):
             </p>
+            <ol class='algorithm'>
+              <li x:step='a'>Compute ToUint32(<var>V</var>).</li>
+              <li>Return the IDL <span class='idltype'>unsigned long</span> value that represents the same numeric value as Result(<?stepref a?>).</li>
+            </ol>
             <p>
-              <a class='idltype' href='#idl-unsigned-long'>unsigned long</a> values <a class='dfnref' href='#dfn-return-from-host-object'>returned from a host object</a>
-              <span class='rfc2119'>MUST</span> be integer ECMAScript <span class='estype'>Number</span> values
-              in the range [0, 4294967295].
+              The result of <a class='dfnref' href='#dfn-convert-idl-to-ecmascript-value'>converting</a>
+              an IDL <span class='idltype'>unsigned long</span> value to an ECMAScript
+              value is a <span class='estype'>Number</span> that
+              represents the same numeric value as the IDL
+              <span class='idltype'>unsigned long</span> value.
             </p>
           </div>
 
@@ -2381,32 +2679,29 @@ any executeSql(Array a, Callback f);</x:codeblock>
               ECMAScript <span class='estype'>Number</span> values.
             </p>
             <p>
-              Values <a class='dfnref' href='#dfn-pass-to-host-object'>passed to a host object</a> expecting a
-              <a class='idltype' href='#idl-long-long'>long long</a> <span class='rfc2119'>MUST</span> first be converted
-              to an ECMAScript <span class='estype'>Number</span> value by
-              the ToInt64 operator, which functions (analogously to the ToInt32
-              operator defined in section 9.5 of the
-              <cite>ECMAScript Language Specification, 3rd Edition</cite>
-              <a href='#ref-ECMA-262'>[ECMA-262]</a>)
-              as follows:
+              An ECMAScript value is
+              <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converted</a>
+              to an IDL <span class='idltype'>long long</span> value
+              by running the following algorithm (where <var>V</var> is the
+              ECMAScript value):
             </p>
             <ol class='algorithm'>
-              <li>Call ToNumber on the input argument.</li>
-              <li>If Result(1) is <span class='esvalue'>NaN</span>, +0, −0, +∞, or −∞, return +0.</li>
-              <li>Compute sign(Result(1)) * floor(abs(Result(1))).</li>
-              <li>Compute Result(3) modulo 2<sup>64</sup>.</li>
-              <li>If Result(4) is greater than or equal to 2<sup>63</sup>, return Result(4) − 2<sup>64</sup>.
-                Otherwise, return Result(4).</li>
+              <li x:step='a'>Compute ToNumber(<var>V</var>).</li>
+              <li>If Result(<?stepref a?>) is <span class='esvalue'>NaN</span>, +0, −0, +∞, or −∞, then return the IDL <span class='idltype'>long long</span> value that represents 0.</li>
+              <li x:step='b'>Compute sign(Result(<?stepref a?>)) * floor(abs(Result(<?stepref a?>))).</li>
+              <li x:step='c'>Compute Result(<?stepref b?>) modulo 2<sup>64</sup>.</li>
+              <li>If Result(<?stepref c?>) is greater than or equal to 2<sup>63</sup>, return the IDL <span class='idltype'>long long</span> value that represents the same numeric value as Result(<?stepref c?>) − 2<sup>64</sup>.
+                Otherwise, return the IDL <span class='idltype'>long long</span> value that represents the same numeric value as Result(<?stepref c?>).</li>
             </ol>
             <p>
-              <a class='idltype' href='#idl-long-long'>long long</a> values <a class='dfnref' href='#dfn-return-from-host-object'>returned from a host object</a>
-              <span class='rfc2119'>MUST</span> be ECMAScript <span class='estype'>Number</span> values.  If the
-              <a class='idltype' href='#idl-long-long'>long long</a> value cannot be represented exactly
-              by a <span class='estype'>Number</span> value (i.e., it is less than or equal
-              to −2<sup>53</sup> or greater than or equal to 2<sup>53</sup>), the
-              <span class='estype'>Number</span> value returned <span class='rfc2119'>MUST</span> be the number
-              representable by a <span class='estype'>Number</span> closest to the
-              given <a class='idltype' href='#idl-long-long'>long long</a>.
+              The result of <a class='dfnref' href='#dfn-convert-idl-to-ecmascript-value'>converting</a>
+              an IDL <span class='idltype'>long long</span> value to an ECMAScript
+              value is a <span class='estype'>Number</span> value that
+              represents the closest numeric value to the <span class='idltype'>long long</span>.
+              If the <span class='idltype'>long long</span> is in the range
+              (−2<sup>53</sup>, 2<sup>53</sup>), then the <span class='estype'>Number</span>
+              will be able to represent exactly the same value as the
+              <span class='idltype'>long long</span>.
             </p>
             <div class='ednote'>
               <p>Should check that range of signed integers representable in a double.</p>
@@ -2421,30 +2716,28 @@ any executeSql(Array a, Callback f);</x:codeblock>
               ECMAScript <span class='estype'>Number</span> values.
             </p>
             <p>
-              Values <a class='dfnref' href='#dfn-pass-to-host-object'>passed to a host object</a> expecting an
-              <a class='idltype' href='#idl-unsigned-long-long'>unsigned long long</a> <span class='rfc2119'>MUST</span> first be converted to an
-              ECMAScript <span class='estype'>Number</span> value by the
-              ToUint64 operator, which functions (analogously to the ToUint32
-              operator defined in section 9.6 of the
-              <cite>ECMAScript Language Specification, 3rd Edition</cite>
-              <a href='#ref-ECMA-262'>[ECMA-262]</a>)
-              as follows:
+              An ECMAScript value is
+              <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converted</a>
+              to an IDL <span class='idltype'>unsigned long long</span> value
+              by running the following algorithm (where <var>V</var> is the
+              ECMAScript value):
             </p>
             <ol class='algorithm'>
-              <li>Call ToNumber on the input argument.</li>
-              <li>If Result(1) is <span class='esvalue'>NaN</span>, +0, −0, +∞, or −∞, return +0.</li>
-              <li>Compute sign(Result(1)) * floor(abs(Result(1))).</li>
-              <li>Compute Result(3) modulo 2<sup>64</sup>.</li>
-              <li>Return Result(4).</li>
+              <li x:step='a'>Compute ToNumber(<var>V</var>).</li>
+              <li>If Result(<?stepref a?>) is <span class='esvalue'>NaN</span>, +0, −0, +∞, or −∞, then return the IDL <span class='idltype'>unsigned long long</span> value that represents 0.</li>
+              <li x:step='b'>Compute sign(Result(<?stepref a?>)) * floor(abs(Result(<?stepref a?>))).</li>
+              <li x:step='c'>Compute Result(<?stepref b?>) modulo 2<sup>64</sup>.</li>
+              <li>Return the IDL <span class='idltype'>unsigned long long</span> value that represents the same numeric value as Result(<?stepref c?>).</li>
             </ol>
             <p>
-              <a class='idltype' href='#idl-unsigned-long-long'>unsigned long long</a> values <a class='dfnref' href='#dfn-return-from-host-object'>returned from a host object</a>
-              <span class='rfc2119'>MUST</span> be ECMAScript <span class='estype'>Number</span> values.  If the
-              <a class='idltype' href='#idl-unsigned-long-long'>unsigned long long</a> value cannot be represented exactly
-              by a <span class='estype'>Number</span> value (i.e., it is greater than
-              or equal to 2<sup>53</sup>), the <span class='estype'>Number</span> value
-              returned <span class='rfc2119'>MUST</span> be the number representable by a <span class='estype'>Number</span>
-              closest to the given <a class='idltype' href='#idl-unsigned-long-long'>unsigned long long</a>.
+              The result of <a class='dfnref' href='#dfn-convert-idl-to-ecmascript-value'>converting</a>
+              an IDL <span class='idltype'>unsigned long long</span> value to an ECMAScript
+              value is a <span class='estype'>Number</span> value that
+              represents the closest numeric value to the <span class='idltype'>unsigned long long</span>.
+              If the <span class='idltype'>unsigned long long</span> is less than 2<sup>53</sup>,
+              then the <span class='estype'>Number</span> will be able to
+              represent exactly the same value as the
+              <span class='idltype'>unsigned long long</span>.
             </p>
             <div class='ednote'>
               <p>
@@ -2462,17 +2755,33 @@ any executeSql(Array a, Callback f);</x:codeblock>
               ECMAScript <span class='estype'>Number</span> values.
             </p>
             <p>
-              Values <a class='dfnref' href='#dfn-pass-to-host-object'>passed to a host object</a> expecting a
-              <a class='idltype' href='#idl-float'>float</a> <span class='rfc2119'>MUST</span> first be converted
-              to an ECMAScript <span class='estype'>Number</span> value by the
-              ToNumber operator defined in section 9.3 of the
-              <cite>ECMAScript Language Specification, 3rd Edition</cite>
-              <a href='#ref-ECMA-262'>[ECMA-262]</a>.
+              An ECMAScript value is
+              <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converted</a>
+              to an IDL <span class='idltype'>float</span> value
+              by running the following algorithm (where <var>V</var> is the
+              ECMAScript value):
             </p>
+            <ol class='algorithm'>
+              <li x:step='a'>Compute ToNumber(<var>V</var>).</li>
+              <li>If Result(<?stepref a?>) is <span class='esvalue'>NaN</span>, then return the IDL <span class='idltype'>float</span> value that represents the IEEE 754 NaN value with the bit pattern 0x7fc00000 <a href='#ref-IEEE-754'>[IEEE-754]</a>.</li>
+              <li>Return the IDL <a class='idltype' href='#idl-float'>float</a> value that is the one that represents the same numeric value as the ECMAScript <span class='estype'>Number</span> value Result(<?stepref a?>).</li>
+            </ol>
             <p>
-              <a class='idltype' href='#idl-float'>float</a> values <a class='dfnref' href='#dfn-return-from-host-object'>returned from a host object</a>
-              <span class='rfc2119'>MUST</span> be ECMAScript <span class='estype'>Number</span> values.
+              The result of <a class='dfnref' href='#dfn-convert-idl-to-ecmascript-value'>converting</a>
+              an IDL <span class='idltype'>float</span> value to an ECMAScript
+              value is a <span class='estype'>Number</span>:
             </p>
+            <ul>
+              <li>
+                If the IDL <span class='idltype'>float</span> value is a NaN,
+                then the <span class='estype'>Number</span> value is <span class='esvalue'>NaN</span>.
+              </li>
+              <li>
+                Otherwise, the <span class='estype'>Number</span> value is
+                the one that represents the same numeric value as the IDL
+                <span class='idltype'>float</span> value.
+              </li>
+            </ul>
           </div>
 
           <div id='es-DOMString' class='section'>
@@ -2484,21 +2793,89 @@ any executeSql(Array a, Callback f);</x:codeblock>
               and the <span class='esvalue'>null</span> value.
             </p>
             <p>
-              Values <a class='dfnref' href='#dfn-pass-to-host-object'>passed to a host object</a>
-              expecting a <a class='idltype' href='#idl-DOMString'>DOMString</a> value
-              <span class='rfc2119'>MUST</span> first be converted to an ECMAScript
-              <span class='estype'>String</span> value by the ToString operator
-              defined in section 9.8 of the
-              <cite>ECMAScript Language Specification, 3rd Edition</cite>
-              <a href='#ref-ECMA-262'>[ECMA-262]</a>, unless it is the
-              <span class='esvalue'>null</span> value, in which case the value passed to
-              the host object is <span class='idlvalue'>null</span>.
+              An ECMAScript value is
+              <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converted</a>
+              to an IDL <span class='idltype'>DOMString</span> value
+              by running the following algorithm (where <var>V</var> is the
+              ECMAScript value):
             </p>
+            <ol class='algorithm'>
+              <li>If <var>V</var> is <span class='esvalue'>null</span>:
+                <ol>
+                  <li>
+                    If the conversion to an IDL value is being performed due
+                    to <var>V</var> being passed as an <a class='dfnref' href='#dfn-operation'>operation</a>
+                    argument that is annotated with the <a class='xattr' href='#Null'>[Null]</a>
+                    <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>,
+                    or due to <var>V</var> being assigned to an <a class='dfnref' href='#dfn-attribute'>attribute</a>
+                    with <a class='xattr' href='#Null'>[Null]</a>:
+                    <ol>
+                      <li>
+                        If the <a class='xattr' href='#Null'>[Null]</a>
+                        <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
+                        <a class='dfnref' href='#dfn-xattr-identifier-argument'>took an identifier argument</a>
+                        <code>Empty</code>, then return the <span class='idltype'>DOMString</span>
+                        value that represents the empty string (an empty sequence of 16 bit code units).
+                      </li>
+                      <li>
+                        Otherwise, the <a class='xattr' href='#Null'>[Null]</a>
+                        <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
+                        <a class='dfnref' href='#dfn-xattr-identifier-argument'>took an identifier argument</a>
+                        <code>Null</code>.  Return the <span class='idltype'>DOMString</span>
+                        value <span class='idlvalue'>null</span>.
+                      </li>
+                    </ol>
+                  </li>
+                </ol>
+              </li>
+              <li>If <var>V</var> is <span class='esvalue'>undefined</span>:
+                <ol>
+                  <li>
+                    If the conversion to an IDL value is being performed due
+                    to <var>V</var> being passed as an <a class='dfnref' href='#dfn-operation'>operation</a>
+                    argument that is annotated with the <a class='xattr' href='#Undefined'>[Undefined]</a>
+                    <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>,
+                    or due to <var>V</var> being assigned to an <a class='dfnref' href='#dfn-attribute'>attribute</a>
+                    with <a class='xattr' href='#Undefined'>[Undefined]</a>:
+                    <ol>
+                      <li>
+                        If the <a class='xattr' href='#Undefined'>[Undefined]</a>
+                        <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
+                        <a class='dfnref' href='#dfn-xattr-identifier-argument'>took an identifier argument</a>
+                        <code>Empty</code>, then return the <span class='idltype'>DOMString</span>
+                        value that represents the empty string (an empty sequence of 16 bit code units).
+                      </li>
+                      <li>
+                        Otherwise, the <a class='xattr' href='#Undefined'>[Undefined]</a>
+                        <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
+                        <a class='dfnref' href='#dfn-xattr-identifier-argument'>took an identifier argument</a>
+                        <code>Null</code>.  Return the <span class='idltype'>DOMString</span>
+                        value <span class='idlvalue'>null</span>.
+                      </li>
+                    </ol>
+                  </li>
+                </ol>
+              </li>
+              <li x:step='a'>Compute ToString(<var>V</var>).</li>
+              <li>Return the IDL <a class='idltype' href='#idl-DOMString'>DOMString</a> value that represents the same sequence of characters as the one the ECMAScript <span class='estype'>String</span> value Result(<?stepref a?>) represents.</li>
+            </ol>
             <p>
-              A <a class='idltype' href='#idl-DOMString'>DOMString</a> value <a class='dfnref' href='#dfn-return-from-host-object'>returned from a host object</a>
-              <span class='rfc2119'>MUST</span> be either an ECMAScript <span class='estype'>String</span> value
-              or the ECMAScript <span class='esvalue'>null</span>.
+              The result of <a class='dfnref' href='#dfn-convert-idl-to-ecmascript-value'>converting</a>
+              an IDL <span class='idltype'>DOMString</span> value to an ECMAScript
+              value is:
             </p>
+            <ul>
+              <li>
+                If the IDL <span class='idltype'>DOMString</span> value is
+                <span class='idlvalue'>null</span>, then the ECMAScript value
+                is the <span class='esvalue'>null</span> value.
+              </li>
+              <li>
+                Otherwise, the ECMAScript value is the <span class='estype'>String</span>
+                value that represents the same sequence of characters that the
+                IDL <span class='idltype'>DOMString</span> represents.
+              </li>
+            </ul>
           </div>
 
           <div id='es-sequence' class='section'>
@@ -2508,6 +2885,9 @@ any executeSql(Array a, Callback f);</x:codeblock>
               IDL <a class='idltype' href='#idl-sequence'>sequence&lt;<var>T</var>></a> values are represented by
               ECMAScript <span class='estype'>Object</span> values with special properties.
             </p>
+            <div class='ednote'>
+              <p>This section needs to be rewritten to look like the sections above for other IDL types.</p>
+            </div>
             <p>
               Values <a class='dfnref' href='#dfn-pass-to-host-object'>passed to a host object</a> expecting a
               <a class='idltype' href='#idl-sequence'>sequence&lt;<var>T</var>></a>
@@ -2626,20 +3006,34 @@ results.numbers[6];                  // Evaluates to 0, since that is how 'undef
               values are represented by ECMAScript <span class='estype'>Object</span> values.
             </p>
             <p>
-              If a host object expecting an <a class='idltype' href='#idl-Object'>Object</a>
-              is <a class='dfnref' href='#dfn-pass-to-host-object'>passed</a> the <span class='esvalue'>null</span> value, then that value
-              <span class='rfc2119'>MUST</span> passed without modification.  Otherwise,
-              the value being passed <span class='rfc2119'>MUST</span>
-              first be converted to an ECMAScript <span class='estype'>Object</span> value
-              by the ToObject operator defined in section 9.9 of the
-              <cite>ECMAScript Language Specification, 3rd Edition</cite>
-              <a href='#ref-ECMA-262'>[ECMA-262]</a>.
+              An ECMAScript value is
+              <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converted</a>
+              to an IDL <span class='idltype'>Object</span> value
+              by running the following algorithm (where <var>V</var> is the
+              ECMAScript value):
             </p>
+            <ol class='algorithm'>
+              <li>If <var>V</var> is <span class='esvalue'>null</span>, then return the IDL <span class='idltype'>Object</span> value <span class='idlvalue'>null</span>.</li>
+              <li x:step='a'>Compute ToObject(<var>V</var>).</li>
+              <li>Return the IDL <span class='idltype'>Object</span> value that is a reference to the same object as Result(<?stepref a?>).</li>
+            </ol>
             <p>
-              If a host object <a class='dfnref' href='#dfn-return-from-host-object'>returns</a> an <a class='idltype' href='#idl-Object'>Object</a> that is <span class='idlvalue'>null</span>,
-              then the ECMAScript <span class='esvalue'>null</span> value <span class='rfc2119'>MUST</span> be returned.
-              Otherwise, an ECMAScript <span class='estype'>Object</span> value <span class='rfc2119'>MUST</span> be returned.
+              The result of <a class='dfnref' href='#dfn-convert-idl-to-ecmascript-value'>converting</a>
+              an IDL <span class='idltype'>Object</span> value to an ECMAScript
+              value is:
             </p>
+            <ul>
+              <li>
+                If the IDL <span class='idltype'>Object</span> value is
+                <span class='idlvalue'>null</span>, then the ECMAScript value
+                is the <span class='esvalue'>null</span> value.
+              </li>
+              <li>
+                Otherwise, the ECMAScript value is an <span class='estype'>Object</span>
+                value that represents a reference to the same object that the
+                IDL <span class='idltype'>Object</span> represents.
+              </li>
+            </ul>
           </div>
 
           <div id='es-interface' class='section'>
@@ -2650,28 +3044,36 @@ results.numbers[6];                  // Evaluates to 0, since that is how 'undef
               values are represented by ECMAScript <span class='estype'>Object</span> values.
             </p>
             <p>
-              If a host object expecting an object that implements an
-              <a class='dfnref' href='#dfn-interface'>interface</a> <var>A</var>
-              is <a class='dfnref' href='#dfn-pass-to-host-object'>passed</a> the <span class='esvalue'>null</span> value, then that value
-              <span class='rfc2119'>MUST</span> passed without modification.
-              Otherwise, the value being passed <span class='rfc2119'>MUST</span>
-              first be converted to an ECMAScript <span class='estype'>Object</span> value
-              by the ToObject operator defined in section 9.9 of the
-              <cite>ECMAScript Language Specification, 3rd Edition</cite>
-              <a href='#ref-ECMA-262'>[ECMA-262]</a>.
-              If after that conversion the object is not one that implements <var>A</var>
-              (either intrinsically for a host object, or as described in
-              <a href='#native-objects'>section <?sref native-objects?></a> <?sdir native-objects?> for a
-              native object), then a <span class='esvalue'>TypeError</span> <span class='rfc2119'>MUST</span> be thrown.
+              An ECMAScript value is
+              <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converted</a>
+              to an IDL <a href='#idl-interface'>object implementing an interface</a> value
+              by running the following algorithm (where <var>V</var> is the
+              ECMAScript value and <var>I</var> is the <a class='dfnref' href='#dfn-interface'>interface</a>):
             </p>
+            <ol class='algorithm'>
+              <li>If <var>V</var> is <span class='esvalue'>null</span>, then return the IDL <a href='#idl-interface'>object implementing an interface</a> value <span class='idlvalue'>null</span>.</li>
+              <li>If <var>V</var> is a host object that implements <var>I</var>, then return the IDL <a href='#idl-interface'>object implementing an interface</a> value that represents a reference to that host object.</li>
+              <li x:step='a'>Compute ToObject(<var>V</var>).</li>
+              <li>If Result(<?stepref a?>) is a native object that is considered to implement <var>I</var> according to the rules in <a href='#native-objects'>section <?sref native-objects?></a>, then return the IDL <a href='#idl-interface'>object implementing an interface</a> value that represents a reference to that native object.</li>
+              <li>Throw a <span class='esvalue'>TypeError</span>.</li>
+            </ol>
             <p>
-              If a host object <a class='dfnref' href='#dfn-return-from-host-object'>returns</a>
-              an object that implements an interface <var>A</var> that is
-              <span class='idlvalue'>null</span>,
-              then the ECMAScript <span class='esvalue'>null</span> value <span class='rfc2119'>MUST</span> be returned.
-              Otherwise, an ECMAScript <span class='estype'>Object</span> value that
-              implements <var>A</var> <span class='rfc2119'>MUST</span> be returned.
+              The result of <a class='dfnref' href='#dfn-convert-idl-to-ecmascript-value'>converting</a>
+              an IDL <a href='#idl-interface'>object implementing an interface</a>
+              value to an ECMAScript value is:
             </p>
+            <ul>
+              <li>
+                If the IDL <a href='#idl-interface'>object implementing an interface</a> value is
+                <span class='idlvalue'>null</span>, then the ECMAScript value
+                is the <span class='esvalue'>null</span> value.
+              </li>
+              <li>
+                Otherwise, the ECMAScript value is an <span class='estype'>Object</span>
+                value that represents a reference to the same object that the
+                IDL <a href='#idl-interface'>object implementing an interface</a> represents.
+              </li>
+            </ul>
           </div>
 
           <div id='es-boxed-valuetype' class='section'>
@@ -2682,6 +3084,9 @@ results.numbers[6];                  // Evaluates to 0, since that is how 'undef
               by values of either the ECMAScript type corresponding to the IDL type being boxed, or
               the ECMAScript <span class='esvalue'>null</span> value.
             </p>
+            <div class='ednote'>
+              <p>This section needs to be rewritten to look like the sections above for other IDL types.</p>
+            </div>
             <p>
               If a host object expecting a boxed valuetype is passed an
               ECMAScript value other than the <span class='esvalue'>null</span> value,
@@ -2723,6 +3128,66 @@ results.numbers[6];                  // Evaluates to 0, since that is how 'undef
             whose presence affects only the ECMAScript binding.
           </p>
 
+          <div id='Callback' class='section'>
+            <h4>[Callback]</h4>
+
+            <p>
+              If the <a class='xattr' href='#Callback'>[Callback]</a>
+              <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
+              appears on an <a class='dfnref' href='#dfn-interface'>interface</a>,
+              it indicates that the interface can be implemented by an ECMAScript native object
+              (see <a href='#native-objects'>section <?sref native-objects?></a>
+              <?sdir native-objects?>), and such an object can be
+              <a class='dfnref' href='#dfn-pass-to-host-object'>passed to a host
+                object</a> expecting an object that implements the interface.
+              A native object implementing the interface is most often
+              used to provide callback methods to a host object, hence
+              the name of this extended attribute.
+            </p>
+            <p>
+              The <a class='xattr' href='#Callback'>[Callback]</a> extended attribute
+              <span class='rfc2119'>MUST</span> either <a class='dfnref' href='#dfn-xattr-no-argument'>take no argument</a>
+              or <a class='dfnref' href='#dfn-xattr-identifier'>take the identifier</a> <span class='idlident'>FunctionOnly</span>.
+              If no argument is given, then any native object is considered
+              to implement the interface.  Otherwise, if the
+              <span class='idlident'>FunctionOnly</span> argument is given,
+              then only <span class='estype'>Function</span> objects can
+              be considered to implement the interface.
+            </p>
+            <div class='example'>
+              <p>
+                The following <a class='dfnref' href='#dfn-idl-fragment'>IDL
+                  fragment</a> defines a simple callback interface and an
+                interface for an object that expects an object that
+                implements that callback:
+              </p>
+              <x:codeblock language='idl'>[Callback] interface Listener {
+  void eventOccurred();
+};
+
+interface Thing {
+  void addListener(in Listener listener);
+};</x:codeblock>
+              <p>
+                An ECMAScript implementation of the above two interfaces
+                allows any native object to be passed to <span class='prop'>addListener</span>:
+              </p>
+              <x:codeblock language='es'>var t = getThing();                                // Assume t is a host object implementing the Thing interface.
+
+t.addListener(function() { });                     // The function is the implementation of the eventOccurred
+                                                   // operation on the Listener interface.
+
+var x = function() { /* 1 */ };                    // This also works, but it is the function with /* 1 */
+x.eventOccurred = function() { /* 2 */ };          // in it that is the implementation of eventOccurred.
+t.addListener(x);
+
+t.addListener({ eventOccurred: function() { } });  // This works too, and the value of the eventOccurred property
+                                                   // is the implementation of the operation.  If Listener had been
+                                                   // declared with [Callback=FunctionOnly] however, this would
+                                                   // have thrown a TypeError.</x:codeblock>
+            </div>
+          </div>
+
           <div id='NamedConstructor' class='section'>
             <h4>[NamedConstructor]</h4>
             <p>
@@ -2743,7 +3208,7 @@ results.numbers[6];                  // Evaluates to 0, since that is how 'undef
               The first form (<code>[NamedConstructor=<a class='terminal' href='#prod-identifier'>identifier</a>]</code>) has the same meaning as
               using an empty argument list (<code>[NamedConstructor=<a class='terminal' href='#prod-identifier'>identifier</a>()]</code>).  For each
               <a class='xattr' href='#NamedConstructor'>[NamedConstructor]</a> extended attribute
-              on the interface, there must be a way to construct an object that implements
+              on the interface, there will be a way to construct an object that implements
               the interface by passing the specified arguments to the constructor function
               that is the value of the aforementioned property.
             </p>
@@ -2777,63 +3242,6 @@ var a1 = new Audio();           // Creates a new object that implements HTMLAudi
                                 // zero-argument constructor.
 
 var a2 = new Audio('a.flac');   // Creates an HTMLAudioElement using the one-argument constructor.</x:codeblock>
-            </div>
-          </div>
-
-          <div id='NativeObject' class='section'>
-            <h4>[NativeObject]</h4>
-
-            <p>
-              If the <a class='xattr' href='#NativeObject'>[NativeObject]</a>
-              <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
-              appears on an <a class='dfnref' href='#dfn-interface'>interface</a>,
-              it indicates that the interface can be implemented by an ECMAScript native object
-              (see <a href='#native-objects'>section <?sref native-objects?></a>
-              <?sdir native-objects?>), and such an object can be
-              <a class='dfnref' href='#dfn-pass-to-host-object'>passed to a host
-                object</a> expecting an object that implements the interface.
-            </p>
-            <p>
-              The <a class='xattr' href='#NativeObject'>[NativeObject]</a> extended attribute
-              <span class='rfc2119'>MUST</span> either <a class='dfnref' href='#dfn-xattr-no-argument'>take no argument</a>
-              or <a class='dfnref' href='#dfn-xattr-identifier'>take the identifier</a> <span class='idlident'>FunctionOnly</span>.
-              If no argument is given, then any native object is considered
-              to implement the interface.  Otherwise, if the
-              <span class='idlident'>FunctionOnly</span> argument is given,
-              then only <span class='estype'>Function</span> objects can
-              be considered to implement the interface.
-            </p>
-            <div class='example'>
-              <p>
-                The following <a class='dfnref' href='#dfn-idl-fragment'>IDL
-                  fragment</a> defines a simple callback interface and an
-                interface for an object that expects an object that
-                implements that callback:
-              </p>
-              <x:codeblock language='idl'>[NativeObject] interface Listener {
-  void eventOccurred();
-};
-
-interface Thing {
-  void addListener(in Listener listener);
-};</x:codeblock>
-              <p>
-                An ECMAScript implementation of the above two interfaces
-                allows any native object to be passed to <span class='prop'>addListener</span>:
-              </p>
-              <x:codeblock language='es'>var t = getThing();                                // Assume t is a host object implementing the Thing interface.
-
-t.addListener(function() { });                     // The function is the implementation of the eventOccurred
-                                                   // operation on the Listener interface.
-
-var x = function() { /* 1 */ };                    // This also works, but it is the function with /* 1 */
-x.eventOccurred = function() { /* 2 */ };          // in it that is the implementation of eventOccurred.
-t.addListener(x);
-
-t.addListener({ eventOccurred: function() { } });  // This works too, and the value of the eventOccurred property
-                                                   // is the implementation of the operation.  If Listener had been
-                                                   // declared with [NativeObject=FunctionOnly] however, this would
-                                                   // have thrown a TypeError.</x:codeblock>
             </div>
           </div>
 
@@ -2991,7 +3399,7 @@ var fn = Query.prototype.lookupEntry;  // exception, Query isn’t defined
                 assigned to the <span class='prop'>name</span> or <span class='prop'>owner</span> property or passed as the
                 argument to the <span class='prop'>isMemberOfBreed</span> function:
               </p>
-              <x:codeblock language='es'>var c = getCat();         // Assume c is a host object implementing the Cat interface.
+              <x:codeblock language='es'>var c = getCat();              // Assume c is a host object implementing the Cat interface.
 
 c.name = undefined;            // This assigns the string "undefined" to the .name property.
 c.owner = undefined;           // This assigns null to the .owner property.
@@ -3468,19 +3876,14 @@ interface D : C {
               (if it exists) and the <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype object</a>:
             </p>
             <ul>
-              <li>The name of the property is the <a class='dfnref' href='#dfn-identifier'>identifier</a> of the constant.</li>
-              <li>The value of the property is the ECMAScript value that is equivalent to the constant’s IDL value, according
-                to the rules in <a href='#es-type-mapping'>section <?sref es-type-mapping?></a> <?sdir es-type-mapping?>.</li>
+              <li>The name of the property is the <a class='dfnref' href='#dfn-identifier'>identifier</a> of the <a class='dfnref' href='#dfn-constant'>constant</a>.</li>
+              <li>The value of the property is that which is obtained by <a class='dfnref' href='#dfn-convert-idl-to-ecmascript-value'>converting</a> the <a class='dfnref' href='#dfn-constant'>constant</a>’s IDL value to an ECMAScript value.</li>
               <li>The property has attributes <span class='propattrset'>{ DontDelete, ReadOnly }</span>.</li>
             </ul>
           </div>
 
           <div id='es-operations' class='section'>
             <h4>Operations</h4>
-
-            <div class='ednote'>
-              <p>This section will be rewritten.</p>
-            </div>
 
             <p>
               For each unique <a class='dfnref' href='#dfn-identifier'>identifier</a>
@@ -3489,484 +3892,128 @@ interface D : C {
               <span class='rfc2119'>MUST</span> be a corresponding property on
               the <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype object</a>:
             </p>
-            <div class='ednote'>
-              <p>Must ensure properties don’t exist for operations with a <code>NoFunction</code> index/name getter/setter.</p>
-            </div>
             <ul>
-              <li>The name of the property is the identifier.</li>
+              <li>The name of the property is the <a class='dfnref' href='#dfn-identifier'>identifier</a>.</li>
               <li>The property has attributes <span class='propattrset'>{ DontEnum }</span>.</li>
               <li>
-                The value of the property is a <span class='estype'>Function</span> object
-                that behaves as follows, assuming <var>id</var> is the identifier:
+                The value of the property is an object whose internal
+                <span class='prop'>[[Call]]</span> method
+                behaves as follows, assuming <var>id</var> is the
+                <a class='dfnref' href='#dfn-identifier'>identifier</a>
+                and <var>I</var> is the <a class='dfnref' href='#dfn-interface'>interface</a>:
                 <ol class='algorithm'>
-                  <li>Initialize <var>O</var> to <b>null</b>.</li>
-                  <li>Initialize <var>arity</var> to 0.</li>
-                  <li>Let <var>n</var> be the number of arguments passed to the function.</li>
-                  <li>Let <var>arg</var><sub>0‥<var>n</var>−1</sub> be the arguments passed to the function.</li>
-                  <li>If <var>id</var> identifies a single operation:
-                    <ol class='algorithm'>
-                      <li>Set <var>O</var> to the operation that <var>id</var> identifies.</li>
-                      <li>Set <var>arity</var> to the number of arguments that <var>O</var>
-                        is declared with.</li>
-                      <li>If the final argument of <var>O</var> has the <a class='xattr' href='#Variadic'>[Variadic]</a>
-                        <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>,
-                        set <var>arity</var> to <var>arity</var> − 1.</li>
-                    </ol>
+                  <li>
+                    Initialize <var>S</var> to the
+                    <a class='dfnref' href='#dfn-effective-overload-set'>effective overload set</a>
+                    for <a class='dfnref' href='#dfn-identifier'>identifier</a>
+                    <var>id</var> on <a class='dfnref' href='#dfn-interface'>interface</a>
+                    <var>I</var>.
                   </li>
-                  <li>Otherwise, if <var>id</var> identifies more than one operation:
-                    <ol class='algorithm'>
-                      <li>Let <var>m</var> be the number of operations <var>id</var> identifies.</li>
-                      <li>Let <var>P</var><sub>1‥<var>m</var></sub> be the operations that <var>id</var> identifies.</li>
-                      <li>Let <var>score</var><sub>1‥<var>m</var></sub> be a score calculated for each operation in <var>P</var><sub>1‥<var>m</var></sub>, as follows:
+                  <li>
+                    Remove from <var>S</var> all entries whose type list is
+                    longer than <var>n</var>.
+                  </li>
+                  <li>
+                    If <var>S</var> contains more than one entry:
+                    <ol>
+                      <li>
+                        Let <var>m</var> be the maximum length of the type lists of
+                        the entries in <var>S</var>.
+                      </li>
+                      <li>
+                        Initialize <var>i</var> to 0.
+                      </li>
+                      <li>
+                        While <var>i</var> &lt; <var>m</var>:
                         <ol>
-                          <li>Let <var>Q</var> be the operation for which a score is being calculated.</li>
-                          <li>Set <var>arity</var> to the number of arguments that <var>Q</var>
-                            is declared with.</li>
-                          <li>If the final argument of <var>Q</var> has the <a class='xattr' href='#Variadic'>[Variadic]</a>
-                            <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>,
-                            set <var>arity</var> to <var>arity</var> − 1.</li>
-                          <li>Initialize <var>s</var> to 0.</li>
-                          <li>If <var>n</var> &lt; <var>arity</var>, set <var>s</var> to ∞.</li>
-                          <li>Otherwise, if <var>n</var> ≥ <var>arity</var>:
+                          <li>Initialize <var>b</var> to <span class='esvalue'>true</span>.</li>
+                          <li>
+                            For each pair of entries &lt;<var>entry1</var>, <var>entry2</var>>
+                            in <var>S</var>:
                             <ol>
-                              <li>Initialize <var>i</var> to 0.</li>
-                              <li>While <var>i</var> &lt; <var>arity</var>:
-                                <ol>
-                                  <li>Let <var>dt</var> be the IDL type of argument <var>i</var> that <var>Q</var> is declared with.</li>
-                                  <li>Let <var>at</var> be the ECMAScript type of <var>arg</var><sub><var>i</var></sub>.</li>
-                                  <li>Let <var>x</var> be the value determined by looking up the <a href='#score-table'>score table</a> below.</li>
-                                  <li>If <var>x</var> ≠ 0, set <var>s</var> to <var>s</var> + (<var>arity</var> + 2)<sup><var>x</var></sup>.</li>
-                                  <li>Set <var>i</var> to <var>i</var> + 1.</li>
-                                </ol>
-                              </li>
-                              <li>If the final argument of <var>Q</var> has the <a class='xattr' href='#Variadic'>[Variadic]</a>
-                                <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>:
-                                <ol>
-                                  <li>Let <var>dt</var> be the IDL type of the final argument that <var>Q</var> is declared with.</li>
-                                  <li>While <var>i</var> &lt; <var>n</var>:
-                                    <ol>
-                                      <li>Let <var>at</var> be the ECMAScript type of <var>arg</var><sub><var>i</var></sub>.</li>
-                                      <li>Let <var>x</var> be the value determined by looking up the <a href='#score-table'>score table</a> below.</li>
-                                      <li>If <var>x</var> = ∞, set <var>s</var> to ∞.</li>
-                                      <li>Set <var>i</var> to <var>i</var> + 1.</li>
-                                    </ol>
-                                  </li>
-                                </ol>
+                              <li>Let <var>t</var> be the type list of <var>entry1</var>.</li>
+                              <li>Let <var>u</var> be the type list of <var>entry2</var>.</li>
+                              <li>
+                                If <var>t</var><sub><var>i</var></sub> and
+                                <var>u</var><sub><var>i</var></sub> are not
+                                <a class='dfnref' href='#dfn-distinguishable'>distinguishable</a>,
+                                set <var>b</var> to <span class='esvalue'>false</span>.
                               </li>
                             </ol>
                           </li>
-                          <li>The calculated score is <var>s</var>.</li>
+                          <li>
+                            If <var>b</var> is <span class='esvalue'>true</span>:
+                            <ol>
+                              <li>
+                                If <var>arg</var><sub><var>i</var></sub> is an
+                                <span class='estype'>Undefined</span>,
+                                <span class='estype'>Boolean</span>,
+                                <span class='estype'>String</span> or
+                                <span class='estype'>Number</span> value,
+                                then remove from <var>S</var> all entries with type
+                                list <var>t</var> where <var>t</var><sub><var>i</var></sub>
+                                is not a <a class='dfnref' href='#dfn-primitive-type'>primitive type</a>.
+                              </li>
+                              <li>
+                                If <var>arg</var><sub><var>i</var></sub> is
+                                <span class='esvalue'>null</span> or an
+                                object (whether a host object or a native object), then remove from
+                                <var>S</var> all entries with type list <var>t</var> where
+                                <var>t</var><sub><var>i</var></sub> is not
+                                <a href='#idl-interface'>an object implementing an interface</a>.
+                              </li>
+                            </ol>
+                          </li>
+                          <li>Set <var>i</var> to <var>i</var> + 1.</li>
                         </ol>
                       </li>
                       <li>
-                        If the minimum score in <var>score</var><sub>1‥<var>m</var></sub> is ∞, then
-                        there is no appropriate overloaded operation to invoke.
-                        Throw a <span class='estype'>TypeError</span> and end the function.
+                        If <var>S</var> is empty, throw a
+                        <span class='estype'>TypeError</span>.
                       </li>
                       <li>
-                        Set <var>O</var> to the operation in <var>P</var><sub>1‥<var>m</var></sub>
-                        whose corresponding score in <var>score</var><sub>1‥<var>m</var></sub>
-                        is the minimum.  If multiple operations have the minimum score, it is
-                        undefined which is chosen.  (Interface designers may specify in prose
-                        how operations are disambiguated at this point.)
+                        If <var>S</var> contains more than one entry, then the
+                        function call is ambiguous.  Remove all but one entry from
+                        <var>S</var> according to rules specified in the description
+                        of <a class='dfnref' href='#dfn-interface'>interface</a>
+                        <var>I</var>, or arbitrarily if no such rules exist.
                       </li>
                     </ol>
                   </li>
                   <li>
-                    Perform the actions listed in the description of <var>O</var>
-                    with <var>arg</var><sub>0‥<var>n</var>−1</sub> as the
-                    argument values.
+                    Let <var>O</var> be the <a class='dfnref' href='#dfn-operation'>operation</a>
+                    and <var>t</var> be the type list of the single entry in
+                    <var>S</var>.
+                  </li>
+                  <li>
+                    Let <var>idlarg</var><sub>0‥<var>m</var>−1</sub> be a list
+                    of IDL values, where <var>idlarg</var><sub><var>i</var></sub>
+                    is the result of
+                    <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a>
+                    <var>arg</var><sub><var>i</var></sub> to an IDL value.
+                    Perform the actions listed in the description of
+                    <var>O</var> with <var>idlarg</var><sub>0‥<var>m</var>−1</sub>
+                    as the argument values.
                   </li>
                 </ol>
-
-                <table id='score-table' class='vert'>
-                  <caption>Score table</caption>
-                  <tr><th><var>at</var></th><th><var>dt</var></th><th><var>x</var></th></tr>
-
-                  <tr><td><span class='estype'>Undefined</span></td><td>(any type)</td><td>0</td></tr>
-
-                  <tr><td rowspan='5'><span class='estype'>Boolean</span></td><td><a class='idltype' href='#idl-boolean'>boolean</a> <a href='#score-table-note'>*</a></td><td>1</td></tr>
-                  <tr><td><a class='idltype' href='#idl-any'>any</a></td><td>1</td></tr>
-                  <tr><td><a class='idltype' href='#idl-sequence'>sequence&lt;<var>T</var>></a> *</td><td>∞</td></tr>
-                  <tr><td><a href='#idl-interface'>Object implementing an interface</a></td><td>∞</td></tr>
-                  <tr><td>(any other type)</td><td>2</td></tr>
-
-                  <tr><td rowspan='12'><span class='estype'>Number</span></td><td><a class='idltype' href='#idl-float'>float</a> *</td><td>1</td></tr>
-                  <tr><td><a class='idltype' href='#idl-octet'>octet</a> *</td><td>1</td></tr>
-                  <tr><td><a class='idltype' href='#idl-short'>short</a> *</td><td>1</td></tr>
-                  <tr><td><a class='idltype' href='#idl-unsigned-short'>unsigned short</a> *</td><td>1</td></tr>
-                  <tr><td><a class='idltype' href='#idl-long'>long</a> *</td><td>1</td></tr>
-                  <tr><td><a class='idltype' href='#idl-unsigned-long'>unsigned long</a> *</td><td>1</td></tr>
-                  <tr><td><a class='idltype' href='#idl-long-long'>long long</a> *</td><td>1</td></tr>
-                  <tr><td><a class='idltype' href='#idl-unsigned-long-long'>unsigned long long</a> *</td><td>1</td></tr>
-                  <tr><td><a class='idltype' href='#idl-any'>any</a></td><td>1</td></tr>
-                  <tr><td><a class='idltype' href='#idl-sequence'>sequence&lt;<var>T</var>></a> *</td><td>∞</td></tr>
-                  <tr><td><a href='#idl-interface'>Object implementing an interface</a></td><td>∞</td></tr>
-                  <tr><td>(any other type)</td><td>2</td></tr>
-
-                  <tr><td rowspan='5'><span class='estype'>String</span></td><td><a class='idltype' href='#idl-sequence'>sequence&lt;unsigned short></a> *</td><td>1</td></tr>
-                  <tr><td><a class='idltype' href='#idl-any'>any</a></td><td>1</td></tr>
-                  <tr><td><a class='idltype' href='#idl-sequence'>sequence&lt;<var>T</var>></a> (where <var>T</var> ≠ <a class='idltype' href='#idl-unsigned-short'>unsigned short</a>) *</td><td>∞</td></tr>
-                  <tr><td><a href='#idl-interface'>Object implementing an interface</a></td><td>∞</td></tr>
-                  <tr><td>(any other type)</td><td>2</td></tr>
-
-                  <tr><td rowspan='6'><span class='estype'>Null</span></td><td><a class='idltype' href='#idl-Object'>Object</a></td><td>1</td></tr>
-                  <tr><td><a href='#idl-interface'>Object implementing an interface</a></td><td>1</td></tr>
-                  <tr><td><a href='#idl-boxed-valuetype'>Boxed valuetype of any type</a></td><td>1</td></tr>
-                  <tr><td><a class='idltype' href='#idl-any'>any</a></td><td>1</td></tr>
-                  <tr><td><a class='idltype' href='#idl-sequence'>sequence&lt;<var>T</var>></a> *</td><td>∞</td></tr>
-                  <tr><td>(any other type)</td><td>2</td></tr>
-
-                  <tr><td rowspan='6'><span class='estype'>Object</span></td><td><a class='idltype' href='#idl-Object'>Object</a></td><td>1</td></tr>
-                  <tr><td><a href='#idl-interface'>Object implementing interface</a> <var>A</var> (if the object implements <var>A</var>)</td><td>1</td></tr>
-                  <tr><td><a class='idltype' href='#idl-sequence'>sequence&lt;<var>T</var>></a> *</td><td>1</td></tr>
-                  <tr><td><a class='idltype' href='#idl-any'>any</a></td><td>1</td></tr>
-                  <tr><td><a href='#idl-interface'>Object implementing interface</a> <var>A</var> (if the object does not implement <var>A</var>)</td><td>∞</td></tr>
-                  <tr><td>(any other type)</td><td>2</td></tr>
-
-                  <tr><td id='score-table-note' class='table-note' colspan='3'>* The specified type or a boxed valuetype of the specified type.</td></tr>
-                </table>
-
-                <div class='ednote'>
-                  <p>
-                    Should there be a way for script to explicitly disambiguate function calls?
-                    For example, something like the “Explicit Method Specification” in
-                    <a href='http://www.mozilla.org/js/liveconnect/lc3_method_overloading.html#ExplicitMethod'>LiveConnect 3</a>.
-                    That could allow:
-                  </p>
-                  <x:codeblock language='idl'>[Constructor]
-interface Ambiguity {
-
-  void f(in octet x);
-  void f(in long x);
-
-  void g(in Node n);
-  void g(in Document n);
-};</x:codeblock>
-                  <x:codeblock language='es'>var a = new Ambiguity();
-
-a.f(5);              // undefined which f() is called
-a['f(octet)'](5);    // explicitly call the first f()
-a['f(long)'](5);     // explicitly call the second f()
-
-a.g(document);                      // undefined which g() is called, since 'document' implements Node and Document
-a['g(::dom::Node)'](document);      // explicitly call the first g()
-a['g(::dom::Document)'](document);  // explicitly call the second g()
-</x:codeblock>
-                </div>
               </li>
             </ul>
 
-<!--
             <p>
-              In order to describe how properties on the interface prototype
-              object corresponding to operations are chosen in the presence of
-              overloading, the notion of potential ambiguity is first defined.
-              Two operations on an interface, <var>O</var><sub>1</sub> and
-              <var>O</var><sub>2</sub>, are
-              <dfn id='dfn-potentially-ambiguous'>potentially ambiguous</dfn> if
-              the following algorithm returns true:
-            </p>
-            <ol class='algorithm'>
-              <li>…</li>
-              <li>
-                Let <var>variadic1</var> be whether <var>op1</var>
-                is declared with an argument with the
-                <a class='xattr' href='#Variadic'>[Variadic]</a> extended
-                attribute.
-              </li>
-              <li>
-                Let <var>variadic2</var> be whether <var>op1</var>
-                is declared with an argument with the
-                <a class='xattr' href='#Variadic'>[Variadic]</a> extended
-                attribute.
-              </li>
-              <li>
-                Let <var>arity1</var> be the number of arguments
-                without the <a class='xattr' href='#Variadic'>[Variadic]</a>
-                extended attribute that <var>op1</var> is declared with.
-              </li>
-              <li>
-                Let <var>arity2</var> be the number of arguments
-                without the <a class='xattr' href='#Variadic'>[Variadic]</a>
-                extended attribute that <var>op2</var> is declared with.
-              </li>
-              <li>Initialize <var>i</var> = 0.</li>
-              <li>
-                While <var>i</var> &lt; <var>arity1</var> and <var>i</var>
-                &lt; <var>arity2</var>:
-                <ol>
-                  <li>
-                    Let <var>type1</var> be the type of the argument
-                    <var>op1</var> is declared with at position
-                    <var>i</var>.
-                  </li>
-                  <li>
-                    Let <var>type2</var> be the type of the argument
-                    <var>op2</var> is declared with at position
-                    <var>i</var>.
-                  </li>
-                  <li>
-                    If none of the following statements about
-                    <var>type1</var> and <var>type2</var> are true,
-                    then return false:
-                    <ul>
-                      <li>
-                        Both <var>type1</var> and <var>type2</var>
-                        are one of the numeric types
-                        (<span class='idltype'>octet</span>,
-                        <span class='idltype'>short</span>,
-                        <span class='idltype'>unsigned short</span>,
-                        <span class='idltype'>long</span>,
-                        <span class='idltype'>unsigned long</span>,
-                        <span class='idltype'>long long</span>,
-                        <span class='idltype'>unsigned long long</span> and
-                        <span class='idltype'>float</span>).
-                      </li>
-                      <li>
-                        Both <var>type1</var> and <var>type2</var>
-                        are <span class='idltype'>boolean</span>.
-                      </li>
-                      <li>
-                        …
-                      </li>
-                    </ul>
-                  </li>
-                </ol>
-              </li>
-            </ol>
-            <div class='ednote'>
-              <p>
-                A useful way to handle method overloading is not obvious.
-              </p>
-              <p>
-                Three patterns of overloading seem to be desired, at least.
-                The first is overloading to handle optional arguments, such
-                as with XMLHttpRequest’s open method.  Handling this is
-                reasonably simple.
-              </p>
-              <p>
-                The second is distinguishing based on argument type, where
-                the values of those types do not intersect.  XHR’s send
-                method is an example of this, where there are two versions
-                that take an argument: one a DOMString, the other a Document.
-                It’s impossible for a non-null value to be both a DOMString
-                and a Document, so distinguishing these at run time seems fine.
-                It would be ambiguous for null though.  This could be avoided
-                by, say, putting a [NoNull] extended attribute on one of those
-                arguments, which would mean that the other method is invoked
-                when null is passed.
-              </p>
-              <p>
-                The third is distinguishing based on argument type, where
-                the values of those types do intersect.  This can be seen
-                with the createPattern methods on HTML 5’s CanvasRenderingContext2D
-                interface, which are currently defined as:
-              </p>
-              <x:codeblock language='idl'>interface CanvasRenderingContext2D {
-  …
-  CanvasPattern createPattern(in HTMLImageElement image, DOMString repetition);
-  CanvasPattern createPattern(in HTMLCanvasElement image, DOMString repetition);
-  …
-};</x:codeblock>
-              <p>
-                While in a normal web browser environment there’ll be no
-                object that implements both HTMLImageElement and
-                HTMLCanvasElement, in the general case objects can implement
-                more than one interface.  To disallow overloading like this
-                for all languages seems excessive, since there are languages
-                that can handle this sort of things (e.g. C++ will allow calls
-                to createPattern as long as it’s not ambiguous based on the
-                type of the value being passed, or the ambiguity can be
-                resolved explicitly).  Perhaps some sort of declaration in the
-                IDL that if the object does implement both interfaces, then
-                one of the operations is preferred (or defaults to arbitrary
-                selection by the UA).  It seems a little hacky, because there’d
-                be no way to explicitly disambiguate the call as you can do
-                in other languages.
-              </p>
-            </div>
-
-            <div class='ednote'>
-              <p>
-                The definitions in this section should be factored out to apply to
-                all language bindings.  Overloading then could be specified in
-                terms of a <a class='dfnref' href='#dfn-potentially-ambiguous'>potentially ambiguous</a>
-                definition specific to a language binding.
-              </p>
-            </div>
-            <p>
-              The <dfn id='dfn-overload-set'>overload set</dfn> for an operation
-              <var>O</var> is defined as follows:
-            </p>
-            <ul>
-              <li>
-                If <var>O</var> is not declared with an
-                <a class='xattr' href='#Overloads'>[Overloads]</a> extended
-                attribute, then the set is equal to the union of { <var>O</var> }
-                and all other operations declared on the interface with the
-                <a class='xattr' href='#Overloads'>[Overloads]</a> extended
-                attribute whose argument is the name of <var>O</var>.
-              </li>
-              <li>
-                Otherwise, if <var>O</var> is declared with an
-                <a class='xattr' href='#Overloads'>[Overloads]</a> extended
-                attribute with argument <var>N</var>, then the set is equal
-                to the <a class='dfnref' href='#dfn-overload-set'>overload set</a>
-                for the operation with identifier <var>N</var> declared on the
-                interface.
-              </li>
-            </ul>
-            <p>
-              An operation <var>O</var> is a
-              <dfn id='dfn-non-overloadable-operation'>non-overloadable operation</dfn>
-              if it matches one of the following two criteria:
-            </p>
-            <ol>
-              <li>
-                The <a class='dfnref' href='#dfn-overload-set'>overload set</a>
-                of <var>O</var> is equal to { <var>O</var> }.
-              </li>
-              <li>
-                There exists two operations <var>O</var><sub>1</sub> and <var>O</var><sub>2</sub>
-                in the <a class='dfnref' href='#dfn-overload-set'>overload set</a>
-                for <var>O</var> such that <var>O</var><sub>1</sub> and <var>O</var><sub>2</sub> are
-                <a class='dfnref' href='#dfn-potentially-ambiguous'>potentially
-                  ambiguous</a>.
-              </li>
-            </ol>
-            <p>
-              An operation is an
-              <dfn id='dfn-overloaded-operation'>overloaded operation</dfn> if
-              it is not declared with an
-              <a class='xattr' href='#Overloads'>[Overloads]</a> extended
-              attribute and the cardinality of its
-              <a class='dfnref' href='#dfn-overload-set'>overload set</a>
-              is greater than 1.
-            </p>
-            <p>
-              For each
-              <a class='dfnref' href='#dfn-non-overloadable-operation'>non-overloadable
-                operation</a> <var>O</var> defined on the interface, a property exists on the
-              interface prototype object whose name is the identifier of the operation
-              and whose value is a <span class='estype'>Function</span> object
-              that behaves as follows:
-            </p>
-            <ol class='algorithm'>
-              <li>
-                Let <var>n</var> be the number of arguments passed to the
-                function.
-              </li>
-              <li>
-                Let <var>arity</var> be the number of arguments that <var>O</var>
-                is declared with if the final argument does not have the
-                <a class='xattr' href='#Variadic'>[Variadic]</a> extended
-                attribute, or the number of arguments that <var>O</var> is
-                declared with minus 1 otherwise.
-              </li>
-              <li>
-                If <var>n</var> &lt; <var>arity</var>, an implementation
-                specific exception is thrown and these steps are ended.
-              </li>
-              <li>
-                Let <var>arg</var><sub>0‥<var>n</var>−1</sub> be the arguments passed to the
-                function.
-              </li>
-              <li>Initialize <var>i</var> to 0.</li>
-              <li>
-                While <var>i</var> &lt; <var>arity</var>:
-                <ol>
-                  <li>
-                    Convert <var>arg<sub>i</sub></var>, according to the
-                    type of the formal argument in position <var>i</var>,
-                    by following the relevant steps from
-                    <a href='#es-type-mapping'>section <?sref es-type-mapping?></a>
-                    <?sdir es-type-mapping?>.
-                  </li>
-                  <li>
-                    If the type of the formal argument in position <var>i</var>
-                    is a boxed <a class='idltype' href='#idl-sequence'>sequence&lt;unsigned short></a>
-                    valuetype and is declared with the
-                    <a class='xattr' href='#NoNull'>[NoNull]</a> extended
-                    attribute, and <var>arg<sub>i</sub></var> is
-                    <span class='esvalue'>null</span>, set
-                    <var>arg<sub>i</sub></var> to the
-                    <span class='estype'>String</span> value
-                    <span class='esstring'>"null"</span>.
-                  </li>
-                  <li>
-                    Set <var>i</var> to <var>i</var> + 1.
-                  </li>
-                </ol>
-              </li>
-              <li>
-                Let <var>j</var> be <var>n</var>
-                if the final argument of <var>O</var> is declared with the
-                <a class='xattr' href='#Variadic'>[Variadic]</a> extended
-                attribute, or <var>arity</var> otherwise.
-              </li>
-              <li>
-                While <var>i</var> &lt; <var>j</var>:
-                <ol>
-                  <li>
-                    Convert <var>arg<sub>i</sub></var>, according to the
-                    type of the formal argument in position <var>arity</var> + 1,
-                    by following the relevant steps from
-                    <a href='#es-type-mapping'>section <?sref es-type-mapping?></a>
-                    <?sdir es-type-mapping?>.
-                  </li>
-                  <li>
-                    If the type of the formal argument in position <var>arity</var> + 1
-                    is a boxed <a class='idltype' href='#idl-sequence'>sequence&lt;unsigned short></a>
-                    valuetype and is declared with the
-                    <a class='xattr' href='#NoNull'>[NoNull]</a> extended
-                    attribute, and <var>arg<sub>i</sub></var> is
-                    <span class='esvalue'>null</span>, set
-                    <var>arg<sub>i</sub></var> to the
-                    <span class='estype'>String</span> value
-                    <span class='esstring'>"null"</span>.
-                  </li>
-                  <li>
-                    Set <var>i</var> to <var>i</var> + 1.
-                  </li>
-                </ol>
-              </li>
-              <li>
-                Perform the actions listed in the description of <var>O</var>
-                with <var>arg</var><sub>0‥<var>j</var>−1</sub> as the
-                argument values.
-              </li>
-            </ol>
-            <p>
-              For each
-              <a class='dfnref' href='#dfn-overloaded-operation'>overloaded
-                operation</a> defined on the interface, a property exists on the
-              interface prototype object whose name is the name of the operation
-              and whose value is a <span class='estype'>Function</span> object
-              that behaves as follows:
-            </p>
-            <ol class='algorithm'>
-              <li>…</li>
-            </ol>
-            <div class='ednote'>
-              <p>
-                This will be written once the overloading rules are more definite.
-              </p>
-            </div>
--->
-
-            <p>
-              In addition, if the interface is declared with the
-              <a class='xattr' href='#Stringifies'>[Stringifies]</a> extended
-              attribute, a property <span class='rfc2119'>MUST</span> exist on
-              the interface prototype object whose name is
-              <span class='prop'>toString</span> and whose value is a
-              <span class='estype'>Function</span> object.  If the
+              In addition, if the <a class='dfnref' href='#dfn-interface'>interface</a>
+              is declared with the <a class='xattr' href='#Stringifies'>[Stringifies]</a>
+              <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>,
+              a property <span class='rfc2119'>MUST</span> exist on
+              the <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype object</a>
+              whose name is <span class='prop'>toString</span> and whose value is a
+              callable object.  If the
               <a class='xattr' href='#Stringifies'>[Stringifies]</a>
-              extended attribute on the interface has an identifier argument
+              extended attribute on the interface
+              <a class='dfnref' href='#dfn-xattr-identifier-argument'>took an identifier argument</a>
               <var>P</var>, assuming <var>O</var> is the object on which
-              the function was invoked, the behavior of the
-              <span class='prop'>toString</span> function is as follows:
+              the function was invoked, then the internal
+              <span class='prop'>[[Call]]</span> method of the object
+              <span class='rfc2119'>MUST</span> behave as follows:
             </p>
             <ol class='algorithm'>
               <li>
@@ -3978,18 +4025,13 @@ a['g(::dom::Document)'](document);  // explicitly call the second g()
             </ol>
             <p>
               If the <a class='xattr' href='#Stringifies'>[Stringifies]</a>
-              extended attribute on the interface was not given an argument,
-              then the behavior of the <span class='prop'>toString</span>
-              function is the stringification behavior of the interface, as
-              described in the prose for the interface.
+              <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
+              on the <a class='dfnref' href='#dfn-interface'>interface</a>
+              <a class='dfnref' href='#dfn-xattr-no-argument'>took no argument</a>,
+              then the behavior of the internal <span class='prop'>[[Call]]</span>
+              method of the object is the stringification behavior of the
+              interface, as described in the prose for the interface.
             </p>
-            <div class='ednote'>
-              <p>
-                Should say what happens if <a class='xattr' href='#Stringifies'>[Stringifies]</a>
-                is used on an interface that also has a <span class='prop'>toString</span>
-                operation.
-              </p>
-            </div>
           </div>
 
         </div>
@@ -4004,11 +4046,25 @@ a['g(::dom::Document)'](document);  // explicitly call the second g()
           </p>
           <ul>
             <li>
-              The name of the property is the <a class='dfnref' href='#dfn-identifier'>identifier</a> of the attribute.
+              The name of the property is the <a class='dfnref' href='#dfn-identifier'>identifier</a> of the <a class='dfnref' href='#dfn-attribute'>attribute</a>.
             </li>
             <li>
-              If the attribute is declared <code>readonly</code>, the property has attributes <span class='propattrset'>{ DontDelete, ReadOnly }</span>.
+              If the <a class='dfnref' href='#dfn-attribute'>attribute</a> is declared <code>readonly</code>, the property has attributes <span class='propattrset'>{ DontDelete, ReadOnly }</span>.
               Otherwise, the property has attributes <span class='propattrset'>{ DontDelete }</span>.
+            </li>
+            <li>
+              When getting the property, the value returned is result of
+              <a class='dfnref' href='#dfn-convert-idl-to-ecmascript-value'>converting</a>
+              the <a class='dfnref' href='#dfn-attribute'>attribute</a>’s
+              IDL value to an ECMAScript.
+            </li>
+            <li>
+              If the <a class='dfnref' href='#dfn-attribute'>attribute</a> is
+              not declared <code>readonly</code>, then when setting the property
+              to a particular ECMAScript value, the IDL value assigned to the
+              attribute is the result of
+              <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a>
+              the ECMAScript value to an IDL value.
             </li>
           </ul>
           <p>
@@ -4606,6 +4662,16 @@ a['g(::dom::Document)'](document);  // explicitly call the second g()
               <li>Return <span class='esvalue'>true</span>.</li>
             </ol>
           </div>
+
+          <p>
+            Note that assigning a value to a property that corresponds
+            to an <a class='dfnref' href='#dfn-attribute'>attribute</a>
+            results in that value being
+            <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converted</a>
+            to an IDL value and assigned to the attribute,
+            as described in <a href='#host-objects'>section <?sref host-objects?></a>,
+            <?sdir host-objects?>.
+          </p>
         </div>
 
         <div id='native-objects' class='section'>
@@ -4623,7 +4689,7 @@ a['g(::dom::Document)'](document);  // explicitly call the second g()
             </li>
             <li>
               The interface has a 
-              <a class='xattr' href='#NativeObject'>[NativeObject]</a>
+              <a class='xattr' href='#Callback'>[Callback]</a>
               <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
               on it.
             </li>
@@ -4660,7 +4726,7 @@ a['g(::dom::Document)'](document);  // explicitly call the second g()
             <li>
               If the interface is declared with one or more operations that all
               have the same <a class='dfnref' href='#dfn-identifier'>identifier</a>
-              and the <a class='xattr' href='#NativeObject'>[NativeObject]</a>
+              and the <a class='xattr' href='#Callback'>[Callback]</a>
               extended attribute on the interface has the <span class='idlident'>FunctionOnly</span>
               argument, then the native object is considered to implement that interface if
               it is a <span class='estype'>Function</span> object.  The native object
@@ -4668,7 +4734,7 @@ a['g(::dom::Document)'](document);  // explicitly call the second g()
             </li>
             <li>
               Otherwise, if the interface is declared with one or more operations that all
-              have the same identifier but the <a class='xattr' href='#NativeObject'>[NativeObject]</a>
+              have the same identifier but the <a class='xattr' href='#Callback'>[Callback]</a>
               extended attribute on the interface does not have the <span class='idlident'>FunctionOnly</span>
               argument, then any native object is considered to implement that interface.
               If the native object is a <span class='estype'>Function</span> object,
@@ -4936,6 +5002,12 @@ a['g(::dom::Document)'](document);  // explicitly call the second g()
             This section describes how types in the IDL map to types
             in Java.
           </p>
+          <div class='ednote'>
+            <p>
+              This section should use the same kind of wording and definitions
+              that the ECMAScript type mapping section uses.
+            </p>
+          </div>
 
           <div id='java-any' class='section'>
             <h4>any</h4>
@@ -5706,13 +5778,6 @@ interface HTMLDocument {
             method is the stringification behavior of the IDL interface, as
             described in the prose for the IDL interface.
           </p>
-          <div class='ednote'>
-            <p>
-              Should say what happens if <a class='xattr' href='#Stringifies'>[Stringifies]</a>
-              is used on an interface that also has a <span class='prop'>toString</span>
-              operation.
-            </p>
-          </div>
         </div>
 
         <div id='java-exceptions' class='section'>
@@ -5812,11 +5877,11 @@ interface HTMLDocument {
           specification:
         </p>
         <blockquote>
-          <div>
+          <p>
             The IDL fragment in Appendix A of this specification must be interpreted
             as required for <em>conforming IDL fragments</em>, as described in the
             “Web IDL” specification. <a class='placeholder'>[WEBIDL]</a>
-          </div>
+          </p>
         </blockquote>
         <p>
           In addition, it is suggested that the conformance class for user
@@ -5825,12 +5890,12 @@ interface HTMLDocument {
             implementation</a> class from this specification:
         </p>
         <blockquote>
-          <div>
+          <p>
             A conforming FooML user agent must also be a
             <em>conforming implementation</em> of the IDL fragment in Appendix A
             of this specification, as described in the
             “Web IDL” specification. <a class='placeholder'>[WEBIDL]</a>
-          </div>
+          </p>
         </blockquote>
       </div>
 
@@ -5912,11 +5977,11 @@ interface HTMLDocument {
         </div>
 
         <p>
-          When tokenizing, the longest possible match must be used.  For example, if the input
-          text is “<tt>a1</tt>”, it should be tokenized as a single <span class='terminal'>identifier</span>,
+          When tokenizing, the longest possible match <span class='rfc2119'>MUST</span> be used.  For example, if the input
+          text is “<tt>a1</tt>”, it is tokenized as a single <span class='terminal'>identifier</span>,
           and not as a separate <span class='terminal'>identifier</span> and <span class='terminal'>integer</span>.
           If the longest possible match could match both an <span class='terminal'>identifier</span> and
-          one of the quoted terminal symbols from the grammar, it must be tokenized as the quoted
+          one of the quoted terminal symbols from the grammar, it <span class='rfc2119'>must</span> be tokenized as the quoted
           terminal symbol.  Thus, the input text “<tt>in</tt>” is tokenized as the quoted terminal symbol
           <span class='terminal'>"in"</span> rather than an <span class='terminal'>identifier</span> called “in”.
         </p>
@@ -5932,9 +5997,6 @@ interface HTMLDocument {
         </p>
 
         <div class='ednote'>
-          <p>
-            The grammar doesn’t allow for extended attribute identifier list arguments.
-          </p>
           <p>
             Probably the grammar should be changed to allow for any string of tokens
             within the square brackets, which should then be parsed subsequently, to
@@ -5974,7 +6036,7 @@ interface HTMLDocument {
           <prod nt='ExtendedAttributes'>"," ExtendedAttribute ExtendedAttributes | ε</prod>
           <prod nt='ExtendedAttribute'>identifier ExtendedAttributeDetails</prod>
           <prod nt='ExtendedAttributeDetails'>"=" ExtendedAttributeAssignment | "(" ArgumentList ")" | ε</prod>
-          <prod nt='ExtendedAttributeAssignment'>identifier ExtendedAttributeAssignmentArguments | "(" IdentifierList ")"</prod>
+          <prod nt='ExtendedAttributeAssignment'>identifier ExtendedAttributeAssignmentArguments<!-- | "(" IdentifierList ")"--></prod>
           <prod nt='ExtendedAttributeAssignmentArguments'>"(" ArgumentList ")" | ε</prod>
           <prod nt='DeclarationType'>UnsignedIntegerType | ScopedName | "any" | "boolean" | "octet" | "float" | "DOMString" | "Object"</prod>
           <prod nt='BoxedType'>UnsignedIntegerType | ScopedName | "boolean" | "octet" | "float" | "sequence" "&lt;" Type ">"</prod>
@@ -5989,8 +6051,8 @@ interface HTMLDocument {
           <prod nt='ScopedNameAfterColon'>identifier ScopedNameParts | "DOMString"</prod>
           <prod nt='ScopedNameParts'>"::" ScopedNamePartsAfterColon | ε</prod>
           <prod nt='ScopedNamePartsAfterColon'>identifier ScopedNameParts | "DOMString"</prod>
-          <prod nt='IdentifierList'>identifier Identifiers</prod>
-          <prod nt='Identifiers'>"," identifier Identifiers | ε</prod>
+          <!--prod nt='IdentifierList'>identifier Identifiers</prod>
+          <prod nt='Identifiers'>"," identifier Identifiers | ε</prod-->
 
           <!--prod nt='Keyword'>"any" | "attribute" | "boolean" | "const" | "exception" | "float" | "getraises" | "in" | "interface" | "long" | "module" | "Object" | "octet" | "raises" | "readonly" | "sequence" | "setraises" | "short" | "typedef" | "unsigned | "void"</prod-->
           <!-- the following are the remaining OMG IDL 3 keywords:
@@ -6072,6 +6134,11 @@ interface HTMLDocument {
               <cite><a href='http://www.ietf.org/rfc/rfc2119'>Key words for use in RFCs to Indicate Requirement Levels</a></cite>,
               S. Bradner.  IETF, March 1997.  Available at http://www.ietf.org/rfc/rfc2119.
             </dd>
+            <dt id='ref-RFC2781'>[RFC2781]</dt>
+            <dd>
+              <cite><a href='http://www.ietf.org/rfc/rfc2781'>UTF-16, an encoding of ISO 10646</a></cite>,
+              P. Hoffmann and F. Yergeau.  IETF, February 2000.  Available at http://www.ietf.org/rfc/rfc2781.
+            </dd>
           </dl>
         </div>
 
@@ -6107,6 +6174,32 @@ interface HTMLDocument {
           <dt>Current editor’s draft</dt>
           <dd>
             <ul>
+              <li>
+                <p>
+                  Changed the DOMString type to be a sequence of 16 bit
+                  code units, rather than a sequence of Unicode characters.
+                </p>
+              </li>
+              <li>
+                <p>
+                  Reworded the ECMAScript type mapping section so
+                  that it can be more easily referenced from other
+                  sections of the document.
+                </p>
+              </li>
+              <li>
+                <p>
+                  Reworked operation overloading in IDL so that it is
+                  much more restrictive.  Updated the overloaded
+                  operation resolution in ECMAScript accordingly.
+                </p>
+              </li>
+              <li>
+                <p>
+                  Renamed <span class='xattr'>[NativeObject]</span> to
+                  <span class='xattr'>[Callback]</span>.
+                </p>
+              </li>
               <li>
                 <p>
                   Specified the behavior of index and name getters
