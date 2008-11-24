@@ -15,7 +15,7 @@
   <head>
     <title>Web IDL</title>
     <meta http-equiv='Content-Type' content='application/xhtml+xml; charset=UTF-8'/>
-    <meta name='revision' content='$Id: Overview.xml,v 1.101 2008-11-24 04:01:40 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: Overview.xml,v 1.102 2008-11-24 04:41:56 cmccorma Exp $'/>
     <link rel='stylesheet' href='WebIDL.css' type='text/css'/>
 
     <options xmlns='http://mcc.id.au/ns/local'>
@@ -3266,9 +3266,6 @@ var a2 = new Audio('a.flac');   // Creates an HTMLAudioElement using the one-arg
               The <a class='xattr' href='#NoInterfaceObject'>[NoInterfaceObject]</a> extended attribute
               <span class='rfc2119'>MUST</span> <a class='dfnref' href='#dfn-xattr-no-argument'>take no argument</a>.
             </p>
-            <div class='ednote'>
-              <p>Should this be [InterfaceObject] instead, and default to not having one?</p>
-            </div>
             <div class='example'>
               <p>
                 The following <a class='dfnref' href='#dfn-idl-fragment'>IDL
@@ -3337,6 +3334,59 @@ var fn = Query.prototype.lookupEntry;  // exception, Query isn’t defined
             </p>
             <div class='ednote'>
               <p>Example needed here.</p>
+            </div>
+          </div>
+
+          <div id='Replaceable' class='section'>
+            <h4>[Replaceable]</h4>
+
+            <p>
+              If the <a class='xattr' href='#Replaceable'>[Replaceable]</a>
+              <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
+              appears on a <a class='dfnref' href='#dfn-read-only'>read only</a>
+              <a class='dfnref' href='#dfn-attribute'>attribute</a>,
+              it indicates that setting the corresponding property on the
+              host object will result in that property being removed
+              and a new one created that is unrelated to the attribute,
+              and which has the value being assigned.
+            </p>
+            <p>
+              The <a class='xattr' href='#Replaceable'>[Replaceable]</a>
+              extended attribute <span class='rfc2119'>MUST</span>
+              <a class='dfnref' href='#dfn-xattr-no-argument'>take no argument</a>.
+            </p>
+            <div class='example'>
+              <p>
+                The following <a class='dfnref' href='#dfn-idl-fragment'>IDL fragment</a>
+                defines an <a class='dfnref' href='#dfn-interface'>interface</a>
+                with an <a class='dfnref' href='#dfn-operation'>operation</a>
+                that increments a counter, and an <a class='dfnref' href='#dfn-attribute'>attribute</a>
+                that exposes the counter’s value, which is initially 0:
+              </p>
+              <x:codeblock language='idl'>interface Counter {
+
+  [Replaceable] readonly attribute unsigned value;
+  void increment();
+};</x:codeblock>
+              <p>
+                Assigning to the <span class='prop'>value</span> property
+                on a host object implementing <span class='idltype'>Counter</span>
+                will sever the link between the property and the IDL
+                <a class='dfnref' href='#dfn-attribute'>attribute</a> it
+                initially corresponds to:
+              </p>
+              <x:codeblock language='es'>var counter = getCounter();  // Obtain an instance of Counter.
+counter.value;               // Evaluates to 0.
+
+counter.increment();
+counter.increment();
+counter.value;               // Evaluates to 2.
+
+counter.value = 'a';         // Replaces the property with one that is unrelated
+                             // to Counter::value.
+
+counter.increment();
+counter.value;               // Evaluates to 'a'.</x:codeblock>
             </div>
           </div>
 
@@ -4498,89 +4548,67 @@ interface D : C {
               <p>This looks terribly long and confusing.  It might be best to turn this into a structured algorithm, instead of the flat style of ECMA-262.</p>
             </div>
             <ol class='algorithm'>
-<li x:step='a-a'>If <var>P</var> is not the <a class='dfnref' href='#dfn-names-of-the-supported-named-properties'>name of a supported named property</a>, then go to step <?stepref a-o?>.</li>
+              <li x:step='a-a'>If <var>P</var> is not the <a class='dfnref' href='#dfn-names-of-the-supported-named-properties'>name of a supported named property</a>, then go to step <?stepref a-o?>.</li>
+              <li x:step='a-b'>If <var>O</var> has a property that is the <a class='dfnref' href='#dfn-corresponding-named-property'>corresponding named property</a> for the named property <var>P</var>,
+                 then go to step <?stepref a-i?>.</li>
+              <li x:step='a-c'>If <var>O</var> does not implement a <a class='xattr' href='#NameCreator'>[NameCreator]</a>-annotated <a class='dfnref' href='#dfn-interface'>interface</a>,
+                 then go to step <?stepref a-f?>.</li>
+              <li x:step='a-d'>Perform the behavior for creating a named property as specified by the
+                 description of the <a class='xattr' href='#NameCreator'>[NameCreator]</a>-annotated <a class='dfnref' href='#dfn-interface'>interface</a>.</li>
+              <li x:step='a-e'>Return.</li>
 
-<li x:step='a-b'>If <var>O</var> has a property that is the <a class='dfnref' href='#dfn-corresponding-named-property'>corresponding named property</a> for the named property <var>P</var>,
-   then go to step <?stepref a-i?>.</li>
+              <li x:step='a-f'>Determine the <span class='estype'>Function</span> object that corresponds to a <a class='xattr' href='#NameCreator'>[NameCreator]</a>-annotated
+                 <a class='dfnref' href='#dfn-operation'>operation</a> on an <a class='dfnref' href='#dfn-interface'>interface</a> that <var>O</var> implements.  If there is no
+                 such operation, then go to step <?stepref a-o?>.</li>
+              <li x:step='a-g'>Invoke the <span class='prop'>[[Call]]</span> method of Result(<?stepref a-f?>), providing <var>O</var> as the
+                 this value and with <var>P</var> and <var>V</var> as the two argument
+                 values.</li>
+              <li x:step='a-h'>Return.</li>
 
-<li x:step='a-c'>If <var>O</var> does not implement a <a class='xattr' href='#NameCreator'>[NameCreator]</a>-annotated <a class='dfnref' href='#dfn-interface'>interface</a>,
-   then go to step <?stepref a-f?>.</li>
+              <li x:step='a-i'>If <var>O</var> does not implement a <a class='xattr' href='#NameSetter'>[NameSetter]</a>-annotated <a class='dfnref' href='#dfn-interface'>interface</a>,
+                 then go to step <?stepref a-l?>.</li>
+              <li x:step='a-j'>Perform the behavior for setting a named property as specified by the
+                  description of the <a class='xattr' href='#NameSetter'>[NameSetter]</a>-annotated <a class='dfnref' href='#dfn-interface'>interface</a>.</li>
+              <li x:step='a-k'>Return.</li>
 
-<li x:step='a-d'>Perform the behavior for creating a named property as specified by the
-   description of the <a class='xattr' href='#NameCreator'>[NameCreator]</a>-annotated <a class='dfnref' href='#dfn-interface'>interface</a>.</li>
+              <li x:step='a-l'>Determine the <span class='estype'>Function</span> object that corresponds to a <a class='xattr' href='#NameSetter'>[NameSetter]</a>-annotated
+                  <a class='dfnref' href='#dfn-operation'>operation</a> on an <a class='dfnref' href='#dfn-interface'>interface</a> that <var>O</var> implements.  If there is no
+                  such operation, then go to step <?stepref a-o?>.</li>
+              <li x:step='a-m'>Invoke the <span class='prop'>[[Call]]</span> method of Result(<?stepref a-l?>), providing <var>O</var> as the
+                  this value and with <var>P</var> and <var>V</var> as the two argument
+                  values.</li>
+              <li x:step='a-n'>Return.</li>
 
-<li x:step='a-e'>Return.</li>
+              <li x:step='a-o'>If <var>P</var> is not the <a class='dfnref' href='#dfn-indices-of-the-supported-indexed-properties'>index of a supported indexed property</a>, then go to step <?stepref n?>.</li>
+              <li x:step='a-p'>If <var>O</var> has a property that is the <a class='dfnref' href='#dfn-corresponding-indexed-property'>corresponding indexed property</a> for the indexed property <var>P</var>,
+                  then go to step <?stepref a-w?>.</li>
+              <li x:step='a-q'>If <var>O</var> does not implement an <a class='xattr' href='#IndexCreator'>[IndexCreator]</a>-annotated <a class='dfnref' href='#dfn-interface'>interface</a>,
+                  then go to step <?stepref a-t?>.</li>
+              <li x:step='a-r'>Perform the behavior for creating an indexed property as specified by the
+                  description of the <a class='xattr' href='#IndexCreator'>[IndexCreator]</a>-annotated <a class='dfnref' href='#dfn-interface'>interface</a>.</li>
+              <li x:step='a-s'>Return.</li>
 
-<li x:step='a-f'>Determine the <span class='estype'>Function</span> object that corresponds to a <a class='xattr' href='#NameCreator'>[NameCreator]</a>-annotated
-   <a class='dfnref' href='#dfn-operation'>operation</a> on an <a class='dfnref' href='#dfn-interface'>interface</a> that <var>O</var> implements.  If there is no
-   such operation, then go to step <?stepref a-o?>.</li>
+              <li x:step='a-t'>Determine a <span class='estype'>Function</span> object that corresponds to an <a class='xattr' href='#IndexCreator'>[IndexCreator]</a>-annotated
+                  <a class='dfnref' href='#dfn-operation'>operation</a> on an <a class='dfnref' href='#dfn-interface'>interface</a> that <var>O</var> implements.  If there is no
+                  such operation, then go to step <?stepref n?>.</li>
+              <li x:step='a-u'>Invoke the <span class='prop'>[[Call]]</span> method of Result(<?stepref a-t?>), providing <var>O</var> as the
+                  this value and with <var>P</var> and <var>V</var> as the two argument
+                  values.</li>
+              <li x:step='a-v'>Return.</li>
 
-<li x:step='a-g'>Invoke the <span class='prop'>[[Call]]</span> method of Result(<?stepref a-f?>), providing <var>O</var> as the
-   this value and with <var>P</var> and <var>V</var> as the two argument
-   values.</li>
+              <li x:step='a-w'>If <var>O</var> does not implement an <a class='xattr' href='#IndexSetter'>[IndexSetter]</a>-annotated <a class='dfnref' href='#dfn-interface'>interface</a>,
+                  then go to step <?stepref a-z?>.</li>
+              <li x:step='a-x'>Perform the behavior for setting a named property as specified by the
+                  description of the <a class='xattr' href='#IndexSetter'>[IndexSetter]</a>-annotated <a class='dfnref' href='#dfn-interface'>interface</a>.</li>
+              <li x:step='a-y'>Return.</li>
 
-<li x:step='a-h'>Return.</li>
-
-<li x:step='a-i'>If <var>O</var> does not implement a <a class='xattr' href='#NameSetter'>[NameSetter]</a>-annotated <a class='dfnref' href='#dfn-interface'>interface</a>,
-   then go to step <?stepref a-l?>.</li>
-
-<li x:step='a-j'>Perform the behavior for setting a named property as specified by the
-    description of the <a class='xattr' href='#NameSetter'>[NameSetter]</a>-annotated <a class='dfnref' href='#dfn-interface'>interface</a>.</li>
-
-<li x:step='a-k'>Return.</li>
-
-<li x:step='a-l'>Determine the <span class='estype'>Function</span> object that corresponds to a <a class='xattr' href='#NameSetter'>[NameSetter]</a>-annotated
-    <a class='dfnref' href='#dfn-operation'>operation</a> on an <a class='dfnref' href='#dfn-interface'>interface</a> that <var>O</var> implements.  If there is no
-    such operation, then go to step <?stepref a-o?>.</li>
-
-<li x:step='a-m'>Invoke the <span class='prop'>[[Call]]</span> method of Result(<?stepref a-l?>), providing <var>O</var> as the
-    this value and with <var>P</var> and <var>V</var> as the two argument
-    values.</li>
-
-<li x:step='a-n'>Return.</li>
-
-
-
-<li x:step='a-o'>If <var>P</var> is not the <a class='dfnref' href='#dfn-indices-of-the-supported-indexed-properties'>index of a supported indexed property</a>, then go to step <?stepref n?>.</li>
-
-<li x:step='a-p'>If <var>O</var> has a property that is the <a class='dfnref' href='#dfn-corresponding-indexed-property'>corresponding indexed property</a> for the indexed property <var>P</var>,
-    then go to step <?stepref a-w?>.</li>
-
-<li x:step='a-q'>If <var>O</var> does not implement an <a class='xattr' href='#IndexCreator'>[IndexCreator]</a>-annotated <a class='dfnref' href='#dfn-interface'>interface</a>,
-    then go to step <?stepref a-t?>.</li>
-
-<li x:step='a-r'>Perform the behavior for creating an indexed property as specified by the
-    description of the <a class='xattr' href='#IndexCreator'>[IndexCreator]</a>-annotated <a class='dfnref' href='#dfn-interface'>interface</a>.</li>
-
-<li x:step='a-s'>Return.</li>
-
-<li x:step='a-t'>Determine a <span class='estype'>Function</span> object that corresponds to an <a class='xattr' href='#IndexCreator'>[IndexCreator]</a>-annotated
-    <a class='dfnref' href='#dfn-operation'>operation</a> on an <a class='dfnref' href='#dfn-interface'>interface</a> that <var>O</var> implements.  If there is no
-    such operation, then go to step <?stepref n?>.</li>
-
-<li x:step='a-u'>Invoke the <span class='prop'>[[Call]]</span> method of Result(<?stepref a-t?>), providing <var>O</var> as the
-    this value and with <var>P</var> and <var>V</var> as the two argument
-    values.</li>
-
-<li x:step='a-v'>Return.</li>
-
-<li x:step='a-w'>If <var>O</var> does not implement an <a class='xattr' href='#IndexSetter'>[IndexSetter]</a>-annotated <a class='dfnref' href='#dfn-interface'>interface</a>,
-    then go to step <?stepref a-z?>.</li>
-
-<li x:step='a-x'>Perform the behavior for setting a named property as specified by the
-    description of the <a class='xattr' href='#IndexSetter'>[IndexSetter]</a>-annotated <a class='dfnref' href='#dfn-interface'>interface</a>.</li>
-
-<li x:step='a-y'>Return.</li>
-
-<li x:step='a-z'>Determine a <span class='estype'>Function</span> object that corresponds to an <a class='xattr' href='#IndexSetter'>[IndexSetter]</a>-annotated
-    <a class='dfnref' href='#dfn-operation'>operation</a> on an <a class='dfnref' href='#dfn-interface'>interface</a> that <var>O</var> implements.  If there is no
-    such operation, then go to step <?stepref n?>.</li>
-
-<li x:step='a-aa'>Invoke the <span class='prop'>[[Call]]</span> method of Result(<?stepref a-z?>), providing <var>O</var> as the
-    this value and with <var>P</var> and <var>V</var> as the two argument
-    values.</li>
-
-<li x:step='a-ab'>Return.</li>
+              <li x:step='a-z'>Determine a <span class='estype'>Function</span> object that corresponds to an <a class='xattr' href='#IndexSetter'>[IndexSetter]</a>-annotated
+                  <a class='dfnref' href='#dfn-operation'>operation</a> on an <a class='dfnref' href='#dfn-interface'>interface</a> that <var>O</var> implements.  If there is no
+                  such operation, then go to step <?stepref n?>.</li>
+              <li x:step='a-aa'>Invoke the <span class='prop'>[[Call]]</span> method of Result(<?stepref a-z?>), providing <var>O</var> as the
+                  this value and with <var>P</var> and <var>V</var> as the two argument
+                  values.</li>
+              <li x:step='a-ab'>Return.</li>
 
               <li x:step='n'>
                 If <var>O</var> does not have a property with name <var>P</var>,
@@ -4605,6 +4633,16 @@ interface D : C {
               <li x:step='r'>Return.</li>
 
               <li x:step='s'>
+                If <var>O</var> does not have a property named <var>P</var> that is the
+                property corresponding to an <a class='dfnref' href='#dfn-attribute'>attribute</a>
+                and which is annotated with the <a class='xattr' href='#Replaceable'>[Replaceable]</a>
+                <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>,
+                then go to step <?stepref s2?>.
+              </li>
+              <li>Remove the property with name <var>P</var> from <var>O</var>.</li>
+              <li>Go to step <?stepref x?>.</li>
+
+              <li x:step='s2'>
                 Call the <span class='prop'>[[CanPut]]</span> method of <var>O</var> with name
                 <var>P</var>.
               </li>
@@ -6186,6 +6224,14 @@ interface HTMLDocument {
           <dt>Current editor’s draft</dt>
           <dd>
             <ul>
+              <li>
+                <p>
+                  Added a <span class='xattr'>[Replaceable]</span> extended
+                  attribute that can be placed on an attribute to indicate
+                  that the corresponding ECMAScript property can be
+                  replaced.
+                </p>
+              </li>
               <li>
                 <p>
                   Added a requirement that <span class='xattr'>[Stringifies]</span>
