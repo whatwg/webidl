@@ -15,7 +15,7 @@
   <head>
     <title>Web IDL</title>
     <meta http-equiv='Content-Type' content='application/xhtml+xml; charset=UTF-8'/>
-    <meta name='revision' content='$Id: Overview.xml,v 1.106 2008-11-27 06:12:38 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: Overview.xml,v 1.107 2008-11-27 08:02:08 cmccorma Exp $'/>
     <link rel='stylesheet' href='WebIDL.css' type='text/css'/>
 
     <options xmlns='http://mcc.id.au/ns/local'>
@@ -484,6 +484,7 @@
           </p>
           <p>
             The following extended attributes are applicable to interfaces:
+            <a class='xattr' href='#Callable'>[Callable]</a>,
             <a class='xattr' href='#Callback'>[Callback]</a>,
             <a class='xattr' href='#Constructor'>[Constructor]</a>,
             <a class='xattr' href='#ImplementedOn'>[ImplementedOn]</a>,
@@ -922,7 +923,6 @@ interface B {
 };
 
 interface C {
-
   void f(in A x);
   void f(in B x);
 };</x:codeblock>
@@ -944,7 +944,6 @@ interface C {
                For the following interface:
               </p>
               <x:codeblock language='idl'>interface A {
-
   /* f1 */ void f(in DOMString a);
   /* f2 */ void f(in DOMString a, in DOMString b, [Variadic] in float c);
   /* f3 */ void f([Optional] in long a, in DOMString b, [Optional] in DOMString c, [Variadic] in float d);
@@ -1429,6 +1428,63 @@ interface C {
 
           <?productions grammar ExtendedAttributeList ExtendedAttribute ExtendedAttributes ExtendedAttributeDetails ExtendedAttributeAssignment ExtendedAttributeAssignmentArguments?>
 
+          <div id='Callable' class='section'>
+            <h4>[Callable]</h4>
+
+            <p>
+              If the <a class='xattr' href='#Callable'>[Callable]</a>
+              <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
+              appears on an <a class='dfnref' href='#dfn-interface'>interface</a>,
+              it indicates that objects that implement this interface can be called
+              as if they were a function, for languages that support such
+              object calling.
+            </p>
+            <p>
+              The <a class='xattr' href='#Callable'>[Callable]</a>
+              extended attribute <span class='rfc2119'>MUST</span> take
+              <!-- <a class='dfnref' href='#dfn-xattr-no-argument'>no argument</a> -->
+              <a class='dfnref' href='#dfn-xattr-identifier'>an identifier</a>. <!-- or
+              <a class='dfnref' href='#dfn-xattr-argument-list'>an argument list</a>.-->
+              The <a class='dfnref' href='#dfn-identifier'>identifier</a>
+              <span class='rfc2119'>MUST</span> be the identifier of a
+              <a class='dfnref' href='#dfn-overloaded'>non-overloaded</a>
+              <a class='dfnref' href='#dfn-operation'>operation</a> defined
+              on the <a class='dfnref' href='#dfn-interface'>interface</a>.
+              Calling the object as a function will result in the same
+              behavior as invoking the operation.
+            </p>
+            <p>
+              If an object implements more than one
+              <a class='xattr' href='#Callable'>[Callable]</a>-annotated
+              <a class='dfnref' href='#dfn-interface'>interface</a>,
+              then it is undefined which (if any) <a class='dfnref' href='#dfn-operation'>operation</a>
+              determines the behavior when calling the object as a function.
+            </p>
+            <div class='example'>
+              <p>
+                The following <a class='dfnref' href='#dfn-idl-fragment'>IDL fragment</a>
+                defines an <a class='dfnref' href='#dfn-interface'>interface</a>
+                with a <a class='xattr' href='#Callable'>[Callable]</a>
+                <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>.
+              </p>
+              <x:codeblock language='idl'>[Callable=compute]
+interface NumberQuadrupler {
+  /* This operation simply returns four times the given number x. */
+  float compute(in float x);
+};</x:codeblock>
+              <p>
+                An ECMAScript implementation supporting this interface would
+                allow a host object that implements <span class='idltype'>NumberQuadrupler</span>
+                to be called as a function:
+              </p>
+              <x:codeblock language='es'>
+var f = getNumberQuadrupler();  // Obtain an instance of NumberQuadrupler.
+
+f.compute(3);                   // This evaluates to 12.
+f(3);                           // This also evaluates to 12.</x:codeblock>
+            </div>
+          </div>
+
           <div id='Constructor' class='section'>
             <h4>[Constructor]</h4>
 
@@ -1615,6 +1671,13 @@ EventTarget et = (EventTarget) n;  // This should never throw ClassCastException
               <a class='dfnref' href='#dfn-xattr-no-argument'>take no argument</a>.
             </p>
             <p>
+              If an object implements more than one
+              <a class='dfnref' href='#dfn-interface'>interface</a> with a given
+              indexed property <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>,
+              then it is undefined which (if any) indexing behavior is
+              invoked.
+            </p>
+            <p>
               If an <a class='dfnref' href='#dfn-interface'>interface</a>
               <a class='dfnref' href='#dfn-support-indexed-properties'>supports indexed properties</a>,
               then the interface definition <span class='rfc2119'>MUST</span>
@@ -1706,7 +1769,6 @@ EventTarget et = (EventTarget) n;  // This should never throw ClassCastException
                 retrieving and setting values by name or by index number:
               </p>
               <x:codeblock language='idl'>interface OrderedMap {
-
   readonly attribute unsigned long size;
 
   [IndexGetter] any getByIndex(in unsigned long index);
@@ -1819,6 +1881,13 @@ delete map.cake;  // If a named property named "cake" exists, then the "cake"
               <a class='dfnref' href='#dfn-xattr-no-argument'>take no argument</a>.
             </p>
             <p>
+              If an object implements more than one
+              <a class='dfnref' href='#dfn-interface'>interface</a> with a given
+              named property <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>,
+              then it is undefined which (if any) indexing behavior is
+              invoked.
+            </p>
+            <p>
               If an <a class='dfnref' href='#dfn-interface'>interface</a>
               <a class='dfnref' href='#dfn-support-named-properties'>supports named properties</a>,
               then the interface definition <span class='rfc2119'>MUST</span>
@@ -1826,7 +1895,6 @@ delete map.cake;  // If a named property named "cake" exists, then the "cake"
               object can be indexed with at any given time.  These names
               are called the
               <dfn id='dfn-names-of-the-supported-named-properties'>names of the supported named properties</dfn>.
-
             </p>
             <p>
               The <a class='xattr' href='#NameGetter'>[NameGetter]</a>
@@ -2059,7 +2127,6 @@ d.isMemberOfBreed(null);  // This passes the string "" to the isMemberOfBreed fu
                 that can be invoked with three different argument list lengths:
               </p>
               <x:codeblock language='idl'>interface ColorCreator {
-
   Object createColor(in float v1, [Optional] in float v2, in float v3, [Optional] in float alpha);
 };</x:codeblock>
               <p>
@@ -3401,7 +3468,6 @@ var fn = Query.prototype.lookupEntry;  // exception, Query isn’t defined
                 that exposes the counter’s value, which is initially 0:
               </p>
               <x:codeblock language='idl'>interface Counter {
-
   [Replaceable] readonly attribute unsigned value;
   void increment();
 };</x:codeblock>
@@ -4594,7 +4660,7 @@ interface D : C {
                  description of the <a class='xattr' href='#NameCreator'>[NameCreator]</a>-annotated <a class='dfnref' href='#dfn-interface'>interface</a>.</li>
               <li x:step='a-e'>Return.</li>
 
-              <li x:step='a-f'>Determine the <span class='estype'>Function</span> object that corresponds to a <a class='xattr' href='#NameCreator'>[NameCreator]</a>-annotated
+              <li x:step='a-f'>Determine a callable object that corresponds to a <a class='xattr' href='#NameCreator'>[NameCreator]</a>-annotated
                  <a class='dfnref' href='#dfn-operation'>operation</a> on an <a class='dfnref' href='#dfn-interface'>interface</a> that <var>O</var> implements.  If there is no
                  such operation, then go to step <?stepref a-o?>.</li>
               <li x:step='a-g'>Invoke the <span class='prop'>[[Call]]</span> method of Result(<?stepref a-f?>), providing <var>O</var> as the
@@ -4608,7 +4674,7 @@ interface D : C {
                   description of the <a class='xattr' href='#NameSetter'>[NameSetter]</a>-annotated <a class='dfnref' href='#dfn-interface'>interface</a>.</li>
               <li x:step='a-k'>Return.</li>
 
-              <li x:step='a-l'>Determine the <span class='estype'>Function</span> object that corresponds to a <a class='xattr' href='#NameSetter'>[NameSetter]</a>-annotated
+              <li x:step='a-l'>Determine a callable object that corresponds to a <a class='xattr' href='#NameSetter'>[NameSetter]</a>-annotated
                   <a class='dfnref' href='#dfn-operation'>operation</a> on an <a class='dfnref' href='#dfn-interface'>interface</a> that <var>O</var> implements.  If there is no
                   such operation, then go to step <?stepref a-o?>.</li>
               <li x:step='a-m'>Invoke the <span class='prop'>[[Call]]</span> method of Result(<?stepref a-l?>), providing <var>O</var> as the
@@ -4625,7 +4691,7 @@ interface D : C {
                   description of the <a class='xattr' href='#IndexCreator'>[IndexCreator]</a>-annotated <a class='dfnref' href='#dfn-interface'>interface</a>.</li>
               <li x:step='a-s'>Return.</li>
 
-              <li x:step='a-t'>Determine a <span class='estype'>Function</span> object that corresponds to an <a class='xattr' href='#IndexCreator'>[IndexCreator]</a>-annotated
+              <li x:step='a-t'>Determine a callable object that corresponds to an <a class='xattr' href='#IndexCreator'>[IndexCreator]</a>-annotated
                   <a class='dfnref' href='#dfn-operation'>operation</a> on an <a class='dfnref' href='#dfn-interface'>interface</a> that <var>O</var> implements.  If there is no
                   such operation, then go to step <?stepref n?>.</li>
               <li x:step='a-u'>Invoke the <span class='prop'>[[Call]]</span> method of Result(<?stepref a-t?>), providing <var>O</var> as the
@@ -4639,7 +4705,7 @@ interface D : C {
                   description of the <a class='xattr' href='#IndexSetter'>[IndexSetter]</a>-annotated <a class='dfnref' href='#dfn-interface'>interface</a>.</li>
               <li x:step='a-y'>Return.</li>
 
-              <li x:step='a-z'>Determine a <span class='estype'>Function</span> object that corresponds to an <a class='xattr' href='#IndexSetter'>[IndexSetter]</a>-annotated
+              <li x:step='a-z'>Determine a callable object that corresponds to an <a class='xattr' href='#IndexSetter'>[IndexSetter]</a>-annotated
                   <a class='dfnref' href='#dfn-operation'>operation</a> on an <a class='dfnref' href='#dfn-interface'>interface</a> that <var>O</var> implements.  If there is no
                   such operation, then go to step <?stepref n?>.</li>
               <li x:step='a-aa'>Invoke the <span class='prop'>[[Call]]</span> method of Result(<?stepref a-z?>), providing <var>O</var> as the
@@ -4721,7 +4787,7 @@ interface D : C {
               <li>Perform the behavior for deleting a named property as specified by the description of the <a class='xattr' href='#NameDeleter'>[NameDeleter]</a>-annotated <a class='dfnref' href='#dfn-interface'>interface</a>.</li>
               <li>If the behavior specified for deleting a named property indicated that the deletion failed, return <span class='esvalue'>false</span>.</li>
               <li>Return <span class='esvalue'>true</span>.</li>
-              <li x:step='c'>Determine the <span class='estype'>Function</span> object that corresponds to a <a class='xattr' href='#NameDeleter'>[NameDeleter]</a>-annotated <a class='dfnref' href='#dfn-operation'>operation</a> on an <a class='dfnref' href='#dfn-interface'>interface</a> that <var>O</var> implements.</li>
+              <li x:step='c'>Determine a callable object that corresponds to a <a class='xattr' href='#NameDeleter'>[NameDeleter]</a>-annotated <a class='dfnref' href='#dfn-operation'>operation</a> on an <a class='dfnref' href='#dfn-interface'>interface</a> that <var>O</var> implements.</li>
               <li x:step='d'>Invoke the <span class='prop'>[[Call]]</span> method of Result(<?stepref c?>), providing <var>O</var> as the this value and with <var>P</var> as the argument value.</li>
               <li>If the <a class='xattr' href='#NameDeleter'>[NameDeleter]</a>-annotated <a class='dfnref' href='#dfn-operation'>operation</a> is declared to return a value of type <a class='idltype' href='#idl-boolean'>boolean</a>, then return ToBoolean(Result(<?stepref d?>)).  Otherwise, return <span class='esvalue'>true</span>.</li>
 
@@ -4731,7 +4797,7 @@ interface D : C {
               <li>Perform the behavior for deleting an indexed property as specified by the description of the <a class='xattr' href='#IndexDeleter'>[IndexDeleter]</a>-annotated <a class='dfnref' href='#dfn-interface'>interface</a>.</li>
               <li>If the behavior specified for deleting an indexed property indicated that the deletion failed, return <span class='esvalue'>false</span>.</li>
               <li>Return <span class='esvalue'>true</span>.</li>
-              <li x:step='e'>Determine the <span class='estype'>Function</span> object that corresponds to a <a class='xattr' href='#IndexDeleter'>[IndexDeleter]</a>-annotated <a class='dfnref' href='#dfn-operation'>operation</a> on an <a class='dfnref' href='#dfn-interface'>interface</a> that <var>O</var> implements.</li>
+              <li x:step='e'>Determine a callable object that corresponds to a <a class='xattr' href='#IndexDeleter'>[IndexDeleter]</a>-annotated <a class='dfnref' href='#dfn-operation'>operation</a> on an <a class='dfnref' href='#dfn-interface'>interface</a> that <var>O</var> implements.</li>
               <li x:step='f'>Invoke the <span class='prop'>[[Call]]</span> method of Result(<?stepref e?>), providing <var>O</var> as the this value and with <var>P</var> as the argument value.</li>
               <li>If the <a class='xattr' href='#IndexDeleter'>[IndexDeleter]</a>-annotated <a class='dfnref' href='#dfn-operation'>operation</a> is declared to return a value of type <a class='idltype' href='#idl-boolean'>boolean</a>, then return ToBoolean(Result(<?stepref f?>)).  Otherwise, return <span class='esvalue'>true</span>.</li>
 
@@ -4748,6 +4814,37 @@ interface D : C {
             to an IDL value and assigned to the attribute,
             as described in <a href='#host-objects'>section <?sref host-objects?></a>.
           </p>
+
+          <div id='call' class='section'>
+            <h4>Host object [[Call]] method</h4>
+
+            <p>
+              The internal <span class='prop'>[[Call]]</span> method of every
+              host object <var>O</var> that implements an IDL <a class='dfnref' href='#dfn-interface'>interface</a>
+              that is annotated with the <a class='xattr' href='#Callable'>[Callable]</a>
+              <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
+              <span class='rfc2119'>MUST</span> behave as follows:
+            </p>
+            <ol class='algorithm'>
+              <li x:step='a'>
+                Determine the callable object that corresponds to the
+                <a class='dfnref' href='#dfn-operation'>operation</a> that the
+                <a class='xattr' href='#Callable'>[Callable]</a>
+                <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
+                identifies.
+              </li>
+              <li x:step='b'>
+                Invoke the <span class='prop'>[[Call]]</span> method of
+                Result(<?stepref a?>), providing <var>O</var> as the
+                <span class='esvalue'>this</span> value and providing the
+                same argument list that was passed to this <span class='prop'>[[Call]]</span>
+                method invocation.
+              </li>
+              <li>
+                Return Result(<?stepref b?>).
+              </li>
+            </ol>
+          </div>
         </div>
 
         <div id='native-objects' class='section'>
@@ -4771,6 +4868,7 @@ interface D : C {
             </li>
             <li>
               The interface does not have a
+              <a class='xattr' href='#Callable'>[Callable]</a>,
               <a class='xattr' href='#Constructor'>[Constructor]</a>,
               <a class='xattr' href='#IndexCreator'>[IndexCreator]</a>,
               <a class='xattr' href='#IndexDeleter'>[IndexDeleter]</a>,
@@ -4854,7 +4952,7 @@ interface D : C {
             <li>Let <var>X</var> be the implementation of the operation.</li>
             <li>If Type(<var>X</var>) is not Object, throw a <span class='estype'>TypeError</span> exception.</li>
             <li>If <var>X</var> does not implement the internal <span class='prop'>[[Call]]</span> method, throw a <span class='estype'>TypeError</span> exception.</li>
-            <li x:step='a'>Call the <span class='prop'>[[Call]]</span> method of <var>X</var>, providing <var>O</var> as the <span class='esvalue'>this</span> value and <var>L</var> as the argument values.</li>
+            <li x:step='a'>Invoke the <span class='prop'>[[Call]]</span> method of <var>X</var>, providing <var>O</var> as the <span class='esvalue'>this</span> value and <var>L</var> as the argument values.</li>
             <li>Return Result(<?stepref a?>).</li>
           </ol>
           <div class='ednote'>
@@ -5696,7 +5794,6 @@ interface HTMLDocument {
                 This needs to be taken into account in this section.  For example:
               </p>
               <x:codeblock language='idl'>interface A {
-
   void f(in Object x);
   void f(in any x);
 };</x:codeblock>
