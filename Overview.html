@@ -11,7 +11,7 @@
   <head>
     <title>Web IDL</title>
     <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-    <meta name="revision" content="$Id: Overview.html,v 1.111 2008-11-27 01:17:27 cmccorma Exp $" />
+    <meta name="revision" content="$Id: Overview.html,v 1.112 2008-11-27 06:13:20 cmccorma Exp $" />
     <link rel="stylesheet" href="WebIDL.css" type="text/css" />
 
     
@@ -34,7 +34,7 @@
         Java execution environments is also detailed.
       </p>
 
-      <div class="ednote"><div class="ednoteHeader">Editorial note</div><p>This is revision $Id: Overview.html,v 1.111 2008-11-27 01:17:27 cmccorma Exp $.</p></div>
+      <div class="ednote"><div class="ednoteHeader">Editorial note</div><p>This is revision $Id: Overview.html,v 1.112 2008-11-27 06:13:20 cmccorma Exp $.</p></div>
     </div>
 
     <div class="section">
@@ -1614,12 +1614,12 @@ FileIOException.FILE_NOT_FOUND;  // evaluates to 1</code></pre></div></div>
             <p>
               The <a class="xattr" href="#ImplementedOn">[ImplementedOn]</a>
               extended attribute <span class="rfc2119">MUST</span>
-              <a class="dfnref" href="#dfn-xattr-argument-list">take an identifier list</a>,
-              where each <a class="dfnref" href="#dfn-identifier">identifier</a>
+              <a class="dfnref" href="#dfn-xattr-identifier">take an identifier</a>,
+              where the <a class="dfnref" href="#dfn-identifier">identifier</a>
               <span class="rfc2119">MUST</span> <a class="dfnref" href="#dfn-resolve">resolve</a>
               to an interface other than the one the extended attribute appears
-              on.  Any object that implements at least one of the interfaces
-              in the list will implement the interface the
+              on.  Any object that implements the interface identified by
+              the argument will implement the interface the
               <a class="xattr" href="#ImplementedOn">[ImplementedOn]</a>
               extended attribute appears on.
             </p>
@@ -1651,8 +1651,8 @@ typeof n.addEventListener;  // Evaluates to "function".</code></pre></div></div>
                 Similarly, in Java, any <span class="javatype">Node</span>
                 object could be cast to <span class="javatype">EventTarget</span>:
               </p>
-              <div class="block"><div class="blockTitleDiv"><span class="blockTitle">Java</span></div><div class="blockContent"><pre class="code"><code class="java-code">Node n = getNode();         // Obtain an instance of Node.
-EventTarget et = (Node) n;  // This should never throw ClassCastException.</code></pre></div></div>
+              <div class="block"><div class="blockTitleDiv"><span class="blockTitle">Java</span></div><div class="blockContent"><pre class="code"><code class="java-code">Node n = getNode();                // Obtain an instance of Node.
+EventTarget et = (EventTarget) n;  // This should never throw ClassCastException.</code></pre></div></div>
             </div>
           </div>
 
@@ -2146,6 +2146,18 @@ d.isMemberOfBreed(null);  // This passes the string "" to the isMemberOfBreed fu
               on an object implementing <var>I</var> will result in that value
               being assigned to attribute <var>B</var> of the object that <var>A</var>
               references, instead.
+            </p>
+            <p>
+              Note that <a class="xattr" href="#PutForwards">[PutForwards]</a>-annotated
+              <a class="dfnref" href="#dfn-attribute">attributes</a> can be
+              chained.  That is, an attribute with the <a class="xattr" href="#PutForwards">[PutForwards]</a>
+              <a class="dfnref" href="#dfn-extended-attribute">extended attribute</a>
+              can refer to an attribute that itself has that extended attribute.
+              There <span class="rfc2119">MUST NOT</span> exist a cycle in a
+              chain of forwarded assignments.  A cycle exists if, when following
+              the chain of forwarded assignments, a particular attribute on
+              an <a class="dfnref" href="#dfn-interface">interface</a> is
+              encountered more than once.
             </p>
             <div class="example"><div class="exampleHeader">Example</div>
               <p>
@@ -3844,7 +3856,7 @@ c.isMemberOfBreed(undefined);  // This passes the string "" to the isMemberOfBre
               When getting the property, the value returned is the result of
               <a class="dfnref" href="#dfn-convert-idl-to-ecmascript-value">converting</a>
               the <a class="dfnref" href="#dfn-attribute">attribute</a>’s
-              IDL value to an ECMAScript.
+              IDL value to an ECMAScript value.
             </li>
             <li>
               If the <a class="dfnref" href="#dfn-attribute">attribute</a> is
@@ -5765,7 +5777,8 @@ interface HTMLDocument {
                   Removed a bogus requirement that
                   <span class="xattr">[PutForwards]</span> identify an
                   attribute whose type is the same as the attribute that
-                  has the <span class="xattr">[PutForwards]</span>.
+                  has the <span class="xattr">[PutForwards]</span>, and
+                  disallowed cycles of forwarding assignments.
                 </p>
               </li>
               <li>
