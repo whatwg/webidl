@@ -15,7 +15,7 @@
   <head>
     <title>Web IDL</title>
     <meta http-equiv='Content-Type' content='application/xhtml+xml; charset=UTF-8'/>
-    <meta name='revision' content='$Id: Overview.xml,v 1.109 2008-11-27 08:12:01 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: Overview.xml,v 1.110 2008-11-27 11:00:20 cmccorma Exp $'/>
     <link rel='stylesheet' href='WebIDL.css' type='text/css'/>
 
     <options xmlns='http://mcc.id.au/ns/local'>
@@ -4905,7 +4905,7 @@ interface D : C {
             </li>
           </ul>
           <p>
-            The following cases determine whether a given native object implements
+            The following cases determine whether and how a given native object implements
             an interface with the above characteristics:
           </p>
           <ul>
@@ -4944,23 +4944,33 @@ interface D : C {
             </li>
           </ul>
           <p>
-            A user agent calls a native object’s operation implementation with an argument
-            list <var>L</var> as follows:
+            A user agent calls a native object’s operation implementation with a list
+            of IDL argument values <var>idlarg</var><sub>0‥<var>n</var>−1</sub> by
+            following the algorithm below.  The <dfn id='callback-this-value'>callback this value</dfn>
+            is the value to use as the <span class='esvalue'>this</span> value
+            when calling the native object’s operation implementation
+            <span class='prop'>[[Call]]</span> method.  By default, the native object
+            itself is used as the <a class='dfnref' href='#dfn-callback-this-value'>callback this value</a>,
+            however this <span class='rfc2119'>MAY</span> be overridden by other
+            specifications.
           </p>
           <ol class='algorithm'>
             <li>Let <var>O</var> be the native object.</li>
             <li>Let <var>X</var> be the implementation of the operation.</li>
             <li>If Type(<var>X</var>) is not Object, throw a <span class='estype'>TypeError</span> exception.</li>
             <li>If <var>X</var> does not implement the internal <span class='prop'>[[Call]]</span> method, throw a <span class='estype'>TypeError</span> exception.</li>
-            <li x:step='a'>Invoke the <span class='prop'>[[Call]]</span> method of <var>X</var>, providing <var>O</var> as the <span class='esvalue'>this</span> value and <var>L</var> as the argument values.</li>
-            <li>Return Result(<?stepref a?>).</li>
+            <li>
+              Let <var>arg</var><sub>0‥<var>n</var>−1</sub> be a list of
+              ECMAScript values, where <var>arg</var><sub><var>i</var></sub> is the result
+              of <a class='dfnref' href='#dfn-convert-idl-to-ecmascript'>converting</a>
+              <var>idlarg</var><sub><var>i</var></sub> to an ECMAScript value.
+            </li>
+            <li x:step='a'>Invoke the <span class='prop'>[[Call]]</span> method of <var>X</var>, providing the <a class='dfnref' href='#dfn-callback-this-value'>callback this value</a> as the <span class='esvalue'>this</span> value and <var>arg</var><sub>0‥<var>n</var>−1</sub> as the argument values.</li>
+            <li>
+              Return the result of <a class='dfnref' href='#dfn-convert-ecmascript-to-idl'>converting</a>
+              Result(<?stepref a?>) to an IDL value.
+            </li>
           </ol>
-          <div class='ednote'>
-            <p>HTML will want to override the <span class='esvalue'>this</span> value for
-              native object EventListener implementations to be the object the listener
-              was added to, when the native object is a <span class='estype'>Function</span> object.
-              Do we need to add anything here for this?</p>
-          </div>
         </div>
 
         <div id='es-exceptions' class='section'>
