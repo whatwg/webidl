@@ -15,7 +15,7 @@
   <head>
     <title>Web IDL</title>
     <meta http-equiv='Content-Type' content='application/xhtml+xml; charset=UTF-8'/>
-    <meta name='revision' content='$Id: Overview.xml,v 1.103 2008-11-24 06:30:02 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: Overview.xml,v 1.104 2008-11-27 01:15:25 cmccorma Exp $'/>
     <link rel='stylesheet' href='WebIDL.css' type='text/css'/>
 
     <options xmlns='http://mcc.id.au/ns/local'>
@@ -1446,8 +1446,8 @@ interface C {
               extended attribute <span class='rfc2119'>MUST</span> either
               <a class='dfnref' href='#dfn-xattr-no-argument'>take no argument</a> or
               <a class='dfnref' href='#dfn-xattr-argument-list'>take an argument list</a>.
-              The bare form (<code>[Constructor]</code>) has the same meaning as
-              using an empty argument list (<code>[Constructor()]</code>).  For each
+              The bare form, <code>[Constructor]</code>, has the same meaning as
+              using an empty argument list, <code>[Constructor()]</code>.  For each
               <a class='xattr' href='#Constructor'>[Constructor]</a> extended attribute
               on the interface, there will be a way to construct an object that implements
               the interface by passing the specified arguments.
@@ -2149,23 +2149,48 @@ Person* p2 = PersonFactory_createPersonWithAge(f, 26);  // Corresponds to the cr
               <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
               appears on a <a class='dfnref' href='#dfn-read-only'>read only</a>
               <a class='dfnref' href='#dfn-attribute'>attribute</a> declaration whose type is
-              an object implementing an <a class='dfnref' href='#dfn-interface'>interface</a>,
+              an <a href='#idl-interface'>object implementing an interface</a>,
               it indicates that assigning to the attribute will have specific behavior.
               Namely, the assignment is “forwarded” to the attribute (specified by
-              the extended attribute argument) on the object that is currently the value
-              of the attribute being assigned to.
+              the extended attribute argument) on the object that is currently
+              referenced by the attribute being assigned to.
             </p>
             <p>
               It is language binding specific what behavior occurs when assigning
-              to such an attribute when its value is <span class='idlvalue'>null</span>.
+              to such an attribute whose value is <span class='idlvalue'>null</span>.
             </p>
             <p>
               The <a class='xattr' href='#PutForwards'>[PutForwards]</a> extended
-              attribute <span class='rfc2119'>MUST</span> <a class='dfnref' href='#dfn-xattr-identifier'>take an identifier</a>
-              that is the <a class='dfnref' href='#dfn-identifier'>identifier</a>
-              of an attribute that exists on the interface and which has the same type as
-              this attribute.  Assignments to the attribute with <a class='xattr' href='#PutForwards'>[PutForwards]</a>
-              will be forwarded to that identified attribute.
+              attribute <span class='rfc2119'>MUST</span> <a class='dfnref' href='#dfn-xattr-identifier'>take an identifier</a>.
+              Assuming that:
+            </p>
+            <ul>
+              <li>
+                <var>A</var> is the <a class='dfnref' href='#dfn-attribute'>attribute</a>
+                on which the <a class='xattr' href='#PutForwards'>[PutForwards]</a>
+                extended attribute appears,
+              </li>
+              <li>
+                <var>I</var> is the <a class='dfnref' href='#dfn-interface'>interface</a>
+                on which <var>A</var> is declared,
+              </li>
+              <li>
+                <var>J</var> is the <a href='#idl-interface'>interface type</a>
+                that <var>A</var> is declared to be of, and
+              </li>
+              <li>
+                <var>N</var> is the <a class='dfnref' href='#dfn-identifier'>identifier</a>
+                argument of the extended attribute,
+              </li>
+            </ul>
+            <p>
+              then there <span class='rfc2119'>MUST</span> be another
+              <a class='dfnref' href='#dfn-attribute'>attribute</a> <var>B</var>
+              declared on <var>J</var> whose <a class='dfnref' href='#dfn-identifier'>identifier</a>
+              is <var>N</var>.  Assignment of a value to the attribute <var>A</var>
+              on an object implementing <var>I</var> will result in that value
+              being assigned to attribute <var>B</var> of the object that <var>A</var>
+              references, instead.
             </p>
             <div class='example'>
               <p>
@@ -5968,6 +5993,7 @@ interface HTMLDocument {
           Gorm Haug Eriksen,
           Ian Hickson,
           Björn Höhrmann,
+          Kartikaya Gupta,
           Magnus Kristiansen,
           Lachlan Hunt,
           Anne van Kesteren,
@@ -6041,7 +6067,21 @@ interface HTMLDocument {
           terminal symbol.  Thus, the input text “<tt>in</tt>” is tokenized as the quoted terminal symbol
           <span class='terminal'>"in"</span> rather than an <span class='terminal'>identifier</span> called “in”.
         </p>
-
+        <p>
+          The IDL syntax is case sensitive, both for the quoted terminal symbols
+          used in the grammar and the values used for
+          <span class='terminal'>identifier</span> terminals.  Thus, for
+          example, the input text “<tt>Getraises</tt>” is tokenized as
+          an <span class='terminal'>identifier</span> rather than the quoted
+          terminal symbol <span class='terminal'>"getraises"</span>, an
+          <a class='dfnref' href='#dfn-interface'>interface</a> with
+          <a class='dfnref' href='#dfn-identifier'>identifier</a>
+          “A” is distinct from one named “a”, and an
+          <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
+          <span class='xattr'>[optional]</span> will not be recognized as
+          the the <a class='xattr' href='#Optional'>[Optional]</a>
+          extended attribute.
+        </p>
         <p>
           Implicitly, the <span class='terminal'>whitespace</span> terminal is allowed between every terminal
           in the input text being parsed.  Such <span class='terminal'>whitespace</span> terminals, which
