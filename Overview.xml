@@ -15,7 +15,7 @@
   <head>
     <title>Web IDL</title>
     <meta http-equiv='Content-Type' content='application/xhtml+xml; charset=UTF-8'/>
-    <meta name='revision' content='$Id: Overview.xml,v 1.111 2008-11-28 00:25:33 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: Overview.xml,v 1.112 2008-11-28 10:24:25 cmccorma Exp $'/>
     <link rel='stylesheet' href='WebIDL.css' type='text/css'/>
 
     <options xmlns='http://mcc.id.au/ns/local'>
@@ -80,7 +80,7 @@
         <a href='http://www.w3.org/2006/rwc/Activity'>Rich Web Clients Activity</a>
         in the W3C <a href='http://www.w3.org/Interaction/'>Interaction Domain</a>.
         Changes made to this document can be found in the
-        <a href='http://dev.w3.org/cvsweb/2006/webapi/WebIDL/Overview.html'>W3C
+        <a href='http://dev.w3.org/cvsweb/2006/webapi/WebIDL/Overview.xml'>W3C
           public CVS server</a>.
       </p>
       <?sotd-bottom http://www.w3.org/2004/01/pp-impl/42538/status?>
@@ -1406,25 +1406,22 @@ interface C {
           <p>
             An extended attribute is specified as an
             <a class='nt' href='#prod-identifier'>identifier</a>, optionally followed
-            by some additional information.  There are four forms an extended
-            attribute may have:
+            by some additional information.  There are five forms that the extended
+            attributes defined in this document may have:
           </p>
           <ul>
             <li><code>[TheExtendedAttribute]</code>, where it <dfn id='dfn-xattr-no-argument'>takes no argument</dfn>;</li>
             <li><code>[TheExtendedAttribute(<a class='nt' href='#prod-ArgumentList'>ArgumentList</a>)]</code>, where it <dfn id='dfn-xattr-argument-list'>takes an argument list</dfn>;</li>
             <li><code>[TheExtendedAttribute=<a class='nt' href='#prod-identifier'>identifier</a>]</code>, where it <dfn id='dfn-xattr-identifier'>takes an identifier</dfn>; and,</li>
             <!--li><code>[TheExtendedAttribute=(<a class='nt' href='#prod-IdentifierList'>IdentifierList</a>)]</code>, where it <dfn id='dfn-xattr-identifier-list'>takes an identifier list</dfn>; and,</li-->
-            <li><code>[TheExtendedAttribute=<a class='nt' href='#prod-identifier'>identifier</a>(<a class='nt' href='#prod-ArgumentList'>ArgumentList</a>)]</code>, where it <dfn id='dfn-xattr-named-argument-list'>takes a named argument list</dfn>.</li>
+            <li><code>[TheExtendedAttribute=<a class='nt' href='#prod-identifier'>identifier</a>(<a class='nt' href='#prod-ArgumentList'>ArgumentList</a>)]</code>, where it <dfn id='dfn-xattr-named-argument-list'>takes a named argument list</dfn>; and,</li>
+            <li><code>[TheExtendedAttribute=<a class='nt' href='#prod-PackageName'>PackageName</a>]</code>, where it <dfn id='dfn-xattr-package-name'>takes a package name</dfn>.</li>
           </ul>
           <p>
             This specification defines a number of extended attributes, which are
             listed in the sub-sections below.  Each definition will state which of the above
-            four forms are allowed.
+            five forms are allowed.
           </p>
-
-          <div class='ednote'>
-            <p>Have an extended attribute that specifies what properties get enumerated in a for..in loop?</p>
-          </div>
 
           <?productions grammar ExtendedAttributeList ExtendedAttribute ExtendedAttributes ExtendedAttributeDetails ExtendedAttributeAssignment ExtendedAttributeAssignmentArguments?>
 
@@ -2320,7 +2317,7 @@ p.name.full = 'John Citizen';  // ...has the same behavior as this one.</x:codeb
               or <a class='dfnref' href='#dfn-xattr-identifier'>take an identifier</a>.
               If the <a class='terminal' href='#prod-identifier'>identifier</a>
               is present, it <span class='rfc2119'>MUST</span> be the identifier of
-              an attribute on the interface, whose value will be used as the result
+              an attribute of type <span class='idltype'>DOMString</span> on the interface, whose value will be used as the result
               of the stringification.  If the identifier is not supplied,
               the stringification behavior <span class='rfc2119'>MUST</span>
               be described in prose.
@@ -5123,7 +5120,7 @@ interface D : C {
         <p>
           This section describes how definitions written with the IDL in
           <a href='#idl'>section <?sref idl?></a> correspond to particular constructs
-          in Java.
+          in Java 5 <a href='#ref-JLS3'>[JLS3]</a>.
         </p>
 
         <div id='java-names' class='section'>
@@ -5648,15 +5645,21 @@ interface D : C {
           </p>
           <ul>
             <li>
-              If the module has been
+              If the <a class='dfnref' href='#dfn-module'>module</a> was declared with
+              the <a class='xattr' href='#JavaPackage'>[JavaPackage]</a>
+              <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>,
+              then the name of the corresponding Java package is the
+              extended attribute’s <a class='dfnref' href='#xattr-package-name'>package name argument</a>.
+            </li>
+            <li>
+              Otherwise, if the module has been
               <a class='dfnref' href='#dfn-outermost-scope'>declared at the outermost scope</a>,
               then the name of the corresponding Java package is the
               <a class='dfnref' href='#dfn-java-escaped'>Java escaped</a>
               <a class='dfnref' href='#dfn-identifier'>identifier</a> of the module.
             </li>
             <li>
-              Otherwise, the module has not been declared at the outermost scope.
-              The name of the corresponding Java package is the
+              Otherwise, the name of the corresponding Java package is the
               name of the Java package corresponding to the
               <a class='dfnref' href='#dfn-enclosing-module'>enclosing module</a> of this module,
               followed by a <span class='char'>U+002E FULL STOP (".")</span>, followed by the
@@ -5664,16 +5667,17 @@ interface D : C {
             </li>
           </ul>
           <p>
-            Definitions inside an IDL module correspond to Java constructs declared
-            to be in the package for that module.
+            Definitions inside an IDL <a class='dfnref' href='#dfn-module'>module</a>
+            correspond to Java constructs declared to be in the package for
+            that module.
           </p>
           <div class='example'>
             <p>
-              The following IDL will cause a Java interface named
-              <span class='javatype'>HTMLDocument</span> in package
-              <span class='javapkg'>org.w3c.dom.html</span> to exist:
+              The following <a class='dfnref' href='#dfn-idl-fragment'>IDL fragment</a>
+              will cause a Java interface named <span class='javatype'>HTMLDocument</span>
+              in package <span class='javapkg'>org.w3c.dom.html</span> to exist:
             </p>
-            <x:codeblock language='idl'>[Prefix="org::w3c::dom"]
+            <x:codeblock language='idl'>[JavaPackage=org.w3c.dom.html]
 module html {
   interface HTMLDocument {
     // …
@@ -5685,31 +5689,34 @@ interface HTMLDocument {
   // …
 }</x:codeblock>
           </div>
-          <div class='ednote'>
+        </div>
+
+        <div id='java-extended-attributes' class='section'>
+          <h3>Java-specific extended attributes</h3>
+
+          <p>
+            This section defines a single
+            <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
+            whose presence affects only the Java binding.
+          </p>
+
+          <div id='JavaPackage' class='section'>
+            <h4>[JavaPackage]</h4>
+
             <p>
-              The example uses [Prefix] and doesn’t match the prose above.
-              Is [Prefix] a reasonable way to map modules to Java packages?
-              It seems to me that just using the module structure to map
-              to the package name is more natural:
+              If the <a class='xattr' href='#JavaPackage'>[JavaPackage]</a>
+              <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
+              appears on a <a class='dfnref' href='#dfn-module'>module</a>,
+              it specifies the name of the Java package that the module
+              corresponds to.  IDL <a class='dfnref' href='#dfn-interface'>interfaces</a>
+              and <a class='dfnref' href='#dfn-exception'>exceptions</a> defined
+              within the modules will result in Java interfaces and classes
+              existing within the specified package.
             </p>
-            <x:codeblock language='idl'>module org {
-  module w3c {
-    module dom {
-      module html {
-        // …
-      };
-    };
-  };
-};</x:codeblock>
             <p>
-              But that’s pretty verbose.  In C++ you can skip steps in one go, so
-              something similar in IDL would be:
-            </p>
-            <x:codeblock language='idl'>module org::w3c::dom::html {
-  // …
-};</x:codeblock>
-            <p>
-              But that is not syntactically compatible with OMG IDL.
+              The <a class='xattr' href='#JavaPackage'>[JavaPackage]</a>
+              <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
+              <span class='rfc2119'>MUST</span> <a class='dfnref' href='#dfn-xattr-package-name'>take a package name</a>.
             </p>
           </div>
         </div>
@@ -5724,7 +5731,8 @@ interface HTMLDocument {
             <a class='dfnref' href='#dfn-java-escaped'>Java escaped</a>
             <a class='dfnref' href='#dfn-identifier'>identifier</a> of the IDL interface
             and which resides in the Java package corresponding to the interface’s
-            <a class='dfnref' href='#dfn-enclosing-module'>enclosing module</a>.
+            <a class='dfnref' href='#dfn-enclosing-module'>enclosing module</a>
+            (or the default package, if there is no enclosing module).
           </p>
           <p>
             The Java interface <span class='rfc2119'>MUST</span> be declared to extend
@@ -5762,66 +5770,67 @@ interface HTMLDocument {
           <div id='java-operations' class='section'>
             <h4>Operations</h4>
             <p>
-              For each <a class='dfnref' href='#dfn-operation'>operation</a> defined on
-              the IDL <a class='dfnref' href='#dfn-interface'>interface</a>, there
-              <span class='rfc2119'>MUST</span> be a corresponding method declared on the Java interface
-              with the following characteristics:
+              Each <a class='dfnref' href='#dfn-operation'>operation</a> defined on
+              the IDL <a class='dfnref' href='#dfn-interface'>interface</a>, <var>I</var>,
+              will result in one or more methods being declared on the Java interface.
+            </p>
+            <p>
+              For each unique identifier <var>id</var> of an
+              <a class='dfnref' href='#dfn-operation'>operation</a> declared
+              on <var>I</var>:
             </p>
             <ul>
-              <li>The method has no modifiers.</li>
               <li>
-                The return type of the method is the Java type that corresponds to the operation
-                <a class='dfnref' href='#dfn-return-type'>return type</a>, according to the rules in
-                <a href='#java-type-mapping'>section <?sref java-type-mapping?></a> <?sdir java-type-mapping?>.
-              </li>
-              <li>
-                <!--
-                If the operation is a
-                <a class='dfnref' href='#dfn-non-overloadable-operation'>non-overloadable operation</a>,
-                then the tentative name of the method is the   Otherwise,
-                the tentative name of the method is the <a class='dfnref' href='#dfn-java-escaped'>Java escaped</a>
-                identifier that is the argument to the <a class='xattr' href='#Overloads'>[Overloads]</a>
-                <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a> on the operation.
-                -->
-                The tenative name of the method is the <a class='dfnref' href='#dfn-java-escaped'>Java escaped</a>
-                <a class='dfnref' href='#dfn-identifier'>identifier</a> of the operation.
-                The name of the method is the tenative name of the method prefixed with the smallest number
-                of <span class='char'>U+005F LOW LINE ("_")</span> characters required to make the
-                name not equal to the name of a constant declared on the Java interface or one of the
-                methods on the <span class='javatype'>java.lang.Object</span> class.
-              </li>
-              <li>
-                The method has an argument for each argument on the operation.  The type of the method
-                argument is as follows.  Let <var>T</var> be the Java type that corresponds to the operation
-                argument type according to the rules in <a href='#java-type-mapping'>section <?sref java-type-mapping?></a>
-                <?sdir java-type-mapping?>.  If the argument is the final argument on the operation, and it is
-                declared with the <a class='xattr' href='#Variadic'>[Variadic]</a>
-                <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>, then the type of the
-                method argument will be an array of <var>T</var> (i.e., <var>T</var>[]).  Otherwise,
-                the type of the method argument will be <var>T</var>.
+                For each entry &lt;<var>op</var>, <var>types</var>> in the
+                <a class='dfnref' href='#dfn-effective-overload-set'>effective overload set</a>
+                for <var>id</var> on <var>I</var>, there <span class='rfc2119'>MUST</span>
+                exist a method on the Java interface with the following
+                characteristics:
+                <ul>
+                  <li>The method has no modifiers.</li>
+                  <li>
+                    The return type of the method is the Java type that corresponds to the operation
+                    <a class='dfnref' href='#dfn-return-type'>return type</a>, according to the rules in
+                    <a href='#java-type-mapping'>section <?sref java-type-mapping?></a> <?sdir java-type-mapping?>.
+                  </li>
+                  <li>
+                    The tenative name of the method is the <a class='dfnref' href='#dfn-java-escaped'>Java escaped</a>
+                    <a class='dfnref' href='#dfn-identifier'>identifier</a> of the operation.
+                    The name of the method is the tenative name of the method prefixed with the smallest number
+                    of <span class='char'>U+005F LOW LINE ("_")</span> characters required to make the
+                    name not equal to the name of a constant declared on the Java interface or one of the
+                    methods on the <span class='javatype'>java.lang.Object</span> class.
+                  </li>
+                  <li>
+                    The method has an argument for each type, in order, that is in <var>types</var>.  The type of
+                    method argument <var>j</var> is the Java type that corresponds to the IDL type <var>types</var><sub><var>j</var></sub>,
+                    according to the rules in <a href='#java-type-mapping'>section <?sref java-type-mapping?></a>
+                    <?sdir java-type-mapping?>.  If <var>op</var> has a final argument that is
+                    declared with the <a class='xattr' href='#Variadic'>[Variadic]</a>
+                    <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>,
+                    then the method is a <em>variable arity method</em> (<a href='refs.html#ref-JLS3'>[JLS3]</a>,
+                    section 8.4.1).
+                  </li>
+                  <li>
+                    If <var>op</var> has IDL <a class='dfnref' href='#dfn-exception'>exceptions</a>
+                    listed in the <a class='nt' href='#prod-Raises'>Raises</a> clause, then the
+                    method <span class='rfc2119'>SHOULD</span> have a <code>throws</code>
+                    clause specifying all of the Java exception classes that correspond
+                    to those IDL exceptions, and no others.  Otherwise, if <var>op</var> has no
+                    exceptions listed in the <a class='nt' href='#prod-Raises'>Raises</a> clause,
+                    then the method <span class='rfc2119'>SHOULD NOT</span> have a <code>throws</code>
+                    clause.
+                  </li>
+                </ul>
               </li>
             </ul>
             <div class='ednote'>
               <p>
-                Recent versions of Java can actually do varargs.
+                Talk about how Java values are converted to/from IDL values,
+                when user code calls a user agent implemented interface, and
+                when the user agent calls a user implemented interface.
               </p>
             </div>
-            <div class='ednote'>
-              <p>
-                Some overloaded operations in the IDL can correspond to a single method.
-                This needs to be taken into account in this section.  For example:
-              </p>
-              <x:codeblock language='idl'>interface A {
-  void f(in Object x);
-  void f(in any x);
-};</x:codeblock>
-            </div>
-            <p>
-              In addition, the method <span class='rfc2119'>SHOULD</span> have a <code>throws</code>
-              clause specifying all of the Java exception classes that correspond to the IDL
-              <a class='dfnref' href='#dfn-exception'>exceptions</a> that are listed in the
-              <a class='nt' href='#prod-Raises'>Raises</a> clause of the operation, and no others.
-            </p>
           </div>
 
           <div id='java-attributes' class='section'>
@@ -6069,6 +6078,9 @@ interface HTMLDocument {
         <p>
           …
         </p>
+        <div class='ednote'>
+          <p>Specify how extended attributes not defined in this document can be used.</p>
+        </div>
       </div>
 
       <div id='referencing' class='section'>
@@ -6186,6 +6198,8 @@ interface HTMLDocument {
         </div>
 
         <p>
+          The tokenizer operates on a sequence of Unicode characters
+          <a href='#ref-UNICODE40'>[UNICODE40]</a>.
           When tokenizing, the longest possible match <span class='rfc2119'>MUST</span> be used.  For example, if the input
           text is “<tt>a1</tt>”, it is tokenized as a single <span class='terminal'>identifier</span>,
           and not as a separate <span class='terminal'>identifier</span> and <span class='terminal'>integer</span>.
@@ -6322,12 +6336,6 @@ interface HTMLDocument {
           "wstring"
           -->
         </grammar>
-
-        <div class='ednote'>
-          <p>
-            Still not sure how we should handle extensibility of extended attributes.
-          </p>
-        </div>
       </div>
 
       <div id='references' class='section'>
@@ -6347,6 +6355,12 @@ interface HTMLDocument {
               <cite>IEEE Standard for Binary Floating-Point Arithmetic (ANSI/IEEE Std 754-1985)</cite>.
               Institute of Electrical and Electronics Engineers, 1985.
             </dd>
+            <dt id='ref-JLS3'>[JLS3]</dt>
+            <dd>
+              <cite><a href="http://java.sun.com/docs/books/jls/">The Java Language Specification, Third Edition</a></cite>.
+              J. Gosling, et al.  Upper Saddle River, New Jersey, Addison-Wesley, 2005.
+              Available at http://java.sun.com/docs/books/jls/.
+            </dd>
             <dt id='ref-PERLRE'>[PERLRE]</dt>
             <dd>
               <cite><a href='http://search.cpan.org/dist/perl/pod/perlre.pod'>Perl regular expressions (Perl 5.8.8)</a></cite>.
@@ -6361,6 +6375,12 @@ interface HTMLDocument {
             <dd>
               <cite><a href='http://www.ietf.org/rfc/rfc2781'>UTF-16, an encoding of ISO 10646</a></cite>,
               P. Hoffmann and F. Yergeau.  IETF, February 2000.  Available at http://www.ietf.org/rfc/rfc2781.
+            </dd>
+            <dt id='ref-UNICODE40'>[UNICODE40]</dt>
+            <dd>
+              <cite><a href='http://www.unicode.org/unicode/standard/versions/'>The Unicode Standard</a></cite>,
+              Version 4.0 or later.  The Unicode Consortium.  Boston, Massachusetts, Addison-Wesley, 2003.
+              ISBN 0-321-18578-1.  Available at http://www.unicode.org/versions/Unicode4.0.0/.
             </dd>
           </dl>
         </div>
@@ -6397,6 +6417,12 @@ interface HTMLDocument {
           <dt>Current editor’s draft</dt>
           <dd>
             <ul>
+              <li>
+                <p>
+                  Added <span class='xattr'>[JavaPackage]</span> to map
+                  modules to Java packages.
+                </p>
+              </li>
               <li>
                 <p>
                   Allowed interfaces with constants to be implemented by
