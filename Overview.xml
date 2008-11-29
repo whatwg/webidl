@@ -15,7 +15,7 @@
   <head>
     <title>Web IDL</title>
     <meta http-equiv='Content-Type' content='application/xhtml+xml; charset=UTF-8'/>
-    <meta name='revision' content='$Id: Overview.xml,v 1.114 2008-11-29 02:18:33 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: Overview.xml,v 1.115 2008-11-29 12:57:13 cmccorma Exp $'/>
     <link rel='stylesheet' href='WebIDL.css' type='text/css'/>
 
     <options xmlns='http://mcc.id.au/ns/local'>
@@ -122,7 +122,7 @@
           for use by specifications that define interfaces.  A number of
           extensions are given to the IDL to support common functionality that
           previously must have been written in prose.  In addition, precise
-          language bindings for ECMAScript 3rd Edition and Java are given.
+          language bindings for ECMAScript 3rd Edition and Java 5 are given.
         </p>
       </div>
 
@@ -223,9 +223,12 @@
           can be preceded by a list of <a class='dfnref' href='#dfn-extended-attribute'>extended attributes</a> (matching
           <a class='nt' href='#prod-ExtendedAttributeList'>ExtendedAttributeList</a>),
           which can control how the definition will be handled in language bindings.
-          The extended attributes defined by this specification are discussed
-          in <a href='#idl-extended-attributes'>section <?sref idl-extended-attributes?></a>
-          <?sdir idl-extended-attributes?>.
+          The extended attributes defined by this specification that are language binding
+          agnostic are discussed in <a href='#idl-extended-attributes'>section <?sref idl-extended-attributes?></a>,
+          while those specific to the ECMAScript and Java language bindings are discussed
+          in <a href='#es-extended-attributes'>section <?sref es-extended-attributes?></a> and
+          <a href='#java-extended-attributes'>section <?sref java-extended-attributes?></a>,
+          respectively.
         </p>
 
         <p>
@@ -341,10 +344,14 @@
             A scoped name can be <dfn id='dfn-resolve'>resolved</dfn>, with respect to a given
             module, to a definition as follows:
           </p>
+          <div class='ednote'><p>Should change this so that the chain of modules is followed up to the root when trying to resolve a relative scoped name.</p></div>
           <ul>
             <li>
               If the scoped name has "::DOMString" as a suffix, then the scoped
-              name does not resolve to a definition.
+              name does not resolve to a definition.  (This is for compatibility with
+              already-published OMG IDL fragments — see
+              <a href='#idl-typedefs'>section <?sref idl-typedefs?></a> and
+              <a href='#idl-valuetypes'>section <?sref idl-valuetypes?></a>.)
             </li>
             <li>
               Otherwise, if the scoped name is a
@@ -385,6 +392,68 @@
             </li>
           </ul>
 
+          <div class='example'>
+            <p>
+              The following <a class='dfnref' href='#dfn-idl-fragment'>IDL fragment</a>
+              demonstrates how <a class='dfnref' href='#dfn-identifier'>identifiers</a>
+              and <a class='dfnref' href='#dfn-qualified-name'>qualified names</a> are given
+              to definitions, <a class='dfnref' href='#dfn-interface-member'>interface members</a>
+              and <a class='dfnref' href='#dfn-exception-member'>exception members</a>.
+            </p>
+            <x:codeblock language='idl'>// Module identifier: "framework"
+// Qualified name:    "::framework"
+module framework {
+
+  // Typedef identifier: "string"
+  // Qualified name:    "::framework::string"
+  typedef DOMString string;
+
+  // Constant identifier: "ERR_NOT_FOUND"
+  // Qualified name:      "::framework::ERR_NOT_FOUND"
+  const long ERR_NOT_FOUND = 1;
+
+  // Exception identifier: "FrameworkException"
+  // Qualified name:       "::framework::FrameworkException"
+  exception FrameworkException {
+
+    // Exception member identifier: "code"
+    long code;
+  };
+
+  // Interface identifier: "System"
+  // Qualified name:       "::framework::System"
+  interface System {
+
+    // Operation identifier:          "createObject"
+    // Operation argument identifier: "interface"
+    Object createObject(in string _interface);
+  };
+
+  // Module identifier: "gui"
+  // Qualified name:    "::framework::gui"
+  module gui {
+    
+    // Interface identifier: "TextField"
+    // Qualified name:       "::framework::gui::TextField"
+    interface TextField {
+
+      // Attribute identifier: "const"
+      attribute boolean _const;
+
+      // Attribute identifier: "value"
+      attribute string _value;
+    };
+  };
+};</x:codeblock>
+            <p>
+              Note that while the second <a class='dfnref' href='#dfn-attribute'>attribute</a>
+              on the <span class='idltype'>TextField</span> <a class='dfnref' href='#dfn-interface'>interface</a>
+              need not have been escaped with an underscore (because “value” is
+              not a quoted terminal symbol in the IDL grammar), it is still unescaped
+              to obtain the attribute’s <a class='dfnref' href='#dfn-identifier'>identifier</a>.
+            </p>
+          </div>
+
           <?productions grammar ScopedName ScopedNameAfterColon ScopedNameParts ScopedNamePartsAfterColon?>
         </div>
 
@@ -394,7 +463,7 @@
           <p>
             A <dfn id='dfn-module'>module</dfn> is a definition that matches the
             <a class='nt' href='#prod-Module'>Module</a> non-terminal, and serves
-            as a container for other definitions.
+            as a container for grouping together related definitions.
           </p>
           <p>
             The <dfn id='dfn-enclosing-module'>enclosing module</dfn> of a definition
@@ -422,8 +491,41 @@
           <p>
             The following <a class='dfnref' href='#dfn-extended-attribute'>extended attributes</a>
             are applicable to <a class='dfnref' href='#dfn-module'>modules</a>:
-            <a class='xattr' href='#ExceptionConsts'>[ExceptionConsts]</a>.
+            <a class='xattr' href='#ExceptionConsts'>[ExceptionConsts]</a>,
+            <a class='xattr' href='#JavaPackage'>[JavaPackage]</a>.
           </p>
+
+          <div class='example'>
+            <p>
+              The following <a class='dfnref' href='#dfn-idl-fragment'>IDL fragment</a>
+              illustrates how related <a class='dfnref' href='#dfn-interface'>interfaces</a>
+              can be grouped together in <a clsas='dfnref' href='#dfn-module'>modules</a>:
+            </p>
+            <x:codeblock language='idl'>module gfx {
+
+  module geom {
+    interface Shape { … };
+    interface Rectangle : Shape { … };
+    interface Path : Shape { … };
+  };
+
+  interface GraphicsContext {
+    void fillShape(in geom::Shape s);
+    void strokeShape(in geom::Shape s);
+  };
+};
+
+module gui {
+
+  interface Widget { … };
+
+  interface Window : Widget {
+    gfx::GraphicsContext getGraphicsContext();
+  };
+
+  interface Button : Widget { … };
+};</x:codeblock>
+          </div>
 
           <?productions grammar Module?>
         </div>
@@ -435,7 +537,7 @@
             An <dfn id='dfn-interface'>interface</dfn> is a definition that matches the
             <a class='nt' href='#prod-Interface'>Interface</a> non-terminal whose
             <a class='nt' href='#prod-InterfaceBody'>InterfaceBody</a> is not empty
-            (that is, it is not the case that <a class='nt' href='#prod-InterfaceBody'>InterfaceBody</a> ⇒ ε).
+            (that is, it is not the case that <a class='nt' href='#prod-InterfaceBody'>InterfaceBody</a> ⇒ ε).
             An interface is a specification of a set of
             <dfn id='dfn-interface-member'>interface members</dfn>, which are the
             <a class='dfnref' href='#dfn-constant'>constants</a>,
@@ -953,13 +1055,13 @@ interface C {
                 for identifier <code>f</code> is:
               </p>
               <div class='set'>
-                { &lt;f1, (DOMString)><br/>
-                  &lt;f2, (DOMString, DOMString)><br/>
-                  &lt;f2, (DOMString, DOMString, float)><br/>
-                  &lt;f2, (DOMString, DOMString, float, float)><br/>
-                  &lt;f3, ()><br/>
-                  &lt;f3, (long, DOMString)><br/>
-                  &lt;f3, (long, DOMString, DOMString)><br/>
+                { &lt;f1, (DOMString)>,<br/>
+                  &lt;f2, (DOMString, DOMString)>,<br/>
+                  &lt;f2, (DOMString, DOMString, float)>,<br/>
+                  &lt;f2, (DOMString, DOMString, float, float)>,<br/>
+                  &lt;f3, ()>,<br/>
+                  &lt;f3, (long, DOMString)>,<br/>
+                  &lt;f3, (long, DOMString, DOMString)>,<br/>
                   &lt;f3, (long, DOMString, DOMString, float)> }
               </div>
               <p>
@@ -1068,13 +1170,16 @@ interface C {
             which does not allow a <a class='idltype' href='#idl-sequence'>sequence&lt;<var>T</var>></a>.
           </p>
           <p>
-            For backwards compatibility with already published IDL fragments, a
+            For backwards compatibility with already published
+            <a class='dfnref' href='#dfn-idl-fragment'>IDL fragments</a>, a
             typedef definition whose derivation has
-            <span class='terminal'>"DOMString"</span> as its third-last or second-last terminal symbol
-            is ignored and does not declare a new name for a type.  This allows definitions such as
-            the following to be ignored:
+            <span class='terminal'>"DOMString"</span> as its third-last or
+            second-last terminal symbol is ignored and does not declare a new
+            name for a type.  This allows definitions such as the following to
+            be ignored:
           </p>
           <x:codeblock language='idl'>typedef dom::DOMString DOMString;</x:codeblock>
+
           <?productions grammar Typedef TypedefRest?>
         </div>
 
@@ -1605,7 +1710,8 @@ FileIOException.FILE_NOT_FOUND;  // evaluates to 1</x:codeblock>
               <a class='dfnref' href='#dfn-xattr-scoped-name'>take a scoped name</a>,
               where the <a class='dfnref' href='#dfn-scoped-name'>scoped name</a>
               <span class='rfc2119'>MUST</span> <a class='dfnref' href='#dfn-resolve'>resolve</a>,
-              with respect to the interface that it appears on, to different interface.
+              with respect to the <a class='dfnref' href='#dfn-enclosing-module'>enclosing module</a>
+              of the <a class='dfnref' href='#dfn-interface'>interface</a> that it appears on, to a different interface.
               Any object that implements the interface identified by
               the argument will implement the interface the
               <a class='xattr' href='#ImplementedOn'>[ImplementedOn]</a>
