@@ -15,7 +15,7 @@
   <head>
     <title>Web IDL</title>
     <meta http-equiv='Content-Type' content='application/xhtml+xml; charset=UTF-8'/>
-    <meta name='revision' content='$Id: Overview.xml,v 1.119 2008-12-01 01:11:12 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: Overview.xml,v 1.120 2008-12-01 02:43:08 cmccorma Exp $'/>
     <link rel='stylesheet' href='WebIDL.css' type='text/css'/>
 
     <options xmlns='http://mcc.id.au/ns/local'>
@@ -261,12 +261,6 @@
         </ul>
 
         <?productions grammar Definitions Definition?>
-
-        <div class='ednote'>
-          <p>
-            Each of the sections below needs examples.
-          </p>
-        </div>
 
         <div id='idl-names' class='section'>
           <h3>Names</h3>
@@ -972,6 +966,33 @@ const float AVOGADRO = 6.022e23;</x:codeblock>
               <a class='xattr' href='#Undefined'>[Undefined]</a>.
             </p>
 
+            <div class='example'>
+              <p>
+                The following <a class='dfnref' href='#dfn-idl-fragment'>IDL fragment</a>
+                demonstrates how <a class='dfnref' href='#dfn-attribute'>attributes</a>
+                can be declared on an <a class='dfnref' href='#dfn-interface'>interface</a>:
+              </p>
+              <x:codeblock language='idl'>exception InvalidName {
+  DOMString reason;
+};
+
+exception NoSuchPet { };
+
+interface Person {
+
+  // A simple attribute that can be set to any value in the range an unsigned
+  // short can take.
+  attribute unsigned short age;
+
+  // An attribute that can raise an exception if it is set to an invalid value.
+  attribute DOMString name setraises (InvalidName);
+
+  // An attribute whose value cannot be assigned to, and which can raise an
+  // exception in some circumstances.
+  readonly attribute DOMString petName getraises (NoSuchPet);
+};</x:codeblock>
+            </div>
+
             <?productions grammar Attribute ReadOnly GetRaises SetRaises ExceptionList?>
           </div>
 
@@ -1117,16 +1138,17 @@ const float AVOGADRO = 6.022e23;</x:codeblock>
               are identified) or if one is an <a class='dfnref' href='#idl-interface'>object implementing an interface</a>
               and the other is a <a class='dfnref' href='#dfn-primitive-type'>primitive type</a>.
             </p>
-            <p>
-              These restrictions on argument types of <a class='dfnref' href='#dfn-overloaded'>overloaded operations</a>
-              reduce the possibility of resolution ambiguity, but do not
-              eliminate it.  In the ECMAScript language binding, the
-              restrictions still can result in overloaded operation invocations
-              that cannot be distinguished solely based on the values passed to
-              the corresponding function.  For example, with the following
-              <a class='dfnref' href='#dfn-interface'>interfaces</a>:
-            </p>
-            <x:codeblock language='idl'>interface A {
+            <div class='note'>
+              <p>
+                These restrictions on argument types of <a class='dfnref' href='#dfn-overloaded'>overloaded operations</a>
+                reduce the possibility of resolution ambiguity, but do not
+                eliminate it.  In the ECMAScript language binding, the
+                restrictions still can result in overloaded operation invocations
+                that cannot be distinguished solely based on the values passed to
+                the corresponding function.  For example, with the following
+                <a class='dfnref' href='#dfn-interface'>interfaces</a>:
+              </p>
+              <x:codeblock language='idl'>interface A {
   // …
 };
 
@@ -1138,19 +1160,20 @@ interface C {
   void f(in A x);
   void f(in B x);
 };</x:codeblock>
-            <p>
-              it is possible to pass an object that implements both <span class='idlvalue'>A</span>
-              and <span class='idlvalue'>B</span> to <code>f</code>.  Similarly,
-              passing <span class='esvalue'>null</span> to <code>f</code>
-              would also be ambiguous.  Since the ECMAScript
-              language binding provides no way to disambiguate such calls,
-              the interface description <span class='rfc2119'>SHOULD</span>
-              describe which operation is invoked in these cases.  (It is
-              acceptable not to describe this if there is no observable
-              difference in behavior for a particular choice of operation
-              to disambiguate the call, or if no object will actually
-              implement the two interfaces, for example.)
-            </p>
+              <p>
+                it is possible to pass an object that implements both <span class='idlvalue'>A</span>
+                and <span class='idlvalue'>B</span> to <code>f</code>.  Similarly,
+                passing <span class='esvalue'>null</span> to <code>f</code>
+                would also be ambiguous.  Since the ECMAScript
+                language binding provides no way to disambiguate such calls,
+                the interface description will need to
+                describe which operation is invoked in these cases.  (It is
+                acceptable not to describe this if there is no observable
+                difference in behavior for a particular choice of operation
+                to disambiguate the call, or if no object will actually
+                implement the two interfaces, for example.)
+              </p>
+            </div>
             <div class='example'>
               <p>
                For the following interface:
@@ -1199,6 +1222,31 @@ interface C {
               <a class='xattr' href='#Undefined'>[Undefined]</a>,
               <a class='xattr' href='#Variadic'>[Variadic]</a>.
             </p>
+
+            <div class='example'>
+              <p>
+                The following <a class='dfnref' href='#dfn-idl-fragment'>IDL fragment</a>
+                demonstrates how <a class='dfnref' href='#dfn-operation'>operations</a>
+                can be declared on an <a class='dfnref' href='#dfn-interface'>interface</a>:
+              </p>
+              <x:codeblock language='idl'>interface Dimensions {
+  attribute unsigned long width;
+  attribute unsigned long height;
+};
+
+exeption NoPointerDevice { };
+
+interface Button {
+
+  // An operation that takes no arguments, returns a boolean, and could possibly
+  // raise an exception.
+  boolean isMouseOver() raises (NoPointerDevice);
+
+  // Overloaded operations.
+  void setDimensions(in Dimensions size);
+  void setDimensions(in unsigned long width, in unsigned long height);
+};</x:codeblock>
+            </div>
 
             <?productions grammar Operation ReturnType ArgumentList Arguments Argument Raises?>
           </div>
@@ -1250,6 +1298,14 @@ interface C {
             No <a class='dfnref' href='#dfn-extended-attribute'>extended attributes</a>
             are applicable to exception members.
           </p>
+          <div class='example'>
+            <p>
+              See <a href='#idl-attributes'>section <?sref idl-attributes?></a>
+              <?sdir idl-attributes?> for an example of an
+              <a class='dfnref' href='#dfn-idl-fragment'>IDL fragment</a> that
+              declares <a class='dfnref' href='#dfn-exception'>exceptions</a>.
+            </p>
+          </div>
           <?productions grammar Exception ExceptionMembers ExceptionMember?>
         </div>
 
@@ -1290,20 +1346,57 @@ interface C {
           </p>
           <x:codeblock language='idl'>typedef dom::DOMString DOMString;</x:codeblock>
 
+          <div class='example'>
+            <p>
+              The following <a class='dfnref' href='#dfn-idl-fragment'>IDL fragment</a>
+              demonstrates the use of <a class='dfnref' href='#dfn-typedef'>typedefs</a>
+              for two purposes: to allow the use of a short
+              <a class='dfnref' href='#dfn-identifier'>identifier</a> instead of a long
+              <a class='dfnref' href='#dfn-scoped-name'>scoped name</a>, and to give
+              a name to a sequence type so that it can be used as an
+              <a class='dfnref' href='#dfn-operation'>operation</a> argument type.
+            </p>
+            <x:codeblock language='idl'><![CDATA[module gfx {
+  module geom {
+    module geom2d {
+
+      interface Point {
+        attribute float x;
+        attribute float y;
+      };
+
+      typedef sequence<Point> PointSequence;
+
+      interface Rect {
+        attribute Point topleft;
+        attribute Point bottomright;
+      };
+    };
+  };
+};
+
+module gui {
+
+  typedef gfx::geom::geom2d::Point Point;
+  typedef gfx::geom::geom2d::PointSequence PointSequence;
+  typedef gfx::geom::geom2d::Rect Rect;
+
+  interface Widget {
+
+    readonly attribute Rect bounds;
+
+    boolean pointWithinBounds(in Point p);
+    boolean allPointsWithinBounds(in PointSequence ps);
+  };
+};]]></x:codeblock>
+          </div>
+
           <?productions grammar Typedef TypedefRest?>
         </div>
 
         <div id='idl-valuetypes' class='section'>
           <h3>Valuetypes</h3>
 
-          <div class='ednote'>
-            <p>
-              I think we should consider dropping valuetypes altogether.  It 
-              was really only included because the DOMString type as defined
-              in DOM Core used it, and now DOMString has become an
-              intrinsic type.
-            </p>
-          </div>
           <p>
             Valuetypes in OMG IDL are used to define types similar to structs in C.
             That is, they define composite types that can have zero or more
@@ -1347,6 +1440,22 @@ interface C {
             This allows the following definition to be included in an IDL fragment and ignored:
           </p>
           <x:codeblock language='idl'>valuetype DOMString sequence&lt;unsigned short>;</x:codeblock>
+
+          <div class='example'>
+            <p>
+              The following <a class='dfnref' href='#dfn-idl-fragment'>IDL fragment</a>
+              demonstrates the use of <a class='dfnref' href='#dfn-valuetype'>valuetypes</a>:
+            </p>
+            <x:codeblock language='idl'>valuetype OptionalFloat float;
+
+interface Person {
+
+  // This attribute can be a float or null.  In this case, null might be used
+  // to represent the case where the height of the person is unknown.
+  readonly attribute OptionalFloat height;
+};</x:codeblock>
+          </div>
+
           <?productions grammar Valuetype ValuetypeRest?>
         </div>
 
@@ -1681,7 +1790,7 @@ interface C {
               </p>
               <x:codeblock language='idl'>[Callable=compute]
 interface NumberQuadrupler {
-  /* This operation simply returns four times the given number x. */
+  // This operation simply returns four times the given number x.
   float compute(in float x);
 };</x:codeblock>
               <p>
