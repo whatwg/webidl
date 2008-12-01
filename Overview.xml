@@ -15,7 +15,7 @@
   <head>
     <title>Web IDL</title>
     <meta http-equiv='Content-Type' content='application/xhtml+xml; charset=UTF-8'/>
-    <meta name='revision' content='$Id: Overview.xml,v 1.115 2008-11-29 12:57:13 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: Overview.xml,v 1.116 2008-12-01 00:08:26 cmccorma Exp $'/>
     <link rel='stylesheet' href='WebIDL.css' type='text/css'/>
 
     <options xmlns='http://mcc.id.au/ns/local'>
@@ -225,10 +225,8 @@
           which can control how the definition will be handled in language bindings.
           The extended attributes defined by this specification that are language binding
           agnostic are discussed in <a href='#idl-extended-attributes'>section <?sref idl-extended-attributes?></a>,
-          while those specific to the ECMAScript and Java language bindings are discussed
-          in <a href='#es-extended-attributes'>section <?sref es-extended-attributes?></a> and
-          <a href='#java-extended-attributes'>section <?sref java-extended-attributes?></a>,
-          respectively.
+          while those specific to the ECMAScript language binding are discussed
+          in <a href='#es-extended-attributes'>section <?sref es-extended-attributes?></a>.
         </p>
 
         <p>
@@ -347,7 +345,7 @@
           <div class='ednote'><p>Should change this so that the chain of modules is followed up to the root when trying to resolve a relative scoped name.</p></div>
           <ul>
             <li>
-              If the scoped name has "::DOMString" as a suffix, then the scoped
+              If the scoped name has “::DOMString” as a suffix, then the scoped
               name does not resolve to a definition.  (This is for compatibility with
               already-published OMG IDL fragments — see
               <a href='#idl-typedefs'>section <?sref idl-typedefs?></a> and
@@ -486,13 +484,68 @@ module framework {
             The relevant language binding determines how modules affect the naming
             of constructs that correspond to definitions in the language.  If the language
             supports some form of namespacing mechanism, then a module will correspond
-            to a namespace.
+            to a namespace.  The name of that namespace is based on the module’s
+            <dfn id='dfn-prefixed-name'>prefixed name</dfn>, which is defined as
+            follows:
+          </p>
+          <ul>
+            <li>
+              If the <a class='dfnref' href='#dfn-module'>module</a> has a
+              <a class='xattr' href='#Prefix'>[Prefix]</a> <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
+              whose argument starts with the string “::”, then the
+              <a class='dfnref' href='#dfn-prefixed-name'>prefixed name</a> of
+              the module is a <a class='dfnref' href='#dfn-scoped-name'>scoped name</a>
+              constructed by concatenating the <a class='xattr' href='#Prefix'>[Prefix]</a>
+              argument, the string “::” and the module’s <a class='dfnref' href='#dfn-identifier'>identifier</a>.
+            </li>
+            <li>
+              Otherwise, if the <a class='dfnref' href='#dfn-module'>module</a> has a
+              <a class='xattr' href='#Prefix'>[Prefix]</a> <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
+              whose argument does not start with the string “::”, then the
+              <a class='dfnref' href='#dfn-prefixed-name'>prefixed name</a> of
+              the module is a <a class='dfnref' href='#dfn-scoped-name'>scoped name</a>
+              constructed by concatenating the <a class='dfnref' href='#dfn-prefixed-name'>prefixed name</a>
+              of the module’s <a class='dfnref' href='#dfn-enclosing-module'>enclosing module</a>
+              (or “::” if there is no enclosing module), the string “::”, the
+              <a class='xattr' href='#Prefix'>[Prefix]</a> argument, the string
+              “::” and the module’s <a class='dfnref' href='#dfn-identifier'>identifier</a>.
+            </li>
+            <li>
+              Otherwise, if the <a class='dfnref' href='#dfn-qualified-name'>qualified name</a>
+              of the <a class='dfnref' href='#dfn-module'>module</a> is “::dom”, then
+              the <a class='dfnref' href='#dfn-prefixed-name'>prefixed name</a> of the
+              module is the <a class='dfnref' href='#dfn-scoped-name'>scoped name</a>
+              “::org::w3c::dom”.
+            </li>
+            <li>
+              Otherwise, if the <a class='dfnref' href='#dfn-module'>module</a> has
+              no <a class='dfnref' href='#dfn-enclosing-module'>enclosing module</a>,
+              then the <a class='dfnref' href='#dfn-prefixed-name'>prefixed name</a> of the
+              module is a <a class='dfnref' href='#dfn-scoped-name'>scoped name</a>
+              constructed by concatenating the string “::org::w3c::dom::” and the
+              module’s <a class='dfnref' href='#dfn-identifier'>identifier</a>.
+            </li>
+            <li>
+              Otherwise, the <a class='dfnref' href='#dfn-prefixed-name'>prefixed name</a>
+              of the module is a <a class='dfnref' href='#dfn-scoped-name'>scoped name</a>
+              constructed by concatenating the prefixed name of the module’s
+              <a class='dfnref' href='#dfn-enclosing-module'>enclosing module</a>
+              and the module’s <a class='dfnref' href='#dfn-identifier'>identifier</a>.
+            </li>
+          </ul>
+          <p>
+            In the Java language binding, the name of the Java package is
+            derived by taking the <a class='dfnref' href='#dfn-prefixed-name'>prefixed name</a>
+            and replacing occurrences of “::” with “.” (see <a href='#java-modules'>section <?sref java-modules?></a>).
+            The ECMAScript language binding does not have a namespacing mechanism, and
+            thus does not use a <a class='dfnref' href='#dfn-module'>module</a>’s
+            prefixed name.
           </p>
           <p>
             The following <a class='dfnref' href='#dfn-extended-attribute'>extended attributes</a>
             are applicable to <a class='dfnref' href='#dfn-module'>modules</a>:
             <a class='xattr' href='#ExceptionConsts'>[ExceptionConsts]</a>,
-            <a class='xattr' href='#JavaPackage'>[JavaPackage]</a>.
+            <a class='xattr' href='#Prefix'>[Prefix]</a>.
           </p>
 
           <div class='example'>
@@ -1511,22 +1564,21 @@ interface C {
           <p>
             An extended attribute is specified as an
             <a class='nt' href='#prod-identifier'>identifier</a>, optionally followed
-            by some additional information.  There are six forms that the extended
+            by some additional information.  There are five forms that the extended
             attributes defined in this document may have:
           </p>
           <ul>
             <li><code>[TheExtendedAttribute]</code>, where it <dfn id='dfn-xattr-no-argument'>takes no argument</dfn>;</li>
             <li><code>[TheExtendedAttribute(<a class='nt' href='#prod-ArgumentList'>ArgumentList</a>)]</code>, where it <dfn id='dfn-xattr-argument-list'>takes an argument list</dfn>;</li>
             <li><code>[TheExtendedAttribute=<a class='terminal' href='#prod-identifier'>identifier</a>]</code>, where it <dfn id='dfn-xattr-identifier'>takes an identifier</dfn>;</li>
-            <li><code>[TheExtendedAttribute=<a class='nt' href='#prod-ScopedName'>ScopedName</a>]</code>, where it <dfn id='dfn-xattr-scoped-name'>takes a scoped name</dfn>;</li>
+            <li><code>[TheExtendedAttribute=<a class='nt' href='#prod-ScopedName'>ScopedName</a>]</code>, where it <dfn id='dfn-xattr-scoped-name'>takes a scoped name</dfn>; and,</li>
             <!--li><code>[TheExtendedAttribute=(<a class='nt' href='#prod-IdentifierList'>IdentifierList</a>)]</code>, where it <dfn id='dfn-xattr-identifier-list'>takes an identifier list</dfn>; and,</li-->
-            <li><code>[TheExtendedAttribute=<a class='terminal' href='#prod-identifier'>identifier</a>(<a class='nt' href='#prod-ArgumentList'>ArgumentList</a>)]</code>, where it <dfn id='dfn-xattr-named-argument-list'>takes a named argument list</dfn>; and,</li>
-            <li><code>[TheExtendedAttribute=<a class='nt' href='#prod-PackageName'>PackageName</a>]</code>, where it <dfn id='dfn-xattr-package-name'>takes a package name</dfn>.</li>
+            <li><code>[TheExtendedAttribute=<a class='terminal' href='#prod-identifier'>identifier</a>(<a class='nt' href='#prod-ArgumentList'>ArgumentList</a>)]</code>, where it <dfn id='dfn-xattr-named-argument-list'>takes a named argument list</dfn>.</li>
           </ul>
           <p>
             This specification defines a number of extended attributes, which are
             listed in the sub-sections below.  Each definition will state which of the above
-            six forms are allowed.
+            five forms are allowed.
           </p>
 
           <?productions grammar ExtendedAttributeList ExtendedAttribute ExtendedAttributes ExtendedAttributeDetails ExtendedAttributeAssignment ExtendedAttributeAssignmentArguments?>
@@ -1711,7 +1763,8 @@ FileIOException.FILE_NOT_FOUND;  // evaluates to 1</x:codeblock>
               where the <a class='dfnref' href='#dfn-scoped-name'>scoped name</a>
               <span class='rfc2119'>MUST</span> <a class='dfnref' href='#dfn-resolve'>resolve</a>,
               with respect to the <a class='dfnref' href='#dfn-enclosing-module'>enclosing module</a>
-              of the <a class='dfnref' href='#dfn-interface'>interface</a> that it appears on, to a different interface.
+              of the <a class='dfnref' href='#dfn-interface'>interface</a> that it appears on, to an
+              interface that has been <a class='dfnref' href='#dfn-declared-previously'>declared previously</a>.
               Any object that implements the interface identified by
               the argument will implement the interface the
               <a class='xattr' href='#ImplementedOn'>[ImplementedOn]</a>
@@ -2311,6 +2364,25 @@ Person* p2 = PersonFactory_createPersonWithAge(f, 26);  // Corresponds to the cr
             </div>
           </div>
           -->
+
+          <div id='Prefix' class='section'>
+            <h4>[Prefix]</h4>
+
+            <p>
+              If the <a class='xattr' href='#Prefix'>[Prefix]</a>
+              <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
+              appears on a <a class='dfnref' href='#dfn-module'>module</a>,
+              it affects the name of the language binding specific namespacing
+              construct the module will correspond to.  See the definition of a module’s
+              <a class='dfnref' href='#dfn-prefixed-name'>prefixed name</a> for
+              details.
+            </p>
+            <p>
+              The <a class='xattr' href='#Prefix'>[Prefix]</a>
+              <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
+              <span class='rfc2119'>MUST</span> <a class='dfnref' href='#dfn-xattr-scoped-name'>take a scoped name</a>.
+            </p>
+          </div>
 
           <div id='PutForwards' class='section'>
             <h4>[PutForwards]</h4>
@@ -5748,31 +5820,10 @@ interface D : C {
 
           <p>
             Every IDL <a class='dfnref' href='#dfn-module'>module</a> corresponds to a Java package,
-            whose name is derived as follows:
+            whose name is the result of taking the module’s
+            <a class='dfnref' href='#dfn-prefixed-name'>prefixed name</a>, replacing every
+            occurrence of the string “::” with “.”, and then removing the leading “.”.
           </p>
-          <ul>
-            <li>
-              If the <a class='dfnref' href='#dfn-module'>module</a> was declared with
-              the <a class='xattr' href='#JavaPackage'>[JavaPackage]</a>
-              <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>,
-              then the name of the corresponding Java package is the
-              extended attribute’s <a class='dfnref' href='#xattr-package-name'>package name argument</a>.
-            </li>
-            <li>
-              Otherwise, if the module has been
-              <a class='dfnref' href='#dfn-outermost-scope'>declared at the outermost scope</a>,
-              then the name of the corresponding Java package is the
-              <a class='dfnref' href='#dfn-java-escaped'>Java escaped</a>
-              <a class='dfnref' href='#dfn-identifier'>identifier</a> of the module.
-            </li>
-            <li>
-              Otherwise, the name of the corresponding Java package is the
-              name of the Java package corresponding to the
-              <a class='dfnref' href='#dfn-enclosing-module'>enclosing module</a> of this module,
-              followed by a <span class='char'>U+002E FULL STOP (".")</span>, followed by the
-              Java escaped identifier of the module.
-            </li>
-          </ul>
           <p>
             Definitions inside an IDL <a class='dfnref' href='#dfn-module'>module</a>
             correspond to Java constructs declared to be in the package for
@@ -5781,23 +5832,32 @@ interface D : C {
           <div class='example'>
             <p>
               The following <a class='dfnref' href='#dfn-idl-fragment'>IDL fragment</a>
-              will cause a Java interface named <span class='javatype'>HTMLDocument</span>
-              in package <span class='javapkg'>org.w3c.dom.html</span> to exist:
+              will result in four Java interfaces existing:
+              <span class='javatype'>org.w3c.dom.Document</span>,
+              <span class='javatype'>org.w3c.dom.html.HTMLDocument</span>,
+              <span class='javatype'>org.foo.FooDocument</span> and
+              <span class='javatype'>org.foo.ext.FooDocument</span>.
             </p>
-            <x:codeblock language='idl'>[JavaPackage=org.w3c.dom.html]
+            <x:codeblock language='idl'>module dom {
+  interface Document { … };
+};
+
 module html {
-  interface HTMLDocument {
-    // …
+  interface HTMLDocument { … };
+};
+
+[Prefix=org]
+module foo {
+  interface FooDocument { … };
+
+  module ext {
+    interface ExtendedFooDocument { … };
   };
 };</x:codeblock>
-            <x:codeblock language='java'>package org.w3c.dom.html;
-
-interface HTMLDocument {
-  // …
-}</x:codeblock>
           </div>
         </div>
 
+        <!--
         <div id='java-extended-attributes' class='section'>
           <h3>Java-specific extended attributes</h3>
 
@@ -5806,27 +5866,8 @@ interface HTMLDocument {
             <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
             whose presence affects only the Java binding.
           </p>
-
-          <div id='JavaPackage' class='section'>
-            <h4>[JavaPackage]</h4>
-
-            <p>
-              If the <a class='xattr' href='#JavaPackage'>[JavaPackage]</a>
-              <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
-              appears on a <a class='dfnref' href='#dfn-module'>module</a>,
-              it specifies the name of the Java package that the module
-              corresponds to.  IDL <a class='dfnref' href='#dfn-interface'>interfaces</a>
-              and <a class='dfnref' href='#dfn-exception'>exceptions</a> defined
-              within the modules will result in Java interfaces and classes
-              existing within the specified package.
-            </p>
-            <p>
-              The <a class='xattr' href='#JavaPackage'>[JavaPackage]</a>
-              <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
-              <span class='rfc2119'>MUST</span> <a class='dfnref' href='#dfn-xattr-package-name'>take a package name</a>.
-            </p>
-          </div>
         </div>
+        -->
 
         <div id='java-interfaces' class='section'>
           <h3>Interfaces</h3>
@@ -6347,8 +6388,7 @@ interface HTMLDocument {
             be resistant to extended attribute syntax that is not defined in this spec.
           </p>
           <p>
-            <span class='nt'>PackageName</span> is not defined in the grammar yet,
-            and a <span class='nt'>ScopedName</span> needs to be a possible extended
+            A <span class='nt'>ScopedName</span> needs to be a possible extended
             attribute argument.
           </p>
         </div>
@@ -6531,8 +6571,8 @@ interface HTMLDocument {
             <ul>
               <li>
                 <p>
-                  Added <span class='xattr'>[JavaPackage]</span> to map
-                  modules to Java packages.
+                  Added <span class='xattr'>[Prefix]</span> to change the default
+                  mapping of modules to language binding namespacing constructs.
                 </p>
               </li>
               <li>
