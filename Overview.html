@@ -11,7 +11,7 @@
   <head>
     <title>Web IDL</title>
     <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-    <meta name="revision" content="$Id: Overview.html,v 1.119 2008-12-01 00:09:17 cmccorma Exp $" />
+    <meta name="revision" content="$Id: Overview.html,v 1.120 2008-12-01 00:38:42 cmccorma Exp $" />
     <link rel="stylesheet" href="WebIDL.css" type="text/css" />
 
     
@@ -34,7 +34,7 @@
         Java execution environments is also detailed.
       </p>
 
-      <div class="ednote"><div class="ednoteHeader">Editorial note</div><p>This is revision $Id: Overview.html,v 1.119 2008-12-01 00:09:17 cmccorma Exp $.</p></div>
+      <div class="ednote"><div class="ednoteHeader">Editorial note</div><p>This is revision $Id: Overview.html,v 1.120 2008-12-01 00:38:42 cmccorma Exp $.</p></div>
     </div>
 
     <div class="section">
@@ -364,7 +364,6 @@
             A scoped name can be <dfn id="dfn-resolve">resolved</dfn>, with respect to a given
             module, to a definition as follows:
           </p>
-          <div class="ednote"><div class="ednoteHeader">Editorial note</div><p>Should change this so that the chain of modules is followed up to the root when trying to resolve a relative scoped name.</p></div>
           <ul>
             <li>
               If the scoped name has “::DOMString” as a suffix, then the scoped
@@ -375,26 +374,35 @@
             </li>
             <li>
               Otherwise, if the scoped name is a
-              <a class="dfnref" href="#dfn-relative-scoped-name">relative scoped name</a>, then:
-              <ul>
+              <a class="dfnref" href="#dfn-relative-scoped-name">relative scoped name</a>, then
+              the following steps gives the definition it resolves to:
+              <ol class="algorithm">
                 <li>
-                  If there exists a definition whose
-                  <a class="dfnref" href="#dfn-qualified-name">qualified name</a> is
-                  equal to the concatenation of the
-                  qualified name of the module, two
-                  <span class="char">U+003A COLON (":")</span> characters and
-                  the scoped name, then the scoped name resolves to that definition.
+                  Let <var>n</var> be the <a class="dfnref" href="#dfn-qualified-name">qualified name</a>
+                  of the <a class="dfnref" href="#dfn-module">module</a>.
                 </li>
                 <li>
-                  Otherwise, if there exists a definition whose
-                  qualified name is
-                  equal to the concatenation of two <span class="char">U+003A COLON (":")</span>
-                  characters and the scoped name, then the scoped name resolves to that definition.
+                  While <var>n</var> is not the empty string:
+                  <ol>
+                    <li>
+                      If there exists a definition whose
+                      <a class="dfnref" href="#dfn-qualified-name">qualified name</a> is
+                      equal to the concatenation of <var>n</var>, two
+                      <span class="char">U+003A COLON (":")</span> characters and
+                      the scoped name, then the scoped name resolves to that definition.
+                      End these steps.
+                    </li>
+                    <li>
+                      Remove the last name component from <var>n</var> (that is, from
+                      the second last <span class="char">U+003A COLON (":")</span>
+                      character to the end of the string, inclusive).
+                    </li>
+                  </ol>
                 </li>
                 <li>
-                  Otherwise, the scoped name does not resolve to a definition.
+                  The scoped name does not resolve to a definition.
                 </li>
-              </ul>
+              </ol>
             </li>
             <li>
               Otherwise, the scoped name is an
@@ -2336,6 +2344,13 @@ d.isMemberOfBreed(null);  // This passes the string "" to the isMemberOfBreed fu
               <a class="dfnref" href="#dfn-extended-attribute">extended attribute</a>
               <span class="rfc2119">MUST</span> <a class="dfnref" href="#dfn-xattr-scoped-name">take a scoped name</a>.
             </p>
+
+            <div class="example"><div class="exampleHeader">Example</div>
+              <p>
+                See <a href="#java-modules">section 5.3</a> for an
+                example of the use of <a class="xattr" href="#Prefix">[Prefix]</a>.
+              </p>
+            </div>
           </div>
 
           <div id="PutForwards" class="section">
