@@ -15,7 +15,7 @@
   <head>
     <title>Web IDL</title>
     <meta http-equiv='Content-Type' content='application/xhtml+xml; charset=UTF-8'/>
-    <meta name='revision' content='$Id: Overview.xml,v 1.126 2008-12-01 07:32:27 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: Overview.xml,v 1.127 2008-12-03 00:58:50 cmccorma Exp $'/>
     <link rel='stylesheet' href='WebIDL.css' type='text/css'/>
 
     <options xmlns='http://mcc.id.au/ns/local'>
@@ -1729,26 +1729,93 @@ interface Person {
             <a class='nt' href='#prod-ExtendedAttribute'>ExtendedAttribute</a>s.
           </p>
           <p>
-            An extended attribute is specified as an
-            <a class='nt' href='#prod-identifier'>identifier</a>, optionally followed
-            by some additional information.  There are five forms that the extended
-            attributes defined in this document may have:
+            The <a class='nt' href='#prod-ExtendedAttribute'>ExtendedAttribute</a>
+            non-terminal matches nearly any sequence of tokens, however the
+            <a class='dfnref' href='#dfn-extended-attribute'>extended attributes</a>
+            defined in this document only accept a more restricted syntax.
+            Any extended attribute encountered in an
+            <a class='dfnref' href='#dfn-idl-fragment'>IDL fragment</a> is
+            matched against the following five non-terminals to determine
+            what form (or forms) it is in:
           </p>
-          <ul>
-            <li><code>[TheExtendedAttribute]</code>, where it <dfn id='dfn-xattr-no-argument'>takes no argument</dfn>;</li>
-            <li><code>[TheExtendedAttribute(<a class='nt' href='#prod-ArgumentList'>ArgumentList</a>)]</code>, where it <dfn id='dfn-xattr-argument-list'>takes an argument list</dfn>;</li>
-            <li><code>[TheExtendedAttribute=<a class='terminal' href='#prod-identifier'>identifier</a>]</code>, where it <dfn id='dfn-xattr-identifier'>takes an identifier</dfn>;</li>
-            <li><code>[TheExtendedAttribute=<a class='nt' href='#prod-ScopedName'>ScopedName</a>]</code>, where it <dfn id='dfn-xattr-scoped-name'>takes a scoped name</dfn>; and,</li>
-            <!--li><code>[TheExtendedAttribute=(<a class='nt' href='#prod-IdentifierList'>IdentifierList</a>)]</code>, where it <dfn id='dfn-xattr-identifier-list'>takes an identifier list</dfn>; and,</li-->
-            <li><code>[TheExtendedAttribute=<a class='terminal' href='#prod-identifier'>identifier</a>(<a class='nt' href='#prod-ArgumentList'>ArgumentList</a>)]</code>, where it <dfn id='dfn-xattr-named-argument-list'>takes a named argument list</dfn>.</li>
-          </ul>
+          <table class='vert'>
+            <tr>
+              <th>Non-terminal</th>
+              <th>Form</th>
+              <th>Example</th>
+            </tr>
+            <tr>
+              <td>
+                <a class='nt' href='#prod-ExtendedAttributeNoArg'>ExtendedAttributeNoArg</a>
+              </td>
+              <td>
+                <dfn id='dfn-xattr-no-argument'>takes no argument</dfn>
+              </td>
+              <td>
+                <code>[Optional]</code>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <a class='nt' href='#prod-ExtendedAttributeArgList'>ExtendedAttributeArgList</a>
+              </td>
+              <td>
+                <dfn id='dfn-xattr-argument-list'>takes an argument list</dfn>
+              </td>
+              <td>
+                <code>[Constructor(in float x, in float y)]</code>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <a class='nt' href='#prod-ExtendedAttributeNamedArgList'>ExtendedAttributeNamedArgList</a>
+              </td>
+              <td>
+                <dfn id='dfn-xattr-named-argument-list'>takes a named argument list</dfn>
+              </td>
+              <td>
+                <code>[NamedConstructor=Image(in DOMString src)]</code>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <a class='nt' href='#prod-ExtendedAttributeIdent'>ExtendedAttributeIdent</a>
+              </td>
+              <td>
+                <dfn id='dfn-xattr-identifier'>takes an identifier</dfn>
+              </td>
+              <td>
+                <code>[Stringifies=name]</code>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <a class='nt' href='#prod-ExtendedAttributeScopedName'>ExtendedAttributeScopedName</a>
+              </td>
+              <td>
+                <dfn id='dfn-xattr-scoped-name'>takes a scoped name</dfn>
+              </td>
+              <td>
+                <code>[Prefix=org::example]</code>
+              </td>
+            </tr>
+          </table>
+
           <p>
-            This specification defines a number of extended attributes, which are
-            listed in the sub-sections below.  Each definition will state which of the above
-            five forms are allowed.
+            This specification defines a number of extended attributes that
+            are applicable to all language bindings, which are described in the
+            sub-sections below.  In addition, ECMAScript language binding
+            specific extended attributes are defined in
+            <a href='#es-extended-attributes'>section <?sref es-extended-attributes?></a>.
+            Each extended attribute definition will state which of the above
+            five forms are allowed.  Although
+            <a class='nt' href='#prod-ExtendedAttributeIdent'>ExtendedAttributeIdent</a> and
+            <a class='nt' href='#prod-ExtendedAttributeScopedName'>ExtendedAttributeScopedName</a>
+            are ambiguous, no extended attribute defined in this document
+            can take both of those forms.
           </p>
 
-          <?productions grammar ExtendedAttributeList ExtendedAttribute ExtendedAttributes ExtendedAttributeDetails ExtendedAttributeAssignment ExtendedAttributeAssignmentArguments?>
+          <?productions grammar ExtendedAttributeList ExtendedAttribute ExtendedAttributes ExtendedAttributeRest ExtendedAttributeInner Other OtherOrComma ExtendedAttributeNoArg ExtendedAttributeArgList ExtendedAttributeIdent ExtendedAttributeScopedName ExtendedAttributeNamedArgList?>
 
           <div id='Callable' class='section'>
             <h4>[Callable]</h4>
@@ -1934,8 +2001,8 @@ FileIOException.FILE_NOT_FOUND;  // evaluates to 1</x:codeblock>
               with respect to the <a class='dfnref' href='#dfn-enclosing-module'>enclosing module</a>
               of the <a class='dfnref' href='#dfn-interface'>interface</a> that it appears on, to an
               interface that has been <a class='dfnref' href='#dfn-declared-previously'>declared previously</a>.
-              Any object that implements the interface identified by
-              the argument will implement the interface the
+              Any object that implements the interfaces identified by
+              the scoped name argument will implement the interface the
               <a class='xattr' href='#ImplementedOn'>[ImplementedOn]</a>
               extended attribute appears on.
             </p>
@@ -6098,7 +6165,7 @@ interface D : C {
               <span class='javatype'>org.w3c.dom.Document</span>,
               <span class='javatype'>org.w3c.dom.html.HTMLDocument</span>,
               <span class='javatype'>org.foo.FooDocument</span> and
-              <span class='javatype'>org.foo.ext.FooDocument</span>.
+              <span class='javatype'>org.foo.ext.ExtendedFooDocument</span>.
             </p>
             <x:codeblock language='idl'>module dom {
   interface Document { … };
@@ -6594,9 +6661,19 @@ module foo {
             <td class='regex'>[A-Z_a-z][0-9A-Z_a-z]*</td>
           </tr>
           <tr>
+            <td id='prod-string' class='nt'>string</td>
+            <td class='regex'>=</td>
+            <td class='regex'>"[^"]*"</td>
+          </tr>
+          <tr>
             <td id='prod-whitespace' class='nt'>whitespace</td>
             <td class='regex'>=</td>
             <td class='regex'>[\t\n\r ]+|[\t\n\r ]*((//.*|/\*.*?\*/)[\t\n\r ]*)+</td>
+          </tr>
+          <tr>
+            <td id='prod-other' class='nt'>other</td>
+            <td class='regex'>=</td>
+            <td class='regex'>[^\t\n\r 0-9A-Z_a-z]</td>
           </tr>
         </table>
 
@@ -6614,7 +6691,7 @@ module foo {
           text is “<tt>a1</tt>”, it is tokenized as a single <span class='terminal'>identifier</span>,
           and not as a separate <span class='terminal'>identifier</span> and <span class='terminal'>integer</span>.
           If the longest possible match could match both an <span class='terminal'>identifier</span> and
-          one of the quoted terminal symbols from the grammar, it <span class='rfc2119'>must</span> be tokenized as the quoted
+          one of the quoted terminal symbols from the grammar, it <span class='rfc2119'>MUST</span> be tokenized as the quoted
           terminal symbol.  Thus, the input text “<tt>in</tt>” is tokenized as the quoted terminal symbol
           <span class='terminal'>"in"</span> rather than an <span class='terminal'>identifier</span> called “in”.
         </p>
@@ -6640,20 +6717,10 @@ module foo {
         </p>
 
         <p>
-          The following LL(1) grammar matches an <a class='dfnref' href='#dfn-idl-fragment'>IDL fragment</a>:
+          The following LL(1) grammar, starting with <a class='nt' href='#prod-Definitions'>Definitions</a>,
+          matches an <a class='dfnref' href='#dfn-idl-fragment'>IDL fragment</a>:
         </p>
 
-        <div class='ednote'>
-          <p>
-            Probably the grammar should be changed to allow for any string of tokens
-            within the square brackets, which should then be parsed subsequently, to
-            be resistant to extended attribute syntax that is not defined in this spec.
-          </p>
-          <p>
-            A <span class='nt'>ScopedName</span> needs to be a possible extended
-            attribute argument.
-          </p>
-        </div>
         <grammar id='grammar' xmlns='http://mcc.id.au/ns/local'>
           <prod nt='Definitions'>ExtendedAttributeList Definition Definitions | ε</prod>
           <prod nt='Definition'>Module | Interface | Exception | Typedef | Valuetype | Const</prod>
@@ -6685,10 +6752,30 @@ module foo {
           <prod nt='ExceptionMember'>DeclarationType identifier ";"</prod>
           <prod nt='ExtendedAttributeList'>"[" ExtendedAttribute ExtendedAttributes "]" | ε</prod>
           <prod nt='ExtendedAttributes'>"," ExtendedAttribute ExtendedAttributes | ε</prod>
-          <prod nt='ExtendedAttribute'>identifier ExtendedAttributeDetails</prod>
-          <prod nt='ExtendedAttributeDetails'>"=" ExtendedAttributeAssignment | "(" ArgumentList ")" | ε</prod>
-          <prod nt='ExtendedAttributeAssignment'>identifier ExtendedAttributeAssignmentArguments<!-- | "(" IdentifierList ")"--></prod>
-          <prod nt='ExtendedAttributeAssignmentArguments'>"(" ArgumentList ")" | ε</prod>
+          <prod nt='ExtendedAttribute'>
+              "(" ExtendedAttributeInner ")" ExtendedAttributeRest
+            | "[" ExtendedAttributeInner "]" ExtendedAttributeRest
+            | "{" ExtendedAttributeInner "}" ExtendedAttributeRest
+            | Other ExtendedAttributeRest
+          </prod>
+          <prod nt='ExtendedAttributeRest'>ExtendedAttribute | ε</prod>
+          <prod nt='ExtendedAttributeInner'>
+              "(" ExtendedAttributeInner ")" ExtendedAttributeInner
+            | "[" ExtendedAttributeInner "]" ExtendedAttributeInner
+            | "{" ExtendedAttributeInner "}" ExtendedAttributeInner
+            | OtherOrComma ExtendedAttributeInner
+            | ε
+          </prod>
+          <prod nt='Other'>
+              integer | float | identifier | string <!--| whitespace--> | other
+            | ":" | "::" | ";" | "&lt;" | "=" | ">" | "DOMString"
+            | "FALSE" | "Object" | "TRUE" | "any" | "attribute" | "boolean"
+            | "const" | "exception" | "float" | "getraises" | "in"
+            | "interface" | "long" | "module" | "octet" | "raises" | "sequence"
+            | "setraises" | "short" | "typedef" | "unsigned" | "valuetype"
+          </prod>
+          <prod nt='OtherOrComma'>Other | ","</prod>
+
           <prod nt='DeclarationType'>UnsignedIntegerType | ScopedName | "any" | "boolean" | "octet" | "float" | "DOMString" | "Object"</prod>
           <prod nt='BoxedType'>UnsignedIntegerType | ScopedName | "boolean" | "octet" | "float" | "sequence" "&lt;" Type ">"</prod>
           <prod nt='Type'>DeclarationType | "sequence" "&lt;" Type ">"</prod>
@@ -6704,6 +6791,15 @@ module foo {
           <prod nt='ScopedNamePartsAfterColon'>identifier ScopedNameParts | "DOMString"</prod>
           <!--prod nt='IdentifierList'>identifier Identifiers</prod>
           <prod nt='Identifiers'>"," identifier Identifiers | ε</prod-->
+
+          <!-- These five productions aren't referenced from any of the
+               other productions; they're just mentioned from the
+               #idl-extended-attributes section. -->
+          <prod nt='ExtendedAttributeNoArg'>identifier</prod>
+          <prod nt='ExtendedAttributeArgList'>identifier "(" ArgumentList ")"</prod>
+          <prod nt='ExtendedAttributeIdent'>identifier "=" identifier</prod>
+          <prod nt='ExtendedAttributeScopedName'>identifier "=" ScopedName</prod>
+          <prod nt='ExtendedAttributeNamedArgList'>identifier "=" identifier "(" ArgumentList ")"</prod>
 
           <!--prod nt='Keyword'>"any" | "attribute" | "boolean" | "const" | "exception" | "float" | "getraises" | "in" | "interface" | "long" | "module" | "Object" | "octet" | "raises" | "readonly" | "sequence" | "setraises" | "short" | "typedef" | "unsigned | "void"</prod-->
           <!-- the following are the remaining OMG IDL 3 keywords:
@@ -6750,6 +6846,27 @@ module foo {
           "wstring"
           -->
         </grammar>
+        <div class='note'>
+          <p>
+            The choices listed for the <a class='nt' href='#prod-Other'>Other</a>
+            non-terminal are all of the terminal symbols except for
+            <span class="terminal">"("</span>, <span class="terminal">")"</span>,
+            <span class="terminal">"["</span>, <span class="terminal">"]"</span>,
+            <span class="terminal">"{"</span>, <span class="terminal">"}"</span>
+            and <span class="terminal">","</span>.
+          </p>
+        </div>
+        <p>
+          While the <a class='nt' href='#prod-ExtendedAttribute'>ExtendedAttribute</a>
+          matches any non-empty sequence of terminal symbols (as long as any
+          parentheses, square brackets or braces are balanced, and the
+          <span class="terminal">","</span> token appears only within those balanced brackets),
+          only a subset of those
+          possible sequences are used by the <a class='dfnref' href='#dfn-extended-attribute'>extended attributes</a>
+          defined in this specification — see
+          <a href='#idl-extended-attributes'>section <?sref idl-extended-attributes?></a>
+          for the syntaxes that are used by these extended attributes.
+        </p>
       </div>
 
       <div id='references' class='section'>
