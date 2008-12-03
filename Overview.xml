@@ -15,7 +15,7 @@
   <head>
     <title>Web IDL</title>
     <meta http-equiv='Content-Type' content='application/xhtml+xml; charset=UTF-8'/>
-    <meta name='revision' content='$Id: Overview.xml,v 1.131 2008-12-03 05:03:06 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: Overview.xml,v 1.132 2008-12-03 07:58:03 cmccorma Exp $'/>
     <link rel='stylesheet' href='WebIDL.css' type='text/css'/>
 
     <options xmlns='http://mcc.id.au/ns/local'>
@@ -3750,11 +3750,13 @@ var t = getThing();
 
 // The function is the implementation of the eventOccurred operation on the
 // Listener interface.  If Listener had been declared with
-// [Callback=PropertyOnly] however, this would have thrown a TypeError.
+// [Callback=PropertyOnly] this addListener() call would still succeed, but
+// a TypeError would be thrown when the user agent attempts to invoke the
+// callback.
 t.addListener(function() { });
 
 // This also works, but it is the function with /* 1 */ in it that is the
-implementation of eventOccurred.
+// implementation of eventOccurred.
 var x = function() { /* 1 */ };                    
 x.eventOccurred = function() { /* 2 */ };          
 t.addListener(x);
@@ -3783,8 +3785,8 @@ t.addListener({ eventOccurred: function() { } });</x:codeblock>
               extended attribute <span class='rfc2119'>MUST</span> either
               <a class='dfnref' href='#dfn-xattr-identifier'>take an identifier</a> or
               <a class='dfnref' href='#dfn-xattr-named-argument-list'>take a named argument list</a>.
-              The first form (<code>[NamedConstructor=<a class='terminal' href='#prod-identifier'>identifier</a>]</code>) has the same meaning as
-              using an empty argument list (<code>[NamedConstructor=<a class='terminal' href='#prod-identifier'>identifier</a>()]</code>).  For each
+              The first form, <code>[NamedConstructor=<a class='terminal' href='#prod-identifier'>identifier</a>]</code>, has the same meaning as
+              using an empty argument list, <code>[NamedConstructor=<a class='terminal' href='#prod-identifier'>identifier</a>()]</code>.  For each
               <a class='xattr' href='#NamedConstructor'>[NamedConstructor]</a> extended attribute
               on the interface, there will be a way to construct an object that implements
               the interface by passing the specified arguments to the constructor function
@@ -3927,13 +3929,20 @@ interface Node {
   readonly attribute unsigned short nodeType;
 };
 
-interface Element : Node { … };
+interface Element : Node {
+  void appendChild(in Node n);
+  // …
+};
 
-interface HTMLElement : Element { … };
+interface HTMLElement : Element {
+  void focus();
+  // …
+};
 
 [ImplementedOn=Node]
 interface EventTarget {
   void addEventListener(…);
+  // …
 };</x:codeblock>
               <p>
                 An ECMAScript implementation implementing these interfaces would
