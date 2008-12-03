@@ -345,6 +345,10 @@
       <div class='ednote'>
         <div class='ednoteHeader'>Editorial note</div>
         <p>This is revision <xsl:value-of select='$id'/>.</p>
+        <xsl:variable name='n' select='count(//h:div[@class="ednote"])'/>
+        <xsl:if test='$n'>
+          <p>There are <xsl:value-of select='$n'/> further editorial notes in the document.</p>
+        </xsl:if>
       </div>
     </xsl:if>
   </xsl:template>
