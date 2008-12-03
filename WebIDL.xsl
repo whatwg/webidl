@@ -7,8 +7,8 @@
 
   <xsl:output method='xml' encoding='UTF-8'
               omit-xml-declaration='yes'
-              doctype-public='-//W3C//DTD XHTML 1.0 Strict//EN'
-              doctype-system='http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd'
+              doctype-public='-//W3C//DTD XHTML 1.0 Transitional//EN'
+              doctype-system='http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd'
               media-type='application/xhtml+xml; charset=UTF-8'/>
 
   <xsl:variable name='options' select='/*/h:head/x:options'/>
@@ -90,7 +90,7 @@
       <div><a href="http://www.w3.org/"><img src="http://www.w3.org/Icons/w3c_home" width="72" height="48" alt="W3C"></img></a></div>
       <h1><xsl:value-of select='/*/h:head/h:title'/></h1>
       <h2>
-        W3C
+        <xsl:text>W3C </xsl:text>
         <xsl:choose>
           <xsl:when test='$options/x:maturity="WD" or $options/x:maturity="FPWD" or $options/x:maturity="LCWD" or $options/x:maturity="FPWDLC"'>Working Draft</xsl:when>
           <xsl:when test='$options/x:maturity="CR"'>Candidate Recommendation</xsl:when>
@@ -101,9 +101,7 @@
           <xsl:otherwise>Editor’s Draft</xsl:otherwise>
         </xsl:choose>
         <xsl:text> </xsl:text>
-        <em>
-          <xsl:call-template name='date'/>
-        </em>
+        <xsl:call-template name='date'/>
       </h2>
 
       <dl>
