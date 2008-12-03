@@ -23,7 +23,7 @@
   Overview.html
   Web IDL
 
-  Note: This file is generated from Overview.xml.  Run “make” to regenerate it.
+  Note: This file is generated from Overview.xml.  Run "make" to regenerate it.
   </xsl:comment>
       <xsl:text>&#xa;</xsl:text>
     </xsl:if>
