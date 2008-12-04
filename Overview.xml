@@ -15,7 +15,7 @@
   <head>
     <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'/>
     <title>Web IDL</title>
-    <meta name='revision' content='$Id: Overview.xml,v 1.135 2008-12-03 08:50:46 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: Overview.xml,v 1.136 2008-12-04 11:12:56 cmccorma Exp $'/>
     <link rel='stylesheet' href='WebIDL.css' type='text/css'/>
 
     <options xmlns='http://mcc.id.au/ns/local'>
@@ -1079,48 +1079,92 @@ interface Person {
               <em>effective overload set</em> is used.
             </p>
             <p>
-              The <dfn id='dfn-effective-overload-set'>effective overload set</dfn>
-              for a given <a class='dfnref' href='#dfn-identifier'>identifier</a>
-              and <a class='dfnref' href='#dfn-interface'>interface</a> is a
-              set of pairs &lt;<var>op</var>, <var>types</var>>, where <var>op</var>
-              is an <a class='dfnref' href='#dfn-operation'>operation</a> and
-              <var>types</var> is a list of IDL types.  Each pair represents an
-              allowable invocation of the operation with an argument value list of
-              the given types.  Due to the use of optional arguments and
-              variadic operations (see the definitions of
+              An <dfn id='dfn-effective-overload-set'>effective overload set</dfn>
+              for a given 
+              <a class='dfnref' href='#dfn-identifier'>identifier</a>
+              and <a class='dfnref' href='#dfn-interface'>interface</a> represents
+              the allowable invocations of operations or constructors
+              (specified with <a class='xattr' href='#Constructor'>[Constructor]</a>
+              and <a class='xattr' href='#NamedConstructor'>[NamedConstructor]</a>)
+              that have the specified identifier on that interface.  The
+              set is used to determine whether there are ambiguities in the 
+              overloaded operations or constructors specified on the interface.
+              The effective overload set is stated to be either
+              “for operations” or “for constructors”, to distinguish between
+              these two uses.
+            </p>
+            <p>
+              The elements of an effective overload set are pairs of the form
+              &lt;<var>f</var>, <var>types</var>>.  If the effective overload
+              set is for operations, then <var>f</var> is an operation,
+              and if it is for constructors, then <var>f</var> is an
+              extended attribute.  In either case, <var>types</var> is a list
+              of IDL types.
+              Each pair represents an allowable invocation of the operation
+              or constructor with an argument value list of the given types.
+              Due to the use of optional arguments and variadic operations 
+              and constructors (see the definitions of
               <a class='xattr' href='#Optional'>[Optional]</a> and
               <a class='xattr' href='#Variadic'>[Variadic]</a>), there may
               be multiple entries in an effective overload set identifying
-              the same operation.  The effective overload set for identifier
-              <var>A</var> and interface <var>X</var> is constructed as
-              follows:
+              the same operation or constructor.
+            </p>
+            <p>
+              The effective overload set for identifier <var>A</var> and
+              interface <var>X</var> is derived as follows.  Whenever
+              an argument of an extended attribute is mentioned, it is
+              referring to an argument of the extended attribute’s
+              <a class='dfnref' href='#dfn-xattr-named-argument-list'>named argument list</a>.
             </p>
             <ol class='algorithm'>
               <li>Initialize <var>S</var> to ∅.</li>
-              <li>Let <var>m</var> be the maximum number of arguments any <a class='dfnref' href='#dfn-operation'>operation</a> with <a class='dfnref' href='#dfn-identifier'>identifier</a> <var>A</var> on <a class='dfnref' href='#dfn-interface'>interface</a> <var>I</var> is defined to take.</li>
-              <li>For each operation <var>O</var> with identifier <var>A</var> defined on interface <var>I</var>:
+              <li>Let <var>F</var> be a set with elements as follows, according to the kind of effective overload set:
+                <dl class='switch'>
+                  <dt>For operations</dt>
+                  <dd>
+                    The elements of <var>F</var> are the operations with
+                    identifier <var>A</var> defined on interface <var>I</var>.
+                  </dd>
+                  <dt>For constructors</dt>
+                  <dd>
+                    The elements of <var>F</var> are the
+                    <a class='nt' href='#NamedConstructor'>[NamedConstructor]</a>
+                    extended attributes on interface <var>I</var> whose
+                    <a class='dfnref' href='#dfn-xattr-named-argument-list'>named argument lists’</a>
+                    identifiers are <var>A</var>.  If <var>A</var> is the same as the identifier of
+                    interface <var>I</var>, then <var>F</var> also includes the
+                    <a class='nt' href='#Constructor'>[Constructor]</a> extended
+                    attributes on <var>I</var>.
+                  </dd>
+                </dl>
+              </li>
+              <li>Let <var>m</var> be the maximum number of arguments the operations or constructor extended attributes in <var>F</var> are declared to take.</li>
+              <li>For each operation or extended attribute <var>X</var> in <var>F</var>:
                 <ol class='algorithm'>
-                  <li>Let <var>n</var> be the number of arguments <var>O</var> is defined to take.</li>
-                  <li>Let <var>t</var><sub>0‥<var>n</var>−1</sub> be the types of the arguments <var>O</var> is defined to take.</li>
-                  <li>Add to <var>S</var> the pair &lt;<var>O</var>, <var>t</var><sub>0‥<var>n</var>−1</sub>>.</li>
-                  <li>If <var>n</var> > 0 and the final argument of <var>O</var> is annotated with the <a class='xattr' href='#Variadic'>[Variadic]</a> <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>, then:
+                  <li>Let <var>n</var> be the number of arguments <var>X</var> is declared to take.</li>
+                  <li>Let <var>t</var><sub>0‥<var>n</var>−1</sub> be the types of the arguments <var>X</var> is defined to take.</li>
+                  <li>Add to <var>S</var> the pair &lt;<var>X</var>, <var>t</var><sub>0‥<var>n</var>−1</sub>>.</li>
+                  <li>If <var>n</var> > 0 and the final argument of <var>X</var> is annotated with the <a class='xattr' href='#Variadic'>[Variadic]</a> <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>, then:
                     <ol class='algorithm'>
-                      <li>Add to <var>S</var> the pair &lt;<var>O</var>, <var>t</var><sub>0‥<var>n</var>−2</sub>>.</li>
+                      <li>Add to <var>S</var> the pair &lt;<var>X</var>, <var>t</var><sub>0‥<var>n</var>−2</sub>>.</li>
                       <li>For every integer <var>i</var>, such that <var>n</var> ≤ <var>i</var> ≤ <var>m</var>−1:
                         <ol class='algorithm'>
                           <li>Let <var>u</var><sub>0‥<var>i</var></sub> be a list of types, where <var>u</var><sub>j</sub> = <var>t</var><sub>j</sub> (for <var>j</var> &lt; <var>n</var>) and <var>u</var><sub>j</sub> = <var>t</var><sub><var>n</var>−1</sub> (for <var>j</var> ≥ <var>n</var>).</li>
-                          <li>Add to <var>S</var> the pair &lt;<var>O</var>, <var>u</var><sub>0‥<var>i</var></sub>>.</li>
+                          <li>Add to <var>S</var> the pair &lt;<var>X</var>, <var>u</var><sub>0‥<var>i</var></sub>>.</li>
                         </ol>
                       </li>
                     </ol>
                   </li>
                   <li>For every integer <var>i</var>, such that 0 &lt; <var>i</var> &lt; <var>n</var>:
                     <ol class='algorithm'>
-                      <li>If argument <var>i</var> of <var>O</var> is annotated with the <a class='xattr' href='#Optional'>[Optional]</a> extended attribute, then add to <var>S</var> the pair &lt;<var>O</var>, <var>t</var><sub>0‥<var>i−1</var></sub>>.</li>
+                      <li>If argument <var>i</var> of <var>X</var> is annotated with the <a class='xattr' href='#Optional'>[Optional]</a> extended attribute, then add to <var>S</var> the pair &lt;<var>X</var>, <var>t</var><sub>0‥<var>i−1</var></sub>>.</li>
                     </ol>
                   </li>
-                  <li>If <var>n</var> > 0 and the first argument of <var>O</var> is annotated with the <a class='xattr' href='#Optional'>[Optional]</a> extended attribute, then add to <var>S</var> the pair &lt;<var>O</var>, ()> (where “()” represents the empty list).</li>
+                  <li>If <var>n</var> > 0 and the first argument of <var>X</var> is annotated with the <a class='xattr' href='#Optional'>[Optional]</a> extended attribute, then add to <var>S</var> the pair &lt;<var>X</var>, ()> (where “()” represents the empty list).</li>
                 </ol>
+              </li>
+              <li>
+                The effective overload set for identifier <var>A</var> and interface <var>X</var> is <var>S</var>.
               </li>
             </ol>
             <p>
@@ -1142,10 +1186,12 @@ interface Person {
             </p>
             <div class='note'>
               <p>
-                These restrictions on argument types of <a class='dfnref' href='#dfn-overloaded'>overloaded operations</a>
-                reduce the possibility of resolution ambiguity, but do not
+                These restrictions on argument types reduce 
+                the possibility of resolution ambiguity in
+                <a class='dfnref' href='#dfn-overloaded'>overloaded</a> operations
+                and constructors, but do not
                 eliminate it.  In the ECMAScript language binding, the
-                restrictions still can result in overloaded operation invocations
+                restrictions still can result in overloaded operation and constructor invocations
                 that cannot be distinguished solely based on the values passed to
                 the corresponding function.  For example, with the following
                 <a class='dfnref' href='#dfn-interface'>interfaces</a>:
@@ -1172,8 +1218,8 @@ interface C {
                 describe which operation is invoked in these cases.  (It is
                 acceptable not to describe this if there is no observable
                 difference in behavior for a particular choice of operation
-                to disambiguate the call, or if no object will actually
-                implement the two interfaces, for example.)
+                or constructor to disambiguate the call, or if no object will
+                actually implement the two interfaces, for example.)
               </p>
             </div>
             <div class='example'>
@@ -4137,24 +4183,6 @@ c.isMemberOfBreed(undefined);  // This passes the string "" to the
               <a href='#es-constants'>section <?sref es-constants?></a> <?sdir es-constants?>.
             </p>
             <p>
-              If the interface is declared with a
-              <a class='xattr' href='#Constructor'>[Constructor]</a> <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>,
-              then the interface object <span class='rfc2119'>MUST</span> also have a
-              <span class='prop'>[[Construct]]</span> internal property, which allows
-              construction of objects that implement the given interface.  The behavior
-              of this <span class='prop'>[[Construct]]</span> method is not
-              necessarily the same as that described for <span class='estype'>Function</span> objects in
-              section 13.2.2 of the
-              <cite>ECMAScript Language Specification, 3rd Edition</cite>
-              <a href='#ref-ECMA-262'>[ECMA-262]</a>, but it
-              <span class='rfc2119'>MUST</span> return an object that implements
-              the given interface if it returns normally (that is, if it does not
-              throw an exception).
-            </p>
-            <div class='ednote'>
-              <p>Specify here how multiple constructors are handled (like operation overloading).</p>
-            </div>
-            <p>
               The interface object <span class='rfc2119'>MUST</span> also have a property named
               <span class='prop'>prototype</span> with attributes
               <span class='propattrset'>{ DontDelete, ReadOnly }</span>
@@ -4165,6 +4193,166 @@ c.isMemberOfBreed(undefined);  // This passes the string "" to the
               <a href='#interface-prototype-object'>section <?sref interface-prototype-object?></a>
               <?sdir interface-prototype-object?>.
             </p>
+
+            <div id='es-interface-construct' class='section'>
+              <h5>Interface object [[Construct]] method</h5>
+
+              <p>
+                If the interface is declared with a
+                <a class='xattr' href='#Constructor'>[Constructor]</a> <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>,
+                then the interface object <span class='rfc2119'>MUST</span> also have a
+                <span class='prop'>[[Construct]]</span> internal property, which allows
+                construction of objects that implement the given interface.<!--  The behavior
+                of this <span class='prop'>[[Construct]]</span> method is not
+                necessarily the same as that described for <span class='estype'>Function</span> objects in
+                section 13.2.2 of the
+                <cite>ECMAScript Language Specification, 3rd Edition</cite>
+                <a href='#ref-ECMA-262'>[ECMA-262]</a>, but it
+                <span class='rfc2119'>MUST</span> return an object that implements
+                the given interface if it returns normally (that is, if it does not
+                throw an exception).
+              </p>
+              <p>-->
+                In order to define how overloaded constructor invocations
+                are resolved within the <span class='prop'>[[Construct]]</span> method, the
+                <dfn id='dfn-overload-resolution-algorithm'>overload resolution algorithm</dfn>
+                is defined.  Its input is an <a class='dfnref' href='#dfn-effective-overload-set'>effective overload set</a>,
+                <var>S</var>, and a list of ECMAScript values, <var>arg</var><sub>0‥<var>n</var>−1</sub>.
+                The algorithm behaves as follows:
+              </p>
+              <ol class='algorithm'>
+                <li>
+                  Initialize <var>R</var> to a set with the same values as <var>S</var>.
+                </li>
+                <li>
+                  Remove from <var>R</var> all entries whose type list is
+                  longer than <var>n</var>.
+                </li>
+                <li>
+                  If <var>R</var> contains more than one entry:
+                  <ol>
+                    <li>
+                      Let <var>m</var> be the maximum length of the type lists of
+                      the entries in <var>R</var>.
+                    </li>
+                    <li>
+                      Initialize <var>i</var> to 0.
+                    </li>
+                    <li>
+                      While <var>i</var> &lt; <var>m</var>:
+                      <ol>
+                        <li>Initialize <var>b</var> to <span class='esvalue'>true</span>.</li>
+                        <li>
+                          For each pair of entries &lt;<var>entry1</var>, <var>entry2</var>>
+                          in <var>R</var>:
+                          <ol>
+                            <li>Let <var>t</var> be the type list of <var>entry1</var>.</li>
+                            <li>Let <var>u</var> be the type list of <var>entry2</var>.</li>
+                            <li>
+                              If <var>t</var><sub><var>i</var></sub> and
+                              <var>u</var><sub><var>i</var></sub> are not
+                              <a class='dfnref' href='#dfn-distinguishable'>distinguishable</a>,
+                              set <var>b</var> to <span class='esvalue'>false</span>.
+                            </li>
+                          </ol>
+                        </li>
+                        <li>
+                          If <var>b</var> is <span class='esvalue'>true</span>:
+                          <ol>
+                            <li>
+                              If <var>arg</var><sub><var>i</var></sub> is an
+                              <span class='estype'>Undefined</span>,
+                              <span class='estype'>Boolean</span>,
+                              <span class='estype'>String</span> or
+                              <span class='estype'>Number</span> value,
+                              then remove from <var>R</var> all entries with type
+                              list <var>t</var> where <var>t</var><sub><var>i</var></sub>
+                              is not a <a class='dfnref' href='#dfn-primitive-type'>primitive type</a>.
+                            </li>
+                            <li>
+                              If <var>arg</var><sub><var>i</var></sub> is
+                              <span class='esvalue'>null</span> or an
+                              object (whether a host object or a native object), then remove from
+                              <var>R</var> all entries with type list <var>t</var> where
+                              <var>t</var><sub><var>i</var></sub> is not
+                              <a href='#idl-interface'>an object implementing an interface</a>.
+                            </li>
+                          </ol>
+                        </li>
+                        <li>Set <var>i</var> to <var>i</var> + 1.</li>
+                      </ol>
+                    </li>
+                  </ol>
+                </li>
+                <li>Return <var>R</var>.</li>
+              </ol>
+              <p>
+                The internal <span class='prop'>[[Construct]]</span> method
+                of the interface object behaves as follows, assuming
+                <var>arg</var><sub>0‥<var>n</var>−1</sub> is the list
+                of argument values passed to the constructor, and <var>I</var>
+                is the <a class='dfnref' href='#dfn-interface'>interface</a>:
+              </p>
+              <ol class='algorithm'>
+                <li>
+                  Let <var>id</var> be the identifier of interface <var>I</var>.
+                </li>
+                <li>
+                  Initialize <var>S</var> to the
+                  <a class='dfnref' href='#dfn-effective-overload-set'>effective overload set</a>
+                  for constructors with <a class='dfnref' href='#dfn-identifier'>identifier</a>
+                  <var>id</var> on <a class='dfnref' href='#dfn-interface'>interface</a>
+                  <var>I</var>.
+                </li>
+                <li>
+                  Set <var>S</var> to the result of passing <var>S</var> and
+                  <var>arg</var><sub>0‥<var>n</var>−1</sub> to the
+                  <a class='dfnref' href='#dfn-overload-resolution-algorithm'>overload resolution algorithm</a>.
+                </li>
+                <li>
+                  If <var>S</var> is empty, throw a <span class='estype'>TypeError</span>.
+                </li>
+                <li>
+                  If <var>S</var> contains more than one entry, then the
+                  constructor call is ambiguous.  Remove all but one entry from
+                  <var>S</var> according to rules specified in the description
+                  of <a class='dfnref' href='#dfn-interface'>interface</a>
+                  <var>I</var>, or arbitrarily if no such rules exist.
+                </li>
+                <li>
+                  Let <var>x</var> be the <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
+                  that represents the constructor and <var>t</var><sub>0‥<var>m</var>−1</sub> be the type
+                  list of the single entry in <var>S</var>.
+                </li>
+                <li>
+                  Let <var>idlarg</var><sub>0‥<var>m</var>−1</sub> be a list
+                  of IDL values, where <var>idlarg</var><sub><var>i</var></sub>
+                  is the result of
+                  <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a>
+                  <var>arg</var><sub><var>i</var></sub> to an IDL value.
+                </li>
+                <li x:step='a'>
+                  Perform the actions listed in the description of
+                  the constructor represented by <var>x</var>
+                  with <var>idlarg</var><sub>0‥<var>m</var>−1</sub>
+                  as the argument values.
+                </li>
+                <li>
+                  If the actions performed in the previous step resulted
+                  in an exception being thrown, then allow that exception
+                  to propagate out from this algorithm.  Otherwise,
+                  return the result of <a class='dfnref' href='#dfn-convert-idl-to-ecmascript-value'>converting</a>
+                  Result(<?stepref a?>) to an ECMAScript <a href='#idl-interface'>object implementing interface</a>
+                  <var>I</var>.
+                </li>
+              </ol>
+              <p>
+                If the internal <span class='prop'>[[Construct]]</span> method
+                of the <a class='dfnref' href='#dfn-interface-object'>interface object</a>
+                returns normally, then it <span class='rfc2119'>MUST</span>
+                return an object that implements interface <var>I</var>.
+              </p>
+            </div>
 
             <div id='es-interface-hasinstance' class='section'>
               <h5>Interface object [[HasInstance]] method</h5>
@@ -4198,25 +4386,84 @@ c.isMemberOfBreed(undefined);  // This passes the string "" to the
             <h4>Named constructors</h4>
 
             <p>
-              An <a class='dfnref' href='#dfn-interface'>interface</a> will have a named constructor
-              for each unique <a class='terminal' href='#prod-identifier'>identifier</a> used in an
+              For every unique <a class='terminal' href='#prod-identifier'>identifier</a> used in a
               <a class='xattr' href='#NamedConstructor'>[NamedConstructor]</a> extended attribute
-              on that interface.  This named constructor <span class='rfc2119'>MUST</span> have
-              a <span class='prop'>[[Construct]]</span> internal property, which allows construction of
-              objects that implement the interface.  The behavior of this <span class='prop'>[[Construct]]</span>
-              method is not necessarily the same as that described for <span class='estype'>Function</span> objects in
-              section 13.2.2 of the <cite>ECMAScript Language Specification, 3rd Edition</cite>
-              <a href='#ref-ECMA-262'>[ECMA-262]</a>, but it <span class='rfc2119'>MUST</span>
-              return an object that implements the given interface if it returns normally
-              (that is, if it does not throw an exception).
+              on an <a class='dfnref' href='#dfn-interface'>interface</a>, a corresponding
+              property <span class='rfc2119'>MUST</span> exist on the ECMAScript global
+              object whose name is that unique identifier.  The value of this property
+              is an object called a <dfn id='dfn-named-constructor-object'>named constructor object</dfn>.
+              The property has the attributes <span class='esprop'>{ DontDelete, DontEnum }.</span>
             </p>
-            <!--p>
-              The <span class='prop'>[[Call]]</span> internal property <span class='rfc2119'>MUST</span>
-              have the same behavior as <span class='prop'>[[Construct]]</span>.
-            </p-->
-            <div class='ednote'>
-              <p>Specify named constructor overloading here.</p>
-            </div>
+            <p>
+              The <a class='dfnref' href='#dfn-named-constructor-object'>named constructor object</a>
+              <span class='rfc2119'>MUST</span> have a <span class='prop'>[[Construct]]</span>
+              internal property, which allows construction of objects that
+              implement the interface on which the <a class='xattr' href='#NamedConstructor'>[NamedConstructor]</a>
+              extended attributes appear.  It behaves as follows, assuming
+              <var>arg</var><sub>0‥<var>n</var>−1</sub> is the list
+              of argument values passed to the constructor, <var>id</var>
+              is the unique identifier, and <var>I</var>
+              is the <a class='dfnref' href='#dfn-interface'>interface</a>
+              on which the <a class='xattr' href='#NamedConstructor'>[NamedConstructor]</a> extended attributes
+              appear:
+            </p>
+            <ol class='algorithm'>
+              <li>
+                Initialize <var>S</var> to the
+                <a class='dfnref' href='#dfn-effective-overload-set'>effective overload set</a>
+                for constructors with <a class='dfnref' href='#dfn-identifier'>identifier</a>
+                <var>id</var> on <a class='dfnref' href='#dfn-interface'>interface</a>
+                <var>I</var>.
+              </li>
+              <li>
+                Set <var>S</var> to the result of passing <var>S</var> and
+                <var>arg</var><sub>0‥<var>n</var>−1</sub> to the
+                <a class='dfnref' href='#dfn-overload-resolution-algorithm'>overload resolution algorithm</a>.
+              </li>
+              <li>
+                If <var>S</var> is empty, throw a <span class='estype'>TypeError</span>.
+              </li>
+              <li>
+                If <var>S</var> contains more than one entry, then the
+                constructor call is ambiguous.  Remove all but one entry from
+                <var>S</var> according to rules specified in the description
+                of <a class='dfnref' href='#dfn-interface'>interface</a>
+                <var>I</var>, or arbitrarily if no such rules exist.
+              </li>
+              <li>
+                Let <var>x</var> be the <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
+                that represents the constructor and <var>t</var><sub>0‥<var>m</var>−1</sub> be the type
+                list of the single entry in <var>S</var>.
+              </li>
+              <li>
+                Let <var>idlarg</var><sub>0‥<var>m</var>−1</sub> be a list
+                of IDL values, where <var>idlarg</var><sub><var>i</var></sub>
+                is the result of
+                <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a>
+                <var>arg</var><sub><var>i</var></sub> to an IDL value.
+              </li>
+              <li x:step='a'>
+                Perform the actions listed in the description of
+                the constructor represented by <var>x</var>
+                with <var>idlarg</var><sub>0‥<var>m</var>−1</sub>
+                as the argument values.
+              </li>
+              <li>
+                If the actions performed in the previous step resulted
+                in an exception being thrown, then allow that exception
+                to propagate out from this algorithm.  Otherwise,
+                return the result of <a class='dfnref' href='#dfn-convert-idl-to-ecmascript-value'>converting</a>
+                Result(<?stepref a?>) to an ECMAScript
+                <a href='#idl-interface'>object implementing interface</a>
+                <var>I</var>.
+              </li>
+            </ol>
+            <p>
+              If the internal <span class='prop'>[[Construct]]</span> method
+              of the <a class='dfnref' href='#dfn-named-constructor-object'>named constructor object</a>
+              returns normally, then it <span class='rfc2119'>MUST</span>
+              return an object that implements interface <var>I</var>.
+            </p>
           </div>
 
           <div id='interface-prototype-object' class='section'>
@@ -4582,91 +4829,37 @@ interface D : C {
                 The value of the property is an object whose internal
                 <span class='prop'>[[Call]]</span> method
                 behaves as follows, assuming <var>id</var> is the
-                <a class='dfnref' href='#dfn-identifier'>identifier</a>
+                <a class='dfnref' href='#dfn-identifier'>identifier</a>,
+                <var>arg</var><sub>0‥<var>n</var>−1</sub> is the list
+                of argument values passed to <span class='prop'>[[Call]]</span>
                 and <var>I</var> is the <a class='dfnref' href='#dfn-interface'>interface</a>:
                 <ol class='algorithm'>
                   <li>
                     Initialize <var>S</var> to the
                     <a class='dfnref' href='#dfn-effective-overload-set'>effective overload set</a>
-                    for <a class='dfnref' href='#dfn-identifier'>identifier</a>
+                    for <a class='dfnref' href='#dfn-operation'>operations</a> with
+                    <a class='dfnref' href='#dfn-identifier'>identifier</a>
                     <var>id</var> on <a class='dfnref' href='#dfn-interface'>interface</a>
                     <var>I</var>.
                   </li>
                   <li>
-                    Remove from <var>S</var> all entries whose type list is
-                    longer than <var>n</var>.
+                    Set <var>S</var> to the result of passing <var>S</var> and
+                    <var>arg</var><sub>0‥<var>n</var>−1</sub> to the
+                    <a class='dfnref' href='#dfn-overload-resolution-algorithm'>overload resolution algorithm</a>.
                   </li>
                   <li>
-                    If <var>S</var> contains more than one entry:
-                    <ol>
-                      <li>
-                        Let <var>m</var> be the maximum length of the type lists of
-                        the entries in <var>S</var>.
-                      </li>
-                      <li>
-                        Initialize <var>i</var> to 0.
-                      </li>
-                      <li>
-                        While <var>i</var> &lt; <var>m</var>:
-                        <ol>
-                          <li>Initialize <var>b</var> to <span class='esvalue'>true</span>.</li>
-                          <li>
-                            For each pair of entries &lt;<var>entry1</var>, <var>entry2</var>>
-                            in <var>S</var>:
-                            <ol>
-                              <li>Let <var>t</var> be the type list of <var>entry1</var>.</li>
-                              <li>Let <var>u</var> be the type list of <var>entry2</var>.</li>
-                              <li>
-                                If <var>t</var><sub><var>i</var></sub> and
-                                <var>u</var><sub><var>i</var></sub> are not
-                                <a class='dfnref' href='#dfn-distinguishable'>distinguishable</a>,
-                                set <var>b</var> to <span class='esvalue'>false</span>.
-                              </li>
-                            </ol>
-                          </li>
-                          <li>
-                            If <var>b</var> is <span class='esvalue'>true</span>:
-                            <ol>
-                              <li>
-                                If <var>arg</var><sub><var>i</var></sub> is an
-                                <span class='estype'>Undefined</span>,
-                                <span class='estype'>Boolean</span>,
-                                <span class='estype'>String</span> or
-                                <span class='estype'>Number</span> value,
-                                then remove from <var>S</var> all entries with type
-                                list <var>t</var> where <var>t</var><sub><var>i</var></sub>
-                                is not a <a class='dfnref' href='#dfn-primitive-type'>primitive type</a>.
-                              </li>
-                              <li>
-                                If <var>arg</var><sub><var>i</var></sub> is
-                                <span class='esvalue'>null</span> or an
-                                object (whether a host object or a native object), then remove from
-                                <var>S</var> all entries with type list <var>t</var> where
-                                <var>t</var><sub><var>i</var></sub> is not
-                                <a href='#idl-interface'>an object implementing an interface</a>.
-                              </li>
-                            </ol>
-                          </li>
-                          <li>Set <var>i</var> to <var>i</var> + 1.</li>
-                        </ol>
-                      </li>
-                      <li>
-                        If <var>S</var> is empty, throw a
-                        <span class='estype'>TypeError</span>.
-                      </li>
-                      <li>
-                        If <var>S</var> contains more than one entry, then the
-                        function call is ambiguous.  Remove all but one entry from
-                        <var>S</var> according to rules specified in the description
-                        of <a class='dfnref' href='#dfn-interface'>interface</a>
-                        <var>I</var>, or arbitrarily if no such rules exist.
-                      </li>
-                    </ol>
+                    If <var>S</var> is empty, throw a <span class='estype'>TypeError</span>.
                   </li>
                   <li>
-                    Let <var>O</var> be the <a class='dfnref' href='#dfn-operation'>operation</a>
-                    and <var>t</var> be the type list of the single entry in
-                    <var>S</var>.
+                    If <var>S</var> contains more than one entry, then the
+                    operation call is ambiguous.  Remove all but one entry from
+                    <var>S</var> according to rules specified in the description
+                    of <a class='dfnref' href='#dfn-interface'>interface</a>
+                    <var>I</var>, or arbitrarily if no such rules exist.
+                  </li>
+                  <li>
+                    Let <var>op</var> be the operation <var>t</var><sub>0‥<var>m</var>−1</sub>
+                    be the type list of the single entry in <var>S</var>.
                   </li>
                   <li>
                     Let <var>idlarg</var><sub>0‥<var>m</var>−1</sub> be a list
@@ -4674,9 +4867,19 @@ interface D : C {
                     is the result of
                     <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a>
                     <var>arg</var><sub><var>i</var></sub> to an IDL value.
+                  </li>
+                  <li x:step='a'>
                     Perform the actions listed in the description of
-                    <var>O</var> with <var>idlarg</var><sub>0‥<var>m</var>−1</sub>
+                    operation <var>op</var> with <var>idlarg</var><sub>0‥<var>m</var>−1</sub>
                     as the argument values.
+                  </li>
+                  <li>
+                    If the actions performed in the previous step resulted
+                    in an exception being thrown, then allow that exception
+                    to propagate out from this algorithm.  Otherwise,
+                    return the result of <a class='dfnref' href='#dfn-convert-idl-to-ecmascript-value'>converting</a>
+                    Result(<?stepref a?>) to an ECMAScript value of
+                    the type <var>op</var> is declared to return.
                   </li>
                 </ol>
               </li>
@@ -7065,7 +7268,7 @@ module foo {
                 <p>
                   Reworked operation overloading in IDL so that it is
                   much more restrictive.  Updated the overloaded
-                  operation resolution in ECMAScript accordingly.
+                  operation and constructor resolution in ECMAScript accordingly.
                 </p>
               </li>
               <li>
