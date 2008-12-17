@@ -15,7 +15,7 @@
   <head>
     <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'/>
     <title>Web IDL</title>
-    <meta name='revision' content='$Id: Overview.xml,v 1.147 2008-12-16 22:33:33 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: Overview.xml,v 1.148 2008-12-17 11:14:59 cmccorma Exp $'/>
     <link rel='stylesheet' href='WebIDL.css' type='text/css'/>
     <script src='section-links.js' type='application/ecmascript'/>
     <script src='dfn.js' type='application/ecmascript'/>
@@ -27,7 +27,6 @@
       }
     </style>
     <![endif]-->
-    
 
     <options xmlns='http://mcc.id.au/ns/local'>
       <versions>
@@ -1093,9 +1092,11 @@ interface Person {
             <p>
               An <dfn id='dfn-effective-overload-set'>effective overload set</dfn>
               for a given 
-              <a class='dfnref' href='#dfn-identifier'>identifier</a>
-              and <a class='dfnref' href='#dfn-interface'>interface</a> represents
-              the allowable invocations of operations or constructors
+              <a class='dfnref' href='#dfn-identifier'>identifier</a>,
+              <a class='dfnref' href='#dfn-interface'>interface</a> and
+              target language binding represents
+              the allowable invocations in that language binding
+              of operations or constructors
               (specified with <a class='xattr' href='#Constructor'>[Constructor]</a>
               and <a class='xattr' href='#NamedConstructor'>[NamedConstructor]</a>)
               that have the specified identifier on that interface.  The
@@ -1122,8 +1123,9 @@ interface Person {
               the same operation or constructor.
             </p>
             <p>
-              The effective overload set for identifier <var>A</var> and
-              interface <var>X</var> is derived as follows.  Whenever
+              The effective overload set for identifier <var>A</var>,
+              interface <var>I</var> and a given target language binding
+              is derived as follows.  Whenever
               an argument of an extended attribute is mentioned, it is
               referring to an argument of the extended attribute’s
               <a class='dfnref' href='#dfn-xattr-named-argument-list'>named argument list</a>.
@@ -1141,7 +1143,7 @@ interface Person {
                   <dd>
                     The elements of <var>F</var> are the
                     <a class='nt' href='#NamedConstructor'>[NamedConstructor]</a>
-                    extended attributes on interface <var>I</var> whose
+                    <a class='dfnref' href='#dfn-extended-attribute'>extended attributes</a> on interface <var>I</var> whose
                     <a class='dfnref' href='#dfn-xattr-named-argument-list'>named argument lists’</a>
                     identifiers are <var>A</var>.  If <var>A</var> is the same as the identifier of
                     interface <var>I</var>, then <var>F</var> also includes the
@@ -1150,13 +1152,28 @@ interface Person {
                   </dd>
                 </dl>
               </li>
+              <li>If the interface <var>I</var> is annotated with the
+                <a class='xattr' href='#OmitIndexingOperations'>[OmitIndexingOperations]</a>
+                extended attribute, then remove from <var>F</var> any function
+                annotated with an
+                <a class='xattr' href='#IndexCreator'>[IndexCreator]</a>,
+                <a class='xattr' href='#IndexDeleter'>[IndexDeleter]</a>,
+                <a class='xattr' href='#IndexGetter'>[IndexGetter]</a>,
+                <a class='xattr' href='#IndexSetter'>[IndexSetter]</a>,
+                <a class='xattr' href='#NameCreator'>[NameCreator]</a>,
+                <a class='xattr' href='#NameDeleter'>[NameDeleter]</a>,
+                <a class='xattr' href='#NameGetter'>[NameGetter]</a> or
+                <a class='xattr' href='#NameSetter'>[NameSetter]</a>
+                extended attribute, if the target language binding
+                supports indexing objects in the manner represented by
+                that extended attribute.</li>
               <li>Let <var>m</var> be the maximum number of arguments the operations or constructor extended attributes in <var>F</var> are declared to take.</li>
               <li>For each operation or extended attribute <var>X</var> in <var>F</var>:
                 <ol class='algorithm'>
                   <li>Let <var>n</var> be the number of arguments <var>X</var> is declared to take.</li>
                   <li>Let <var>t</var><sub>0..<var>n</var>−1</sub> be the types of the arguments <var>X</var> is defined to take.</li>
                   <li>Add to <var>S</var> the pair &lt;<var>X</var>, <var>t</var><sub>0..<var>n</var>−1</sub>>.</li>
-                  <li>If <var>n</var> > 0 and the final argument of <var>X</var> is annotated with the <a class='xattr' href='#Variadic'>[Variadic]</a> <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>, then:
+                  <li>If <var>n</var> > 0 and the final argument of <var>X</var> is annotated with the <a class='xattr' href='#Variadic'>[Variadic]</a> extended attribute, then:
                     <ol class='algorithm'>
                       <li>Add to <var>S</var> the pair &lt;<var>X</var>, <var>t</var><sub>0..<var>n</var>−2</sub>>.</li>
                       <li>For every integer <var>i</var>, such that <var>n</var> ≤ <var>i</var> ≤ <var>m</var>−1:
@@ -1246,7 +1263,7 @@ interface C {
 };</x:codeblock>
               <p>
                 the <a class='dfnref' href='#dfn-effective-overload-set'>effective overload set</a>
-                for identifier <code>f</code> is:
+                for identifier <code>f</code> (for the ECMAScript language binding) is:
               </p>
               <div class='set'>
                 { &lt;f1, (DOMString)>,<br/>
@@ -2102,6 +2119,76 @@ typeof n.addEventListener;  // Evaluates to "function".</x:codeblock>
               </p>
               <x:codeblock language='java'>Node n = getNode();               // Obtain an instance of Node.
 EventTarget et = (EventTarget) n; // This should never throw ClassCastException.</x:codeblock>
+            </div>
+          </div>
+
+          <div id='OmitIndexingOperations' class='section'>
+            <h4>[OmitIndexingOperations]</h4>
+
+            <p>
+              If the <a class='xattr' href='#OmitIndexers'>[OmitIndexingOperations]</a>
+              <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
+              appears on an <a class='dfnref' href='#dfn-interface'>interface</a>, it
+              indicates that any <a class='dfnref' href='#dfn-operation'>operation</a>
+              on the interface that is annotated with an
+              indexing extended attribute (that is,
+              <a class='xattr' href='#IndexCreator'>[IndexCreator]</a>,
+              <a class='xattr' href='#IndexDeleter'>[IndexDeleter]</a>,
+              <a class='xattr' href='#IndexGetter'>[IndexGetter]</a>,
+              <a class='xattr' href='#IndexSetter'>[IndexSetter]</a>,
+              <a class='xattr' href='#NameCreator'>[NameCreator]</a>,
+              <a class='xattr' href='#NameDeleter'>[NameDeleter]</a>,
+              <a class='xattr' href='#NameGetter'>[NameGetter]</a> or
+              <a class='xattr' href='#NameSetter'>[NameSetter]</a>)
+              will not correspond to a function on objects that
+              implement the interface, if the given kind of indexing is
+              supported in the language binding.
+            </p>
+            <p>
+              The <a class='xattr' href='#OmitIndexingOperations'>[OmitIndexingOperations]</a>
+              extended attribute <span class='rfc2119'>MUST</span>
+              <a class='dfnref' href='#dfn-xattr-no-argument'>take no argument</a>.
+            </p>
+            <div class='example'>
+              <p>
+                The following <a class='dfnref' href='#dfn-idl-fragment'>IDL fragment</a>
+                defines an <a class='dfnref' href='#dfn-interface'>interface</a>
+                that uses the <a class='xattr' href='#OmitIndexingOperations'>[OmitIndexingOperations]</a>
+                <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>.
+              </p>
+              <x:codeblock language='idl'>[OmitIndexingOperations]
+interface Dictionary {
+  unsigned long getNumberOfEntries();
+  [NameGetter] DOMString lookUpEntry(in DOMString key);
+  [NameSetter] void setEntry(in DOMString key, in DOMString value);
+};</x:codeblock>
+              <p>
+                Since the ECMAScript language binding does support
+                indexing of objects with strings, the
+                <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype object</a>
+                for the <span class='idltype'>Dictionary</span> interface would
+                not have properties named <span class='prop'>lookUpEntry</span>
+                or <span class='prop'>setEntry</span>.  It would, however,
+                still have a property named <span class='prop'>getNumberOfEntries</span>.
+              </p>
+              <x:codeblock language='es'>var d = getDictionary();  // Obtain an instance of Dictionary.
+
+d.getNumberOfEntries();  // Evaluates to an unsigned long value.
+
+d.abc;                   // Evaluates to a DOMString, assuming d has a named
+                         // property called "abc".
+
+d.lookUpEntry("abc");    // Throws a TypeError.</x:codeblock>
+              <p>
+                The equivalent Java interface would have three methods
+                corresponding to the three operations, since Java does not
+                support object indexing.
+              </p>
+              <x:codeblock language='java'>interface Dictionary {
+  long getNumberOfEntries();
+  String lookUpString(String key);
+  void setEntry(String key, String value);
+}</x:codeblock>
             </div>
           </div>
 
@@ -4314,7 +4401,7 @@ c.isMemberOfBreed(undefined);  // This passes the string "" to the
                   <a class='dfnref' href='#dfn-effective-overload-set'>effective overload set</a>
                   for constructors with <a class='dfnref' href='#dfn-identifier'>identifier</a>
                   <var>id</var> on <a class='dfnref' href='#dfn-interface'>interface</a>
-                  <var>I</var>.
+                  <var>I</var> (for the ECMAScript language binding).
                 </li>
                 <li>
                   Set <var>S</var> to the result of passing <var>S</var> and
@@ -4433,7 +4520,7 @@ c.isMemberOfBreed(undefined);  // This passes the string "" to the
                 <a class='dfnref' href='#dfn-effective-overload-set'>effective overload set</a>
                 for constructors with <a class='dfnref' href='#dfn-identifier'>identifier</a>
                 <var>id</var> on <a class='dfnref' href='#dfn-interface'>interface</a>
-                <var>I</var>.
+                <var>I</var> (for the ECMAScript language binding).
               </li>
               <li>
                 Set <var>S</var> to the result of passing <var>S</var> and
@@ -4631,7 +4718,10 @@ c.isMemberOfBreed(undefined);  // This passes the string "" to the
               of an <a class='dfnref' href='#dfn-operation'>operation</a>
               defined on the <a class='dfnref' href='#dfn-interface'>interface</a>, there
               <span class='rfc2119'>MUST</span> be a corresponding property on
-              the <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype object</a>:
+              the <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype object</a>,
+              unless the <a class='dfnref' href='#dfn-effective-overload-set'>effective overload set</a>
+              for that identifier and operation (for the ECMAScript language binding) has no
+              entries.  The characteristics of such a corresponding property are as follows:
             </p>
             <ul>
               <li>The name of the property is the <a class='dfnref' href='#dfn-identifier'>identifier</a>.</li>
@@ -4651,7 +4741,7 @@ c.isMemberOfBreed(undefined);  // This passes the string "" to the
                     for <a class='dfnref' href='#dfn-operation'>operations</a> with
                     <a class='dfnref' href='#dfn-identifier'>identifier</a>
                     <var>id</var> on <a class='dfnref' href='#dfn-interface'>interface</a>
-                    <var>I</var>.
+                    <var>I</var> (for the ECMAScript language binding).
                   </li>
                   <li>
                     Set <var>S</var> to the result of passing <var>S</var> and
@@ -6480,7 +6570,7 @@ module foo {
               <li>
                 For each entry &lt;<var>op</var>, <var>types</var>> in the
                 <a class='dfnref' href='#dfn-effective-overload-set'>effective overload set</a>
-                for <var>id</var> on <var>I</var>, there <span class='rfc2119'>MUST</span>
+                for <var>id</var> on <var>I</var> (for the Java language binding), there <span class='rfc2119'>MUST</span>
                 exist a method on the Java interface with the following
                 characteristics:
                 <ul>
@@ -7264,6 +7354,15 @@ module foo {
           <!--dt>Current editor’s draft</dt-->
           <dd>
             <ul>
+              <li>
+                <p>
+                  Added a <span class='xattr'>[OmitIndexingOperations]</span>
+                  extended attribute to indicate that operations annotated
+                  with named property or indexed property extended attributes
+                  won’t result in functions, if the language binding supports
+                  object indexing.
+                </p>
+              </li>
               <li>
                 <p>
                   Changed the way extended attributes are parsed in the grammar
