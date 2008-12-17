@@ -15,7 +15,7 @@
   <head>
     <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'/>
     <title>Web IDL</title>
-    <meta name='revision' content='$Id: Overview.xml,v 1.148 2008-12-17 11:14:59 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: Overview.xml,v 1.149 2008-12-17 11:18:42 cmccorma Exp $'/>
     <link rel='stylesheet' href='WebIDL.css' type='text/css'/>
     <script src='section-links.js' type='application/ecmascript'/>
     <script src='dfn.js' type='application/ecmascript'/>
@@ -692,6 +692,7 @@ interface Dog : Animal {
             <a class='xattr' href='#NameDeleter'>[NameDeleter]</a>,
             <a class='xattr' href='#NameGetter'>[NameGetter]</a>,
             <a class='xattr' href='#NameSetter'>[NameSetter]</a>,
+            <a class='xattr' href='#NoIndexingOperations'>[NoIndexingOperations]</a>,
             <a class='xattr' href='#NoInterfaceObject'>[NoInterfaceObject]</a>,
             <a class='xattr' href='#PrototypeRoot'>[PrototypeRoot]</a>,
             <a class='xattr' href='#Stringifies'>[Stringifies]</a>.
@@ -1153,7 +1154,7 @@ interface Person {
                 </dl>
               </li>
               <li>If the interface <var>I</var> is annotated with the
-                <a class='xattr' href='#OmitIndexingOperations'>[OmitIndexingOperations]</a>
+                <a class='xattr' href='#NoIndexingOperations'>[NoIndexingOperations]</a>
                 extended attribute, then remove from <var>F</var> any function
                 annotated with an
                 <a class='xattr' href='#IndexCreator'>[IndexCreator]</a>,
@@ -2122,76 +2123,6 @@ EventTarget et = (EventTarget) n; // This should never throw ClassCastException.
             </div>
           </div>
 
-          <div id='OmitIndexingOperations' class='section'>
-            <h4>[OmitIndexingOperations]</h4>
-
-            <p>
-              If the <a class='xattr' href='#OmitIndexers'>[OmitIndexingOperations]</a>
-              <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
-              appears on an <a class='dfnref' href='#dfn-interface'>interface</a>, it
-              indicates that any <a class='dfnref' href='#dfn-operation'>operation</a>
-              on the interface that is annotated with an
-              indexing extended attribute (that is,
-              <a class='xattr' href='#IndexCreator'>[IndexCreator]</a>,
-              <a class='xattr' href='#IndexDeleter'>[IndexDeleter]</a>,
-              <a class='xattr' href='#IndexGetter'>[IndexGetter]</a>,
-              <a class='xattr' href='#IndexSetter'>[IndexSetter]</a>,
-              <a class='xattr' href='#NameCreator'>[NameCreator]</a>,
-              <a class='xattr' href='#NameDeleter'>[NameDeleter]</a>,
-              <a class='xattr' href='#NameGetter'>[NameGetter]</a> or
-              <a class='xattr' href='#NameSetter'>[NameSetter]</a>)
-              will not correspond to a function on objects that
-              implement the interface, if the given kind of indexing is
-              supported in the language binding.
-            </p>
-            <p>
-              The <a class='xattr' href='#OmitIndexingOperations'>[OmitIndexingOperations]</a>
-              extended attribute <span class='rfc2119'>MUST</span>
-              <a class='dfnref' href='#dfn-xattr-no-argument'>take no argument</a>.
-            </p>
-            <div class='example'>
-              <p>
-                The following <a class='dfnref' href='#dfn-idl-fragment'>IDL fragment</a>
-                defines an <a class='dfnref' href='#dfn-interface'>interface</a>
-                that uses the <a class='xattr' href='#OmitIndexingOperations'>[OmitIndexingOperations]</a>
-                <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>.
-              </p>
-              <x:codeblock language='idl'>[OmitIndexingOperations]
-interface Dictionary {
-  unsigned long getNumberOfEntries();
-  [NameGetter] DOMString lookUpEntry(in DOMString key);
-  [NameSetter] void setEntry(in DOMString key, in DOMString value);
-};</x:codeblock>
-              <p>
-                Since the ECMAScript language binding does support
-                indexing of objects with strings, the
-                <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype object</a>
-                for the <span class='idltype'>Dictionary</span> interface would
-                not have properties named <span class='prop'>lookUpEntry</span>
-                or <span class='prop'>setEntry</span>.  It would, however,
-                still have a property named <span class='prop'>getNumberOfEntries</span>.
-              </p>
-              <x:codeblock language='es'>var d = getDictionary();  // Obtain an instance of Dictionary.
-
-d.getNumberOfEntries();  // Evaluates to an unsigned long value.
-
-d.abc;                   // Evaluates to a DOMString, assuming d has a named
-                         // property called "abc".
-
-d.lookUpEntry("abc");    // Throws a TypeError.</x:codeblock>
-              <p>
-                The equivalent Java interface would have three methods
-                corresponding to the three operations, since Java does not
-                support object indexing.
-              </p>
-              <x:codeblock language='java'>interface Dictionary {
-  long getNumberOfEntries();
-  String lookUpString(String key);
-  void setEntry(String key, String value);
-}</x:codeblock>
-            </div>
-          </div>
-
           <div id='indexed-property-xattrs' class='section'>
             <h4><span id='IndexCreator'>[IndexCreator]</span>, <span id='IndexDeleter'>[IndexDeleter]</span>, <span id='IndexGetter'>[IndexGetter]</span> and <span id='IndexSetter'>[IndexSetter]</span></h4>
 
@@ -2515,6 +2446,76 @@ delete map.cake;  // If a named property named "cake" exists, then the "cake"
                 example of the use of the named property
                 <a class='dfnref' href='#dfn-extended-attribute'>extended attributes</a>.
               </p>
+            </div>
+          </div>
+
+          <div id='NoIndexingOperations' class='section'>
+            <h4>[NoIndexingOperations]</h4>
+
+            <p>
+              If the <a class='xattr' href='#OmitIndexers'>[NoIndexingOperations]</a>
+              <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
+              appears on an <a class='dfnref' href='#dfn-interface'>interface</a>, it
+              indicates that any <a class='dfnref' href='#dfn-operation'>operation</a>
+              on the interface that is annotated with an
+              indexing extended attribute (that is,
+              <a class='xattr' href='#IndexCreator'>[IndexCreator]</a>,
+              <a class='xattr' href='#IndexDeleter'>[IndexDeleter]</a>,
+              <a class='xattr' href='#IndexGetter'>[IndexGetter]</a>,
+              <a class='xattr' href='#IndexSetter'>[IndexSetter]</a>,
+              <a class='xattr' href='#NameCreator'>[NameCreator]</a>,
+              <a class='xattr' href='#NameDeleter'>[NameDeleter]</a>,
+              <a class='xattr' href='#NameGetter'>[NameGetter]</a> or
+              <a class='xattr' href='#NameSetter'>[NameSetter]</a>)
+              will not correspond to a function on objects that
+              implement the interface, if the given kind of indexing is
+              supported in the language binding.
+            </p>
+            <p>
+              The <a class='xattr' href='#NoIndexingOperations'>[NoIndexingOperations]</a>
+              extended attribute <span class='rfc2119'>MUST</span>
+              <a class='dfnref' href='#dfn-xattr-no-argument'>take no argument</a>.
+            </p>
+            <div class='example'>
+              <p>
+                The following <a class='dfnref' href='#dfn-idl-fragment'>IDL fragment</a>
+                defines an <a class='dfnref' href='#dfn-interface'>interface</a>
+                that uses the <a class='xattr' href='#NoIndexingOperations'>[NoIndexingOperations]</a>
+                <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>.
+              </p>
+              <x:codeblock language='idl'>[NoIndexingOperations]
+interface Dictionary {
+  unsigned long getNumberOfEntries();
+  [NameGetter] DOMString lookUpEntry(in DOMString key);
+  [NameSetter] void setEntry(in DOMString key, in DOMString value);
+};</x:codeblock>
+              <p>
+                Since the ECMAScript language binding does support
+                indexing of objects with strings for getting and setting, the
+                <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype object</a>
+                for the <span class='idltype'>Dictionary</span> interface would
+                not have properties named <span class='prop'>lookUpEntry</span>
+                or <span class='prop'>setEntry</span>.  It would, however,
+                still have a property named <span class='prop'>getNumberOfEntries</span>.
+              </p>
+              <x:codeblock language='es'>var d = getDictionary();  // Obtain an instance of Dictionary.
+
+d.getNumberOfEntries();   // Evaluates to an unsigned long value.
+
+d.abc;                    // Evaluates to a DOMString, assuming d has a named
+                          // property called "abc".
+
+d.lookUpEntry("abc");     // Throws a TypeError.</x:codeblock>
+              <p>
+                The equivalent Java interface would have three methods
+                corresponding to the three operations, since Java does not
+                support object indexing.
+              </p>
+              <x:codeblock language='java'>interface Dictionary {
+  long getNumberOfEntries();
+  String lookUpString(String key);
+  void setEntry(String key, String value);
+}</x:codeblock>
             </div>
           </div>
 
@@ -7356,7 +7357,7 @@ module foo {
             <ul>
               <li>
                 <p>
-                  Added a <span class='xattr'>[OmitIndexingOperations]</span>
+                  Added a <span class='xattr'>[NoIndexingOperations]</span>
                   extended attribute to indicate that operations annotated
                   with named property or indexed property extended attributes
                   won’t result in functions, if the language binding supports
