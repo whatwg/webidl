@@ -101,7 +101,7 @@
           <xsl:otherwise>Editor’s Draft</xsl:otherwise>
         </xsl:choose>
         <xsl:text> </xsl:text>
-        <xsl:call-template name='date'/>
+        <em><xsl:call-template name='date'/></em>
       </h2>
 
       <dl>
