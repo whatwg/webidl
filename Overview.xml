@@ -15,7 +15,7 @@
   <head>
     <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'/>
     <title>Web IDL</title>
-    <meta name='revision' content='$Id: Overview.xml,v 1.163 2009-06-14 17:07:10 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: Overview.xml,v 1.164 2009-06-14 23:07:50 cmccorma Exp $'/>
     <link rel='stylesheet' href='WebIDL.css' type='text/css'/>
     <script src='section-links.js' type='application/ecmascript'/>
     <script src='dfn.js' type='application/ecmascript'/>
@@ -1760,6 +1760,53 @@ interface Person {
               <a class='idltype' href='#idl-DOMString'>DOMString</a> constant
               value in IDL.
             </p>
+            <p>
+              Nothing in this specification requires a <span class='idltype'>DOMString</span>
+              value to be a proper UTF-16 string.  For example, a <span class='idltype'>DOMString</span>
+              value might include unmatched surrogate pair characters.  Authors
+              of specifications using Web IDL might want to obtain a sequence of
+              Unicode characters given a particular sequence of 16 bit unsigned
+              integer code units, however.  The following algorithm defines how to
+              <dfn id='dfn-obtain-unicode'>convert a <span class='idltype'>DOMString</span>
+                to a sequence of Unicode characters</dfn>:
+            </p>
+            <ol class='algorithm'>
+              <li>Let <var>S</var> be the <span class='idltype'>DOMString</span> value.</li>
+              <li>If <var>S</var> is <span class='idlvalue'>null</span>, then it cannot
+                be converted to a sequence of Unicode characters; abort these steps.</li>
+              <li>Let <var>n</var> be the length of <var>S</var>.</li>
+              <li>Initialize <var>i</var> to 0.</li>
+              <li>Initialize <var>U</var> to be an empty sequence of Unicode characters.</li>
+              <li>While <var>i</var> &lt; <var>n</var>:
+                <ol>
+                  <li>Let <var>c</var> be the code unit in <var>S</var> at index <var>i</var>.</li>
+                  <li>Depending on the value of <var>c</var>:
+                    <dl class='switch'>
+                      <dt><var>c</var> &lt; 0xD800 or <var>c</var> &gt; 0xDFFF</dt>
+                      <dd>Append to <var>U</var> the Unicode character with code
+                        point <var>c</var>.</dd>
+                      <dt>0xD800 ≤ <var>c</var> ≤ 0xDBFF</dt>
+                      <dd>Append to <var>U</var> a U+FFFD REPLACEMENT CHARACTER.</dd>
+                      <dt>0xDC00 ≤ <var>c</var> ≤ 0xDFFF</dt>
+                      <dd>If <var>i</var> = <var>n</var>−1, then append to <var>U</var> a
+                        U+FFFD REPLACEMENT CHARACTER.  Otherwise:
+                        <ol>
+                          <li>Let <var>d</var> be the code unit in <var>S</var> at index
+                            <var>i</var>+1.</li>
+                          <li>Let <var>a</var> be <var>c</var> &amp; 0x3FF.</li>
+                          <li>Let <var>b</var> be <var>d</var> &amp; 0x3FF.</li>
+                          <li>Append to <var>U</var> the Unicode character with
+                            code point 2<sup>16</sup>+2<sup>10</sup><var>a</var>+<var>b</var>.</li>
+                          <li>Set <var>i</var> to <var>i</var>+1.</li>
+                        </ol>
+                      </dd>
+                    </dl>
+                  </li>
+                  <li>Set <var>i</var> to <var>i</var>+1.</li>
+                </ol>
+              </li>
+              <li>Return <var>U</var>.</li>
+            </ol>
           </div>
 
           <div id='idl-sequence' class='section'>
@@ -3611,9 +3658,6 @@ any executeSql(Array a, Callback f);</x:codeblock>
           <div id='es-DOMString' class='section'>
             <h4>DOMString</h4>
 
-            <div class='ednote'>
-              <p>Should we make requirements on what happens when non-UTF-16 strings get
-                passed to host objects? (<a href="http://krijnhoetmer.nl/irc-logs/whatwg/20090530#l-236">Brief discussion.</a>)</p></div>
             <p>
               IDL <a class='idltype' href='#idl-DOMString'>DOMString</a> values
               are represented by ECMAScript <span class='estype'>String</span> values
@@ -5741,6 +5785,70 @@ c.isMemberOfBreed(undefined);  // This passes the string "" to the
             of the <a class='dfnref' href='#dfn-exception'>exception</a>.
           </p>
         </div>
+
+        <div id='es-handling-exceptions' class='section'>
+          <h3>Handling exceptions</h3>
+
+          <p>
+            None of the algorithms or processing requirements in the
+            ECMAScript language binding catch ECMAScript exceptions.  Whenever
+            an ECMAScript <span class='esvalue'>Function</span> is invoked due
+            to requirements in this section and that <span class='esvalue'>Function</span>
+            ends due to an exception being thrown, that exception
+            <span class='rfc2119'>MUST</span> propagate to the caller, and if
+            not caught there, to its caller, and so on.
+          </p>
+          <div class='example'>
+            <p>
+              The following <a class='dfnref' href='#dfn-idl-fragment'>IDL fragment</a>
+              defines two <a class='dfnref' href='#dfn-interface'>interfaces</a>
+              and an <a class='dfnref' href='#dfn-exception'>exception</a>.
+              The <code>valueOf</code> attribute on <span class='idltype'>ExceptionThrower</span>
+              is defined to throw an exception whenever an attempt is made
+              to get its value.
+            </p>
+            <x:codeblock language='idl'>interface Dahut {
+  attribute DOMString type;
+};
+
+exception SomeException {
+};
+
+interface ExceptionThrower {
+  // This attribute always throws a SomeException and never returns a value.
+  attribute long valueOf getraises(SomeException);
+};</x:codeblock>
+            <p>
+              Assuming an ECMAScript implementation supporting this interface,
+              the following code demonstrates how exceptions are handled:
+            </p>
+            <x:codeblock language='es'>var d = getDahut();              // Obtain an instance of Dahut.
+var et = getExceptionThrower();  // Obtain an instance of ExceptionThrower.
+
+try {
+  d.type = { toString: function() { throw "abc" } };
+} catch (e) {
+  // The string "abc" is caught here, since as part of the conversion
+  // from the native object to a DOMString, the anonymous function
+  // was invoked, and none of the [[DefaultValue]], ToPrimitive or
+  // ToString algorithms are defined to catch the exception.
+}
+
+try {
+  d.type = { toString: { } };
+} catch (e) {
+  // An exception is caught here, since an attempt is made to invoke
+  // [[Call]] on the native object that is the value of toString
+  // property.
+}
+
+d.type = et;
+// An uncaught SomeException exception is thrown here, since the
+// [[DefaultValue]] algorithm attempts to get the value of the
+// "valueOf" property on the ExceptionThrower object.  The exception
+// propagates out of this block of code.</x:codeblock>
+          </div>
+        </div>
       </div>
 
       <div id='java-binding' class='section'>
@@ -7232,6 +7340,7 @@ module foo {
           Kartikaya Gupta,
           Magnus Kristiansen,
           Lachlan Hunt,
+          Oliver Hunt,
           Anne van Kesteren,
           Jim Ley,
           岡坂 史紀 (Shiki Okasaka),
@@ -7240,6 +7349,7 @@ module foo {
           Jonas Sicking,
           Garrett Smith,
           Maciej Stachowiak,
+          Jeff Walden,
           Collin Xu,
           Boris Zbarsky.
         </p>
@@ -7563,6 +7673,19 @@ module foo {
           <dt>Current editor’s draft</dt>
           <dd>
             <ul>
+              <li>
+                <p>
+                  Defined exception handling for algorithms that call in
+                  to user ECMAScript code.
+                </p>
+              </li>
+              <li>
+                <p>
+                  Added an algorithm for converting a sequence of 16 bit
+                  unsigned integer code units into a sequence of Unicode
+                  characters.
+                </p>
+              </li>
               <li>
                 <p>
                   Added a <span class='idltype'>double</span> type for double
