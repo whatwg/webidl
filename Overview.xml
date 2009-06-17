@@ -15,7 +15,7 @@
   <head>
     <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'/>
     <title>Web IDL</title>
-    <meta name='revision' content='$Id: Overview.xml,v 1.164 2009-06-14 23:07:50 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: Overview.xml,v 1.165 2009-06-17 06:21:48 cmccorma Exp $'/>
     <link rel='stylesheet' href='WebIDL.css' type='text/css'/>
     <script src='section-links.js' type='application/ecmascript'/>
     <script src='dfn.js' type='application/ecmascript'/>
@@ -79,7 +79,7 @@
       <p>
         Previous working drafts of this document were called <cite>Language
           Bindings for DOM Specifications</cite>.  Also note that this document
-        unrelated to
+        is unrelated to
         <cite><a href='http://www.w3.org/TR/NOTE-widl-970922'>Web Interface
             Definition Language</a></cite>, a W3C Member submission from
         some time ago <a href='#ref-WIDLNOTE'>[WIDLNOTE]</a>.
@@ -1113,6 +1113,7 @@ interface Person {
               An <dfn id='dfn-effective-overload-set'>effective overload set</dfn>
               for a given 
               <a class='dfnref' href='#dfn-identifier'>identifier</a>,
+              argument count,
               <a class='dfnref' href='#dfn-interface'>interface</a> and
               target language binding represents
               the allowable invocations in that language binding
@@ -1127,14 +1128,17 @@ interface Person {
               these two uses.
             </p>
             <p>
-              The elements of an effective overload set are pairs of the form
-              &lt;<var>f</var>, <var>types</var>>.  If the effective overload
+              The elements of an effective overload set are triples of the form
+              &lt;<var>f</var>, <var>types</var>, <var>any</var>>.  If the effective overload
               set is for operations, then <var>f</var> is an operation,
               and if it is for constructors, then <var>f</var> is an
               extended attribute.  In either case, <var>types</var> is a list
-              of IDL types.
-              Each pair represents an allowable invocation of the operation
+              of IDL types and <var>any</var> is a list of boolean values.
+              Each triple represents an allowable invocation of the operation
               or constructor with an argument value list of the given types.
+              <var>any</var> specifies whether a particular argument has been
+              annotated with the <a class='xattr' href='#AllowAny'>[AllowAny]</a>
+              <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>.
               Due to the use of optional arguments and variadic operations 
               and constructors (see the definitions of
               <a class='xattr' href='#Optional'>[Optional]</a> and
@@ -1144,6 +1148,7 @@ interface Person {
             </p>
             <p>
               The effective overload set for identifier <var>A</var>,
+              argument count <var>N</var>,
               interface <var>I</var> and a given target language binding
               is derived as follows.  Whenever
               an argument of an extended attribute is mentioned, it is
@@ -1187,29 +1192,32 @@ interface Person {
                 extended attribute, if the target language binding
                 supports indexing objects in the manner represented by
                 that extended attribute.</li>
-              <li>Let <var>m</var> be the maximum number of arguments the operations or constructor extended attributes in <var>F</var> are declared to take.</li>
+              <li>Let <var>maxarg</var> be the maximum number of arguments the operations or constructor extended attributes in <var>F</var> are declared to take.</li>
+              <li>Let <var>m</var> be the maximum of <var>maxarg</var> and <var>N</var>.</li>
               <li>For each operation or extended attribute <var>X</var> in <var>F</var>:
                 <ol class='algorithm'>
                   <li>Let <var>n</var> be the number of arguments <var>X</var> is declared to take.</li>
                   <li>Let <var>t</var><sub>0..<var>n</var>−1</sub> be the types of the arguments <var>X</var> is defined to take.</li>
-                  <li>Add to <var>S</var> the pair &lt;<var>X</var>, <var>t</var><sub>0..<var>n</var>−1</sub>>.</li>
+                  <li>Let <var>a</var><sub>0..<var>n</var>−1</sub> be boolean values indicating whether each argument <var>X</var> is defined to take is declared with the <a class='xattr' href='#AllowAny'>[AllowAny]</a> extended attribute.</li>
+                  <li>Add to <var>S</var> the triple &lt;<var>X</var>, <var>t</var><sub>0..<var>n</var>−1</sub>, <var>a</var><sub>0..<var>n</var>−1</sub>>.</li>
                   <li>If <var>n</var> > 0 and the final argument of <var>X</var> is annotated with the <a class='xattr' href='#Variadic'>[Variadic]</a> extended attribute, then:
                     <ol class='algorithm'>
-                      <li>Add to <var>S</var> the pair &lt;<var>X</var>, <var>t</var><sub>0..<var>n</var>−2</sub>>.</li>
+                      <li>Add to <var>S</var> the triple &lt;<var>X</var>, <var>t</var><sub>0..<var>n</var>−2</sub>, <var>a</var><sub>0..<var>n</var>−2</sub>>.</li>
                       <li>For every integer <var>i</var>, such that <var>n</var> ≤ <var>i</var> ≤ <var>m</var>−1:
                         <ol class='algorithm'>
                           <li>Let <var>u</var><sub>0..<var>i</var></sub> be a list of types, where <var>u</var><sub>j</sub> = <var>t</var><sub>j</sub> (for <var>j</var> &lt; <var>n</var>) and <var>u</var><sub>j</sub> = <var>t</var><sub><var>n</var>−1</sub> (for <var>j</var> ≥ <var>n</var>).</li>
-                          <li>Add to <var>S</var> the pair &lt;<var>X</var>, <var>u</var><sub>0..<var>i</var></sub>>.</li>
+                          <li>Let <var>b</var><sub>0..<var>i</var></sub> be a list of booleans, where <var>b</var><sub>j</sub> = <var>a</var><sub>j</sub> (for <var>j</var> &lt; <var>n</var>) and <var>b</var><sub>j</sub> = <var>a</var><sub><var>n</var>−1</sub> (for <var>j</var> ≥ <var>n</var>).</li>
+                          <li>Add to <var>S</var> the triple &lt;<var>X</var>, <var>u</var><sub>0..<var>i</var></sub>, <var>b</var><sub>0..<var>i</var></sub>>.</li>
                         </ol>
                       </li>
                     </ol>
                   </li>
                   <li>For every integer <var>i</var>, such that 0 &lt; <var>i</var> &lt; <var>n</var>:
                     <ol class='algorithm'>
-                      <li>If argument <var>i</var> of <var>X</var> is annotated with the <a class='xattr' href='#Optional'>[Optional]</a> extended attribute, then add to <var>S</var> the pair &lt;<var>X</var>, <var>t</var><sub>0..<var>i−1</var></sub>>.</li>
+                      <li>If argument <var>i</var> of <var>X</var> is annotated with the <a class='xattr' href='#Optional'>[Optional]</a> extended attribute, then add to <var>S</var> the triple &lt;<var>X</var>, <var>t</var><sub>0..<var>i−1</var></sub>, <var>a</var><sub>0..<var>i−1</var></sub>>.</li>
                     </ol>
                   </li>
-                  <li>If <var>n</var> > 0 and the first argument of <var>X</var> is annotated with the <a class='xattr' href='#Optional'>[Optional]</a> extended attribute, then add to <var>S</var> the pair &lt;<var>X</var>, ()> (where “()” represents the empty list).</li>
+                  <li>If <var>n</var> > 0 and the first argument of <var>X</var> is annotated with the <a class='xattr' href='#Optional'>[Optional]</a> extended attribute, then add to <var>S</var> the triple &lt;<var>X</var>, (), ()> (where “()” represents the empty list).</li>
                 </ol>
               </li>
               <li>
@@ -1226,18 +1234,30 @@ interface Person {
               <li>there is an index <var>i</var> such that the types in the two type lists at index <var>i</var> are <a class='dfnref' href='#dfn-distinguishable'>distinguishable</a>.</li>
             </ul>
             <p>
-              Two types, <var>t</var> and <var>u</var>, are
-              <dfn id='dfn-distinguishable'>distinguishable</dfn> if
-              both are <a class='dfnref' href='#idl-interface'>objects implementing an interface</a>
-              (where two different <a class='dfnref' href='#dfn-interface'>interfaces</a>
-              are identified) or if one is an <a class='dfnref' href='#idl-interface'>object implementing an interface</a>
-              and the other is a <a class='dfnref' href='#dfn-primitive-type'>primitive type</a>.
+              Two types are
+              <dfn id='dfn-distinguishable'>distinguishable</dfn> if one of the
+              following conditions is true:
             </p>
-            <div class='ednote'>
-              <p>Should make <span class='idltype'>DOMString</span> and the
-                other primitive types distinguishable, so that the example
-                below actually works.</p>
-            </div>
+            <ul>
+              <li>
+                both types are
+                <a class='dfnref' href='#idl-interface'>objects implementing an interface</a>
+                (where two different <a class='dfnref' href='#dfn-interface'>interfaces</a>
+                are identified),
+              </li>
+              <li>
+                one is a <a class='dfnref' href='#dfn-primitive-type'>primitive type</a>
+                and the other is <span class='idltype'>DOMString</span>,
+              </li>
+              <li>
+                one is a <a class='dfnref' href='#dfn-primitive-type'>primitive type</a>
+                and the other is an <a class='dfnref' href='#dfn-object-type'>object type</a>, or
+              </li>
+              <li>
+                one is <span class='idltype'>DOMString</span> and the other is an
+                <a class='dfnref' href='#dfn-object-type'>object type</a>.
+              </li>
+            </ul>
             <div class='note'>
               <p>
                 These restrictions on argument types reduce 
@@ -1282,19 +1302,20 @@ interface C {
               </p>
               <x:codeblock language='idl'>interface A {
   /* f1 */ void f(in DOMString a);
-  /* f2 */ void f(in DOMString a, in DOMString b, [Variadic] in float c);
+  /* f2 */ void f([AllowAny] in DOMString a, in DOMString b, [Variadic] in float c);
   /* f3 */ void f([Optional] in long a, in DOMString b,
                   [Optional] in DOMString c, [Variadic] in float d);
 };</x:codeblock>
               <p>
                 the <a class='dfnref' href='#dfn-effective-overload-set'>effective overload set</a>
-                for identifier <code>f</code> (for the ECMAScript language binding) is:
+                for identifier <code>f</code> with argument count 4 (for the
+                ECMAScript language binding) is:
               </p>
               <div class='set'>
-                { &lt;f1, (DOMString)>,<br/>
-                  &lt;f2, (DOMString, DOMString)>,<br/>
-                  &lt;f2, (DOMString, DOMString, float)>,<br/>
-                  &lt;f2, (DOMString, DOMString, float, float)>,<br/>
+                { &lt;f1, (DOMString), (false)>,<br/>
+                  &lt;f2, (DOMString, DOMString), (true, false)>,<br/>
+                  &lt;f2, (DOMString, DOMString, float), (true, false, false),<br/>
+                  &lt;f2, (DOMString, DOMString, float, float, (true, false, false, false))>,<br/>
                   &lt;f3, ()>,<br/>
                   &lt;f3, (long, DOMString)>,<br/>
                   &lt;f3, (long, DOMString, DOMString)>,<br/>
@@ -1320,6 +1341,7 @@ interface C {
             </p>
             <p>
               The following extended attributes are applicable to operation arguments:
+              <a class='xattr' href='#AllowAny'>[AllowAny]</a>,
               <a class='xattr' href='#Null'>[Null]</a>,
               <a class='xattr' href='#Optional'>[Optional]</a>,
               <a class='xattr' href='#Undefined'>[Undefined]</a>,
@@ -1581,9 +1603,13 @@ interface Person {
             <a class='idltype' href='#idl-unsigned-long'>unsigned long</a>,
             <a class='idltype' href='#idl-long-long'>long long</a>,
             <a class='idltype' href='#idl-unsigned-long-long'>unsigned long long</a>,
-            <a class='idltype' href='#idl-float'>float</a>,
-            <a class='idltype' href='#idl-float'>double</a> and
-            <a class='idltype' href='#idl-DOMString'>DOMString</a>.
+            <a class='idltype' href='#idl-float'>float</a> and
+            <a class='idltype' href='#idl-float'>double</a>.
+          </p>
+          <p>
+            The <a class='idltype' href='#idl-Object'>Object</a> type and
+            all <a class='dfnref' href='#idl-interface'>object implementing an interface</a>
+            types are known as <dfn id='dfn-object-type'>object types</dfn>.
           </p>
 
           <?productions grammar DeclarationType BoxedType Type UnsignedIntegerType IntegerType OptionalLong?>
@@ -1863,8 +1889,8 @@ interface Person {
               which indicates no object reference.
             </p>
             <p>
-              There is no way to represent an <a class='idltype' href='#idl-Object'>Object</a>
-              constant value in IDL.
+              There is no way to represent a constant value for an object implementing an
+              interface in IDL.
             </p>
           </div>
 
@@ -2158,11 +2184,6 @@ FileIOException.FILE_NOT_FOUND;  // evaluates to 1</x:codeblock>
             <h4>[ImplementedOn]</h4>
 
             <div class='ednote'>
-              <p>Maybe call out explicitly that if you want to list multiple interfaces
-                that you need to use multiple <span class='xattr'>[ImplementedOn]</span>
-                extended attributes.</p>
-            </div>
-            <div class='ednote'>
               <p>Anne <a href='http://www.w3.org/mid/op.uo3b00eh64w2qv@annevk-t60.oslo.opera.com'>requests</a>
                 an <span class='xattr'>[Implements]</span> extended attribute, too.</p>
             </div>
@@ -2187,6 +2208,17 @@ FileIOException.FILE_NOT_FOUND;  // evaluates to 1</x:codeblock>
               <a class='xattr' href='#ImplementedOn'>[ImplementedOn]</a>
               extended attribute appears on.
             </p>
+            <div class='note'>
+              <p>
+                Note that since <a class='xattr' href='#ImplementedOn'>[ImplementedOn]</a> takes
+                only a single <a class='dfnref' href='#dfn-scoped-name'>scoped name</a>,
+                to indicate that the <a class='dfnref' href='#dfn-interface'>interface</a>
+                is implemented on multiple other types of objects, multiple
+                <a class='xattr' href='#ImplementedOn'>[ImplementedOn]</a>
+                <a class='dfnref' href='#dfn-extended-attribute'>extended attributes</a>
+                need to be used.
+              </p>
+            </div>
             <div class='example'>
               <p>
                 The following <a class='dfnref' href='#dfn-idl-fragment'>IDL fragment</a>
@@ -3203,11 +3235,6 @@ any executeSql(Array a, Callback f);</x:codeblock>
             of that type are <dfn id='dfn-convert-idl-to-ecmascript-value'>converted to ECMAScript values</dfn>
             when returned from a host object.
           </p>
-          <div class='ednote'>
-            <p><a href='http://www.w3.org/mid/70F44043-FDB2-4D17-B837-935EA2AC8820@apple.com'>Should state explicitly</a> that if an exception is thrown from these
-              conversion algorithms (either explicitly, or in ToString etc.,
-              then the exception will propagate out).</p>
-          </div>
 
           <div id='es-any' class='section'>
             <h4>any</h4>
@@ -4031,6 +4058,60 @@ results.numbers[6];                  // Evaluates to 0, since that is how
               document.all and element.style.filter? (<a href='http://krijnhoetmer.nl/irc-logs/whatwg/20090531#l-77'>IRC.</a>)</p>
           </div>
 
+          <div id='AllowAny' class='section'>
+            <h4>[AllowAny]</h4>
+
+            <p>
+              If the <a class='xattr' href='#AllowAny'>[AllowAny]</a>
+              <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
+              appears on an <a class='dfnref' href='#dfn-operation'>operation argument</a>,
+              it indicates that any ECMAScript value will be accepted as that
+              argument’s value.  Normally, as part of the <a class='dfnref' href='#dfn-overload-resolution-algorithm'>overload resolution algorithm</a>,
+              a non-<span class='idltype'>DOMString</span> value will disqualify
+              a given overloaded operation that is declared to take a
+              <span class='idltype'>DOMString</span> for a given argument.  When
+              the <a class='xattr' href='#AllowAny'>[AllowAny]</a> extended
+              attribute is present on the argument, that disqualification is
+              not performed.
+            </p>
+            <p>
+              The <a class='xattr' href='#AllowAny'>[AllowAny]</a> extended attribute
+              <span class='rfc2119'>MUST</span> <a class='dfnref' href='#dfn-xattr-no-argument'>take no argument</a>.
+            </p>
+            <div class='example'>
+              <p>
+                The following <a class='dfnref' href='#dfn-idl-fragment'>IDL fragment</a>
+                defines two <a class='dfnref' href='#dfn-interface'>interfaces</a>,
+                each with two overloaded <a class='dfnref' href='#dfn-operation'>operations</a>.
+                One uses <a class='xattr' href='#AllowAny'>[AllowAny]</a> and one does not.
+              </p>
+              <x:codeblock language='idl'>interface A {
+  void f();
+  void f(in A a);
+  void f(in DOMString s);
+};
+
+interface B {
+  void g();
+  void g(in B b);
+  void g([AllowAny] in DOMString s);
+};</x:codeblock>
+              <p>
+                In an ECMAScript implementation of the above two interfaces,
+                an <span class='idltype'>A</span> object will not allow a
+                <span class='estype'>float</span> value to be passed in as
+                an argument, while a <span class='idltype'>B</span> object
+                will:
+              </p>
+              <x:codeblock language='es'>var a = getA();  // Obtain an instance of A.
+var b = getB();  // Obtain an instance of B.
+
+a.f(1.23);       // Throws a TypeError.
+b.g(1.23);       // Equivalent to b.g("1.23").
+b.g(a);          // Equivalent to calling b.g with ToString(a).</x:codeblock>
+            </div>
+          </div>
+
           <div id='Callback' class='section'>
             <h4>[Callback]</h4>
 
@@ -4500,26 +4581,29 @@ c.isMemberOfBreed(undefined);  // This passes the string "" to the
                 <li>
                   Initialize <var>R</var> to a set with the same values as <var>S</var>.
                 </li>
+                <!--
                 <li>
                   Remove from <var>R</var> all entries whose type list is
                   longer than <var>n</var>.
+                </li>
+                -->
+                <li>
+                  Remove from <var>R</var> all entries whose type list is
+                  not equal to <var>n</var>.
                 </li>
                 <li>
                   If <var>R</var> contains more than one entry:
                   <ol>
                     <li>
-                      Let <var>m</var> be the maximum length of the type lists of
-                      the entries in <var>R</var>.
-                    </li>
-                    <li>
                       Initialize <var>i</var> to 0.
                     </li>
                     <li>
-                      While <var>i</var> &lt; <var>m</var>:
+                      While <var>i</var> &lt; <var>n</var>:
                       <ol>
+                        <!--
                         <li>Initialize <var>b</var> to <span class='esvalue'>true</span>.</li>
                         <li>
-                          For each pair of entries &lt;<var>entry1</var>, <var>entry2</var>>
+                          For each pair of distinct entries &lt;<var>entry1</var>, <var>entry2</var>>
                           in <var>R</var>:
                           <ol>
                             <li>Let <var>t</var> be the type list of <var>entry1</var>.</li>
@@ -4535,26 +4619,93 @@ c.isMemberOfBreed(undefined);  // This passes the string "" to the
                         <li>
                           If <var>b</var> is <span class='esvalue'>true</span>:
                           <ol>
+                        -->
+                            <!--
+                            <li>
+                              Let <var>hasPrimitive</var> be <span class='idlvalue'>true</span>
+                              if there exists in <var>R</var> an entry with type list <var>t</var> where
+                              <var>t</var><sub><var>i</var></sub> is a
+                              <a class='dfnref' href='#dfn-primitive-type'>primitive type</a>,
+                              and <span class='idlvalue'>false</span> otherwise.
+                            </li>
+                            <li>
+                              Let <var>hasString</var> be <span class='idlvalue'>true</span>
+                              if there exists in <var>R</var> an entry with type list <var>t</var> where
+                              <var>t</var><sub><var>i</var></sub> is <span class='idltype'>DOMString</span>,
+                              and <span class='idlvalue'>false</span> otherwise.
+                            </li>
+                            <li>
+                              Let <var>hasObject</var> be <span class='idlvalue'>true</span>
+                              if there exists in <var>R</var> an entry with type list <var>t</var> where
+                              <var>t</var><sub><var>i</var></sub> is an <a class='dfnref' href='#dfn-object-type'>object type</a>,
+                              and <span class='idlvalue'>false</span> otherwise.
+                            </li>
+                            -->
                             <li>
                               If <var>arg</var><sub><var>i</var></sub> is an
                               <span class='estype'>Undefined</span>,
-                              <span class='estype'>Boolean</span>,
-                              <span class='estype'>String</span> or
+                              <span class='estype'>Boolean</span> or
                               <span class='estype'>Number</span> value,
-                              then remove from <var>R</var> all entries with type
-                              list <var>t</var> where <var>t</var><sub><var>i</var></sub>
-                              is not a <a class='dfnref' href='#dfn-primitive-type'>primitive type</a>.
+                              then remove from <var>R</var> all entries with type list
+                              <var>t</var> where <var>t</var><sub><var>i</var></sub> is
+                              <span class='idltype'>DOMString</span> or an
+                              <a class='dfnref' href='#dfn-object-type'>object type</a>.
+                              <!--
+                              <dl class='switch'>
+                                <dt>If <var>hasPrimitive</var> is <span class='idlvalue'>true</span></dt>
+                                <dd>
+                                  Remove from <var>R</var> all entries with type list <var>t</var>
+                                  where <var>t</var><sub><var>i</var></sub> is <span class='idltype'>DOMString</span>
+                                  or an object type.
+                                </dd>
+                                <dt>Otherwise, if <var>hasString</var> is <span class='idlvalue'>true</span></dt>
+                                <dd>
+                                  Remove from <var>R</var> all entries with type list <var>t</var>
+                                  where <var>t</var><sub><var>i</var></sub> is an object type.
+                                </dd>
+                                <dt>Otherwise</dt>
+                                <dd>
+                                  Return ∅.
+                                </dd>
+                              </dl>
+                              -->
+                            </li>
+                            <li>
+                              If <var>arg</var><sub><var>i</var></sub> is a
+                              <span class='estype'>String</span> value, then
+                              remove all entries from <var>R</var> where
+                              <var>t</var><sub><var>i</var></sub> is a
+                              <a class='dfnref' href="#dfn-primitive-type">primitive type</a>
+                              or an object type.
                             </li>
                             <li>
                               If <var>arg</var><sub><var>i</var></sub> is
-                              <span class='esvalue'>null</span> or an
-                              object (whether a host object or a native object), then remove from
-                              <var>R</var> all entries with type list <var>t</var> where
-                              <var>t</var><sub><var>i</var></sub> is not
-                              <a href='#idl-interface'>an object implementing an interface</a>.
+                              <span class='esvalue'>null</span>, then remove
+                              from <var>R</var> all entries with type list <var>t</var>
+                              where <var>t</var><sub><var>i</var></sub> is a
+                              primitive type.
                             </li>
+                            <li>
+                              If <var>arg</var><sub><var>i</var></sub> is a
+                              host object, then remove from <var>R</var> all
+                              entries with type list <var>t</var> where
+                              <var>t</var><sub><var>i</var></sub> is
+                              <span class='idltype'>DOMString</span>, a
+                              primitive type or an <a href='#idl-interface'>object implementing
+                                an interface</a> that the host object does not implement.
+                            </li>
+                            <li>
+                              If <var>arg</var><sub><var>i</var></sub> is a
+                              native object, then remove from <var>R</var>
+                              all entries with type list <var>t</var> where
+                              <var>t</var><sub><var>i</var></sub> is
+                              <span class='idltype'>DOMString</span> or a
+                              primitive type.
+                            </li>
+                        <!--
                           </ol>
                         </li>
+                        -->
                         <li>Set <var>i</var> to <var>i</var> + 1.</li>
                       </ol>
                     </li>
@@ -4578,7 +4729,7 @@ c.isMemberOfBreed(undefined);  // This passes the string "" to the
                   <a class='dfnref' href='#dfn-effective-overload-set'>effective overload set</a>
                   for constructors with <a class='dfnref' href='#dfn-identifier'>identifier</a>
                   <var>id</var> on <a class='dfnref' href='#dfn-interface'>interface</a>
-                  <var>I</var> (for the ECMAScript language binding).
+                  <var>I</var> and with argument count <var>n</var> (for the ECMAScript language binding).
                 </li>
                 <li>
                   Set <var>S</var> to the result of passing <var>S</var> and
@@ -4697,7 +4848,7 @@ c.isMemberOfBreed(undefined);  // This passes the string "" to the
                 <a class='dfnref' href='#dfn-effective-overload-set'>effective overload set</a>
                 for constructors with <a class='dfnref' href='#dfn-identifier'>identifier</a>
                 <var>id</var> on <a class='dfnref' href='#dfn-interface'>interface</a>
-                <var>I</var> (for the ECMAScript language binding).
+                <var>I</var> and with argument count <var>n</var> (for the ECMAScript language binding).
               </li>
               <li>
                 Set <var>S</var> to the result of passing <var>S</var> and
@@ -4918,7 +5069,7 @@ c.isMemberOfBreed(undefined);  // This passes the string "" to the
                     for <a class='dfnref' href='#dfn-operation'>operations</a> with
                     <a class='dfnref' href='#dfn-identifier'>identifier</a>
                     <var>id</var> on <a class='dfnref' href='#dfn-interface'>interface</a>
-                    <var>I</var> (for the ECMAScript language binding).
+                    <var>I</var> and with argument count <var>n</var> (for the ECMAScript language binding).
                   </li>
                   <li>
                     Set <var>S</var> to the result of passing <var>S</var> and
@@ -5754,15 +5905,12 @@ c.isMemberOfBreed(undefined);  // This passes the string "" to the
         <div id='host-exception-objects' class='section'>
           <h3>Host exception objects</h3>
 
-          <div class='ednote'>
-            <p>Maybe reword the following. It sounds a bit strange to say that
-              it "implements an exception".</p>
-          </div>
           <p>
             A <dfn id='dfn-host-exception-object'>host exception object</dfn>
-            is a host object that implements a given <a class='dfnref' href='#dfn-exception'>exception</a>.
-            The behavior of a host object that implements more than one exception, or
-            an exception as well as an <a class='dfnref' href='#dfn-interface'>interface</a>, is not defined.
+            is a host object that represents a given <a class='dfnref' href='#dfn-exception'>exception</a>.
+            The behavior of a host object that represents more than one exception, or
+            one that represents an exception as well as implements an
+            <a class='dfnref' href='#dfn-interface'>interface</a>, is not defined.
           </p>
           <p>
             A host exception object <span class='rfc2119'>MUST</span> have a property
@@ -6043,7 +6191,7 @@ d.type = et;
               actual type of the IDL value:
             </p>
             <dl class='switch'>
-              <dt>A value of a <a class='dfnref' href='#dfn-primitive-type'>primitive type</a> (except <span class='idltype'>DOMString</span>)</dt>
+              <dt>A value of a <a class='dfnref' href='#dfn-primitive-type'>primitive type</a></dt>
               <dd>
                 <p>
                   The Java value is the result of 
@@ -6883,9 +7031,9 @@ module foo {
             </p>
             <ul>
               <li>
-                For each entry &lt;<var>op</var>, <var>types</var>> in the
+                For each entry &lt;<var>op</var>, <var>types</var>, <var>any</var>> in the
                 <a class='dfnref' href='#dfn-effective-overload-set'>effective overload set</a>
-                for <var>id</var> on <var>I</var> (for the Java language binding), there <span class='rfc2119'>MUST</span>
+                for <var>id</var> on <var>I</var> and with argument count <var>0</var> (for the Java language binding), there <span class='rfc2119'>MUST</span>
                 exist a method on the Java interface with the following
                 characteristics:
                 <ul>
@@ -7495,14 +7643,14 @@ module foo {
               integer | float | identifier | string <!--| whitespace--> | other
             | ":" | "::" | ";" | "&lt;" | "=" | ">" | "DOMString"
             | "FALSE" | "Object" | "TRUE" | "any" | "attribute" | "boolean"
-            | "const" | "exception" | "float" | "getraises" | "in"
+            | "const" | "double" | "exception" | "float" | "getraises" | "in"
             | "interface" | "long" | "module" | "octet" | "raises" | "sequence"
             | "setraises" | "short" | "typedef" | "unsigned" | "valuetype"
           </prod>
           <prod nt='OtherOrComma'>Other | ","</prod>
 
-          <prod nt='DeclarationType'>UnsignedIntegerType | ScopedName | "any" | "boolean" | "octet" | "float" | "DOMString" | "Object"</prod>
-          <prod nt='BoxedType'>UnsignedIntegerType | ScopedName | "boolean" | "octet" | "float" | "sequence" "&lt;" Type ">"</prod>
+          <prod nt='DeclarationType'>UnsignedIntegerType | ScopedName | "any" | "boolean" | "octet" | "float" | "double" | "DOMString" | "Object"</prod>
+          <prod nt='BoxedType'>UnsignedIntegerType | ScopedName | "boolean" | "octet" | "float" | "double" | "sequence" "&lt;" Type ">"</prod>
           <prod nt='Type'>DeclarationType | "sequence" "&lt;" Type ">"</prod>
           <prod nt='UnsignedIntegerType'>"unsigned" IntegerType | IntegerType</prod>
           <prod nt='IntegerType'>"short" | "long" OptionalLong</prod>
@@ -7526,7 +7674,7 @@ module foo {
           <prod nt='ExtendedAttributeScopedName'>identifier "=" ScopedName</prod>
           <prod nt='ExtendedAttributeNamedArgList'>identifier "=" identifier "(" ArgumentList ")"</prod>
 
-          <!--prod nt='Keyword'>"any" | "attribute" | "boolean" | "const" | "exception" | "float" | "getraises" | "in" | "interface" | "long" | "module" | "Object" | "octet" | "raises" | "readonly" | "sequence" | "setraises" | "short" | "typedef" | "unsigned | "void"</prod-->
+          <!--prod nt='Keyword'>"any" | "attribute" | "boolean" | "const" | "double" | "exception" | "float" | "getraises" | "in" | "interface" | "long" | "module" | "Object" | "octet" | "raises" | "readonly" | "sequence" | "setraises" | "short" | "typedef" | "unsigned | "void"</prod-->
           <!-- the following are the remaining OMG IDL 3 keywords:
           "abstract" |
           "case" |
@@ -7673,6 +7821,29 @@ module foo {
           <dt>Current editor’s draft</dt>
           <dd>
             <ul>
+              <li>
+                <p>
+                  Added an <span class='xattr'>[AllowAny]</span> ECMAScript-specific
+                  extended attribute on operation arguments, which indicates that
+                  any type of ECMAScript value is allowed to be passed to that
+                  argument.
+                </p>
+              </li>
+              <li>
+                <p>
+                  Changed the definition of the effective overload set to take
+                  into account the number of arguments passed, so that it can
+                  be used to resolve overloaded calls properly in the
+                  presence of variadic operations.
+                </p>
+              </li>
+              <li>
+                <p>
+                  Removed <span class='idltype'>DOMString</span> from the list
+                  of primitive types, and allowed it to be distinguished from
+                  primitive types in the overload resolution algorithm.
+                </p>
+              </li>
               <li>
                 <p>
                   Defined exception handling for algorithms that call in
