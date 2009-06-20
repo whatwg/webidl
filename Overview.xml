@@ -15,7 +15,7 @@
   <head>
     <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'/>
     <title>Web IDL</title>
-    <meta name='revision' content='$Id: Overview.xml,v 1.170 2009-06-19 07:29:49 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: Overview.xml,v 1.171 2009-06-20 04:55:54 cmccorma Exp $'/>
     <link rel='stylesheet' href='WebIDL.css' type='text/css'/>
     <script src='section-links.js' type='application/ecmascript'/>
     <script src='dfn.js' type='application/ecmascript'/>
@@ -104,6 +104,10 @@
     <div class='ednote'>
       <p><a href="http://lists.w3.org/Archives/Public/public-webapps/2009JanMar/0458.html">HTML 5 uses Date</a>,
         so we'll need to decide what to do with that.</p>
+      <p>Current thoughts are to be able to state that an interface has
+        a custom mapping to language bindings, and to map that type to
+        a <span class='estype'>Date</span> in ECMAScript and a
+        <span class='javatype'>java.util.Date</span> in Java.</p>
     </div>
 
     <div id='sections'>
@@ -911,6 +915,10 @@ interface Dog : Animal {
               </li>
             </ol>
             <p>
+              It is not possible to specify an infinite or not-a-number
+              <span class='idltype'>float</span> constant.
+            </p>
+            <p>
               The type of a <a class='nt' href='#prod-float'>float</a> terminal is the same
               as the type of the constant it is being used as the value of.  The value of the
               <a class='nt' href='#prod-float'>float</a> terminal <span class='rfc2119'>MUST NOT</span>
@@ -990,6 +998,19 @@ const float AVOGADRO = 6.022e23;</x:codeblock>
               of the interface on which the attribute
               is defined, to an <a class='dfnref' href='#dfn-exception'>exception</a> that
               has been <a class='dfnref' href='#dfn-declared-previously'>declared previously</a>.
+            </p>
+            <p id='callback-attribute-exceptions'>
+              If an implementation attempts to get or set the value of an
+              <a class='dfnref' href='#dfn-attribute'>attribute</a> on an
+              object implemented by user code (for example, when a callback object
+              has been supplied to the implementation), and that attempt results in an
+              exception being thrown, then, unless otherwise specified, that
+              exception will be propagated to the user code that caused the
+              implementation to access the attribute.  Similarly, if a value
+              returned from getting the attribute cannot be converted to
+              an IDL type, then any exception resulting from this will also
+              be propagated to the user code that resulted in the implementation
+              attempting to get the value of the attribute.
             </p>
             <p>
               The following <a class='dfnref' href='#dfn-extended-attribute'>extended attributes</a>
@@ -1316,16 +1337,29 @@ interface C {
                   &lt;f2, (DOMString, DOMString), (true, false)>,<br/>
                   &lt;f2, (DOMString, DOMString, float), (true, false, false),<br/>
                   &lt;f2, (DOMString, DOMString, float, float, (true, false, false, false))>,<br/>
-                  &lt;f3, ()>,<br/>
-                  &lt;f3, (long, DOMString)>,<br/>
-                  &lt;f3, (long, DOMString, DOMString)>,<br/>
-                  &lt;f3, (long, DOMString, DOMString, float)> }
+                  &lt;f3, (), ()>,<br/>
+                  &lt;f3, (long, DOMString), (false, fase)>,<br/>
+                  &lt;f3, (long, DOMString, DOMString), (false, false)>,<br/>
+                  &lt;f3, (long, DOMString, DOMString, float), (false, false, false, false)> }
               </div>
               <p>
                 There are thus no overloaded operation resolution ambiguities
                 for the interface.
               </p>
             </div>
+            <p id='callback-operation-exceptions'>
+              If an implementation attempts to invoke an
+              <a class='dfnref' href='#dfn-operation'>operation</a> on an
+              object implemented by user code (for example, when a callback object
+              has been supplied to the implementation), and that attempt results in an
+              exception being thrown, then, unless otherwise specified, that
+              exception will be propagated to the user code that caused the
+              implementation to access the attribute.  Similarly, if a value
+              returned from invoking the operation cannot be converted to
+              an IDL type, then any exception resulting from this will also
+              be propagated to the user code that resulted in the implementation
+              attempting to invoke the operation.
+            </p>
             <p>
               The following extended attributes
               are applicable to operations:
@@ -1588,12 +1622,6 @@ interface Person {
         <div id='idl-types' class='section'>
           <h3>Types</h3>
 
-          <div class='ednote'>
-            <p>Do we need to have a section providing guidance for language bindings not
-              defined in this document?  A specific request is to define that converting
-              from IDL values to language binding values and vice versa must happen at
-              a particular time. <a href='http://www.w3.org/mid/DC8C5C9B-5E2C-472B-9B15-6DDB2C04308B@apple.com'>(Mail.)</a></p>
-          </div>
           <p>
             This section lists the types supported by the IDL, the set of values
             each type correspond to, and how <a class='dfnref' href='#dfn-constant'>constants</a>
@@ -1616,6 +1644,19 @@ interface Person {
             The <a class='idltype' href='#idl-Object'>Object</a> type and
             all <a class='dfnref' href='#idl-interface'>interface types</a>
             types are known as <dfn id='dfn-object-type'>object types</dfn>.
+          </p>
+          <p id='type-conversion-exceptions'>
+            When conversions are made from language binding specific types to
+            IDL types in order to invoke an <a class='dfnref' href='#dfn-operation'>operation</a>
+            or assign a value to an <a class='dfnref' href='#dfn-attribute'>attribute</a>,
+            all conversions necessary will be performed before the operation
+            is invoked or the attribute updated.  If the conversion cannot
+            be performed, then the operation will not be invoked or
+            the attribute will not be updated.  In some language bindings,
+            type conversions could result in an exception being thrown.
+            In such cases, these exceptions will be propagated to the
+            code that made the attempt to invoke the operation or
+            assign to the attribute.
           </p>
 
           <?productions grammar DeclarationType BoxedType Type UnsignedIntegerType IntegerType OptionalLong?>
@@ -5257,7 +5298,7 @@ c.isMemberOfBreed(undefined);  // This passes the string "" to the
             </li>
           </ul>
           <div class='ednote'>
-            <p>Should there be more restrictions on the <span class='prop'>[[Class]</span>?
+            <p>Should there be more restrictions on the <span class='prop'>[[Class]]</span>?
               <a href='http://www.w3.org/mid/Pine.LNX.4.62.0903072358030.2690@hixie.dreamhostps.com'>(Mail.)</a></p>
           </div>
           <div class='ednote'>
@@ -7826,6 +7867,13 @@ module foo {
           <dt>Current editor’s draft</dt>
           <dd>
             <ul>
+              <li>
+                <p>
+                  Provided language binding independent advice on handling user
+                  implemented interfaces that throw exceptions or return values
+                  of inappropriate types.
+                </p>
+              </li>
               <li>
                 <p>
                   Renamed the awkwardly worded “object implementing an interface” type
