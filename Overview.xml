@@ -15,7 +15,7 @@
   <head>
     <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'/>
     <title>Web IDL</title>
-    <meta name='revision' content='$Id: Overview.xml,v 1.174 2009-06-20 14:02:21 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: Overview.xml,v 1.175 2009-06-20 14:17:58 cmccorma Exp $'/>
     <link rel='stylesheet' href='WebIDL.css' type='text/css'/>
     <script src='section-links.js' type='application/ecmascript'/>
     <script src='dfn.js' type='application/ecmascript'/>
@@ -2519,14 +2519,6 @@ delete map.cake;  // If a named property named "cake" exists, then the "cake"
           <div id='named-property-xattrs' class='section'>
             <h4><span id='NameCreator'>[NameCreator]</span>, <span id='NameDeleter'>[NameDeleter]</span>, <span id='NameGetter'>[NameGetter]</span> and <span id='NameSetter'>[NameSetter]</span></h4>
 
-            <div class='ednote'>
-              <p>
-                HTML needs a way to say that on objects that implement
-                <span class='idltype'>HTMLDocument</span> named properties
-                always override things from the prototype.  (<code>[NamedGetter=OverrideBuiltins]</code>
-                is what’s currently in the HTML spec.)
-              </p>
-            </div>
             <p>
               The <a class='xattr' href='#NameCreator'>[NameCreator]</a>,
               <a class='xattr' href='#NameDeleter'>[NameDeleter]</a>,
@@ -2543,10 +2535,19 @@ delete map.cake;  // If a named property named "cake" exists, then the "cake"
               <dfn id='dfn-support-named-properties'>support named properties</dfn>.
             </p>
             <p>
-              The four named property
-              <a class='dfnref' href='#dfn-extended-attribute'>extended attributes</a>
+              <a class='xattr' href='#NameCreator'>[NameCreator]</a>,
+              <a class='xattr' href='#NameDeleter'>[NameDeleter]</a> and
+              <a class='xattr' href='#NameSetter'>[NameSetter]</a>
               <span class='rfc2119'>MUST</span> all
               <a class='dfnref' href='#dfn-xattr-no-argument'>take no argument</a>.
+              <a class='xattr' href='#NameGetter'>[NameGetter]</a>
+              <span class='rfc2119'>MUST</span> either
+              take no argument or <a class='dfnref' href='#dfn-xattr-identifier'>take the identifier</a>
+              <span class='idlident'>OverrideBuiltins</span>.  If that identifier
+              is specified, it indicates that the
+              <a class='dfnref' href='#get'>host object [[Get]] algorithm</a>
+              will prefer to get named properties rather than
+              any other properties on the object or its prototype chain.
             </p>
             <p>
               If an object implements more than one
@@ -5475,6 +5476,48 @@ c.isMemberOfBreed(undefined);  // This passes the string "" to the
 
             <ol class='algorithm'>
               <li>
+                If <var>O</var> implements a <a class='xattr' href='#NameGetter'>[NameGetter]</a>-annotated
+                <a class='dfnref' href='#dfn-interface'>interface</a>, or an interface with a
+                <a class='xattr' href='#NameGetter'>[NameGetter]</a>-annotated <a class='dfnref' href='#dfn-operation'>operation</a>,
+                and that extended attribute <a class='dfnref' href='#dfn-xattr-identifier'>took the identifier</a>
+                <span class='idlident'>OverrideBuiltins</span>, then:
+                <ol>
+                  <li>
+                    If the <a class='xattr' href='#NameGetter'>[NameGetter]</a>
+                    extended attribute was specified on an operation,
+                    then:
+                    <ol>
+                      <li>Determine a callable object that corresponds to the <a class='xattr' href='#NameGetter'>[NameGetter]</a>-annotated operation.</li>
+                      <li>
+                        Invoke the <span class='xattr'>[[Call]]</span> method of the callable object, providing <var>O</var> as the this value and with a single argument <var>P</var>.
+                      </li>
+                      <li>
+                        If <var>P</var> is the name of a <a class='dfnref' href='#dfn-corresponding-named-property'>corresponding named property</a>
+                        on <var>O</var>, then set the value of that property to
+                        the return value of the operation.
+                      </li>
+                    </ol>
+                  </li>
+                  <li>
+                    Otherwise, the <a class='xattr' href='#NameGetter'>[NameGetter]</a>
+                    extended attribute was specified on the <a class='dfnref' href='#dfn-interface'>interface</a>:
+                    <ol>
+                      <li>
+                        Performs the steps listed in the description of the interface
+                        to <a class='dfnref' href='#dfn-determine-the-value-of-a-named-property'>determine the value of a named property</a>
+                        for the index given by ToUint32(<var>P</var>).
+                      </li>
+                      <li>
+                        If <var>P</var> is the name of a <a class='dfnref' href='#dfn-corresponding-named-property'>corresponding named property</a>
+                        on <var>O</var>, then set the value of that property to
+                        the value determined by following the steps.
+                      </li>
+                    </ol>
+                  </li>
+                </ol>
+                <li>Return.</li>
+              </li>
+              <li>
                 If <var>P</var> is the name of a
                 <a class='dfnref' href='#dfn-corresponding-indexed-property'>corresponding indexed property</a>
                 on <var>O</var>, then:
@@ -7963,6 +8006,13 @@ module foo {
           <dt>Current editor’s draft</dt>
           <dd>
             <ul>
+              <li>
+                <p>
+                  Add an <span class='idlident'>OverrideBuiltins</span> argument to
+                  <span class='xattr'>[NameGetter]</span> to make the getter prefer
+                  named properties instead of properties on the object itself.
+                </p>
+              </li>
               <li>
                 <p>
                   Fixed bugs in the host object <span class='prop'>[[Put]]</span>
