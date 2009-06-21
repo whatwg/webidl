@@ -15,7 +15,7 @@
   <head>
     <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'/>
     <title>Web IDL</title>
-    <meta name='revision' content='$Id: Overview.xml,v 1.176 2009-06-20 14:35:57 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: Overview.xml,v 1.177 2009-06-21 02:09:12 cmccorma Exp $'/>
     <link rel='stylesheet' href='WebIDL.css' type='text/css'/>
     <script src='section-links.js' type='application/ecmascript'/>
     <script src='dfn.js' type='application/ecmascript'/>
@@ -3777,11 +3777,27 @@ any executeSql(Array a, Callback f);</x:codeblock>
                 <ol>
                   <li>
                     If the conversion to an IDL value is being performed due
-                    to <var>V</var> being passed as an <a class='dfnref' href='#dfn-operation'>operation</a>
-                    argument that is annotated with the <a class='xattr' href='#Null'>[Null]</a>
-                    <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>,
-                    or due to <var>V</var> being assigned to an <a class='dfnref' href='#dfn-attribute'>attribute</a>
-                    with <a class='xattr' href='#Null'>[Null]</a>:
+                    to any of the following:
+                    <ul>
+                      <li>
+                        <var>V</var> is being passed as an <a class='dfnref' href='#dfn-operation'>operation</a>
+                        argument that is annotated with the <a class='xattr' href='#Null'>[Null]</a>
+                        <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>,
+                      </li>
+                      <li>
+                        <var>V</var> is being assigned to an <a class='dfnref' href='#dfn-attribute'>attribute</a>
+                        annotated with <a class='xattr' href='#Null'>[Null]</a>,
+                      </li>
+                      <li>
+                        <var>V</var> is being returned from a native object implementation of an
+                        operation annotated with <a class='xattr' href='#Null'>[Null]</a>, or
+                      </li>
+                      <li>
+                        <var>V</var> is being returned from a native object implementation of an
+                        attribute annotated with <a class='xattr' href='#Null'>[Null]</a>,
+                      </li>
+                    </ul>
+                    then:
                     <ol>
                       <li>
                         If the <a class='xattr' href='#Null'>[Null]</a>
@@ -3805,11 +3821,27 @@ any executeSql(Array a, Callback f);</x:codeblock>
                 <ol>
                   <li>
                     If the conversion to an IDL value is being performed due
-                    to <var>V</var> being passed as an <a class='dfnref' href='#dfn-operation'>operation</a>
-                    argument that is annotated with the <a class='xattr' href='#Undefined'>[Undefined]</a>
-                    <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>,
-                    or due to <var>V</var> being assigned to an <a class='dfnref' href='#dfn-attribute'>attribute</a>
-                    with <a class='xattr' href='#Undefined'>[Undefined]</a>:
+                    to any of the following:
+                    <ul>
+                      <li>
+                        <var>V</var> is being passed as an <a class='dfnref' href='#dfn-operation'>operation</a>
+                        argument that is annotated with the <a class='xattr' href='#Undefined'>[Undefined]</a>
+                        <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>,
+                      </li>
+                      <li>
+                        <var>V</var> is being assigned to an <a class='dfnref' href='#dfn-attribute'>attribute</a>
+                        annotated with <a class='xattr' href='#Undefined'>[Undefined]</a>,
+                      </li>
+                      <li>
+                        <var>V</var> is being returned from a native object implementation of an
+                        operation annotated with <a class='xattr' href='#Undefined'>[Undefined]</a>, or
+                      </li>
+                      <li>
+                        <var>V</var> is being returned from a native object implementation of an
+                        attribute annotated with <a class='xattr' href='#Undefined'>[Undefined]</a>,
+                      </li>
+                    </ul>
+                    then:
                     <ol>
                       <li>
                         If the <a class='xattr' href='#Undefined'>[Undefined]</a>
@@ -5962,8 +5994,11 @@ c.isMemberOfBreed(undefined);  // This passes the string "" to the
             </li>
             <li x:step='a'>Invoke the <span class='prop'>[[Call]]</span> method of <var>X</var>, providing the <a class='dfnref' href='#dfn-callback-this-value'>callback this value</a> as the <span class='esvalue'>this</span> value and <var>arg</var><sub>0..<var>n</var>−1</sub> as the argument values.</li>
             <li>
+              If the operation’s return type is <span class='idltype'>void</span>, return.
+            </li>
+            <li>
               Return the result of <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a>
-              Result(<?stepref a?>) to an IDL value.
+              Result(<?stepref a?>) to an IDL value of the same type as the operation’s return type.
               <div class='ednote'>
                 <p>
                   Should we allow <a class='xattr' href='#Null'>[Null]</a> and
@@ -5980,6 +6015,29 @@ c.isMemberOfBreed(undefined);  // This passes the string "" to the
             implemented by a native object, no properties corresponding to those
             constants need be on the object.
           </p>
+          <p>
+            A user agent retrieves the value of a native object’s
+            <a class='dfnref' href='#dfn-attribute'>attribute</a> using the following
+            algorithm:
+          </p>
+          <ol class='algorithm'>
+            <li>Let <var>O</var> be the native object.</li>
+            <li>Let <var>P</var> be the <a class='dfnref' href='#dfn-identifier'>identifier</a> of the attribute.</li>
+            <li>Let <var>R</var> be the result of invoking the <span class='prop'>[[Get]]</span> method of <var>O</var> with property name <var>P</var>.</li>
+            <li>Return the result of <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a> <var>R</var> to an IDL value of the same type as the attribute’s type.</li>
+          </ol>
+          <p>
+            A user agent sets the value of a native object’s
+            <a class='dfnref' href='#dfn-attribute'>attribute</a> using the following
+            algorithm:
+          </p>
+          <ol class='algorithm'>
+            <li>Let <var>O</var> be the native object.</li>
+            <li>Let <var>P</var> be the <a class='dfnref' href='#dfn-identifier'>identifier</a> of the attribute.</li>
+            <li>Let <var>V</var> be the IDL value to be assigned to the attribute.</li>
+            <li>Let <var>W</var> be the result of <a class='dfnref' href='#dfn-convert-idl-to-ecmascript-value'>converting</a> <var>V</var> to an ECMAScript value.</li>
+            <li>Invoke the <span class='prop'>[[Put]]</span> method of <var>O</var> with property name <var>P</var> and value <var>W</var>.</li>
+          </ol>
           <div class='ednote'>
             <p>
               There should also be a definition/algorithm for how to get and set
@@ -8011,6 +8069,19 @@ module foo {
           <dt>Current editor’s draft</dt>
           <dd>
             <ul>
+              <li>
+                <p>
+                  <span class='xattr'>[Null]</span> and <span class='xattr'>[Undefined]</span>
+                  are now honored when values are returned from native object implemented
+                  operations and attributes.
+                </p>
+              </li>
+              <li>
+                <p>
+                  Added algorithms for getting and setting values of attributes on
+                  native object implementations of interfaces.
+                </p>
+              </li>
               <li>
                 <p>
                   Add an <span class='idlident'>OverrideBuiltins</span> argument to
