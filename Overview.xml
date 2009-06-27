@@ -15,7 +15,7 @@
   <head>
     <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'/>
     <title>Web IDL</title>
-    <meta name='revision' content='$Id: Overview.xml,v 1.190 2009-06-26 07:27:35 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: Overview.xml,v 1.191 2009-06-27 05:36:34 cmccorma Exp $'/>
     <link rel='stylesheet' href='WebIDL.css' type='text/css'/>
     <script src='section-links.js' type='application/ecmascript'/>
     <script src='dfn.js' type='application/ecmascript'/>
@@ -568,6 +568,7 @@ module framework {
             The following <a class='dfnref' href='#dfn-extended-attribute'>extended attributes</a>
             are applicable to <a class='dfnref' href='#dfn-module'>modules</a>:
             <a class='xattr' href='#ExceptionConsts'>[ExceptionConsts]</a>,
+            <a class='xattr' href='#NamespaceObject'>[NamespaceObject]</a>,
             <a class='xattr' href='#Prefix'>[Prefix]</a>.
           </p>
 
@@ -4324,7 +4325,8 @@ t.addListener({ eventOccurred: function() { } });</x:codeblock>
               If the <a class='xattr' href='#NamedConstructor'>[NamedConstructor]</a>
               <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
               appears on an <a class='dfnref' href='#dfn-interface'>interface</a>,
-              it indicates the ECMAScript global object will have a property with the
+              it indicates that the <a class='dfnref' href='#dfn-relevant-namespace-object'>relevant namespace object</a>
+              for the interface (often, the ECMAScript global object) will have a property with the
               specified name whose value is a constructor function that can
               create objects that implement the interface.
               Multiple <a class='xattr' href='#NamedConstructor'>[NamedConstructor]</a> extended
@@ -4374,6 +4376,79 @@ var a1 = new Audio();           // Creates a new object that implements
 
 var a2 = new Audio('a.flac');   // Creates an HTMLAudioElement using the
                                 // one-argument constructor.</x:codeblock>
+            </div>
+          </div>
+
+          <div id='NamespaceObject' class='section'>
+            <h4>[NamespaceObject]</h4>
+            <p>
+              If the <a class='xattr' href='#NamespaceObject'>[NamespaceObject]</a>
+              <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
+              appears on a <a class='dfnref' href='#dfn-module'>module</a>,
+              it indicates that the hierarchy of that module and its descendant
+              modules will be reflected as <a class='dfnref' href='#dfn-namespace-object'>namespace objects</a>.
+              <a class='dfnref' href='#dfn-interface-object'>Interface objects</a> and
+              <a class='dfnref' href='#dfn-exception-interface-object'>exception interface objects</a>
+              for <a class='dfnref' href='#dfn-interfaces'>interfaces</a> and
+              <a class='dfnref' href='#dfn-exceptions'>exceptions</a> defined in
+              a module annotated with <a class='xattr' href='#NamespaceObject'>[NamespaceObject]</a>
+              (or in a descendant of such a module) will be placed on
+              a namespace object instead of the ECMAScript global object.
+            </p>
+            <p>
+              The <a class='xattr' href='#NamespaceObject'>[NamespaceObject]</a>
+              extended attribute <span class='rfc2119'>MUST</span>
+              <a class='dfnref' href='#dfn-xattr-no-argument'>take no argument</a>.
+            </p>
+            <p>
+              The <a class='xattr' href='#NamespaceObject'>[NamespaceObject]</a>
+              extended attribute <span class='rfc2119'>MUST NOT</span> be
+              specified on a module if is specified on one of its ancestor modules.
+            </p>
+            <div class='example'>
+              <p>
+                The following <a class='dfnref' href='#dfn-idl-fragment'>IDL fragment</a>
+                defines a <a class='dfnref' href='#dfn-module'>module</a> hierarchy
+                where one of the modules is declared with the
+                <a class='xattr' href='#NamespaceObject'>[NamespaceObject]</a>
+                <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>.
+              </p>
+              <x:codeblock language='idl'>[NamespaceObject]
+module acme {
+  
+  exception DeviceException { };
+
+  module pim {
+
+    [Constructor]
+    interface Contact { };
+
+    [Constructor,
+     NamedConstructor=RecurringEvent(in long freq)]
+    interface CalendarEvent { };
+  };
+};</x:codeblock>
+              <p>
+                In an ECMAScript implementation, there would exist
+                <a class='dfnref' href='#dfn-namespace-object'>namespace objects</a>
+                for the <span class='idltype'>acme</span> and <span class='idltype'>pim</span>
+                <a class='dfnref' href='#dfn-module'>modules</a>.  The property
+                for the <span class='idltype'>Device</span>
+                <a class='dfnref' href='#dfn-exception-interface-object'>exception interface object</a>
+                would be on the <span class='idltype'>acme</span> namespace object
+                and the properties for the <span class='idltype'>Contact</span>
+                and <span class='idltype'>CalendarEvent</span>
+                <a class='dfnref' href='#dfn-interface-object'>interface objects</a>
+                would be on the <span class='idltype'>pim</span> namespace object.
+              </p>
+              <x:codeblock language='es'>acme;                             // A namespace object.
+acme.pim;                         // Another namespace object.
+
+acme.DeviceException;             // An exception interface object.
+acme.pim.Contact;                 // An interface object.
+
+new acme.pim.Contact();           // Creates an object implementing acme::pim::Contact.
+new acme.pim.RecurringEvent(10);  // Creates an object implementing acme::pim::CalendarEvent.</x:codeblock>
             </div>
           </div>
 
@@ -4646,24 +4721,66 @@ c.isMemberOfBreed(undefined);  // This passes the string "" to the
           </div>
         </div>
 
+        <div id='es-modules' class='section'>
+          <h3>Modules</h3>
+
+          <p>
+            The hierarchy of <a class='dfnref' href='#dfn-module'>modules</a> in
+            an <a class='dfnref' href='#dfn-idl-fragment'>IDL fragment</a> can,
+            but need not be, reflected in an ECMAScript implementation.  Whether
+            a module hierarchy is reflected or not depends on the use of the
+            <a class='xattr' href='#NamespaceObject'>[NamespaceObject]</a>
+            <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>.
+          </p>
+          <p>
+            For every module that is declared with the
+            <a class='xattr' href='#NamespaceObject'>[NamespaceObject]</a> extended attribute,
+            and for every module that has an ancestor module declared with the
+            <a class='xattr' href='#NamespaceObject'>[NamespaceObject]</a> extended attribute,
+            there exists a unique <dfn id='dfn-namespace-object'>namespace object</dfn>, which
+            provides access to the <a class='dfnref' href='#dfn-interface-object'>interface objects</a>
+            and <a class='dfnref' href='#dfn-exception-interface-object'>exception interface objects</a>
+            for the <a class='dfnref' href='#dfn-interface'>interfaces</a> and
+            <a class='dfnref' href='#dfn-exception'>exceptions</a> declared in
+            the module.
+          </p>
+          <p>
+            The <dfn id='dfn-relevant-namespace-object'>relevant namespace object</dfn>
+            for a module, interface or exception <var>A</var> is determined as follows:
+          </p>
+          <ul>
+            <li>
+              If <var>A</var> has a <a class='dfnref' href='#dfn-containing-module'>containing module</a>
+              and that module has a <a class='dfnref' href='#dfn-namespace-object'>namespace object</a>,
+              than that namespace object is <var>A</var>’s
+              <a class='dfnref' href='#dfn-relevant-namespace-object'>relevant namespace object</a>.
+            </li>
+            <li>
+              Otherwise, <var>A</var>’s relevant namespace object is the ECMAScript global object.
+            </li>
+          </ul>
+          <p>
+            For every <a class='dfnref' href='#dfn-module'>module</a> that has a
+            <a class='dfnref' href='#dfn-namespace-object'>namespace object</a>,
+            a corresponding property <span class='rfc2119'>MUST</span> exist on
+            the <a class='dfnref' href='#dfn-relevant-namespace-object'>relevant namespace object</a> for
+            the module.  The name of the property is the <a class='dfnref' href='#dfn-identifier'>identifier</a>
+            of the module, its value is the <a class='dfnref' href='#dfn-namespace-object'>namespace object</a> for the module,
+            and the property has the attributes <span class='propset'>{ DontDelete, DontEnum }</span>.
+          </p>
+        </div>
+
         <div id='es-interfaces' class='section'>
           <h3>Interfaces</h3>
-
-          <div class='ednote'>
-            <p>
-              There is some desire to have modules optionally create a hierarchy of objects that
-              interface objects get placed on, instead of just being placed on the global object.
-              <a href='http://www.w3.org/mid/FAA1D89C5BAF1142A74AF116630A9F2C0A26ED8F75@OBEEX01.obe.access-company.com'>(Thread.)</a>
-            </p>
-          </div>
 
           <p>
             For every <a class='dfnref' href='#dfn-interface'>interface</a> that is not declared with the
             <a class='xattr' href='#NoInterfaceObject'>[NoInterfaceObject]</a>
             <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>,
-            a corresponding property <span class='rfc2119'>MUST</span> exist on the ECMAScript global object
-            whose name is the <a class='dfnref' href='#dfn-identifier'>identifier</a> of the interface.
-            The value of this property is an object called the
+            a corresponding property <span class='rfc2119'>MUST</span> exist on the
+            interface’s <a class='dfnref' href='#dfn-relevant-namespace-object'>relevant namespace object</a>.
+            The name of the property is the <a class='dfnref' href='#dfn-identifier'>identifier</a> of the interface,
+            and its value is an object called the
             <dfn id='dfn-interface-object'>interface object</dfn>, which provides access to the
             <a class='dfnref' href='#dfn-constant'>constants</a>
             and <a class='dfnref' href='#dfn-operation'>operations</a> defined on the interface.
@@ -4675,9 +4792,10 @@ c.isMemberOfBreed(undefined);  // This passes the string "" to the
           <p>
             In addition, for every <a class='xattr' href='#NamedConstructor'>[NamedConstructor]</a>
             extended attribute on an interface, a corresponding property <span class='rfc2119'>MUST</span>
-            exist on the ECMAScript global object whose name is the
+            exist on the interface’s <a class='dfnref' href='#dfn-relevant-namespace-object'>relevant namespace object</a>.
+            The name of the property is the
             <a class='terminal' href='#prod-identifier'>identifier</a> that occurs directly after the
-            “<span class='terminal'>=</span>”.  The value of this property is an object called an
+            “<span class='terminal'>=</span>”, and its value is an object called a
             <dfn id='dfn-named-constructor-object'>named constructor object</dfn>, which allows
             construction of objects that implement the interface.  The property has the
             attributes <span class='propattrset'>{ DontDelete, DontEnum }</span>.
@@ -6108,9 +6226,10 @@ c.isMemberOfBreed(undefined);  // This passes the string "" to the
             For every <a class='dfnref' href='#dfn-exception'>exception</a> that is not declared with the
             <a class='xattr' href='#NoInterfaceObject'>[NoInterfaceObject]</a>
             <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>,
-            a corresponding property <span class='rfc2119'>MUST</span> exist on the ECMAScript global object
-            whose name is the <a class='dfnref' href='#dfn-identifier'>identifier</a> of the exception.
-            The value of this property is an object called the
+            a corresponding property <span class='rfc2119'>MUST</span> exist on the 
+            exception’s <a class='dfnref' href='#dfn-relevant-namespace-object'>relevant namespace object</a>.
+            The name of the property is the <a class='dfnref' href='#dfn-identifier'>identifier</a> of the exception,
+            and its value is an object called the
             <dfn id='dfn-exception-interface-object'>exception interface object</dfn>,
             which provides access to any <a class='dfnref' href='#dfn-constant'>constants</a> that
             have been associated with the exception.  The property has the
@@ -8124,6 +8243,12 @@ module foo {
           <dt>Current editor’s draft</dt>
           <dd>
             <ul>
+              <li>
+                <p>
+                  Added <span class='xattr'>[NamespaceObject]</span> to allow
+                  reflecting module hierarchies in ECMAScript.
+                </p>
+              </li>
               <li>
                 <p>
                   Disallowed specifying <span class='xattr'>[Callback]</span> on
