@@ -15,7 +15,7 @@
   <head>
     <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'/>
     <title>Web IDL</title>
-    <meta name='revision' content='$Id: Overview.xml,v 1.193 2009-06-30 06:36:00 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: Overview.xml,v 1.194 2009-07-01 02:58:56 cmccorma Exp $'/>
     <link rel='stylesheet' href='WebIDL.css' type='text/css'/>
     <script src='section-links.js' type='application/ecmascript'/>
     <script src='dfn.js' type='application/ecmascript'/>
@@ -2666,21 +2666,32 @@ interface Person {
                   <li>Depending on the value of <var>c</var>:
                     <dl class='switch'>
                       <dt><var>c</var> &lt; 0xD800 or <var>c</var> &gt; 0xDFFF</dt>
-                      <dd>Append to <var>U</var> the Unicode character with code
-                        point <var>c</var>.</dd>
-                      <dt>0xD800 ≤ <var>c</var> ≤ 0xDBFF</dt>
-                      <dd>Append to <var>U</var> a U+FFFD REPLACEMENT CHARACTER.</dd>
+                      <dd>Append to <var>U</var> the Unicode character with code point <var>c</var>. </dd>
+
                       <dt>0xDC00 ≤ <var>c</var> ≤ 0xDFFF</dt>
-                      <dd>If <var>i</var> = <var>n</var>−1, then append to <var>U</var> a
-                        U+FFFD REPLACEMENT CHARACTER.  Otherwise:
-                        <ol>
-                          <li>Let <var>d</var> be the code unit in <var>S</var> at index
-                            <var>i</var>+1.</li>
-                          <li>Let <var>a</var> be <var>c</var> &amp; 0x3FF.</li>
-                          <li>Let <var>b</var> be <var>d</var> &amp; 0x3FF.</li>
-                          <li>Append to <var>U</var> the Unicode character with
-                            code point 2<sup>16</sup>+2<sup>10</sup><var>a</var>+<var>b</var>.</li>
-                          <li>Set <var>i</var> to <var>i</var>+1.</li>
+                      <dd>Append to <var>U</var> a U+FFFD REPLACEMENT CHARACTER.</dd>
+
+                      <dt>0xD800 ≤ <var>c</var> ≤ 0xDBFF</dt>
+                      <dd>
+                        <ol class='only'>
+                          <li>If <var>i</var> = <var>n</var>−1, then append to <var>U</var> a U+FFFD REPLACEMENT CHARACTER.</li>
+                          <li>Otherwise, <var>i</var> &lt; <var>n</var>−1:
+                            <ol>
+                              <li>Let <var>d</var> be the code unit in <var>S</var> at index
+                                <var>i</var>+1.</li>
+                              <li>If 0xDC00 ≤ <var>d</var> ≤ 0xDFFF, then:
+                                <ol>
+                                  <li>Let <var>a</var> be <var>c</var> &amp; 0x3FF.</li>
+                                  <li>Let <var>b</var> be <var>d</var> &amp; 0x3FF.</li>
+                                  <li>Append to <var>U</var> the Unicode character with
+                                    code point 2<sup>16</sup>+2<sup>10</sup><var>a</var>+<var>b</var>.</li>
+                                  <li>Set <var>i</var> to <var>i</var>+1.</li>
+                                </ol>
+                              </li>
+                              <li>Otherwise, <var>d</var> &lt; 0xDC00 or <var>d</var> > 0xDFFF.
+                                Append to <var>U</var> a U+FFFD REPLACEMENT CHARACTER.</li>
+                            </ol>
+                          </li>
                         </ol>
                       </dd>
                     </dl>
@@ -8071,6 +8082,7 @@ module foo {
           The editor would like to thank the following people for contributing
           to this specification:
           David Andersson,
+          L. David Baron,
           Robin Berjon,
           Gorm Haug Eriksen,
           Marcin Hanclik,
