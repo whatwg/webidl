@@ -1,0 +1,109 @@
+/*
+ * dom3val.idl
+ *
+ * DOM Level 3 Validation IDL definitions, rewritten in Web IDL.
+ *
+ * Original OMG IDL:
+ *
+ *   http://www.w3.org/TR/2004/REC-DOM-Level-3-Val-20040127/validation.idl
+ */
+
+module validation {
+
+  typedef dom::DOMStringList DOMStringList;
+  typedef dom::Node Node;
+  typedef dom::NameList NameList;
+  typedef dom::Attr Attr;
+  typedef dom::DOMConfiguration DOMConfiguration;
+  typedef dom::DOMException DOMException;
+
+  exception ExceptionVAL {
+    // ExceptionVALCode
+    const unsigned short      NO_SCHEMA_AVAILABLE_ERR        = 71;
+
+    unsigned short   code;
+  };
+
+  [PrototypeRoot]
+  interface NodeEditVAL {
+
+    // validationType
+    const unsigned short      VAL_WF                         = 1;
+    const unsigned short      VAL_NS_WF                      = 2;
+    const unsigned short      VAL_INCOMPLETE                 = 3;
+    const unsigned short      VAL_SCHEMA                     = 4;
+
+
+    // validationState
+    const unsigned short      VAL_TRUE                       = 5;
+    const unsigned short      VAL_FALSE                      = 6;
+    const unsigned short      VAL_UNKNOWN                    = 7;
+
+    readonly attribute DOMString?      defaultValue;
+    readonly attribute DOMStringList   enumeratedValues;
+    unsigned short     canInsertBefore(in Node newChild, 
+                                       in Node refChild);
+    unsigned short     canRemoveChild(in Node oldChild);
+    unsigned short     canReplaceChild(in Node newChild, 
+                                       in Node oldChild);
+    unsigned short     canAppendChild(in Node newChild);
+    unsigned short     nodeValidity(in unsigned short valType);
+  };
+
+  interface ElementEditVAL : NodeEditVAL {
+
+    // ContentTypeVAL
+    const unsigned short      VAL_EMPTY_CONTENTTYPE          = 1;
+    const unsigned short      VAL_ANY_CONTENTTYPE            = 2;
+    const unsigned short      VAL_MIXED_CONTENTTYPE          = 3;
+    const unsigned short      VAL_ELEMENTS_CONTENTTYPE       = 4;
+    const unsigned short      VAL_SIMPLE_CONTENTTYPE         = 5;
+
+    readonly attribute NameList        allowedChildren;
+    readonly attribute NameList        allowedFirstChildren;
+    readonly attribute NameList        allowedParents;
+    readonly attribute NameList        allowedNextSiblings;
+    readonly attribute NameList        allowedPreviousSiblings;
+    readonly attribute NameList        allowedAttributes;
+    readonly attribute NameList        requiredAttributes;
+    readonly attribute unsigned short  contentType;
+    unsigned short     canSetTextContent(in DOMString? possibleTextContent);
+    unsigned short     canSetAttribute(in DOMString attrname, 
+                                       in DOMString attrval);
+    unsigned short     canSetAttributeNode(in Attr attrNode);
+    unsigned short     canSetAttributeNS(in DOMString? namespaceURI, 
+                                         in DOMString qualifiedName, 
+                                         in DOMString value);
+    unsigned short     canRemoveAttribute(in DOMString attrname);
+    unsigned short     canRemoveAttributeNS(in DOMString? namespaceURI, 
+                                            in DOMString localName);
+    unsigned short     canRemoveAttributeNode(in Node attrNode);
+    unsigned short     isElementDefined(in DOMString name);
+    unsigned short     isElementDefinedNS(in DOMString? namespaceURI, 
+                                          in DOMString name);
+  };
+
+  interface CharacterDataEditVAL : NodeEditVAL {
+    unsigned short     isWhitespaceOnly();
+    unsigned short     canSetData(in DOMString arg);
+    unsigned short     canAppendData(in DOMString arg);
+    unsigned short     canReplaceData(in unsigned long offset, 
+                                      in unsigned long count, 
+                                      in DOMString arg)
+                                        raises(DOMException);
+    unsigned short     canInsertData(in unsigned long offset, 
+                                     in DOMString arg)
+                                        raises(DOMException);
+    unsigned short     canDeleteData(in unsigned long offset, 
+                                     in unsigned long count)
+                                        raises(DOMException);
+  };
+
+  interface DocumentEditVAL : NodeEditVAL {
+             attribute boolean         continuousValidityChecking setraises(DOMException, ExceptionVAL);
+
+    readonly attribute DOMConfiguration domConfig;
+    NameList           getDefinedElements(in DOMString? namespaceURI);
+    unsigned short     validateDocument();
+  };
+};
