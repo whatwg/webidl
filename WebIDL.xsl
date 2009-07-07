@@ -390,7 +390,9 @@
             <a href='#{$frag}'>
               <xsl:value-of select='$number'/>
               <xsl:text>. </xsl:text>
-              <xsl:value-of select='h:h2|h:h3|h:h4|h:h5|h:h6'/>
+              <xsl:for-each select='h:h2|h:h3|h:h4|h:h5|h:h6'>
+                <xsl:call-template name='toc-entry-name'/>
+              </xsl:for-each>
             </a>
             <xsl:call-template name='toc1'>
               <xsl:with-param name='prefix' select='$number'/>
@@ -399,6 +401,21 @@
         </xsl:for-each>
       </ul>
     </xsl:if>
+  </xsl:template>
+
+  <xsl:template name='toc-entry-name'>
+    <xsl:for-each select='node()'>
+      <xsl:choose>
+        <xsl:when test='self::h:var'>
+          <var>
+            <xsl:value-of select='.'/>
+          </var>
+        </xsl:when>
+        <xsl:otherwise>
+          <xsl:value-of select='.'/>
+        </xsl:otherwise>
+      </xsl:choose>
+    </xsl:for-each>
   </xsl:template>
 
   <xsl:template name='section-number'>
