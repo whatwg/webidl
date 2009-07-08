@@ -15,7 +15,7 @@
   <head>
     <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'/>
     <title>Web IDL</title>
-    <meta name='revision' content='$Id: Overview.xml,v 1.198 2009-07-07 07:34:24 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: Overview.xml,v 1.199 2009-07-08 01:05:45 cmccorma Exp $'/>
     <link rel='stylesheet' href='WebIDL.css' type='text/css'/>
     <script src='section-links.js' type='application/ecmascript'/>
     <script src='dfn.js' type='application/ecmascript'/>
@@ -2956,6 +2956,29 @@ interface Person {
               is the concatenation of the type name for <var>T</var> and
               the string “Sequence”.
             </p>
+            <div class='note'>
+              <p>
+                Since sequences are passed by value, a new copy of the object
+                representing the sequence is returned every time an attribute
+                of a sequence type is fetched.  Thus, it usually is not appropriate
+                to use a sequence type for an attribute.  In the following
+                example, a new <span class='estype'>Array</span> object is
+                allocated twice for every iteration of the loop
+                (once in the loop test expression and once
+                in the body of the loop):
+              </p>
+              <x:codeblock language='idl'>interface X {
+  readonly attribute sequence&lt;long> numbers;
+};</x:codeblock>
+              <x:codeblock language='es'>var x = getX();  <span class='comment'>// Obtain an instance of X.</span>
+for (var i = 0; i &lt; x.numbers.length; i++) {
+  document.write(x.numbers[i] + '\n');
+}</x:codeblock>
+              <p>
+                For attributes, it is recommended that a <a class='dfnref' href='#dfn-read-only-array'>read only array</a>
+                is used instead.
+              </p>
+            </div>
           </div>
 
           <div id='idl-array' class='section'>
@@ -2979,6 +3002,11 @@ interface Person {
               arrays cannot have their length changed by user code after they have been
               created, while variable length arrays can.  Unless otherwise
               specified, arrays are fixed length.
+            </p>
+            <p>
+              Arrays can also be designated as being <dfn id='dfn-read-only-array'>read only</dfn>.
+              User code cannot modify the values of read only array elements.
+              If an array is read only, then it is also implicitly <a class='dfnref' href='#dfn-fixed-length'>fixed length</a>.
             </p>
             <p>
               There is no way to represent an array constant value in IDL.
@@ -4128,6 +4156,9 @@ canvas.supportedImageCodecs[0] = "image/jpeg";
 <span class='comment'>// Still evaluates to "image/png".</span>
 canvas.supportedImageCodecs[0];
 
+<span class='comment'>// This evaluates to false.</span>
+canvas.supportedImageCodecs == canvas.supportedImageCodecs;
+
 
 <span class='comment'>// An Array of Numbers...</span>
 var a = [0, 0, 100, 0, 50, 62.5];
@@ -4256,7 +4287,9 @@ a[0] = 20;</x:codeblock>
               Array host objects <span class='rfc2119'>MUST</span> always have a property named
               ToString(<var>i</var>) for every integer index 0 &lt; <var>i</var> &lt; <var>n</var>,
               where <var>n</var> is the length of the array.  These properties have attributes
-              <span class='propattrset'>{ DontDelete }</span>.  The values of these properties
+              <span class='propattrset'>{ DontDelete, ReadOnly }</span> if the array is
+              <a class='dfnref' href='#dfn-read-only-array'>read only</a> and
+              <span class='propattrset'>{ DontDelete }</span> otherwise.  The values of these properties
               <span class='rfc2119'>MUST</span> be the result of <a class='dfnref' href='#dfn-convert-idl-to-ecmascript-value'>converting</a>
               the value of the array element at the corresponding index to an ECMAScript value.
             </p>
@@ -4452,6 +4485,9 @@ results.numbers.length;       <span class='comment'>// Evaluates to 3.</span></x
                   will not behave on a <a class='dfnref' href='#dfn-fixed-length'>fixed length</a> array
                   host object as they do on an <span class='estype'>Array</span> object, since
                   attempting to assign to the <span class='prop'>length</span> property will fail.
+                  Similarly, most of the functions from the <span class='estype'>Array</span>
+                  prototype object will not perform any useful operation on
+                  <a class='dfnref' href='#dfn-read-only-array'>read only arrays</a>.
                 </p>
               </div>
               <!--
@@ -8276,6 +8312,7 @@ public interface ObjectArray&lt;E&gt; {
               <dd>
                 <p>This method returns the current length of the <a href='#idl-array'>IDL array</a> value.</p>
               </dd>
+
               <dt><code>setLength(<var>length</var>)</code></dt>
               <dd>
                 <p>When called on an object representing a <a class='dfnref' href='#dfn-fixed-length'>variable length</a>
@@ -8283,19 +8320,26 @@ public interface ObjectArray&lt;E&gt; {
                 elements are set to the IDL value that results from <a class='dfnref' href='#dfn-convert-java-to-idl-value'>converting to an IDL value</a> the
                 <a href='http://java.sun.com/docs/books/jls/third_edition/html/typesValues.html#96595'>default value</a>
                 of the Java type that <var>T</var> corresponds to (<a href='#ref-JLS3'>[JLS3]</a>, section 4.12.5).</p>
+
                 <p>When called on an object representing a <a class='dfnref' href='#dfn-fixed-length'>fixed length</a>
                 array, this method throws a <span class='javatype'>java.lang.UnsupportedOperationException</span>.</p>
               </dd>
+
               <dt><code>getElement(<var>index</var>)</code></dt>
               <dd>
                 <p>This method returns the IDL value of type <var>T</var> at the represented array’s index <var>index</var>
                 <a class='dfnref' href='#dfn-convert-idl-to-java-value'>converted to a Java value</a>.</p>
               </dd>
+
               <dt><code>setElement(<var>index</var>, <var>value</var>)</code></dt>
               <dd>
-                <p>This method sets the IDL value at the represented array’s index <var>index</var> to
+                <p>When called on an object representing an array that is not <a class='dfnref' href='#dfn-read-only-array'>read only</a>,
+                this method sets the IDL value at the represented array’s index <var>index</var> to
                 the result of <a class='dfnref' href='#dfn-convert-java-to-idl-value'>converting</a>
                 <var>value</var> to an IDL value of type <var>T</var>.</p>
+
+                <p>When called on an object representing an array that is <a class='dfnref' href='#dfn-read-only-array'>read only</a>,
+                this method throws a <span class='javatype'>java.lang.UnsupportedOperationException</span>.</p>
               </dd>
             </dl>
 
@@ -8919,6 +8963,7 @@ module foo {
           David Andersson,
           L. David Baron,
           Robin Berjon,
+          Giovanni Campagna,
           Gorm Haug Eriksen,
           Marcin Hanclik,
           Ian Hickson,
