@@ -57,6 +57,14 @@ function dfnShow(event) {
     if (node) {
       var panel = document.createElement('div');
       panel.className = 'dfnPanel';
+      if (node.id) {
+        var permalinkP = document.createElement('p');
+        var permalinkA = document.createElement('a');
+        permalinkA.href = '#' + node.id;
+        permalinkA.textContent = '#' + node.id;
+        permalinkP.appendChild(permalinkA);
+        panel.appendChild(permalinkP);
+      }
       var p = document.createElement('p');
       panel.appendChild(p);
       if (node.id in dfnMap || node.parentNode.id in dfnMap) {
