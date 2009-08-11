@@ -15,7 +15,7 @@
   <head>
     <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'/>
     <title>Web IDL</title>
-    <meta name='revision' content='$Id: Overview.xml,v 1.202 2009-08-08 00:28:23 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: Overview.xml,v 1.203 2009-08-11 06:08:25 cmccorma Exp $'/>
     <link rel='stylesheet' href='WebIDL.css' type='text/css'/>
     <script src='section-links.js' type='application/ecmascript'/>
     <script src='dfn.js' type='application/ecmascript'/>
@@ -1146,7 +1146,7 @@ interface Person {
               An <dfn id='dfn-operation'>operation</dfn> is an <a class='dfnref' href='#dfn-interface-member'>interface member</a> that matches an
               <a class='nt' href='#prod-AttributeOrOperation'>AttributeOrOperation</a> non-terminal with no
               <a class='nt' href='#prod-Attribute'>Attribute</a> non-terminal in its derivation.  There are two
-              kinds of operation: a <dfn id='dfn-regular-operation'>regular operations</dfn>, which
+              kinds of operation: <dfn id='dfn-regular-operation'>regular operations</dfn>, which
               are those used to declare that objects implementing the
               <a class='dfnref' href='#dfn-interface'>interface</a> will have a method with 
               the given <a class='dfnref' href='#dfn-identifier'>identifier</a>,
@@ -1347,7 +1347,7 @@ s.union(1, 4, 7);         <span class='comment'>// Passing three arguments corre
               <a class='xattr' href='#TreatUndefinedAs'>[TreatUndefinedAs]</a>.
             </p>
 
-            <?productions grammar Operation OperationRest OmittableSpecials Specials ReturnType OptionalIdentifier ArgumentList Arguments Argument In Optional Ellipsis Raises?>
+            <?productions grammar Operation OperationRest OmittableSpecials Specials Special ReturnType OptionalIdentifier ArgumentList Arguments Argument In Optional Ellipsis Raises?>
           </div>
 
           <div id='idl-special-operations' class='section'>
@@ -1355,7 +1355,7 @@ s.union(1, 4, 7);         <span class='comment'>// Passing three arguments corre
 
             <p>
               A <dfn id='dfn-special-operation'>special operation</dfn> is a
-              declaration of a certain kind of special behavior on objects implement
+              declaration of a certain kind of special behavior on objects implementing
               the interface on which the special operation declarations appear.
               Special operations are declared by using one or more
               <a class='nt' href='#prod-Special'>Special</a> keywords in an
@@ -1493,7 +1493,11 @@ dictionary.x = 1;                  <span class='comment'>// Invokes the property
             </div>
             <p>
               The <span class='terminal'>"omittable"</span> keyword <span class='rfc2119'>MUST NOT</span>
-              be used on an operation that does not also have any <a class='nt' href='#prod-Special'>Special</a> keywords.
+              appear on an operation that has no identifier.
+            </p>
+            <p>
+              A given <a class='nt' href='#prod-Special'>Special</a> keyword <span class='rfc2119'>MUST NOT</span>
+              appear twice on an operation.
             </p>
             <p>
               Getters, setters, creators and deleters come in two varieties: one that
@@ -1508,8 +1512,9 @@ dictionary.x = 1;                  <span class='comment'>// Invokes the property
             <p>
               On a given <a class='dfnref' href='#dfn-interface'>interface</a>,
               there <span class='rfc2119'>MUST</span> exist at most one
-              caller and stringifier and at most one of each variety of getter,
-              setter, creator and deleter.
+              stringifier and at most one of each variety of getter, setter,
+              creator and deleter.  Multiple callers can exist on an interface
+              to specify overloaded calling behavior.
             </p>
             <p>
               Special operations declared using operations <span class='rfc2119'>MUST NOT</span>
@@ -1526,19 +1531,16 @@ dictionary.x = 1;                  <span class='comment'>// Invokes the property
               <h5>Callers</h5>
 
               <p>
-                When an <a class='dfnref' href='#dfn-interface'>interface</a> has a
-                <a class='dfnref' href='#dfn-caller'>caller</a>, it indicates that objects that implement
+                When an <a class='dfnref' href='#dfn-interface'>interface</a> has one or more
+                <a class='dfnref' href='#dfn-caller'>callers</a>, it indicates that objects that implement
                 the interface can be called as if they were functions.  As mentioned above,
                 callers can be specified using an <a class='dfnref' href='#dfn-operation'>operation</a>
                 declared with the <span class='terminal'>"caller"</span> keyword.
               </p>
               <p>
-                If an operation used to declare a stringifier does not have an 
-                <a class='dfnref' href='#dfn-identifier'>identifier</a>, then prose
-                accompanying the interface <span class='rfc2119'>MUST</span> define
-                the <dfn id='dfn-calling-behavior'>calling behavior</dfn>
-                of the interface.  If the operation does have an identifier,
-                then the object’s calling behavior is to invoke the operation.
+                If multiple callers are specified on an interface, overload resolution
+                is used to determine which caller is invoked when the object is called
+                as if it were a function.
               </p>
 
               <div class='example'>
@@ -1797,43 +1799,43 @@ var greeting = 'Hi ' + s;  <span class='comment'>// Now greeting == 'Hi Alan Smi
 var map = getOrderedMap();
 var x, y;
 
-x = map[0];       <span class='comment'>// If map.length > 0, then this is equivalent to:</span>
+x = map[0];       <span class='comment'>// If map.length > 0, then this is equivalent to:
                   //
-                  <span class='comment'>//   x = map.getByIndex(0)</span>
+                  //   x = map.getByIndex(0)
                   //
-                  <span class='comment'>// since a property named "0" will have been placed on map.</span>
-                  <span class='comment'>// Otherwise, x will be set to undefined, since there will be</span>
-                  <span class='comment'>// no property named "0" on map.</span>
+                  // since a property named "0" will have been placed on map.
+                  // Otherwise, x will be set to undefined, since there will be
+                  // no property named "0" on map.</span>
 
-map[1] = false;   <span class='comment'>// If map.length > 1, then this will set the property named</span>
-                  <span class='comment'>// "1" on map to false, and then will do the equivalent of:</span>
+map[1] = false;   <span class='comment'>// If map.length > 1, then this will set the property named
+                  // "1" on map to false, and then will do the equivalent of:
                   //
-                  <span class='comment'>//   map.setByIndex(1, false)</span>
+                  //   map.setByIndex(1, false)
                   //
-                  <span class='comment'>// Otherwise, if map.length ≤ 1, then it will set the</span>
-                  <span class='comment'>// property but have no other effect (since an index creator</span>
-                  <span class='comment'>// was not specified).</span>
+                  // Otherwise, if map.length ≤ 1, then it will set the
+                  // property but have no other effect (since an index creator
+                  // was not specified).</span>
 
-y = map.apple;    <span class='comment'>// If there exists a named property named "apple", then this</span>
-                  <span class='comment'>// will be equivalent to:</span>
+y = map.apple;    <span class='comment'>// If there exists a named property named "apple", then this
+                  // will be equivalent to:
                   //
-                  <span class='comment'>//   y = map.get('apple')</span>
+                  //   y = map.get('apple')
                   //
-                  <span class='comment'>// since a property named "apple" will have been placed on</span>
-                  <span class='comment'>// map.  Otherwise, y will be set to undefined, since there</span>
-                  <span class='comment'>// will be no property named "apple" on map.</span>
+                  // since a property named "apple" will have been placed on
+                  // map.  Otherwise, y will be set to undefined, since there
+                  // will be no property named "apple" on map.</span>
 
-map.berry = 123;  <span class='comment'>// Regardless of whether there exists a named property named</span>
-                  <span class='comment'>// "banana", this will set the "berry" property to 123, and</span>
-                  <span class='comment'>// then do the equivalent of:</span>
-                  <span class='comment'>// </span>
-                  <span class='comment'>//   map.set('berry', 123)</span>
-
-delete map.cake;  <span class='comment'>// If a named property named "cake" exists, then the "cake"</span>
-                  <span class='comment'>// property will be deleted, and then the equivalent to the</span>
-                  <span class='comment'>// following will be performed:</span>
+map.berry = 123;  <span class='comment'>// Regardless of whether there exists a named property named
+                  // "banana", this will set the "berry" property to 123, and
+                  // then do the equivalent of:
                   //
-                  <span class='comment'>//   map.remove("cake")</span>
+                  //   map.set('berry', 123)</span>
+
+delete map.cake;  <span class='comment'>// If a named property named "cake" exists, then the "cake"
+                  // property will be deleted, and then the equivalent to the
+                  // following will be performed:
+                  //
+                  //   map.remove("cake")</span>
 </x:codeblock></div>
             </div>
 
@@ -1908,8 +1910,8 @@ delete map.cake;  <span class='comment'>// If a named property named "cake" exis
             </div>
           </div>
 
-          <div id='idl-operation-overloading' class='section'>
-            <h4>Operation overloading</h4>
+          <div id='idl-overloading' class='section'>
+            <h4>Overloading</h4>
 
             <p>
               If a <a class='dfnref' href='#dfn-regular-operation'>regular operation</a>
@@ -1922,10 +1924,14 @@ delete map.cake;  <span class='comment'>// If a named property named "cake" exis
               operations on an object that implements the interface, the
               number and types of the arguments passed to the operation
               determine which of the overloaded operations is actually
-              invoked.  There are some restrictions on the arguments that
-              overloaded operations can be specified to take, and in
-              order to describe these restrictions, the notion of an
-              <em>effective overload set</em> is used.
+              invoked.  If an interface has multiple
+              <a class='dfnref' href='#dfn-caller'>callers</a> defined on it,
+              then those callers are also said to be overloaded.
+              In the ECMAScript language binding, <a href='#Constructor'>constructors</a>
+              can be overloaded too.  There are some restrictions on the arguments
+              that overloaded operations, callers and constructors can be
+              specified to take, and in order to describe these restrictions,
+              the notion of an <em>effective overload set</em> is used.
             </p>
             <p>
               An <dfn id='dfn-effective-overload-set'>effective overload set</dfn>
@@ -1941,19 +1947,21 @@ delete map.cake;  <span class='comment'>// If a named property named "cake" exis
               that have the specified identifier on that interface.  The
               set is used to determine whether there are ambiguities in the 
               overloaded operations or constructors specified on the interface.
-              The effective overload set is stated to be either
-              “for operations” or “for constructors”, to distinguish between
-              these two uses.
+              The effective overload set is stated to be
+              “for regular operations”, “for constructors” or “for callers”,
+              to distinguish between these three uses.  Effective overload sets for
+              callers do not use an identifier; only an argument count,
+              interface and target language binding are needed.
             </p>
             <p>
               The elements of an effective overload set are triples of the form
               &lt;<var>f</var>, <var>types</var>, <var>any</var>>.  If the effective overload
-              set is for operations, then <var>f</var> is an operation,
+              set is for regular operations or for callers, then <var>f</var> is an operation,
               and if it is for constructors, then <var>f</var> is an
               extended attribute.  In either case, <var>types</var> is a list
               of IDL types and <var>any</var> is a list of boolean values.
-              Each triple represents an allowable invocation of the operation
-              or constructor with an argument value list of the given types.
+              Each triple represents an allowable invocation of the regular operation,
+              constructor or caller with an argument value list of the given types.
               <var>any</var> specifies whether a particular argument has been
               annotated with the <a class='xattr' href='#AllowAny'>[AllowAny]</a>
               <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>.
@@ -1967,16 +1975,15 @@ delete map.cake;  <span class='comment'>// If a named property named "cake" exis
               The effective overload set for identifier <var>A</var>,
               argument count <var>N</var>,
               interface <var>I</var> and a given target language binding
-              is derived as follows.  Whenever
-              an argument of an extended attribute is mentioned, it is
-              referring to an argument of the extended attribute’s
-              <a class='dfnref' href='#dfn-xattr-named-argument-list'>named argument list</a>.
+              is derived as follows.  Whenever an argument of an extended
+              attribute is mentioned, it is referring to an argument of the
+              extended attribute’s <a class='dfnref' href='#dfn-xattr-named-argument-list'>named argument list</a>.
             </p>
             <ol class='algorithm'>
               <li>Initialize <var>S</var> to ∅.</li>
               <li>Let <var>F</var> be a set with elements as follows, according to the kind of effective overload set:
                 <dl class='switch'>
-                  <dt>For operations</dt>
+                  <dt>For regular operations</dt>
                   <dd>
                     The elements of <var>F</var> are the <a class='dfnref' href='#dfn-regular-operation'>regular operations</a> with
                     identifier <var>A</var> defined on interface <var>I</var>.
@@ -1992,26 +1999,35 @@ delete map.cake;  <span class='comment'>// If a named property named "cake" exis
                     <a class='nt' href='#Constructor'>[Constructor]</a> extended
                     attributes on <var>I</var>.
                   </dd>
+                  <dt>For callers</dt>
+                  <dd>
+                    The elements of <var>F</var> are the <a class='dfnref' href='#dfn-caller'>callers</a>
+                    defined on interface <var>I</var>.
+                  </dd>
                 </dl>
               </li>
-              <li>
-                If the target language binding supports object indexing,
-                then remove from <var>F</var> any operation that is declared
-                to be an <a class='dfnref' href='#dfn-omittable'>omittable</a>
-                <a class='dfnref' href='#dfn-getter'>getter</a>,
-                <a class='dfnref' href='#dfn-setter'>setter</a>,
-                <a class='dfnref' href='#dfn-creator'>creator</a> or
-                <a class='dfnref' href='#dfn-deleter'>deleter</a>.
-              </li>
-              <li>
-                If the target language binding supports object calling,
-                then remove from <var>F</var> any operation that is declared
-                to be an omittable <a class='dfnref' href='#dfn-caller'>caller</a>.
-              </li>
-              <li>
-                If the target language binding supports object stringification,
-                then remove from <var>F</var> any operation that is declared
-                to be an omittable <a class='dfnref' href='#dfn-stringifier'>stringifier</a>.
+              <li>If the effective overload set is for regular operations, then:
+                <ol>
+                  <li>
+                    If the target language binding supports object indexing,
+                    then remove from <var>F</var> any operation that is declared
+                    to be an <a class='dfnref' href='#dfn-omittable'>omittable</a>
+                    <a class='dfnref' href='#dfn-getter'>getter</a>,
+                    <a class='dfnref' href='#dfn-setter'>setter</a>,
+                    <a class='dfnref' href='#dfn-creator'>creator</a> or
+                    <a class='dfnref' href='#dfn-deleter'>deleter</a>.
+                  </li>
+                  <li>
+                    If the target language binding supports object calling,
+                    then remove from <var>F</var> any operation that is declared
+                    to be an omittable <a class='dfnref' href='#dfn-caller'>caller</a>.
+                  </li>
+                  <li>
+                    If the target language binding supports object stringification,
+                    then remove from <var>F</var> any operation that is declared
+                    to be an omittable <a class='dfnref' href='#dfn-stringifier'>stringifier</a>.
+                  </li>
+                </ol>
               </li>
               <li>Let <var>maxarg</var> be the maximum number of arguments the operations or constructor extended attributes in <var>F</var> are declared to take.</li>
               <li>Let <var>m</var> be the maximum of <var>maxarg</var> and <var>N</var>.</li>
@@ -6143,7 +6159,7 @@ c.isMemberOfBreed(undefined);  <span class='comment'>// This passes the string "
                   <li>
                     Initialize <var>S</var> to the
                     <a class='dfnref' href='#dfn-effective-overload-set'>effective overload set</a>
-                    for <a class='dfnref' href='#dfn-operation'>operations</a> with
+                    for <a class='dfnref' href='#dfn-regular-operation'>regular operations</a> with
                     <a class='dfnref' href='#dfn-identifier'>identifier</a>
                     <var>id</var> on <a class='dfnref' href='#dfn-interface'>interface</a>
                     <var>I</var> and with argument count <var>n</var> (for the ECMAScript language binding).
@@ -6196,7 +6212,7 @@ c.isMemberOfBreed(undefined);  <span class='comment'>// This passes the string "
                   <li>
                     Initialize <var>S</var> to the
                     <a class='dfnref' href='#dfn-effective-overload-set'>effective overload set</a>
-                    for <a class='dfnref' href='#dfn-operation'>operations</a> with
+                    for <a class='dfnref' href='#dfn-regular-operation'>regular operations</a> with
                     <a class='dfnref' href='#dfn-identifier'>identifier</a>
                     <var>id</var> on <a class='dfnref' href='#dfn-interface'>interface</a>
                     <var>I</var> and with argument count 0 (for the ECMAScript language binding).
@@ -6914,34 +6930,40 @@ c.isMemberOfBreed(undefined);  <span class='comment'>// This passes the string "
           <div id='call' class='section'>
             <h4>Host object [[Call]] method</h4>
 
-            <div class='ednote'>
-              <p><a href='http://krijnhoetmer.nl/irc-logs/whatwg/20090808#l-19'>HTML 5 needs overloaded callers.</a></p>
-            </div>
             <p>
               The internal <span class='prop'>[[Call]]</span> method of every
               host object <var>O</var> that implements an <a class='dfnref' href='#dfn-interface'>interface</a>
-              with a <a class='dfnref' href='#dfn-caller'>caller</a>
-              <span class='rfc2119'>MUST</span> behave as follows:
+              <var>I</var> with at least one <a class='dfnref' href='#dfn-caller'>caller</a>
+              <span class='rfc2119'>MUST</span> behave as follows, assuming
+              <var>arg</var><sub>0..<var>n</var>−1</sub> is the list of argument
+              values passed to <span class='prop'>[[Call]]</span>:
             </p>
             <ol class='algorithm'>
-              <li>
-                If the caller was defined using an <a class='dfnref' href='#dfn-operation'>operation</a>
-                without an <a class='dfnref' href='#dfn-identifier'>identifier</a>, then:
-                <ol>
-                  <li>Perform the steps listed in the interface description as its <a class='dfnref' href='#dfn-calling-behaviour'>calling behavior</a>
-                    with the arguments that were passed to the <span class='prop'>[[Call]]</span> method.</li>
-                  <li>Return the result of running the steps, or <span class='idlvalue'>undefined</span> if there was no return value.</li>
-                </ol>
-              </li>
-              <li>
-                Otherwise, the caller was defined using an operation with an identifier:
-                <ol>
-                  <li>Determine a callable object that corresponds to the <span class='terminal'>"caller"</span>-annotated operation.</li>
-                  <li>Let <var>R</var> be the result of invoking the <span class='prop'>[[Call]]</span> method of the callable object, providing <var>O</var> as the <span class='esvalue'>this</span>
-                    value and with the arguments that were passed in to this <span class='prop'>[[Call]]</span> method.</li>
-                  <li>Return <var>R</var>.</li>
-                </ol>
-              </li>
+              <li>Initialize <var>S</var> to the <a class='dfnref' href='#dfn-effective-overload-set'>effective overload</a>
+                for callers on <var>I</var> and with argument count <var>n</var> (for the
+                ECMAScript language binding).</li>
+              <li>Set <var>S</var> to be the result of passing <var>S</var> and
+                <var>arg</var><sub>0..<var>n</var>−1</sub> to the
+                <a class='dfnref' href='#dfn-overload-resolution-algorithm'>overload resolution algorithm</a>.</li>
+              <li>If <var>S</var> is empty, throw a <span class='estype'>TypeError</span>.</li>
+              <li>If <var>S</var> contains more than one entry, then the call is ambiguous.  Remove all but
+                one entry from <var>S</var> according to the rules specified in the description of
+                <a class='dfnref' href='#dfn-interface'>interface</a> <var>I</var>, or arbitrarily
+                if no such rules exist.</li>
+              <li>Let <var>op</var> be the operation and <var>t</var><sub>0..<var>m</var>−1</sub> be the type list
+                of the single entry in <var>S</var>.</li>
+              <li>Let <var>idlarg</var><sub>0..<var>m</var>−1</sub> be a list of IDL values,
+                where <var>idlarg</var><sub><var>i</var></sub> is the result of
+                <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a>
+                <var>arg</var><sub><var>i</var></sub> to an IDL value.</li>
+              <li>Perform the actions listed in the description of caller <var>op</var> with
+                <var>idlarg</var><sub>0..<var>m</var>−1</sub> as the argument values.</li>
+              <li>If the actions performed in the previous step resulted in an exception being thrown,
+                then allow that exception to propagate out from this algorithm.</li>
+              <li>Otherwise, return the result of <a class='dfnref' href='#dfn-convert-idl-to-ecmascript-value'>converting</a>
+                the return value from those actions to an ECMAScript value of the type
+                <var>op</var> is declared to return (or <span class='esvalue'>undefined</span>
+                if <var>op</var> is declared to return <span class='idltype'>void</span>).</li>
             </ol>
           </div>
         </div>
@@ -8506,7 +8528,9 @@ module foo {
               <li>
                 For each entry &lt;<var>op</var>, <var>types</var>, <var>any</var>> in the
                 <a class='dfnref' href='#dfn-effective-overload-set'>effective overload set</a>
-                for <var>id</var> on <var>I</var> and with argument count <var>0</var> (for the Java language binding), there <span class='rfc2119'>MUST</span>
+                for <a class='dfnref' href='#dfn-regular-operation'>regular operations</a>
+                with identifier <var>id</var> on <var>I</var> and with argument
+                count <var>0</var> (for the Java language binding), there <span class='rfc2119'>MUST</span>
                 exist a method on the Java interface with the following
                 characteristics:
                 <ul>
@@ -9105,8 +9129,9 @@ module foo {
           <prod nt='GetRaises'>"getraises" ExceptionList | ε</prod>
           <prod nt='SetRaises'>"setraises" ExceptionList | ε</prod>
           <prod nt='Operation'>OmittableSpecials OperationRest</prod>
-          <prod nt='OmittableSpecials'>"omittable" Specials | Specials | ε</prod>
-          <prod nt='Specials'>"getter" | "setter" | "creator" | "setter" "creator" | "creator" "setter" | "deleter" | "caller"</prod>
+          <prod nt='OmittableSpecials'>"omittable" Specials | Specials</prod>
+          <prod nt='Specials'>Special Specials | ε</prod>
+          <prod nt='Special'>"getter" | "setter" | "creator" | "deleter" | "caller"</prod>
           <prod nt='OperationRest'>ReturnType OptionalIdentifier "(" ArgumentList ")" Raises ";"</prod>
           <prod nt='OptionalIdentifier'>identifier | ε</prod>
           <prod nt='Raises'>"raises" ExceptionList | ε</prod>
@@ -9315,6 +9340,11 @@ module foo {
           <dt>Current editor’s draft</dt>
           <dd>
             <ul>
+              <li>
+                <p>
+                  Allowed callers to be overloaded.
+                </p>
+              </li>
               <li>
                 <p>
                   Defined the <span class='prop'>length</span> property on
