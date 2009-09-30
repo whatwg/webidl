@@ -230,9 +230,7 @@
         <xsl:otherwise><xsl:value-of select='$temp'/></xsl:otherwise>
       </xsl:choose>
     </xsl:variable>
-    <xsl:variable name='prefix'>
-      <xsl:if test='contains($temp, " ")'><xsl:value-of select='substring-after($temp, " ")'/></xsl:if>
-    </xsl:variable>
+    <xsl:variable name='prefix'><xsl:if test='contains($temp, " ")'><xsl:value-of select='substring-after($temp, " ")'/></xsl:if></xsl:variable>
     <p>
       <em>
         This section describes the status of this document at the time of
@@ -250,7 +248,7 @@
       </xsl:if>
       Please send comments about this document to
       <a href='mailto:{$mail}'><xsl:value-of select='$mail'/></a>
-      (<a href='{$archive}'>archived</a>)<xsl:if test='$prefix'>
+      (<a href='{$archive}'>archived</a>)<xsl:if test='$prefix != ""'>
       with “<xsl:value-of select='$prefix'/>” at the start of the subject line</xsl:if>.
     </p>
   </xsl:template>
