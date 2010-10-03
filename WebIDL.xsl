@@ -11,6 +11,8 @@
               doctype-system='http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd'
               media-type='application/xhtml+xml; charset=UTF-8'/>
 
+  <xsl:param name='year'>??</xsl:param>
+
   <xsl:variable name='options' select='/*/h:head/x:options'/>
   <xsl:variable name='id' select='/*/h:head/h:meta[@name="revision"]/@content'/>
   <xsl:variable name='rev' select='substring-before(substring-after(substring-after($id, " "), " "), " ")'/>
@@ -166,7 +168,17 @@
           </dd>
         </xsl:for-each>
       </dl>
-      <p class="copyright"><a href="http://www.w3.org/Consortium/Legal/ipr-notice#Copyright">Copyright</a><xsl:text disable-output-escaping='yes'> &amp;copy; </xsl:text><xsl:value-of select='concat(substring($options/x:versions/x:this/@href, string-length($options/x:versions/x:this/@href) - 8, 4), " ")'/><a href="http://www.w3.org/"><abbr title="World Wide Web Consortium">W3C</abbr></a><sup><xsl:text disable-output-escaping='yes'>&amp;reg;</xsl:text></sup> (<a href="http://www.csail.mit.edu/"><abbr title="Massachusetts Institute of Technology">MIT</abbr></a>, <a href="http://www.ercim.org/"><abbr title="European Research Consortium for Informatics and Mathematics">ERCIM</abbr></a>, <a href="http://www.keio.ac.jp/">Keio</a>), All Rights Reserved. W3C <a href="http://www.w3.org/Consortium/Legal/ipr-notice#Legal_Disclaimer">liability</a>, <a href="http://www.w3.org/Consortium/Legal/ipr-notice#W3C_Trademarks">trademark</a> and <a href="http://www.w3.org/Consortium/Legal/copyright-documents">document use</a> rules apply.</p>
+      <xsl:variable name='year'>
+        <xsl:choose>
+          <xsl:when test='$options/x:maturity="ED"'>
+            <xsl:value-of select='$year'/>
+          </xsl:when>
+          <xsl:otherwise>
+            <xsl:value-of select='substring($options/x:versions/x:this/@href, string-length($options/x:versions/x:this/@href) - 8, 4)'/>
+          </xsl:otherwise>
+        </xsl:choose>
+      </xsl:variable>
+      <p class="copyright"><a href="http://www.w3.org/Consortium/Legal/ipr-notice#Copyright">Copyright</a><xsl:text disable-output-escaping='yes'> &amp;copy; </xsl:text><xsl:value-of select='concat($year, " ")'/><a href="http://www.w3.org/"><abbr title="World Wide Web Consortium">W3C</abbr></a><sup><xsl:text disable-output-escaping='yes'>&amp;reg;</xsl:text></sup> (<a href="http://www.csail.mit.edu/"><abbr title="Massachusetts Institute of Technology">MIT</abbr></a>, <a href="http://www.ercim.org/"><abbr title="European Research Consortium for Informatics and Mathematics">ERCIM</abbr></a>, <a href="http://www.keio.ac.jp/">Keio</a>), All Rights Reserved. W3C <a href="http://www.w3.org/Consortium/Legal/ipr-notice#Legal_Disclaimer">liability</a>, <a href="http://www.w3.org/Consortium/Legal/ipr-notice#W3C_Trademarks">trademark</a> and <a href="http://www.w3.org/Consortium/Legal/copyright-documents">document use</a> rules apply.</p>
     </div>
     <hr/>
   </xsl:template>
