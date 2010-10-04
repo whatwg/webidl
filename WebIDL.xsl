@@ -11,12 +11,14 @@
               doctype-system='http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd'
               media-type='application/xhtml+xml; charset=UTF-8'/>
 
-  <xsl:param name='year'>??</xsl:param>
-
   <xsl:variable name='options' select='/*/h:head/x:options'/>
   <xsl:variable name='id' select='/*/h:head/h:meta[@name="revision"]/@content'/>
   <xsl:variable name='rev' select='substring-before(substring-after(substring-after($id, " "), " "), " ")'/>
   <xsl:variable name='tocpi' select='//processing-instruction("toc")[1]'/>
+
+  <xsl:param name='now'>12340506<!--
+    <xsl:value-of select='translate(substring-before(substring-after(substring-after(substring-after($id, " "), " "), " "), " "), "/", "")'/>-->
+  </xsl:param>
 
   <xsl:template match='/'>
     <xsl:text>&#xa;</xsl:text>
@@ -171,7 +173,7 @@
       <xsl:variable name='year'>
         <xsl:choose>
           <xsl:when test='$options/x:maturity="ED"'>
-            <xsl:value-of select='$year'/>
+            <xsl:value-of select='substring($now, 1, 4)'/>
           </xsl:when>
           <xsl:otherwise>
             <xsl:value-of select='substring($options/x:versions/x:this/@href, string-length($options/x:versions/x:this/@href) - 8, 4)'/>
@@ -187,7 +189,7 @@
     <xsl:variable name='date'>
       <xsl:choose>
         <xsl:when test='$options/x:maturity="ED"'>
-          <xsl:value-of select='translate(substring-before(substring-after(substring-after(substring-after($id, " "), " "), " "), " "), "/", "")'/>
+          <xsl:value-of select='$now'/>
         </xsl:when>
         <xsl:otherwise>
           <xsl:value-of select='substring($options/x:versions/x:this/@href, string-length($options/x:versions/x:this/@href) - 8, 8)'/>
