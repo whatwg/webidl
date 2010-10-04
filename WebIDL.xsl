@@ -354,7 +354,7 @@
     <xsl:if test='$options/x:maturity="ED"'>
       <div class='ednote'>
         <div class='ednoteHeader'>Editorial note</div>
-        <p>This is revision <xsl:value-of select='$id'/>.</p>
+        <p>This version of the document is built from source revision <xsl:text disable-output-escaping='yes'>&amp;#36;</xsl:text><xsl:value-of select='substring($id, 2)'/>.</p>
         <xsl:variable name='n' select='count(//h:div[@class="ednote"])'/>
         <xsl:if test='$n'>
           <p>There are <xsl:value-of select='$n'/> further editorial notes in the document.</p>
