@@ -15,7 +15,7 @@
   <head>
     <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'/>
     <title>Web IDL</title>
-    <meta name='revision' content='$Id: Overview.xml,v 1.220 2010-10-06 04:17:06 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: Overview.xml,v 1.221 2010-10-06 22:19:26 cmccorma Exp $'/>
     <link rel='stylesheet' href='WebIDL.css' type='text/css'/>
     <script src='section-links.js' type='application/ecmascript'/>
     <script src='dfn.js' type='application/ecmascript'/>
@@ -1116,6 +1116,7 @@ exception Error {
               The following <a class='dfnref' href='#dfn-extended-attribute'>extended attributes</a>
               are applicable to attributes:
               <a class='xattr' href='#PutForwards'>[PutForwards]</a>,
+              <a class='xattr' href='#Replaceable'>[Replaceable]</a>,
               <a class='xattr' href='#TreatNullAs'>[TreatNullAs]</a>,
               <a class='xattr' href='#TreatUndefinedAs'>[TreatUndefinedAs]</a>.
             </p>
@@ -5369,7 +5370,13 @@ Node implements EventTarget;</x:codeblock>
               encountered more than once.
             </p>
             <p>
-              See the <a href='#put'>Host object [[Put]] method</a> section <?sdir put?> for how
+              An attribute with the <a class='xattr' href='#PutForwards'>[PutForwards]</a>
+              extended attribute <span class='rfc2119'>MUST NOT</span> also be declared
+              with the <a class='xattr' href='#Replaceable'>[Replaceable]</a>
+              extended attribute.
+            </p>
+            <p>
+              See the <a href='#es-attributes'>Attributes</a> section <?sdir es-attributes?> for how
               <a class='xattr' href='#PutForwards'>[PutForwards]</a>
               is to be implemented.
             </p>
@@ -5421,6 +5428,12 @@ p.name.full = 'John Citizen';  <span class='comment'>// ...has the same behavior
               The <a class='xattr' href='#Replaceable'>[Replaceable]</a>
               extended attribute <span class='rfc2119'>MUST</span>
               <a class='dfnref' href='#dfn-xattr-no-argument'>take no argument</a>.
+            </p>
+            <p>
+              An attribute with the <a class='xattr' href='#Replaceable'>[READ_ERROR]</a>
+              extended attribute <span class='rfc2119'>MUST NOT</span> also be declared
+              with the <a class='xattr' href='#PutForwards'>[PutForwards]</a>
+              extended attribute.
             </p>
             <div class='example'>
               <p>
@@ -6228,7 +6241,92 @@ c.isMemberOfBreed(undefined);  <span class='comment'>// This passes the string "
           <div id='es-attributes' class='section'>
             <h4>Attributes</h4>
 
-            <p>...</p>
+            <p>
+              For each <a class='dfnref' href='#dfn-attribute'>attribute</a> defined on
+              the <a class='dfnref' href='#dfn-interface'>interface</a> whose <a class='dfnref' href='#dfn-identifier'>identifier</a>
+              is not “constructor”, there
+              <span class='rfc2119'>MUST</span> be a corresponding property on
+              the <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype object</a>,
+              whose characteristics are as follows:
+            </p>
+            <ul>
+              <li>
+                The name of the property is the <a class='dfnref' href='#dfn-identifier'>identifier</a> of the <a class='dfnref' href='#dfn-attribute'>attribute</a>.
+              </li>
+              <li>
+                The property has attributes <span class='descriptor'>{ [[Get]]: <var>G</var>, [[Set]]: <var>S</var>, [[Enumerable]]: <span class='esvalue'>true</span>, [[Configurable]]: <span class='esvalue'>true</span> }</span>,
+                where <var>G</var> is the <a class='dfnref' href='#dfn-attribute-getter'>attribute getter</a>
+                and <var>S</var> is the <a class='dfnref' href='#dfn-attribute-setter'>attribute setter</a>,
+                both of which are defined below.
+              </li>
+              <li>
+                The <dfn id='dfn-attribute-getter'>attribute getter</dfn> is a <span class='estype'>Function</span>
+                object whose behavior when invoked is as follows:
+                <ol class='algorithm'>
+                  <li>
+                    Let <var>idlValue</var> be the result of performing the actions listed in the description of the attribute that occur when getting,
+                    with <var>O</var> as the object.
+                  </li>
+                  <li>
+                    Let <var>V</var> be the result of <a class='dfnref' href='#dfn-convert-idl-to-ecmascript-value'>converting</a>
+                    the <var>idlValue</var> to an ECMAScript value.
+                  </li>
+                  <li>
+                    Return <var>V</var>.
+                  </li>
+                </ol>
+                The value of the <span class='estype'>Function</span> object’s <span class='prop'>length</span>
+                property is the <span class='estype'>Number</span> value <span class='esvalue'>0</span>.
+              </li>
+              <li>
+                The <dfn id='dfn-attribute-setter'>attribute setter</dfn> is <span class='esvalue'>undefined</span>
+                if the attribute is declared <code>readonly</code> and has neither a
+                <a class='xattr' href='#PutForwards'>[PutForwards]</a> nor a <a class='xattr' href='#Replaceable'>[Replaceable]</a>
+                <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a> declared on it.
+                Otherwise, it is a <span class='estype'>Function</span> object whose behavior when invoked is as follows:
+                <ol class='algorithm'>
+                  <li>Let <var>O</var> be the result of calling ToObject on the <span class='esvalue'>this</span> value.</li>
+                  <li>If <var>O</var> is not an instance of the <a class='dfnref' href='#dfn-interface'>interface</a>
+                    on which the attribute was declared, then throw a <span class='estype'>TypeError</span>.</li>
+                  <li>Let <var>V</var> be the value of the first argument passed to the <span class='estype'>Function</span>,
+                    or <span class='esvalue'>undefined</span> is no arguments were passed.</li>
+                  <li>If the attribute is declared with a <a class='xattr' href='#PutForwards'>[PutForwards]</a>
+                    extended attribute, then:
+                    <ol>
+                      <li>Let <var>Q</var> be the result of calling the <a class='dfnref' href='#dfn-attribute-getter'>attribute getter</a>
+                        for this attribute, using <var>O</var> as the <span class='esvalue'>this</span> value.</li>
+                      <li>If <var>Q</var> is not an object, then throw a <span class='estype'>TypeError</span>.</li>
+                      <li>Let <var>A</var> be the attribute identified by the <a class='xattr' href='#PutForwards'>[PutForwards]</a> extended attribute.</li>
+                      <li>Let <var>result</var> be the result of calling the <a class='dfnref' href='#dfn-attribute-setter'>attribute setter</a>
+                        for <var>A</var> using <var>Q</var> as the <span class='esvalue'>this</span> value
+                        and passing <var>V</var> as the argument.</li>
+                      <li>Return <var>result</var>.</li>
+                    </ol>
+                  </li>
+                  <li>If the attribute is declared with a <a class='xattr' href='#Replaceable'>[Replaceable]</a>
+                    extended attribute, then:
+                    <ol>
+                      <li>Let <var>O</var> be the result of calling ToObject on the <span class='esvalue'>this</span> value.</li>
+                      <li>If <var>O</var> is not an instance of the interface on which the attribute was declared,
+                        then throw a <span class='estype'>TypeError</span>.</li>
+                      <li>Let <var>P</var> be the identifier of the attribute.</li>
+                      <li>Call the <span class='prop'>[[DefineOwnProperty]]</span> method of <var>O</var>
+                        passing property name <var>P</var>, Property Descriptor
+                        <span class='desc'>{ [[Value]]: <var>V</var>, [[Writable]]: <span class='esvalue'>true</span>, [[Enumerable]]: <span class='esvalue'>true</span>, [[Configurable]]: <span class='esvalue'>true</span> }</span>,
+                        and <b>false</b>.</li>
+                      <li>Return <span class='esvalue'>undefined</span>.</li>
+                    </ol>
+                  </li>
+                  <li>Let <var>idlValue</var> be the result of <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a>
+                    <var>V</var> to an IDL value.</li>
+                  <li>Perform the actions listed in the description of the attribute that occur when setting,
+                    with <var>O</var> as the object and <var>idlValue</var> as the value.</li>
+                  <li>Return <span class='esvalue'>undefined</span>.</li>
+                </ol>
+                The value of the <span class='estype'>Function</span> object’s <span class='prop'>length</span>
+                property is the <span class='estype'>Number</span> value <span class='esvalue'>1</span>.
+              </li>
+            </ul>
           </div>
 
           <div id='es-operations' class='section'>
@@ -6309,9 +6407,9 @@ c.isMemberOfBreed(undefined);  <span class='comment'>// This passes the string "
                   </li>
                 </ol>
               </li>
-              <li>The <span class='estype'>Function</span> object itself has a property named <span class='esstring'>"length"</span>
-                with attributes <span class='descriptor'>{ [[Writable]]: <span class='esvalue'>false</span>, [[Enumerable]]: <span class='esvalue'>false</span>, [[Configurable]]: <span class='esvalue'>false</span> }</span>
-                whose value is a <span class='estype'>Number</span> determined as follows:
+              <li>
+                The value of the <span class='estype'>Function</span> object’s <span class='prop'>length</span>
+                property is a <span class='estype'>Number</span> determined as follows:
                 <ol class='algorithm'>
                   <li>
                     Initialize <var>S</var> to the
@@ -6382,41 +6480,9 @@ c.isMemberOfBreed(undefined);  <span class='comment'>// This passes the string "
           <h3>Host objects implementing interfaces</h3>
 
           <p>
-            If a host object implements an <a class='dfnref' href='#dfn-interface'>interface</a>,
-            then for each <a class='dfnref' href='#dfn-attribute'>attribute</a> defined on
-            the interface, there <span class='rfc2119'>MUST</span> be a corresponding property on the host object:
-          </p>
-          <ul>
-            <li>
-              The name of the property is the <a class='dfnref' href='#dfn-identifier'>identifier</a> of the <a class='dfnref' href='#dfn-attribute'>attribute</a>.
-            </li>
-            <li>
-              If the <a class='dfnref' href='#dfn-attribute'>attribute</a> is declared <code>readonly</code>, the property has attributes <span class='descriptor'>{ [[Writable]]: <span class='esvalue'>false</span>, [[Enumerable]]: <span class='esvalue'>true</span>, [[Configurable]]: <span class='esvalue'>false</span> }</span>.
-              Otherwise, the property has attributes <span class='descriptor'>{ [[Writable]]: <span class='esvalue'>true</span>, [[Enumerable]]: <span class='esvalue'>true</span>, [[Configurable]]: <span class='esvalue'>false</span> }</span>.
-            </li>
-            <li>
-              When getting the property, the value returned is the result of
-              <a class='dfnref' href='#dfn-convert-idl-to-ecmascript-value'>converting</a>
-              the <a class='dfnref' href='#dfn-attribute'>attribute</a>’s
-              IDL value to an ECMAScript value.
-            </li>
-            <li>
-              If the <a class='dfnref' href='#dfn-attribute'>attribute</a> is
-              not declared <code>readonly</code>, then when setting the property
-              to a particular ECMAScript value, the IDL value assigned to the
-              attribute is the result of
-              <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a>
-              the ECMAScript value to an IDL value.
-            </li>
-          </ul>
-          <p>
-            If a host object implements more than one interface with an attribute of a given name,
-            it is implementation specific which attribute the property corresponds to.
-          </p>
-          <p>
             The value of the internal <span class='prop'>[[Prototype]]</span>
-            property of the host object depends on what
-            <a class='dfnref' href='#dfn-interface'>interfaces</a> it implements,
+            property of a host object implementing one or more interfaces depends on
+            exeactly what <a class='dfnref' href='#dfn-interface'>interfaces</a> it implements,
             and in particular what its <em>primary prototype interface</em> is.
           </p>
           <p>
@@ -6922,20 +6988,6 @@ c.isMemberOfBreed(undefined);  <span class='comment'>// This passes the string "
                       <li>Invoke the <span class='prop'>[[Call]]</span> method of the callable object, providing <var>O</var> as the this value and with <var>P</var> and <var>V</var> as the two argument values.</li>
                     </ol>
                   </li>
-                  <li>Return.</li>
-                </ol>
-              </li>
-              <li>If <var>O</var> has a property with name <var>P</var> and it corresponds to an <a class='dfnref' href='#dfn-attribute'>attribute</a> declared with a <a class='xattr' href='#PutForwards'>[PutForwards]</a> <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>, then:
-                <ol>
-                  <li>Let <var>Q</var> be the result of calling the <span class='prop'>[[Get]]</span> method of <var>O</var> with name <var>P</var>.</li>
-                  <li>Call the <span class='prop'>[[Put]]</span> method of <var>Q</var> with the property name being the argument to the <a class='xattr' href='#PutForwards'>[PutForwards]</a> extended attribute, and value <var>V</var>.</li>
-                  <li>Return.</li>
-                </ol>
-              </li>
-              <li>If <var>O</var> has a property named <var>P</var> that is the property corresponding to an attribute annotated with the <a class='xattr' href='#Replaceable'>[Replaceable]</a> extended attribute, then:
-                <ol>
-                  <li>Remove the property with name <var>P</var> from <var>O</var>.</li>
-                  <li>Create a property on <var>O</var> with name <var>P</var>, set its value to <var>V</var> and give it empty attributes.</li>
                   <li>Return.</li>
                 </ol>
               </li>
@@ -9442,6 +9494,19 @@ module foo {
           <dt>Current editor’s draft</dt>
           <dd>
             <ul>
+              <li>
+                <p>
+                  Moved properties corresponding to attributes from host object
+                  instances to their interface prototype objects.
+                </p>
+              </li>
+              <li>
+                <p>
+                  Disallow both <span class='xattr'>[PutForwards]</span> and
+                  <span class='xattr'>[Replaceable]</span> appearing on the same
+                  attribute.
+                </p>
+              </li>
               <li>
                 <p>
                   Required that callable objects corresponding to operations
