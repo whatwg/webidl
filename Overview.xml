@@ -15,7 +15,7 @@
   <head>
     <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'/>
     <title>Web IDL</title>
-    <meta name='revision' content='$Id: Overview.xml,v 1.221 2010-10-06 22:19:26 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: Overview.xml,v 1.222 2010-10-06 22:40:31 cmccorma Exp $'/>
     <link rel='stylesheet' href='WebIDL.css' type='text/css'/>
     <script src='section-links.js' type='application/ecmascript'/>
     <script src='dfn.js' type='application/ecmascript'/>
@@ -6263,6 +6263,9 @@ c.isMemberOfBreed(undefined);  <span class='comment'>// This passes the string "
                 The <dfn id='dfn-attribute-getter'>attribute getter</dfn> is a <span class='estype'>Function</span>
                 object whose behavior when invoked is as follows:
                 <ol class='algorithm'>
+                  <li>Let <var>O</var> be the result of calling ToObject on the <span class='esvalue'>this</span> value.</li>
+                  <li>If <var>O</var> is not an instance of the <a class='dfnref' href='#dfn-interface'>interface</a>
+                    on which the attribute was declared, then throw a <span class='estype'>TypeError</span>.</li>
                   <li>
                     Let <var>idlValue</var> be the result of performing the actions listed in the description of the attribute that occur when getting,
                     with <var>O</var> as the object.
@@ -7342,8 +7345,11 @@ c.isMemberOfBreed(undefined);  <span class='comment'>// This passes the string "
               <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>.
               The exception interface prototype object for a particular exception has
               properties that correspond to the <a class='dfnref' href='#dfn-constant'>constants</a>
+              and <a class='dfnref' href='#dfn-exception-member'>exception members</a>
               defined on the exception.  These properties are described in more detail in
-              <a href='#es-exception-constants'>section <?sref es-exception-constants?></a> <?sdir es-exception-constants?>.
+              sections <a href='#es-exception-constants'><?sref es-exception-constants?></a> 
+              and <a href='#es-exception-members'><?sref es-exception-members?></a>,
+              <?sdir es-exception-members?>.
             </p>
           </div>
 
@@ -7366,10 +7372,54 @@ c.isMemberOfBreed(undefined);  <span class='comment'>// This passes the string "
             </ul>
             <p>
               In addition, a property with the same characteristics <span class='rfc2119'>MUST</span>
-              exist on the <a class='dfnref' href='#dfn-exception-interface-prototype-object'>excetpion interface prototype object</a>,
+              exist on the <a class='dfnref' href='#dfn-exception-interface-prototype-object'>exception interface prototype object</a>,
               if the <a class='dfnref' href='#dfn-identifier'>identifier</a> of the
               <a class='dfnref' href='#dfn-constant'>constant</a> is not “constructor”.
             </p>
+          </div>
+
+          <div id='es-exception-members' class='section'>
+            <h4>Exception members</h4>
+
+            <p>
+              For each <a class='dfnref' href='#dfn-exception-member'>exception member</a> whose <a class='dfnref' href='#dfn-identifier'>identifier</a>
+              is not “constructor” that is defined on the <a class='dfnref' href='#dfn-exception'>exception</a>, there
+              <span class='rfc2119'>MUST</span> be a corresponding property on
+              the <a class='dfnref' href='#dfn-exception-interface-prototype-object'>exception interface prototype object</a>,
+              whose characteristics are as follows:
+            </p>
+            <ul>
+              <li>
+                The name of the property is the <a class='dfnref' href='#dfn-identifier'>identifier</a> of the <a class='dfnref' href='#dfn-exception-member'>exception member</a>.
+              </li>
+              <li>
+                The property has attributes <span class='descriptor'>{ [[Get]]: <var>G</var>, [[Enumerable]]: <span class='esvalue'>true</span>, [[Configurable]]: <span class='esvalue'>true</span> }</span>,
+                where <var>G</var> is the <a class='dfnref' href='#dfn-exception-member-getter'>exception member getter</a>,
+                defined below.
+              </li>
+              <li>
+                The <dfn id='dfn-exception-member-getter'>exception member getter</dfn> is a <span class='estype'>Function</span>
+                object whose behavior when invoked is as follows:
+                <ol class='algorithm'>
+                  <li>Let <var>O</var> be the result of calling ToObject on the <span class='esvalue'>this</span> value.</li>
+                  <li>If <var>O</var> is not a <a class='dfnref' href='#dfn-host-exception-object'>host exception object</a>
+                    for the <a class='dfnref' href='#dfn-exception'>exception</a>
+                    on which the exception member was declared, then throw a <span class='estype'>TypeError</span>.</li>
+                  <li>
+                    Let <var>idlValue</var> be the IDL value of <var>O</var>’s exception member.
+                  </li>
+                  <li>
+                    Let <var>V</var> be the result of <a class='dfnref' href='#dfn-convert-idl-to-ecmascript-value'>converting</a>
+                    the <var>idlValue</var> to an ECMAScript value.
+                  </li>
+                  <li>
+                    Return <var>V</var>.
+                  </li>
+                </ol>
+                The value of the <span class='estype'>Function</span> object’s <span class='prop'>length</span>
+                property is the <span class='estype'>Number</span> value <span class='esvalue'>0</span>.
+              </li>
+            </ul>
           </div>
         </div>
 
@@ -7383,15 +7433,6 @@ c.isMemberOfBreed(undefined);  <span class='comment'>// This passes the string "
             one that represents an exception as well as implements an
             <a class='dfnref' href='#dfn-interface'>interface</a>, is not defined.
           </p>
-          <p>
-            A host exception object <span class='rfc2119'>MUST</span> have a property
-            for each <a class='dfnref' href='#dfn-exception-member'>exception member</a>
-            declared on the exception:
-          </p>
-          <ul>
-            <li>The name of the property is the <a class='dfnref' href='#dfn-identifier'>identifier</a> of the exception member.</li>
-            <li>The property has attributes <span class='descriptor'>{ [[Writable]]: <span class='esvalue'>true</span>, [[Enumerable]]: <span class='esvalue'>true</span>, [[Configurable]]: <span class='esvalue'>false</span> }</span>.</li>
-          </ul>
           <p>
             The value of the internal <span class='prop'>[[Prototype]]</span>
             property of the host exception object
@@ -9497,7 +9538,9 @@ module foo {
               <li>
                 <p>
                   Moved properties corresponding to attributes from host object
-                  instances to their interface prototype objects.
+                  instances to their interface prototype objects.  Similarly, moved
+                  properties corresponding to exception members from host exception
+                  objects to their exception interface prototype objects.
                 </p>
               </li>
               <li>
