@@ -15,7 +15,7 @@
   <head>
     <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'/>
     <title>Web IDL</title>
-    <meta name='revision' content='$Id: Overview.xml,v 1.217 2010-10-05 04:03:43 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: Overview.xml,v 1.218 2010-10-06 02:23:12 cmccorma Exp $'/>
     <link rel='stylesheet' href='WebIDL.css' type='text/css'/>
     <script src='section-links.js' type='application/ecmascript'/>
     <script src='dfn.js' type='application/ecmascript'/>
@@ -4353,9 +4353,9 @@ a[0] = 20;</x:codeblock>
             </p>
 
             <p>
-              Array host objects have an internal <span class='prop'>[[Put]]</span>
-              method <a href='#array-host-object-put'>as defined in section <?sref array-host-object-put?></a>
-              <?sdir array-host-object-put?>.
+              Array host objects have an internal <span class='prop'>[[DefineOwnProperty]]</span>
+              method <a href='#array-host-object-defineownproperty'>as defined in section <?sref array-host-object-defineownproperty?></a>
+              <?sdir array-host-object-defineownproperty?>.
             </p>
 
             <p>
@@ -4369,7 +4369,7 @@ a[0] = 20;</x:codeblock>
                 the IDL array value is <span class='idlvalue'>null</span>.</li>
               <li>Otherwise, if <var>V</var> is a native object, then the IDL array value is determined as follows:
                 <ol class='algorithm'>
-                  <li>Initialize <var>n</var> to be the value of the <span class='prop'>length</span> property on <var>V</var>.</li>
+                  <li>Initialize <var>n</var> to be the result of calling <span class='prop'>[[Get]]</span> on <var>V</var> with property name <span class='esstring'>"length"</span>.</li>
                   <li>Set <var>n</var> to ToUint32(<var>n</var>).</li>
                   <li>Initialize <var>E</var><sub>0..<var>n</var></sub> to be a list of IDL values.</li>
                   <li>Initialize <var>i</var> to be 0.</li>
@@ -4452,7 +4452,7 @@ results.numbers[6];                  <span class='comment'>// Evaluates to undef
 results.numbers.slice(0, 2);         <span class='comment'>// Evaluates to an Array [4, 8].</span>
 
 results.numbers.push(108);           <span class='comment'>// Has no effect, since the definition of</span>
-                                     <span class='comment'>// push() relies on calling [[Put]] on a</span>
+                                     <span class='comment'>// push() relies on calling [[Put]] on a</span><!-- XXX check this statement -->
                                      <span class='comment'>// non-existent array index property</span>
                                      <span class='comment'>// and on "length".</span>
 
@@ -4574,84 +4574,162 @@ results.numbers.length;       <span class='comment'>// Evaluates to 3.</span></x
               -->
             </div>
 
-            <div id='array-host-object-put' class='section'>
-              <h5>Array host object [[Put]] method</h5>
+            <div id='array-host-object-defineownproperty' class='section'>
+              <h5>Array host object [[DefineOwnProperty]] method</h5>
 
               <p>
-                The internal <span class='prop'>[[Put]]</span> method of every
+                The internal <span class='prop'>[[DefineOwnProperty]]</span> method of every
                 <a class='dfnref' href='#dfn-array-host-object'>array host object</a>
-                <var>A</var> <span class='rfc2119'>MUST</span> behave as follows,
-                assuming <var>P</var> is the property name and <var>V</var>
-                is the value passed to <span class='prop'>[[Put]]</span>
-                and <var>T</var> is the IDL array element type:
+                <var>A</var> with element type <var>T</var>
+                <span class='rfc2119'>MUST</span> behave as follows,
+                assuming <var>P</var> is the property name, <var>Desc</var> is
+                the Property Descriptor and <var>Throw</var> is a boolean:
               </p>
+
+              <div class='note'>
+                <p>
+                  This algorithm does basically the same thing as the one defined for native array instances
+                  (<a href='#ref-ECMA-262'>[ECMA-262]</a>, section 15.4.5.1), with the exception of ensuring
+                  that arrays are never sparse and also that array element values are coerced to the
+                  array element type.
+                </p>
+              </div>
+
               <ol class='algorithm'>
-                <li>Let <var>b</var> be the result of calling the <span class='prop'>[[CanPut]]</span>
-                  method of <var>A</var> with property name <var>P</var>.</li>
-                <li>If <var>b</var> is <span class='esvalue'>false</span>, then return.</li>
-                <li>If <var>A</var> has a property with name <var>P</var>, then:
+                <li>Let <var>oldLenDesc</var> be the result of calling the <span class='prop'>[[GetOwnProperty]]</span> internal method of <var>A</var> passing <span class='esstring'>"length"</span> as the argument.</li>
+
+                <li>Initialize <var>oldLen</var> to <var>oldLenDesc</var>.<span class='prop'>[[Value]]</span>.</li>
+
+                <li>If <var>P</var> is <span class='esstring'>"length"</span>, then:
                   <ol>
-                    <li>If <var>P</var> is <span class='esstring'>"length"</span>, then:
+                    <li>If the <span class='prop'>[[Value]]</span> field of <var>Desc</var> is absent, then:
                       <ol>
-                        <li>Let <var>N</var> be the result of calling ToUint32(<var>V</var>).</li>
-                        <li>If <var>N</var> is not equal to ToNumber(<var>V</var>), then throw a <span class='estype'>RangeError</span> exception.</li>
-                        <li>Let <var>L</var> be the value of the <span class='prop'>length</span> property.</li>
-                        <li>Initialize <var>i</var> to <var>N</var>.</li>
-                        <li>While <var>i</var> &lt; <var>L</var>:
+                        <li>Return the result of calling the default <span class='prop'>[[DefineOwnProperty]]</span> internal method (<a href='#ref-ECMA-262'>[ECMA-262]</a>, section 8.12.9) on <var>A</var> passing <span class='esstring'>"length"</span>, <var>Desc</var>, and <var>Throw</var> as arguments.</li>
+                      </ol>
+                    </li>
+                    <li>Let <var>newLenDesc</var> be a copy of <var>Desc</var>.</li>
+
+                    <li>Let <var>newLen</var> be ToUint32(<var>Desc</var>.<span class='prop'>[[Value]]</span>).</li>
+
+                    <li>If <var>newLen</var> is not equal to ToNumber(<var>Desc</var>.<span class='prop'>[[Value]]</span>), throw a <span class='estype'>RangeError</span> exception.</li>
+
+                    <li>Set <var>newLenDesc</var>.<span class='prop'>[[Value]]</span> to <var>newLen</var>.</li>
+
+                    <li>Reject if <var>oldLenDesc</var>.<span class='prop'>[[Writable]]</span> is <b>false</b>
+                      and SameValue(<var>newLen</var>, <var>oldLen</var>) is <b>false</b>.</li>
+
+                    <li>If <var>newLen</var> &gt; <var>oldLen</var>:
+                      <ol>
+                        <li>Reject if the <span class='prop'>[[Extensible]]</span> property of <var>A</var> is <b>false</b>.</li>
+                        <li>Update the IDL array value that <var>A</var> represents to have a length of <var>newLen</var>.</li>
+                        <li>Let <var>idlValue</var> be the result of <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a>
+                          <span class='esvalue'>undefined</span> to type <var>T</var>.</li>
+                        <li>Let <var>value</var> be the result of <a class='dfnref' href='#dfn-convert-idl-to-ecmascript-value'>converting</a>
+                          <var>idlValue</var> to an ECMAScript value.</li>
+                        <li>While <var>newLen</var> &gt; <var>oldLen</var>:
                           <ol>
-                            <li>If <var>A</var> has a property named ToString(<var>i</var>), then delete that property.</li>
-                            <li>Set <var>i</var> to <var>i</var> + 1.</li>
+                            <li>Call the default <span class='prop'>[[DefineOwnProperty]]</span> internal method (<a href='#ref-ECMA-262'>[ECMA-262]</a>, section 8.12.9) on <var>A</var> passing ToString(<var>oldLen</var>),
+                              Property Descriptor <span class='desc'>{ [[Value]]: <var>value</var>, [[Writable]]: <b>true</b>, [[Enumerable]]: <b>true</b>, [[Configurable]]: <b>true</b> }</span>, and <b>false</b> as arguments.</li>
+                            <li>Set the IDL array element value at index <var>oldLen</var> to <var>idlValue</var>.</li>
+                            <li>Set <var>oldLen</var> to <var>oldLen</var> + 1.</li>
                           </ol>
                         </li>
-                        <li>Set the value of the <span class='prop'>length</span> property to <var>N</var>.</li>
-                        <li>Update the IDL array value that <var>A</var> represents to have a length of <var>N</var>.</li>
-                        <li>For every index <var>L</var> ≤ <var>j</var> &lt; <var>N</var>, set the IDL array element
-                          value at index <var>j</var> to the result of <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a>
-                          <span class='esvalue'>undefined</span> to type <var>T</var>.</li>
-                        <li>For every index <var>L</var> ≤ <var>j</var> &lt; <var>N</var>, create a property
-                          on <var>A</var> with name ToString(<var>j</var>), attributes <span class='descriptor'>{ [[Writable]]: <span class='esvalue'>true</span>, [[Enumerable]]: <span class='esvalue'>true</span>, [[Configurable]]: <span class='esvalue'>false</span> }</span>
-                          and with a value that is the result of <a class='dfnref' href='#dfn-convert-idl-to-ecmascript-value'>converting</a>
-                          the value of the IDL array element at index <var>j</var> to an ECMAScript value.</li>
+                        <li>Call the default <span class='prop'>[[DefineOwnProperty]]</span> internal method (<a href='#ref-ECMA-262'>[ECMA-262]</a>, section 8.12.9) on <var>A</var> passing <span class='esstring'>"length"</span>, <var>newLenDesc</var>, and <b>false</b> as arguments.</li>
+                        <li>Return <b>true</b>.</li>
                       </ol>
                     </li>
-                    <li>Otherwise:
+
+                    <li>Initialize <var>newWritable</var> to <b>true</b>.</li>
+
+                    <li>If <var>newLenDesc</var>.<span class='prop'>[[Writable]]</span> is <b>false</b>, then:
                       <ol>
-                        <li>If <var>P</var> is an <a class='dfnref' href='#dfn-array-index-property-name'>array index property name</a>, then
-                          set the IDL array element value at index ToUint32(<var>P</var>) to the result of
-                          <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a> <var>V</var> to type <var>T</var>.</li>
-                        <li>Set the value of property <var>P</var> to the result of
-                          <a class='dfnref' href='#dfn-convert-idl-to-ecmascript-value'>converting</a> the value of the
-                          IDL array element at index ToUint32(<var>P</var>) to an ECMAScript value.</li>
+                        <li>Need to defer setting the <span class='prop'>[[Writable]]</span> attribute to <b>false</b> in case any elements cannot be deleted.</li>
+                        <li>Set <var>newWritable</var> to <b>false</b>.</li>
+                        <li>Set <var>newLenDesc</var>.<span class='prop'>[[Writable]]</span> to <b>true</b>.</li>
                       </ol>
                     </li>
+
+                    <li>Let <var>succeeded</var> be the result of calling the default <span class='prop'>[[DefineOwnProperty]]</span> internal method (<a href='#ref-ECMA-262'>[ECMA-262]</a>, section 8.12.9) on <var>A</var> passing <span class='esstring'>"length"</span>, <var>newLenDesc</var>, and <var>Throw</var> as arguments.</li>
+                    <li>If <var>succeeded</var> is <b>false</b>, return <b>false</b>.</li>
+
+                    <li>While <var>newLen</var> &lt; <var>oldLen</var>:
+                      <ol>
+                        <li>Set <var>oldLen</var> to <var>oldLen</var> − 1.</li>
+                        <li>Let <var>cannotDelete</var> be the result of calling the <span class='prop'>[[Delete]]</span> internal method of <var>A</var> passing ToString(<var>oldLen</var>) and <b>false</b> as arguments.</li>
+                        <li>If <var>cannotDelete</var> is <b>true</b>, then:
+                          <ol>
+                            <li>Set <var>newLenDesc</var>.<span class='prop'>[[Value]]</span> to <var>oldLen</var> + 1.</li>
+                            <li>If <var>newWritable</var> is <b>false</b>, set <var>newLenDesc</var>.<span class='prop'>[[Writable]]</span> to <b>false</b>.</li>
+                            <li>Call the default <span class='prop'>[[DefineOwnProperty]]</span> internal method (<a href='#ref-ECMA-262'>[ECMA-262]</a>, section 8.12.9) on <var>A</var> passing <span class='esstring'>"length"</span>, <var>newLenDesc</var>, and <b>false</b> as arguments.</li>
+                            <li>Update the IDL array value that <var>A</var> represents to have a length of <var>oldLen</var> + 1.</li>
+                            <li>Reject.</li>
+                          </ol>
+                        </li>
+                      </ol>
+                    </li>
+
+                    <li>Update the IDL array value that <var>A</var> represents to have a length of <var>newLen</var>.</li>
+
+                    <li>If <var>newWritable</var> is <b>false</b>, then
+                      <ol>
+                        <li>Call the default <span class='prop'>[[DefineOwnProperty]]</span> internal method (<a href='#ref-ECMA-262'>[ECMA-262]</a>, section 8.12.9) on <var>A</var> passing <span class='esstring'>"length"</span>, Property Descriptor <span class='desc'>{ [[Writable]]: <span class='esvalue'>false</span> }</span>, and <b>false</b> as arguments. This call will always return <b>true</b>.</li>
+                      </ol>
+                    </li>
+
+                    <li>Return <b>true</b>.</li>
                   </ol>
                 </li>
-                <li>Otherwise, <var>A</var> doesn’t have a property with name <var>P</var>:
+
+                <li>Otherwise, if <var>P</var> is an array index (<a href='#ref-ECMA-262'>[ECMA-262]</a>, section 15.4), then:
+
                   <ol>
-                    <li>If <var>P</var> is an <a class='dfnref' href='#dfn-array-index-property-name'>array index property name</a> and
-                      ToUint32(<var>P</var>) is greater than or equal to the value of the <span class='prop'>length</span> property of <var>A</var>, then:
+                    <li>Let <var>index</var> be ToUint32(<var>P</var>).</li>
+
+                    <li>Reject if <var>index</var> ≥ <var>oldLen</var> and <var>oldLenDesc</var>.<span class='prop'>[[Writable]]</span> is <b>false</b>.</li>
+
+                    <li>Reject if IsDataDescriptor(<var>Desc</var>) is <b>false</b>.</li>
+
+                    <li>Let <var>idlValue</var> be the result of <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a>
+                      <var>Desc</var>.<span class='prop'>[[Value]]</span> to type <var>T</var>.</li>
+                    <li>Let <var>value</var> be the result of <a class='dfnref' href='#dfn-convert-idl-to-ecmascript-value'>converting</a>
+                      <var>idlValue</var> to an ECMAScript value.</li>
+                    <li>Let <var>newDesc</var> be a copy of <var>Desc</var>.</li>
+                    <li>Set <var>newDesc</var>.<span class='prop'>[[Value]]</span> to <var>idlValue</var>.</li>
+                    <li>Let <var>succeeded</var> be the result of calling the default <span class='prop'>[[DefineOwnProperty]]</span> internal method (8.12.9) on <var>A</var> passing <var>P</var>, <var>newDesc</var>, and <b>false</b> as arguments.</li>
+
+                    <li>Reject if <var>succeeded</var> is <b>false</b>.</li>
+
+                    <li>If <var>index</var> ≥ <var>oldLen</var>, then:
                       <ol>
-                        <li>If <var>A</var> is <a class='dfnref' href='#dfn-fixed-length'>fixed length</a>, then return.</li>
-                        <li>Let <var>W</var> be the result of <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a>
-                          <var>V</var> to an IDL value of type <var>T</var>.</li>
-                        <li>Let <var>N</var> be ToUint32(<var>P</var>) + 1</li>
-                        <li>Let <var>L</var> be the value of property <span class='esstring'>"length"</span>.</li>
-                        <li>Call <span class='prop'>[[Put]]</span> on <var>A</var> with property name <span class='prop'>length</span>
-                          and value <var>N</var>.</li>
-                        <li>Update the IDL array value that <var>A</var> represents to have a length of <var>N</var>.</li>
-                        <li>For every index <var>L</var> ≤ <var>j</var> &lt; <var>N</var>, set the IDL array element
-                          value at index <var>j</var> to the result of <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a>
+                        <li>Reject if the <span class='prop'>[[Extensible]]</span> property of <var>A</var> is <b>false</b>.</li>
+                        <li>Reject if <var>oldLenDesc</var>.<span class='prop'>[[Writable]]</span> is <b>false</b>
+                          and SameValue(<var>newLen</var>, <var>oldLen</var>) is <b>false</b>.</li>
+
+                        <li>Let <var>idlValue</var> be the result of <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a>
                           <span class='esvalue'>undefined</span> to type <var>T</var>.</li>
-                        <li>Set the IDL array element value at index <var>N</var> to <var>W</var>.</li>
-                        <li>Create a property on <var>A</var> with name <var>P</var>, attributes  <span class='descriptor'>{ [[Writable]]: <span class='esvalue'>true</span>, [[Enumerable]]: <span class='esvalue'>true</span>, [[Configurable]]: <span class='esvalue'>false</span> }</span>
-                          and with a value that is the result of
-                          <a class='dfnref' href='#dfn-convert-idl-to-ecmascript-value'>converting</a> <var>W</var>
-                          to an ECMAScript value.</li>
+                        <li>Let <var>value</var> be the result of <a class='dfnref' href='#dfn-convert-idl-to-ecmascript-value'>converting</a>
+                          <var>idlValue</var> to an ECMAScript value.</li>
+                        <li>Initialize <var>i</var> to <var>oldLen</var>.</li>
+                        <li>While <var>i</var> &lt; <var>index</var>:
+                          <ol>
+                            <li>Call the default <span class='prop'>[[DefineOwnProperty]]</span> internal method (<a href='#ref-ECMA-262'>[ECMA-262]</a>, section 8.12.9) on <var>A</var> passing ToString(<var>oldLen</var>),
+                              Property Descriptor <span class='desc'>{ [[Value]]: <var>value</var>, [[Writable]]: <b>true</b>, [[Enumerable]]: <b>true</b>, [[Configurable]]: <b>true</b> }</span>, and <b>false</b> as arguments.</li>
+                            <li>Set the IDL array element value at index <var>i</var> to <var>idlValue</var>.</li>
+                            <li>Set <var>i</var> to <var>i</var> + 1.</li>
+                          </ol>
+                        </li>
+
+                        <li>Set <var>oldLenDesc</var>.<span class='prop'>[[Value]]</span> to <var>index</var> + 1.</li>
+
+                        <li>Call the default <span class='prop'>[[DefineOwnProperty]]</span> internal method (<a href='#ref-ECMA-262'>[ECMA-262]</a>, section 8.12.9) on <var>A</var> passing <span class='esstring'>"length"</span>, <var>oldLenDesc</var>, and <b>false</b> as arguments. This call will always return <b>true</b>.</li>
                       </ol>
                     </li>
-                    <li>Otherwise, create a property <var>P</var> on <var>A</var>, set its value to <var>V</var> and give it empty attributes.</li>
+
+                    <li>Return <b>true</b>.</li>
                   </ol>
                 </li>
+
+                <li>Return the result of calling the default <span class='prop'>[[DefineOwnProperty]]</span> internal method (<a href='#ref-ECMA-262'>[ECMA-262]</a>, section 8.12.9) on <var>A</var> passing <var>P</var>, <var>Desc</var>, and <var>Throw</var> as arguments.</li>
               </ol>
             </div>
           </div>
