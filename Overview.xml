@@ -15,7 +15,7 @@
   <head>
     <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'/>
     <title>Web IDL</title>
-    <meta name='revision' content='$Id: Overview.xml,v 1.224 2010-10-06 23:17:36 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: Overview.xml,v 1.225 2010-10-08 02:33:11 cmccorma Exp $'/>
     <link rel='stylesheet' href='WebIDL.css' type='text/css'/>
     <script src='section-links.js' type='application/ecmascript'/>
     <script src='dfn.js' type='application/ecmascript'/>
@@ -1807,7 +1807,7 @@ var greeting = 'Hi ' + s;  <span class='comment'>// Now greeting == 'Hi Alan Smi
                   </p>
                 </blockquote>
                 <p>
-                  As described in <a href='#host-objects'>section <?sref indexed-and-named-properties?></a>,
+                  As described in section <a href='#host-objects'>section <?sref host-objects?></a>,
                   an ECMAScript implementation would create
                   properties on a host object implementing
                   <span class='idltype'>OrderedMap</span> that correspond to
@@ -5174,11 +5174,6 @@ var fn = Query.prototype.lookupEntry;  <span class='comment'>// exception, Query
               and <span class='rfc2119'>MUST NOT</span> appear on an interface
               that does not define a <a class='dfnref' href='#dfn-name-getter'>name getter</a>.
             </p>
-            <p>
-              See the <a href='#get'>Host object [[Get]] method</a> for how
-              <a class='xattr' href='#OverrideBuiltins'>[OverrideBuiltins]</a>
-              behavior is to be implemented.
-            </p>
             <div class='example'>
               <p>
                 The following <a class='dfnref' href='#dfn-idl-fragment'>IDL fragment</a>
@@ -6482,6 +6477,7 @@ c.isMemberOfBreed(undefined);  <span class='comment'>// This passes the string "
                 Let <var>F</var> be the result of invoking the <span class='prop'>[[Get]]</span> method of object
                 <var>O</var> with <var>P</var> as the argument.
               </li>
+              <li>If <var>F</var> is not callable, throw a <span class='estype'>TypeError</span>.</li>
               <li>Let <var>V</var> be the result of invoking the <span class='prop'>[[Call]]</span> method of <var>F</var>,
                 using <var>O</var> as the <span class='esvalue'>this</span> value
                 and passing no arguments.</li>
@@ -6505,7 +6501,7 @@ c.isMemberOfBreed(undefined);  <span class='comment'>// This passes the string "
           <p>
             The value of the internal <span class='prop'>[[Prototype]]</span>
             property of a host object implementing one or more interfaces depends on
-            exeactly what <a class='dfnref' href='#dfn-interface'>interfaces</a> it implements,
+            exactly what <a class='dfnref' href='#dfn-interface'>interfaces</a> it implements,
             and in particular what its <em>primary prototype interface</em> is.
           </p>
           <p>
@@ -6621,8 +6617,8 @@ c.isMemberOfBreed(undefined);  <span class='comment'>// This passes the string "
             </p>
           </div>
 
-          <div id='indexed-and-named-properties' class='section'>
-            <h4>Indexed and named properties</h4>
+          <div id='indexed-properties' class='section'>
+            <h4>Indexed properties</h4>
 
             <p>
               If a host object implements an
@@ -6631,26 +6627,35 @@ c.isMemberOfBreed(undefined);  <span class='comment'>// This passes the string "
               the object will have additional properties that correspond to the
               object’s indexed properties.
               If the host object implements multiple interfaces that
-              <a class='dfnref' href='#dfn-support-indexed-properties'>support indexed properties</a>,
+              support indexed properties,
               then it is undefined what additional properties will exist due to
               these indexed properties.
             </p>
             <p>
-              Whenever a given index <var>I</var> is <a class='dfnref' href='#dfn-indices-of-the-supported-indexed-properties'>the index of a supported indexed property</a>
-              on the host object, a property called the
-              <dfn id='dfn-corresponding-indexed-property'>corresponding indexed property</dfn>
-              <span class='rfc2119'>MUST</span> be created on on the host
-              object, but only if:
+              Whenever a given index <var>N</var> becomes <a class='dfnref' href='#dfn-indices-of-the-supported-indexed-properties'>the index of a supported indexed property</a>
+              on the host object the following steps <span class='rfc2119'>MUST</span> be followed:
             </p>
-            <ul>
-              <li>the host object does not have a property named ToString(<var>I</var>), and</li>
-              <li>none of the objects in the host object’s prototype chain have a property named ToString(<var>I</var>).</li>
-            </ul>
+            <ol class='algorithm'>
+              <li>Let <var>O</var> be the host object.</li>
+              <li>Let <var>I</var> be the <a class='dfnref' href='#dfn-interface'>interface</a> <var>O</var> implements that <a class='dfnref' href='#dfn-support-indexed-properties'>supports indexed properties</a>.</li>
+              <li>If the <span class='prop'>[[Extensible]]</span> property of <var>O</var> is <b>false</b>, return.</li>
+              <li>Let <var>P</var> be ToString(<var>N</var>).</li>
+              <li>Let <var>hasProp</var> be the result of calling <span class='prop'>[[HasProperty]]</span> on <var>O</var> with <var>P</var> as the property name.</li>
+              <li>If <var>hasProp</var> is <span class='esvalue'>true</span> and <var>I</var> is not declared with the
+                <a class='xattr' href='#OverrideBuiltins'>[OverrideBuiltins]</a> <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>,
+                return.</li>
+              <li>Let <var>get</var> be the <a class='dfnref' href='#dfn-indexed-property-getter'>indexed property getter</a> for interface <var>I</var> and index <var>N</var>.</li>
+              <li>Let <var>set</var> be the <a class='dfnref' href='#dfn-indexed-property-setter'>indexed property setter</a> for interface <var>I</var> and index <var>N</var>
+                if <var>I</var> declares an <a class='dfnref' href='#dfn-index-setter'>index setter</a>, and <span class='esvalue'>false</span> otherwise.</li>
+              <li>Let <var>configurable</var> be <span class='esvalue'>true</span> if <var>I</var> declares an <a class='dfnref' href='#dfn-index-deleter'>index deleter</a>, and <span class='esvalue'>false</span> otherwise.</li>
+              <li>Call the <span class='prop'>[[DefineOwnProperty]]</span> method of <var>O</var> passing <var>P</var>, Property Descriptor
+                <span class='desc'>{ [[Get]]: <var>get</var>, [[Set]]: <var>set</var>, [[Enumerable]]: <b>true</b>, [[Configurable]]: <var>configurable</var> }</span>,
+                and <span class='esvalue'>false</span> as arguments.</li>
+            </ol>
             <p>
-              The name of the
-              <a class='dfnref' href='#dfn-corresponding-indexed-property'>corresponding indexed property</a>
-              is ToString(<var>I</var>).  This name is an
-              <dfn id='dfn-array-index-property-name'>array index property name</dfn>,
+              The property created by the above steps, if it was created, is called the
+              <dfn id='dfn-corresponding-indexed-property'>corresponding indexed property</dfn>.
+              Its name is an <dfn id='dfn-array-index-property-name'>array index property name</dfn>,
               which is a property name for which the following algorithm
               returns <span class='esvalue'>true</span>:
             </p>
@@ -6661,36 +6666,91 @@ c.isMemberOfBreed(undefined);  <span class='comment'>// This passes the string "
               <li>Return <span class='esvalue'>true</span>.</li>
             </ol>
             <p>
-              The attributes of a newly created
-              <a class='dfnref' href='#dfn-corresponding-indexed-property'>corresponding indexed property</a>
-              depends on whether the <a class='dfnref' href='#dfn-interface'>interface</a>
-              has an <a class='dfnref' href='#dfn-index-setter'>index setter</a>
-              and an <a class='dfnref' href='#dfn-index-deleter'>index deleter</a>,
-              according to the following table:
+              The <dfn id='dfn-indexed-property-getter'>indexed property getter</dfn> for a given <a class='dfnref' href='#dfn-interface'>interface</a>
+              <var>I</var> and index <var>N</var> is a <span class='estype'>Function</span>
+              object that, when invoked, behaves as follows:
             </p>
-            <table class='vert'>
-              <tr>
-                <th>Has index setter</th>
-                <th>Has index deleter</th>
-                <th>Attributes</th>
-              </tr>
-              <tr><td>No</td><td>No</td><td><span class='descriptor'>{ [[Writable]]: <span class='esvalue'>false</span>, [[Enumerable]]: <span class='esvalue'>true</span>, [[Configurable]]: <span class='esvalue'>false</span> }</span></td></tr>
-              <tr><td>No</td><td>Yes</td><td><span class='descriptor'>{ [[Writable]]: <span class='esvalue'>false</span>, [[Enumerable]]: <span class='esvalue'>true</span>, [[Configurable]]: <span class='esvalue'>true</span> }</span></td></tr>
-              <tr><td>Yes</td><td>No</td><td><span class='descriptor'>{ [[Writable]]: <span class='esvalue'>true</span>, [[Enumerable]]: <span class='esvalue'>true</span>, [[Configurable]]: <span class='esvalue'>false</span> }</span></td></tr>
-              <tr><td>Yes</td><td>Yes</td><td><span class='propattrset'>{ [[Writable]]: <span class='esvalue'>true</span>, [[Enumerable]]: <span class='esvalue'>true</span>, [[Configurable]]: <span class='esvalue'>true</span> }</span></td></tr>
-            </table>
+            <ol class='algorithm'>
+              <li>Let <var>O</var> be the result of calling ToObject with the <a class='esvalue'>this</a> value.</li>
+              <li>If <var>O</var> does not implement <var>I</var>, throw a <span class='estype'>TypeError</span>.</li>
+              <li>If <var>N</var> is not currently the <a class='dfnref' href='#dfn-indices-of-the-supported-indexed-properties'>index of a supported indexed property</a> on <var>O</var>, then throw a <span class='estype'>TypeError</span>.</li>
+              <li>Let <var>idlValue</var> be an uninitialized variable.</li>
+              <li>If the index getter was defined using an <a class='dfnref' href='#dfn-operation'>operation</a> with an <a class='dfnref' href='#dfn-identifier'>identifier</a>, then:
+                <ol>
+                  <li>Let <var>T</var> be the <a class='dfnref' href='#dfn-return-type'>return type</a> of the operation.</li>
+                  <li>Let <var>F</var> be the result of calling <span class='prop'>[[Get]]</span> on <var>O</var> with the identifier of the operation as the property name.</li>
+                  <li>If <var>F</var> is not a callable object, throw a <span class='estype'>TypeError</span>.</li>
+                  <li>Let <var>V</var> be the result of calling <span class='prop'>[[Call]]</span> on <var>F</var>, providing <var>O</var> as the <a class='esvalue'>this</a> value and with ToString(<var>N</var>) as the only argument.</li>
+                  <li>Set <var>idlValue</var> to the result of <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a> <var>V</var> to an IDL value of type <var>T</var>.</li>
+                </ol>
+              </li>
+              <li>Otherwise, the index getter was defined using an operation without an identifier:
+                <ol>
+                  <li>Set <var>idlValue</var> to the result of performing the steps listed in the description of the interface to <a class='dfnref' href='#dfn-determine-the-value-of-an-indexed-property'>determine the value of an indexed property</a> for the index given by <var>N</var>.</li>
+                </ol>
+              </li>
+              <li>Set <var>finalValue</var> to the result of <a class='dfnref' href='#dfn-convert-idl-to-ecmascript-value'>converting</a> <var>idlValue</var> to an ECMAScript value.</li>
+              <li>Return <var>finalValue</var>.</li>
+            </ol>
+            <p>The <span class='prop'>length</span> property of an indexed property getter is the <span class='estype'>Number</span> value <span class='esvalue'>0</span>.</p>
             <p>
-              The value of a newly created
-              <a class='dfnref' href='#dfn-corresponding-indexed-property'>corresponding named property</a>
-              is <span class='idlvalue'>undefined</span>.
+              The <dfn id='dfn-indexed-property-setter'>indexed property setter</dfn> for a given <a class='dfnref' href='#dfn-interface'>interface</a> <var>I</var>
+              and index <var>N</var> is a <span class='estype'>Function</span>
+              object that, when invoked, behaves as follows:
             </p>
+            <ol class='algorithm'>
+              <li>Let <var>O</var> be the result of calling ToObject with the <a class='esvalue'>this</a> value.</li>
+              <li>If <var>O</var> does not implement <var>I</var>, throw a <span class='estype'>TypeError</span>.</li>
+              <li>If <var>N</var> is not currently the <a class='dfnref' href='#dfn-indices-of-the-supported-indexed-properties'>index of a supported indexed property</a> on <var>O</var>, then throw a <span class='estype'>TypeError</span>.</li>
+              <li>Let <var>T</var> be the <a class='dfnref' href='#dfn-return-type'>return type</a> of the operation used to declare the index setter.</li>
+              <li>Let <var>V</var> be the value of the first argument passed to the <span class='estype'>Function</span>, or <span class='esvalue'>undefined</span> if no arguments were passed.</li>
+              <li>Let <var>idlValue</var> be the result of <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a> <var>V</var> to an IDL value of type <var>T</var>.</li>
+              <li>If the index getter was defined using an <a class='dfnref' href='#dfn-operation'>operation</a> without an <a class='dfnref' href='#dfn-identifier'>identifier</a>, then:
+                <ol>
+                  <li>Perform the steps listed in the interface description to <a class='dfnref' href='#dfn-set-the-value-of-an-existing-indexed-property'>set the value of an existing indexed property</a> with <var>N</var> as the index and <var>idlValue</var> as the value.</li>
+                </ol>
+              </li>
+              <li>Otherwise, the index setter was defined using an operation with an identifier:
+                <ol>
+                  <li>Let <var>F</var> be the result of calling <span class='prop'>[[Get]]</span> on <var>O</var> with the identifier of the operation as the property name.</li>
+                  <li>If <var>F</var> is not a callable object, throw a <span class='estype'>TypeError</span>.</li>
+                  <li>Let <var>finalValue</var> be the result of <a class='dfnref' href='#dfn-convert-idl-to-ecmascript-value'>converting</a> <var>idlValue</var> to an ECMAScript value.</li>
+                  <li>Call the <span class='prop'>[[Call]]</span> method of <var>F</var>, providing <var>O</var> as the <span class='esvalue'>this</span> value and <var>finalValue</var> as the only argument.</li>
+                </ol>
+              </li>
+            </ol>
+            <p>The <span class='prop'>length</span> property of an indexed property setter is the <span class='estype'>Number</span> value <span class='esvalue'>1</span>.</p>
+            <!--
             <p>
-              As soon as an index <var>I</var> stops being <a class='dfnref' href='#dfn-indices-of-the-supported-indexed-properties'>the index of a supported indexed property</a>,
+              The <a class='dfnref' href='#dfn-indexed-property-getter'>indexed property getter</a>
+              for a given <a class='dfnref' href='#dfn-interface'>interface</a> and index
+              <span class='rfc2119'>MUST</span> be unique.  If
+              a <a class='dfnref' href='#dfn-corresponding-indexed-property'>corresponding indexed property</a>
+              for a given index is removed and then later is recreated, it uses the same
+              indexed property getter.
+            </p>
+            -->
+            <p>
+              As soon as an index <var>N</var> stops being <a class='dfnref' href='#dfn-indices-of-the-supported-indexed-properties'>the index of a supported indexed property</a>,
               then its <a class='dfnref' href='#dfn-corresponding-indexed-property'>corresponding indexed property</a>,
               if it exists, <span class='rfc2119'>MUST</span> be removed from the host object.
             </p>
+
             <p>
-              Similarly, if a host object implements an
+              Support for <a class='dfnref' href='#dfn-index-creator'>index creators</a>
+              is handled by the <a href='#put'>host object [[Put]] method</a>
+              defined in section <?sref put?>, and
+              support for <a class='dfnref' href='#dfn-index-deleters'>index deleters</a>
+              is handled by the <a href='#delete'>host object [[Delete]] method</a>
+              defined in section <?sref delete?>.
+            </p>
+          </div>
+
+          <div id='named-properties' class='section'>
+            <h4>Named properties</h4>
+
+            <p>
+              If a host object implements an
               <a class='dfnref' href='#dfn-interface'>interface</a> that
               <a class='dfnref' href='#dfn-support-named-properties'>supports named properties</a>,
               the object will have additional properties that correspond to the
@@ -6699,343 +6759,177 @@ c.isMemberOfBreed(undefined);  <span class='comment'>// This passes the string "
               what additional properties will exist due to these named properties.
             </p>
             <p>
-              Whenever a given string <var>N</var> is <a class='dfnref' href='#dfn-names-of-the-supported-named-properties'>the name of a supported named property</a>
-              on a host object, then a property called the
-              <dfn id='dfn-corresponding-named-property'>corresponding named property</dfn>
-              <span class='rfc2119'>MUST</span> be created on the host object,
-              but only if:
+              Whenever a given string <var>N</var> becomes <a class='dfnref' href='#dfn-names-of-the-supported-named-properties'>the name of a supported named property</a>
+              on the host object the following steps <span class='rfc2119'>MUST</span> be followed:
             </p>
-            <ul>
-              <li>the host object does not already have a property named <var>N</var>,</li>
-              <li>none of the objects in the host object’s prototype chain have a property named <var>N</var>, and
-                <!--
-                <div class='ednote'>
-                  <p>Maybe this should say "<var>N</var> is not the name of a property that corresponds to a constant, operation or attribute on an interface that the host object implements".</p>
-                </div>
-                -->
+            <ol class='algorithm'>
+              <li>Let <var>O</var> be the host object.</li>
+              <li>Let <var>I</var> be the <a class='dfnref' href='#dfn-interface'>interface</a> <var>O</var> implements that <a class='dfnref' href='#dfn-support-indexed-properties'>supports indexed properties</a>.</li>
+              <li>If the <span class='prop'>[[Extensible]]</span> property of <var>O</var> is <b>false</b>, return.</li>
+              <li>If <var>I</var> <a class='dfnref' href='#dfn-supports-indexed-properties'>supports indexed properties</a> and
+                <var>N</var> is a <a class='dfnref' href='#dfn-array-index-property-name'>array index property name</a>, return.</li>
+              <li>Let <var>hasProp</var> be the result of calling <span class='prop'>[[HasProperty]]</span> on <var>O</var> with <var>P</var> as the property name.</li>
+              <li>If <var>hasProp</var> is <span class='esvalue'>true</span> and <var>I</var> is not declared with the
+                <a class='xattr' href='#OverrideBuiltins'>[OverrideBuiltins]</a> <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>,
+                return.</li>
+              <li>Let <var>get</var> be the <a class='dfnref' href='#dfn-named-property-getter'>named property getter</a> for interface <var>I</var> and name <var>N</var>.</li>
+              <li>Let <var>set</var> be the <a class='dfnref' href='#dfn-named-property-setter'>named property setter</a> for interface <var>I</var> and name <var>N</var>
+                if <var>I</var> declares a <a class='dfnref' href='#dfn-name-setter'>name setter</a>, and <span class='esvalue'>false</span> otherwise.</li>
+              <li>Let <var>configurable</var> be <span class='esvalue'>true</span> if <var>I</var> declares an <a class='dfnref' href='#dfn-index-deleter'>index deleter</a>, and <span class='esvalue'>false</span> otherwise.</li>
+              <li>Call the <span class='prop'>[[DefineOwnProperty]]</span> method of <var>O</var> passing <var>P</var>, Property Descriptor
+                <span class='desc'>{ [[Get]]: <var>get</var>, [[Set]]: <var>set</var>, [[Enumerable]]: <b>true</b>, [[Configurable]]: <var>configurable</var> }</span>,
+                and <span class='esvalue'>false</span> as arguments.</li>
+            </ol>
+
+            <p>
+              The <dfn id='dfn-named-property-getter'>named property getter</dfn> for a given <a class='dfnref' href='#dfn-interface'>interface</a> <var>I</var>
+              and name <var>N</var> is a <span class='estype'>Function</span>
+              object that, when invoked, behaves as follows:
+            </p>
+            <ol class='algorithm'>
+              <li>Let <var>O</var> be the result of calling ToObject with the <a class='esvalue'>this</a> value.</li>
+              <li>If <var>O</var> does not implement the <a class='dfnref' href='#dfn-interface'>interface</a> that defined the <a class='dfnref' href='#dfn-name-getter'>name getter</a>, throw a <span class='estype'>TypeError</span>.</li>
+              <li>If <var>N</var> is not currently the <a class='dfnref' href='#dfn-names-of-the-supported-named-properties'>name of a supported named property</a> on <var>O</var>, then throw a <span class='estype'>TypeError</span>.</li>
+              <li>Let <var>idlValue</var> be an uninitialized variable.</li>
+              <li>If the name getter was defined using an <a class='dfnref' href='#dfn-operation'>operation</a> with an <a class='dfnref' href='#dfn-identifier'>identifier</a>, then:
+                <ol>
+                  <li>Let <var>T</var> be the <a class='dfnref' href='#dfn-return-type'>return type</a> of the operation.</li>
+                  <li>Let <var>F</var> be the result of calling <span class='prop'>[[Get]]</span> on <var>O</var> with the identifier of the operation as the property name.</li>
+                  <li>If <var>F</var> is not a callable object, throw a <span class='estype'>TypeError</span>.</li>
+                  <li>Let <var>V</var> be the result of calling <span class='prop'>[[Call]]</span> on <var>F</var>, providing <var>O</var> as the <a class='esvalue'>this</a> value and with <var>N</var> as the only argument.</li>
+                  <li>Set <var>idlValue</var> to the result of <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a> <var>V</var> to an IDL value of type <var>T</var>.</li>
+                </ol>
               </li>
-              <li>the host object does not also implement an interface that <a class='dfnref' href='#dfn-support-indexed-properties'>supports indexed properties</a> <strong>or</strong> <var>N</var> is not an <a class='dfnref' href='#dfn-array-index-property-name'>array index property name</a>.</li>
-            </ul>
+              <li>Otherwise, the name getter was defined using an operation without an identifier:
+                <ol>
+                  <li>Set <var>idlValue</var> to the result of performing the steps listed in the description of the interface to <a class='dfnref' href='#dfn-determine-the-value-of-an-named-property'>determine the value of an named property</a> for the name given by <var>N</var>.</li>
+                </ol>
+              </li>
+              <li>Set <var>finalValue</var> to the result of <a class='dfnref' href='#dfn-convert-idl-to-ecmascript-value'>converting</a> <var>idlValue</var> to an ECMAScript value.</li>
+              <li>Return <var>finalValue</var>.</li>
+            </ol>
+            <p>The <span class='prop'>length</span> property of an named property getter is the <span class='estype'>Number</span> value <span class='esvalue'>0</span>.</p>
             <p>
-              The name of the 
-              <a class='dfnref' href='#dfn-corresponding-named-property'>corresponding named property</a>
-              is <var>N</var>.
+              The <dfn id='dfn-named-property-setter'>named property setter</dfn> for a given <a class='dfnref' href='#dfn-interface'>interface</a> <var>I</var>
+              and name <var>N</var> is a <span class='estype'>Function</span>
+              object that, when invoked, behaves as follows:
             </p>
+            <ol class='algorithm'>
+              <li>Let <var>O</var> be the result of calling ToObject with the <a class='esvalue'>this</a> value.</li>
+              <li>If <var>O</var> does not implement the <a class='dfnref' href='#dfn-interface'>interface</a> that defined the <a class='dfnref' href='#dfn-name-setter'>name setter</a>, throw a <span class='estype'>TypeError</span>.</li>
+              <li>If <var>L</var> is not currently the <a class='dfnref' href='#dfn-names-of-the-supported-named-properties'>name of a supported named property</a> on <var>O</var>, then throw a <span class='estype'>TypeError</span>.</li>
+              <li>Let <var>T</var> be the <a class='dfnref' href='#dfn-return-type'>return type</a> of the operation used to declare the name setter.</li>
+              <li>Let <var>V</var> be the value of the first argument passed to the <span class='estype'>Function</span>, or <span class='esvalue'>undefined</span> if no arguments were passed.</li>
+              <li>Let <var>idlValue</var> be the result of <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a> <var>V</var> to an IDL value of type <var>T</var>.</li>
+              <li>If the name getter was defined using an <a class='dfnref' href='#dfn-operation'>operation</a> without an <a class='dfnref' href='#dfn-identifier'>identifier</a>, then:
+                <ol>
+                  <li>Perform the steps listed in the interface description to <a class='dfnref' href='#dfn-set-the-value-of-an-existing-named-property'>set the value of an existing named property</a> with <var>N</var> as the name and <var>idlValue</var> as the value.</li>
+                </ol>
+              </li>
+              <li>Otherwise, the name setter was defined using an operation with an identifier:
+                <ol>
+                  <li>Let <var>F</var> be the result of calling <span class='prop'>[[Get]]</span> on <var>O</var> with the identifier of the operation as the property name.</li>
+                  <li>If <var>F</var> is not a callable object, throw a <span class='estype'>TypeError</span>.</li>
+                  <li>Let <var>finalValue</var> be the result of <a class='dfnref' href='#dfn-convert-idl-to-ecmascript-value'>converting</a> <var>idlValue</var> to an ECMAScript value.</li>
+                  <li>Call the <span class='prop'>[[Call]]</span> method of <var>F</var>, providing <var>O</var> as the <span class='esvalue'>this</span> value and <var>finalValue</var> as the only argument.</li>
+                </ol>
+              </li>
+            </ol>
+            <p>The <span class='prop'>length</span> property of an named property setter is the <span class='estype'>Number</span> value <span class='esvalue'>1</span>.</p>
+            <!--
             <p>
-              The attributes of a newly created
-              <a class='dfnref' href='#dfn-corresponding-named-property'>corresponding named property</a>
-              depends on whether the <a class='dfnref' href='#dfn-interface'>interface</a>
-              has a <a class='dfnref' href='#dfn-name-setter'>name setter</a>
-              and a <a class='dfnref' href='#dfn-name-deleter'>name deleter</a>,
-              according to the following table:
+              For a given combination of <a class='dfnref' href='#dfn-interface'>interface</a> and
+              possible <a class='dfnref' href='#dfn-names-of-the-supported-named-properties'>supported name property</a>
+              there <span class='rfc2119'>MUST</span> be a unique
+              <a class='dfnref' href='#dfn-named-property-getter'>named property getter</a>.  If
+              a <a class='dfnref' href='#dfn-corresponding-named-property'>corresponding named property</a>
+              for a given name is removed and then later is recreated, it uses the same
+              named property getter.
             </p>
-            <table class='vert'>
-              <tr>
-                <th>Has name setter</th>
-                <th>Has name deleter</th>
-                <th>Attributes</th>
-              </tr>
-              <tr><td>No</td><td>No</td><td><span class='descriptor'>{ [[Writable]]: <span class='esvalue'>false</span>, [[Enumerable]]: <span class='esvalue'>false</span>, [[Configurable]]: <span class='esvalue'>false</span> }</span></td></tr>
-              <tr><td>No</td><td>Yes</td><td><span class='descriptor'>{ [[Writable]]: <span class='esvalue'>false</span>, [[Enumerable]]: <span class='esvalue'>false</span>, [[Configurable]]: <span class='esvalue'>true</span> }</span></td></tr>
-              <tr><td>Yes</td><td>No</td><td><span class='descriptor'>{ [[Writable]]: <span class='esvalue'>true</span>, [[Enumerable]]: <span class='esvalue'>false</span>, [[Configurable]]: <span class='esvalue'>false</span> }</span></td></tr>
-              <tr><td>Yes</td><td>Yes</td><td><span class='descriptor'>{ [[Writable]]: <span class='esvalue'>true</span>, [[Enumerable]]: <span class='esvalue'>false</span>, [[Configurable]]: <span class='esvalue'>true</span> }</span></td></tr>
-            </table>
-            <p>
-              The value of a newly created
-              <a class='dfnref' href='#dfn-corresponding-named-property'>corresponding named property</a>
-              is <span class='idlvalue'>undefined</span>.
-            </p>
+            -->
             <p>
               As soon as a given string <var>N</var> stops being <a class='dfnref' href='#dfn-names-of-the-supported-named-properties'>the name of a supported named property</a>,
               then its <a class='dfnref' href='#dfn-corresponding-named-property'>corresponding named property</a>,
               if it exists, <span class='rfc2119'>MUST</span> be removed from the host object.
             </p>
-            <div class='note'>
-              <p>
-                The value of <a class='dfnref' href='#dfn-corresponding-indexed-property'>corresponding indexed properties</a> and
-                <a class='dfnref' href='#dfn-corresponding-named-property'>corresponding named properties</a>
-                will be set appropriately from within the
-                <a href='#get'>host object [[Get]] method</a>.
-              </p>
-            </div>
+
             <p>
-              Support for <a class='dfnref' href='#dfn-getter'>getters</a>
-              is handled by the <a href='#get'>host object [[Get]] method</a>
-              defined in section <?sref get?>,
-              support for <a class='dfnref' href='#dfn-setter'>setters</a> and
-              <a class='dfnref' href='#dfn-creator'>creators</a>
+              Support for <a class='dfnref' href='#dfn-name-creator'>name creators</a>
               is handled by the <a href='#put'>host object [[Put]] method</a>
               defined in section <?sref put?>, and
-              support for <a class='dfnref' href='#dfn-deleters'>deleters</a>
+              support for <a class='dfnref' href='#dfn-name-deleters'>name deleters</a>
               is handled by the <a href='#delete'>host object [[Delete]] method</a>
               defined in section <?sref delete?>.
             </p>
           </div>
 
-          <div id='get' class='section'>
-            <h4>Host object [[Get]] method</h4>
+          <div id='defineownproperty' class='section'>
+            <h4>Host object [[DefineOwnProperty]] method</h4>
 
             <p>
-              The internal <span class='prop'>[[Get]]</span> method of every
-              host object <var>O</var> that implements at least one IDL <a class='dfnref' href='#dfn-interface'>interface</a>
-              <span class='rfc2119'>MUST</span> behave as follows, assuming <var>P</var> is the property name
-              passed to <span class='prop'>[[Get]]</span>:
-            </p>
-
-            <ol class='algorithm'>
-              <li>
-                If <var>O</var> implements an <a class='xattr' href='#OverrideBuiltins'>[OverrideBuiltins]</a>-annotated
-                <a class='dfnref' href='#dfn-interface'>interface</a> that has a
-                <a class='dfnref' href='#dfn-name-getter'>name getter</a>
-                and <var>P</var> is a <a class='dfnref' href='#dfn-supported-property-names'>supported property name</a>, then:
-                <ol>
-                  <li>
-                    If the name getter was defined using an <a class='dfnref' href='#dfn-operation'>operation</a>
-                    with an <a class='dfnref' href='#dfn-identifier'>identifier</a>, then:
-                    <ol>
-                      <li>Determine a callable object that corresponds to the <span class='terminal'>"getter"</span>-annotated operation.</li>
-                      <li>
-                        Invoke the <span class='prop'>[[Call]]</span> method of the callable object, providing <var>O</var> as the this value and with a single argument <var>P</var>.
-                      </li>
-                      <li>
-                        If <var>P</var> is the name of a <a class='dfnref' href='#dfn-corresponding-named-property'>corresponding named property</a>
-                        on <var>O</var>, then set the value of that property to
-                        the return value of the operation.
-                      </li>
-                    </ol>
-                  </li>
-                  <li>
-                    Otherwise, the name getter was defined using an operation without an identifier:
-                    <ol>
-                      <li>
-                        Performs the steps listed in the description of the interface
-                        to <a class='dfnref' href='#dfn-determine-the-value-of-a-named-property'>determine the value of a named property</a>
-                        for the name given by <var>P</var>.
-                      </li>
-                      <li>
-                        If <var>P</var> is the name of a <a class='dfnref' href='#dfn-corresponding-named-property'>corresponding named property</a>
-                        on <var>O</var>, then set the value of that property to
-                        the value determined by following the steps.
-                      </li>
-                    </ol>
-                  </li>
-                  <li>Return.</li>
-                </ol>
-              </li>
-              <li>
-                If <var>P</var> is the name of a
-                <a class='dfnref' href='#dfn-corresponding-indexed-property'>corresponding indexed property</a>
-                on <var>O</var> and <var>O</var> implements an interface with an
-                <a class='dfnref' href='#dfn-index-getter'>index getter</a>, then:
-                <ol>
-                  <li>
-                    If the index getter was defined using an <a class='dfnref' href='#dfn-operation'>operation</a>
-                    with an <a class='dfnref' href='#dfn-identifier'>identifier</a>, then:
-                    <ol>
-                      <li>
-                        Determine a callable object that corresponds to the <span class='terminal'>"getter"</span>-annotated operation.
-                      </li>
-                      <li>
-                        Invoke the <span class='prop'>[[Call]]</span> method of the callable object, providing <var>O</var> as the this value and with a single argument ToUint32(<var>P</var>).
-                      </li>
-                      <li>
-                        Set the value of the property on <var>O</var> with name <var>P</var> to
-                        the return value of the operation.
-                      </li>
-                    </ol>
-                  </li>
-                  <li>
-                    Otherwise, the index getter was defined using an operation without an identifier:
-                    <ol>
-                      <li>
-                        Performs the steps listed in the description of the interface
-                        to <a class='dfnref' href='#dfn-determine-the-value-of-an-indexed-property'>determine the value of an indexed property</a>
-                        for the index given by ToUint32(<var>P</var>).
-                      </li>
-                      <li>
-                        Set the value of the property on <var>O</var> with name <var>P</var> to
-                        the value determined by following the steps.
-                      </li>
-                    </ol>
-                  </li>
-                </ol>
-              </li>
-              <li>
-                If <var>P</var> is the name of a
-                <a class='dfnref' href='#dfn-corresponding-named-property'>corresponding named property</a>
-                on <var>O</var> and <var>O</var> implements an interface with a
-                <a class='dfnref' href='#dfn-name-getter'>name getter</a>, then:
-                <ol>
-                  <li>
-                    If the name getter was defined using an <a class='dfnref' href='#dfn-operation'>operation</a>
-                    with an <a class='dfnref' href='#dfn-identifier'>identifier</a>, then:
-                    <ol>
-                      <li>Determine a callable object that corresponds to the <span class='terminal'>"getter"</span>-annotated operation.</li>
-                      <li>
-                        Invoke the <span class='prop'>[[Call]]</span> method of the callable object, providing <var>O</var> as the this value and with a single argument <var>P</var>.
-                      </li>
-                      <li>
-                        Set the value of the property on <var>O</var> with name <var>P</var> to
-                        the return value of the operation.
-                      </li>
-                    </ol>
-                  </li>
-                  <li>
-                    Otherwise, the name getter was defined using an operation without an identifier:
-                    <ol>
-                      <li>
-                        Performs the steps listed in the description of the interface
-                        to <a class='dfnref' href='#dfn-determine-the-value-of-a-named-property'>determine the value of a named property</a>
-                        for the name given by <var>P</var>.
-                      </li>
-                      <li>
-                        Set the value of the property on <var>O</var> with name <var>P</var> to
-                        the value determined by following the steps.
-                      </li>
-                    </ol>
-                  </li>
-                </ol>
-              </li>
-              <li>
-                If <var>O</var> has a property with name <var>P</var>, then return the value of that property.
-              </li>
-              <li>
-                If the <span class='prop'>[[Prototype]]</span> of <var>O</var> is <span class='esvalue'>null</span>, then return <span class='esvalue'>undefined</span>.
-              </li>
-              <li>
-                Return the result of calling the <span class='prop'>[[Get]]</span> method of <span class='prop'>[[Prototype]]</span> with property name <var>P</var>.
-              </li>
-            </ol>
-          </div>
-
-          <div id='put' class='section'>
-            <h4>Host object [[Put]] method</h4>
-
-            <p>
-              The internal <span class='prop'>[[Put]]</span> method of every
-              host object <var>O</var> that implements at least one IDL <a class='dfnref' href='#dfn-interface'>interface</a>
+              The internal <span class='prop'>[[DefineOwnProperty]]</span> method of every
+              host object <var>O</var> that implements an <a class='dfnref' href='#dfn-interface'>interface</a>
+              with a <a class='dfnref' href='#dfn-creator'>creator</a>
               <span class='rfc2119'>MUST</span> behave as follows, assuming <var>P</var> is the property name and <var>V</var>
               is the property value passed to <span class='prop'>[[Put]]</span>:
             </p>
 
             <ol class='algorithm'>
               <li>
-                If <var>P</var> is the name of a <a class='dfnref' href='#dfn-corresponding-indexed-property'>corresponding indexed property</a> on <var>O</var>
-                and <var>O</var> implements an interface with an <a class='dfnref' href='#dfn-index-setter'>index setter</a>, then:
+                If <var>O</var> implements an interface with an <a class='dfnref' href='#dfn-index-creator'>index creator</a>
+                and <var>P</var> is an <a class='dfnref' href='#dfn-array-index-property-name'>array index property name</a>, then:
                 <ol>
-                  <li>
-                    If the index setter was defined using an <a class='dfnref' href='#dfn-operation'>operation</a>
-                    without an <a class='dfnref' href='#dfn-identifier'>identifier</a>, then:
-                    <ol>
-                      <li>Perform the steps listed in the interface description to
-                        <a class='dfnref' href='#dfn-set-the-value-of-an-existing-indexed-property'>set the value of an existing indexed property</a>
-                        with ToUint32(<var>P</var>) as the index and <var>V</var> as the value.</li>
-                    </ol>
-                  </li>
-                  <li>
-                    Otherwise, the index setter was defined using an operation with an identifier:
-                    <ol>
-                      <li>Determine a callable object that corresponds to the <span class='terminal'>"setter"</span>-annotated operation.</li>
-                      <li>Invoke the <span class='prop'>[[Call]]</span> method of the callable object, providing <var>O</var> as the this value and with ToUint32(<var>P</var>) and <var>V</var> as the two argument values.</li>
-                    </ol>
-                  </li>
-                  <li>Return.</li>
-                </ol>
-              </li>
-              <li>
-                If <var>O</var> implements an interface that <a class='dfnref' href='#dfn-support-indexed-properties'>supports indexed properties</a>,
-                <var>P</var> is an <a class='dfnref' href='#dfn-array-index-property-name'>array index property name</a>,
-                there does not exist a property named <var>P</var> on <var>O</var> or in <var>O</var>’s prototype chain,
-                and <var>O</var> implements an interface with an <a class='dfnref' href='#dfn-index-creator'>index creator</a>, then:
-                <ol>
+                  <li>Let <var>T</var> be the <a class='dfnref' href='#dfn-return-type'>return type</a> of the operation used to declare the index creator.</li>
+                  <li>Let <var>idlValue</var> be the result of <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a> <var>V</var> to an IDL value of type <var>T</var>.</li>
                   <li>
                     If the index creator was defined using an <a class='dfnref' href='#dfn-operation'>operation</a>
                     without an <a class='dfnref' href='#dfn-identifier'>identifier</a>, then:
                     <ol>
                       <li>Perform the steps listed in the interface description to
                         <a class='dfnref' href='#dfn-set-the-value-of-a-new-indexed-property'>set the value of a new indexed property</a>
-                        with ToUint32(<var>P</var>) as the index and <var>V</var> as the value.</li>
+                        with ToUint32(<var>P</var>) as the index and <var>idlValue</var> as the value.</li>
                     </ol>
                   </li>
                   <li>
                     Otherwise, the index creator was defined using an operation with an identifier:
                     <ol>
-                      <li>Determine a callable object that corresponds to the <span class='terminal'>"creator"</span>-annotated operation.</li>
-                      <li>Invoke the <span class='prop'>[[Call]]</span> method of the callable object, providing <var>O</var> as the this value and with ToUint32(<var>P</var>) and <var>V</var> as the two argument values.</li>
+                      <li>Let <var>F</var> be the result of calling <span class='prop'>[[Get]]</span> on <var>O</var> with the identifier of the operation.</li>
+                      <li>If <var>F</var> is not a callable object, throw a <span class='estype'>TypeError</span>.</li>
+                      <li>Let <var>finalValue</var> be the result of <a class='dfnref' href='#dfn-convert-idl-to-ecmascript-value'>converting</a> <var>idlValue</var> to an ECMAScript value.</li>
+                      <li>Invoke the <span class='prop'>[[Call]]</span> method of <var>F</var>, providing <var>O</var> as the this value and with ToUint32(<var>P</var>) and <var>finalValue</var> as the two argument values.</li>
                     </ol>
                   </li>
                   <li>Return.</li>
                 </ol>
               </li>
               <li>
-                If <var>P</var> is the name of a <a class='dfnref' href='#dfn-corresponding-named-property'>corresponding named property</a> on <var>O</var>
-                and <var>O</var> implements an interface with a <a class='dfnref' href='#dfn-name-setter'>name setter</a>, then:
+                If <var>O</var> implements an interface with a <a class='dfnref' href='#dfn-name-creator'>name creator</a>, then:
                 <ol>
-                  <li>
-                    If the name setter was defined using an <a class='dfnref' href='#dfn-operation'>operation</a>
-                    without an <a class='dfnref' href='#dfn-identifier'>identifier</a>, then:
-                    <ol>
-                      <li>Perform the steps listed in the interface description to
-                        <a class='dfnref' href='#dfn-set-the-value-of-an-existing-named-property'>set the value of an existing named property</a>
-                        with <var>P</var> as the name and <var>V</var> as the value.</li>
-                    </ol>
-                  </li>
-                  <li>
-                    Otherwise, the name setter was defined using an operation with an identifier:
-                    <ol>
-                      <li>Determine a callable object that corresponds to the <span class='terminal'>"setter"</span>-annotated operation.</li>
-                      <li>Invoke the <span class='prop'>[[Call]]</span> method of the callable object, providing <var>O</var> as the this value and with <var>P</var> and <var>V</var> as the two argument values.</li>
-                    </ol>
-                  </li>
-                  <li>Return.</li>
-                </ol>
-              </li>
-              <li>
-                If <var>O</var> implements an interface that <a class='dfnref' href='#dfn-support-named-properties'>supports named properties</a>,
-                there does not exist a property named <var>P</var> on <var>O</var> or in <var>O</var>’s prototype chain,
-                and <var>O</var> implements an interface with a <a class='dfnref' href='#dfn-name-creator'>name creator</a>, then:
-                <ol>
+                  <li>Let <var>T</var> be the <a class='dfnref' href='#dfn-return-type'>return type</a> of the operation used to declare the name creator.</li>
+                  <li>Let <var>idlValue</var> be the result of <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a> <var>V</var> to an IDL value of type <var>T</var>.</li>
                   <li>
                     If the name creator was defined using an <a class='dfnref' href='#dfn-operation'>operation</a>
                     without an <a class='dfnref' href='#dfn-identifier'>identifier</a>, then:
                     <ol>
                       <li>Perform the steps listed in the interface description to
                         <a class='dfnref' href='#dfn-set-the-value-of-a-new-named-property'>set the value of a new named property</a>
-                        with <var>P</var> as the name and <var>V</var> as the value.</li>
+                        with <var>P</var> as the name and <var>idlValue</var> as the value.</li>
                     </ol>
                   </li>
                   <li>
                     Otherwise, the name creator was defined using an operation with an identifier:
                     <ol>
-                      <li>Determine a callable object that corresponds to the <span class='terminal'>"creator"</span>-annotated operation.</li>
-                      <li>Invoke the <span class='prop'>[[Call]]</span> method of the callable object, providing <var>O</var> as the this value and with <var>P</var> and <var>V</var> as the two argument values.</li>
+                      <li>Let <var>F</var> be the result of calling <span class='prop'>[[Get]]</span> on <var>O</var> with the identifier of the operation.</li>
+                      <li>If <var>F</var> is not a callable object, throw a <span class='estype'>TypeError</span>.</li>
+                      <li>Let <var>finalValue</var> be the result of <a class='dfnref' href='#dfn-convert-idl-to-ecmascript-value'>converting</a> <var>idlValue</var> to an ECMAScript value.</li>
+                      <li>Invoke the <span class='prop'>[[Call]]</span> method of <var>F</var>, providing <var>O</var> as the this value and with <var>P</var> and <var>finalValue</var> as the two argument values.</li>
                     </ol>
                   </li>
                   <li>Return.</li>
                 </ol>
               </li>
-              <li>If the result of calling the <span class='prop'>[[CanPut]]</span> method of <var>O</var> with name <var>P</var> is <span class='idlvalue'>true</span>, then:
-                <ol>
-                  <li>If <var>O</var> has a property named <var>P</var>, then:
-                    <ol>
-                      <li>Set the value of the property to <var>V</var>.  The attributes of the property are not changed.</li>
-                      <li>Return.</li>
-                    </ol>
-                  </li>
-                  <li>Create a property on <var>O</var> with name <var>P</var>, set its value to <var>V</var> and give it empty attributes.</li>
-                </ol>
-              </li>
-              <li>Return.</li>
+              <li>Call the default <span class='prop'>[[DefineOwnProperty]]</span> internal method (<a href='#ref-ECMA-262'>[ECMA-262]</a>, section 8.12.9) on <var>O</var> passing <var>P</var>, <var>Desc</var>, and <var>Throw</var> as arguments.</li>
             </ol>
-
-            <p>
-              Note that assigning a value to a property that corresponds
-              to an <a class='dfnref' href='#dfn-attribute'>attribute</a>
-              results in that value being
-              <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converted</a>
-              to an IDL value and assigned to the attribute,
-              as described in <a href='#host-objects'>section <?sref host-objects?></a>.
-            </p>
           </div>
 
           <div id='delete' class='section'>
@@ -7043,14 +6937,22 @@ c.isMemberOfBreed(undefined);  <span class='comment'>// This passes the string "
 
             <p>
               The internal <span class='prop'>[[Delete]]</span> method of every
-              host object <var>O</var> that implements at least one IDL <a class='dfnref' href='#dfn-interface'>interface</a>
-              <span class='rfc2119'>MUST</span> behave as follows, assuming <var>P</var> is the property name passed to <span class='prop'>[[Delete]]</span>:
+              host object <var>O</var> that implements an <a class='dfnref' href='#dfn-interface'>interface</a>
+              with a <a class='dfnref' href='#dfn-deleter'>deleter</a>
+              <span class='rfc2119'>MUST</span> behave as follows,
+              assuming <var>P</var> is the property name passed to <span class='prop'>[[Delete]]</span>:
             </p>
 
             <ol class='algorithm'>
-              <li>If <var>O</var> doesn’t have a property with name <var>P</var>, return <span class='esvalue'>true</span>.</li>
-              <li>If property with name <var>P</var> on object <var>O</var> is non-configurable, return <span class='esvalue'>false</span>.</li>
-              <li>If the property with name <var>P</var> on object <var>O</var> is a <a class='dfnref' href='#dfn-corresponding-indexed-property'>corresponding indexed property</a>
+              <li>Let <var>desc</var> be the result of calling <span class='prop'>[[GetOwnProperty]]</span> internal method of <var>O</var> with property name <var>P</var>.</li>
+              <li>If <var>desc</var> is <span class='esvalue'>undefined</span>, then return <span class='esvalue'>true</span>.</li>
+              <li>If <var>desc</var>.<span class='prop'>[[Configurable]]</span> is <span class='estype'>false</span>, then:
+                <ol>
+                  <li>If <var>Throw</var> is <span class='esvalue'>true</span>, then throw a <span class='estype'>TypeError</span>.</li>
+                  <li>Otherwise, return <span class='esvalue'>false</span>.</li>
+                </ol>
+              </li>
+              <li>If <var>desc</var> is the descriptor for a <a class='dfnref' href='#dfn-corresponding-indexed-property'>corresponding indexed property</a>,
                 and <var>O</var> implements an interface with an <a class='dfnref' href='#dfn-index-deleter'>index deleter</a>, then:
                 <ol>
                   <li>
@@ -7066,16 +6968,16 @@ c.isMemberOfBreed(undefined);  <span class='comment'>// This passes the string "
                   <li>
                     Otherwise, the index deleter was defined using an operation with an identifier:
                     <ol>
-                      <li>Determine a callable object that corresponds to the <span class='terminal'>"deleter"</span>-annotated operation.</li>
-                      <li>Let <var>B</var> be the result of invoking the <span class='prop'>[[Call]]</span> method of the callable object, providing <var>O</var> as the this value and with ToUint32(<var>P</var>) as the argument.</li>
-                      <li>Return ToBoolean(<var>B</var>), or <span class='idlvalue'>true</span> if the <span class='terminal'>"deleter"</span>-annotated operation was declared to return <span class='idltype'>void</span>.</li>
+                      <li>Let <var>F</var> be the result of calling <span class='prop'>[[Get]]</span> on <var>O</var> with the operation's identifier as the property name.</li>
+                      <li>If <var>F</var> is not a callable object, throw a <span class='estype'>TypeError</span>.</li>
+                      <li>Let <var>B</var> be the result of invoking the <span class='prop'>[[Call]]</span> method of <var>F</var>, providing <var>O</var> as the this value and with ToUint32(<var>P</var>) as the argument.</li>
+                      <li>Return ToBoolean(<var>B</var>), or <span class='idlvalue'>true</span> if the operation was declared to return <span class='idltype'>void</span>.</li>
                     </ol>
                   </li>
                 </ol>
               </li>
-              <li>
-                If the property with name <var>P</var> on object <var>O</var> is a <a class='dfnref' href='#dfn-corresponding-named-property'>corresponding named property</a>
-                and <var>O</var> implements an interface with a <a class='dfnref' href='#dfn-name-deleter'>name deleter</a>, then:
+              <li>If <var>desc</var> is the descriptor for a <a class='dfnref' href='#dfn-corresponding-named-property'>corresponding named property</a>,
+                and <var>O</var> implements an interface with an <a class='dfnref' href='#dfn-name-deleter'>name deleter</a>, then:
                 <ol>
                   <li>
                     If the name deleter was defined using an <a class='dfnref' href='#dfn-operation'>operation</a>
@@ -7090,14 +6992,15 @@ c.isMemberOfBreed(undefined);  <span class='comment'>// This passes the string "
                   <li>
                     Otherwise, the name deleter was defined using an operation with an identifier:
                     <ol>
-                      <li>Determine a callable object that corresponds to the <span class='terminal'>"deleter"</span>-annotated operation.</li>
-                      <li>Let <var>B</var> be the result of invoking the <span class='prop'>[[Call]]</span> method of the callable object, providing <var>O</var> as the this value and with <var>P</var> as the argument.</li>
-                      <li>Return ToBoolean(<var>B</var>), or <span class='idlvalue'>true</span> if the <span class='terminal'>"deleter"</span>-annotated operation was declared to return <span class='idltype'>void</span>.</li>
+                      <li>Let <var>F</var> be the result of calling <span class='prop'>[[Get]]</span> on <var>O</var> with the operation's identifier as the property name.</li>
+                      <li>If <var>F</var> is not a callable object, throw a <span class='estype'>TypeError</span>.</li>
+                      <li>Let <var>B</var> be the result of invoking the <span class='prop'>[[Call]]</span> method of <var>F</var>, providing <var>O</var> as the this value and with <var>P</var> as the argument.</li>
+                      <li>Return ToBoolean(<var>B</var>), or <span class='idlvalue'>true</span> if the operation was declared to return <span class='idltype'>void</span>.</li>
                     </ol>
                   </li>
                 </ol>
               </li>
-              <li>Remove the property with name <var>P</var> from <var>O</var>.</li>
+              <li>Remove the own property with name <var>P</var> from <var>O</var>.</li>
               <li>Return <span class='esvalue'>true</span>.</li>
             </ol>
           </div>
@@ -7184,6 +7087,7 @@ c.isMemberOfBreed(undefined);  <span class='comment'>// This passes the string "
               No <a class='dfnref' href='#dfn-attribute'>attribute</a> on the interface
               has a
               <a class='xattr' href='#PutForwards'>[PutForwards]</a>,
+              <a class='xattr' href='#Replaceable'>[Replaceable]</a>,
               <a class='xattr' href='#TreatNullAs'>[TreatNullAs]</a> or
               <a class='xattr' href='#TreatUndefinedAs'>[TreatUndefinedAs]</a>
               extended attribute on it.
