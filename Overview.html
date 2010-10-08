@@ -11,7 +11,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <title>Web IDL</title>
-    <meta name="revision" content="$Id: Overview.html,v 1.222 2010-10-08 02:33:10 cmccorma Exp $" />
+    <meta name="revision" content="$Id: Overview.html,v 1.223 2010-10-08 03:06:13 cmccorma Exp $" />
     <link rel="stylesheet" href="WebIDL.css" type="text/css" />
     <script src="section-links.js" type="application/ecmascript"></script>
     <script src="dfn.js" type="application/ecmascript"></script>
@@ -42,7 +42,7 @@
         Java execution environments is also detailed.
       </p>
 
-      <div class="ednote"><div class="ednoteHeader">Editorial note</div><p>This version of the document is built from source revision &#36;Id: Overview.xml,v 1.224 2010/10/06 23:17:36 cmccorma Exp $.</p><p>There are 11 further editorial notes in the document.</p></div>
+      <div class="ednote"><div class="ednoteHeader">Editorial note</div><p>This version of the document is built from source revision &#36;Id: Overview.xml,v 1.225 2010/10/08 02:33:11 cmccorma Exp $.</p><p>There are 13 further editorial notes in the document.</p></div>
     </div>
 
     <div class="section">
@@ -3992,6 +3992,9 @@ Person* p2 = PersonFactory_createPersonWithAge(f, 26);  <span class='comment'>//
           <div id="es-DOMString" class="section">
             <h4>4.1.13. DOMString</h4>
 
+            <div class="ednote"><div class="ednoteHeader">Editorial note</div>
+              <p>Make <span class="esvalue">null</span> default to the empty string? <a href="http://krijnhoetmer.nl/irc-logs/whatwg/20100909#l-47">(IRC.)</a></p>
+            </div>
             <p>
               IDL <a class="idltype" href="#idl-DOMString">DOMString</a> values
               are represented by ECMAScript <span class="estype">String</span> values.
@@ -5862,6 +5865,12 @@ c.isMemberOfBreed(undefined);  <span class="comment">// This passes the string "
             <div id="es-interface-construct" class="section">
               <h5>4.4.1.1. Interface object [[Construct]] method</h5>
 
+              <div class="ednote"><div class="ednoteHeader">Editorial note</div>
+                <p>Interface objects that are constructors should also respond to <span class="prop">[[Call]]</span> in the same way.
+                  The prototype should then also inherit from the Function prototype object rather than Object prototype object,
+                  in such ases. <a href="http://www.w3.org/mid/AANLkTin_jGLLozPHR6zWNofi0gdROP2UU2DTaFFYsvOF@mail.gmail.com">(Mail.)</a></p>
+              </div>
+
               <p>
                 If the interface is declared with a
                 <a class="xattr" href="#Constructor">[Constructor]</a> <a class="dfnref" href="#dfn-extended-attribute">extended attribute</a>,
@@ -6871,8 +6880,8 @@ c.isMemberOfBreed(undefined);  <span class="comment">// This passes the string "
 
             <p>
               Support for <a class="dfnref" href="#dfn-index-creator">index creators</a>
-              is handled by the <a href="#put">host object [[Put]] method</a>
-              defined in section @@, and
+              is handled by the <a href="#defineownproperty">host object [[DefineOwnProperty]] method</a>
+              defined in section 4.5.4, and
               support for <a class="dfnref" href="#dfn-index-deleters">index deleters</a>
               is handled by the <a href="#delete">host object [[Delete]] method</a>
               defined in section 4.5.5.
@@ -6988,7 +6997,7 @@ c.isMemberOfBreed(undefined);  <span class="comment">// This passes the string "
 
             <p>
               Support for <a class="dfnref" href="#dfn-name-creator">name creators</a>
-              is handled by the <a href="#put">host object [[Put]] method</a>
+              is handled by the <a href="#defineownproperty">host object [[DefineOwnProperty]] method</a>
               defined in section @@, and
               support for <a class="dfnref" href="#dfn-name-deleters">name deleters</a>
               is handled by the <a href="#delete">host object [[Delete]] method</a>
@@ -7220,6 +7229,7 @@ c.isMemberOfBreed(undefined);  <span class="comment">// This passes the string "
               No <a class="dfnref" href="#dfn-attribute">attribute</a> on the interface
               has a
               <a class="xattr" href="#PutForwards">[PutForwards]</a>,
+              <a class="xattr" href="#Replaceable">[Replaceable]</a>,
               <a class="xattr" href="#TreatNullAs">[TreatNullAs]</a> or
               <a class="xattr" href="#TreatUndefinedAs">[TreatUndefinedAs]</a>
               extended attribute on it.
@@ -9587,6 +9597,13 @@ module foo {
             <ul>
               <li>
                 <p>
+                  Updated the ECMAScript language binding to target ECMAScript 5th edition,
+                  the biggest part of which is that now interface attributes are
+                  implemented as accessor properties.
+                </p>
+              </li>
+              <li>
+                <p>
                   Ensure that corresponding properties do not exist for constants,
                   attributes and operations named “constructor” or “toString”
                   if they would conflict with other requirements to have properties
@@ -9634,7 +9651,7 @@ module foo {
               <li>
                 <p>
                   Defined the <span class="prop">length</span> property on
-                  callable objects that correspond to operations and constructors.
+                  <span class="estype">Function</span> objects that correspond to operations and constructors.
                 </p>
               </li>
               <li>
@@ -9769,11 +9786,10 @@ module foo {
               <li>
                 <p>
                   Fixed bugs in the host object <span class="prop">[[Put]]</span>
-                  algorithm so that name and index creators are actually
-                  invoked, created a host object <span class="prop">[[Get]]</span>
-                  algorithm so that it is clearer when name and index getter
-                  operations are invoked, and restructured both of those algorithms
-                  as well as the host object <span class="prop">[[Delete]]</span>
+                  algorithm (now <span class="prop">[[DefineOwnProperty]]</span>)
+                  so that name and index creators are actually
+                  invoked, and restructured it as well as the host object
+                  <span class="prop">[[Delete]]</span>
                   algorithm so that they are easier to read.
                 </p>
               </li>
