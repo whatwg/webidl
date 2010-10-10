@@ -15,7 +15,7 @@
   <head>
     <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'/>
     <title>Web IDL</title>
-    <meta name='revision' content='$Id: Overview.xml,v 1.230 2010-10-10 20:31:34 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: Overview.xml,v 1.231 2010-10-10 23:18:11 cmccorma Exp $'/>
     <link rel='stylesheet' href='WebIDL.css' type='text/css'/>
     <script src='section-links.js' type='application/ecmascript'/>
     <script src='dfn.js' type='application/ecmascript'/>
@@ -3374,16 +3374,15 @@ Person* p2 = PersonFactory_createPersonWithAge(f, 26);  <span class='comment'>//
         <p>
           This section describes how definitions written with the IDL defined in
           <a href='#idl'>section <?sref idl?></a> correspond to particular constructs
-          in ECMAScript 5th edition.
+          in ECMAScript 5th edition.  Section numbers in this section refer to
+          sections of <cite>ECMAScript Language Specification, 5th Edition</cite>
+          <a href="#ref-ECMA-262">[ECMA-262]</a>.
         </p>
         <p>
-          Host objects act like native objects as described in section 8.12 of
-          <cite>ECMAScript Language Specification, 5th Edition</cite>
-          <a href="#ref-ECMA-262">[ECMA-262]</a> unless otherwise specified, in which
-          case they redefine one or more of the following internal properties in accordance
-          with the rules for host objects:
+          Objects defined in this section have internal properties as described in section 8.12
+          unless otherwise specified, in which case one or more of the following are
+          redefined in accordance with the rules for host objects:
           <span class="prop">[[Call]]</span>,
-          <span class="prop">[[Construct]]</span>,
           <span class="prop">[[DefineOwnProperty]]</span>,
           <span class="prop">[[Delete]]</span> and
           <span class="prop">[[HasInstance]]</span>.
@@ -3394,11 +3393,28 @@ Person* p2 = PersonFactory_createPersonWithAge(f, 26);  <span class='comment'>//
           object, its value is implementation specific.
         </p>
         <p>
+          Unless otherwise specified, the <span class='prop'>[[Extensible]]</span> internal property
+          of objects defined in this section has the value <span class='esvalue'>true</span>.
+        </p>
+        <p>
+          Unless otherwise specified, the <span class='prop'>[[Prototype]]</span> internal property
+          of objects defined in this section is the <span class='esvalue'>Object</span> prototype object.
+        </p>
+        <p>
+          If an object is defined to be a <dfn id='dfn-function-object'>function object</dfn>, then
+          it has characteristics as follows:
+        </p>
+        <ul>
+          <li>Its <span class='prop'>[[Prototype]]</span> internal property is the <span class='esvalue'>Function</span> prototype object.</li>
+          <li>Its <span class='prop'>[[Get]]</span> internal property is set as described in section 15.3.5.4.</li>
+          <li>Its <span class='prop'>[[Construct]]</span> internal property is set as described in section 13.2.2.</li>
+          <li>Its <span class='prop'>[[HasInstance]]</span> internal property is set as described in section 15.3.5.3, unless otherwise specified.</li>
+          <li>Its <span class='prop'>[[Class]]</span> internal property is <span class='esstring'>"Function"</span>, unless otherwise specified.</li>
+        </ul>
+        <p>
           Algorithms in this section use the conventions described in
-          section 5.2 of <cite>ECMAScript Language Specification, 5th Edition</cite>,
-          and the ToBoolean, ToNumber, ToUint16, ToInt32, ToUint32, ToString and
-          ToObject operators referenced in this section are defined in section 9
-          of that document <a href='#ref-ECMA-262'>[ECMA-262]</a>.
+          section 5.2 and the ToBoolean, ToNumber, ToUint16, ToInt32, ToUint32, ToString and
+          ToObject operators referenced in this section are defined in section 9.
         </p>
 
         <div id='es-type-mapping' class='section'>
@@ -4307,7 +4323,7 @@ a[0] = 20;</x:codeblock>
             <h4>Arrays — <var>T</var>[]</h4>
 
             <p>
-              IDL array values are represented by references to ECMAScript host objects, known
+              IDL array values are represented by references to objects known
               as <dfn id='dfn-array-host-object'>array host objects</dfn>, with particular
               characteristics that allow them to behave similarly to native <span class='estype'>Array</span>
               objects.
@@ -4930,8 +4946,8 @@ t.addListener({ eventOccurred: function() { } });</x:codeblock>
               the interface by passing the specified arguments.
             </p>
             <p>
-              See <a href='#es-interface-construct'>section <?sref es-interface-construct?></a>
-              <?sdir es-interface-construct?> for details on how a constructor
+              See <a href='#es-interface-call'>section <?sref es-interface-call?></a>
+              <?sdir es-interface-call?> for details on how a constructor
               is to be implemented.
             </p>
 
@@ -5724,9 +5740,16 @@ c.isMemberOfBreed(undefined);  <span class='comment'>// This passes the string "
             <h4>Interface object</h4>
 
             <p>
-              The interface object for a particular <a class='dfnref' href='#dfn-interface'>interface</a>
-              <span class='rfc2119'>MUST</span> have an internal <span class='prop'>[[Prototype]]</span>
-              property whose value is the <span class='esvalue'>Object</span> prototype object.
+              There exists an interface object for every <a class='dfnref' href='#dfn-interface'>interface</a>
+              not declared with the <a class='xattr' href='#NoInterfaceObject'>[NoInterfaceObject]</a>
+              <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>.
+              If the interface is declared with a <a class='xattr' href='#Constructor'>[Constructor]</a>
+              <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>,
+              then the interface object is a <a class='dfnref' href='#dfn-function-object'>function object</a>.
+            </p>
+            <p>
+              The <span class='prop'>[[Class]]</span> property of the interface object <span class='rfc2119'>MUST</span>
+              be the <a class='dfnref' href='#dfn-identifier'>identifier</a> of the interface.
             </p>
             <p>
               The interface object also has properties that correspond to
@@ -5738,7 +5761,7 @@ c.isMemberOfBreed(undefined);  <span class='comment'>// This passes the string "
               <span class='prop'>prototype</span> with attributes
               <span class='descriptor'>{ [[Writable]]: <span class='esvalue'>false</span>, [[Enumerable]]: <span class='esvalue'>false</span>, [[Configurable]]: <span class='esvalue'>false</span> }</span>
               whose value is an object called the <dfn id='dfn-interface-prototype-object'>interface prototype
-                object</dfn>.  This object provides has properties
+                object</dfn>.  This object has properties
               that correspond to the <a class='dfnref' href='#dfn-attribute'>attributes</a> and
               <a class='dfnref' href='#dfn-operation'>operations</a> defined on the interface,
               and is described in more detail in
@@ -5746,20 +5769,14 @@ c.isMemberOfBreed(undefined);  <span class='comment'>// This passes the string "
               <?sdir interface-prototype-object?>.
             </p>
 
-            <div id='es-interface-construct' class='section'>
-              <h5>Interface object [[Construct]] method</h5>
-
-              <div class='ednote'>
-                <p>Interface objects that are constructors should also respond to <span class='prop'>[[Call]]</span> in the same way.
-                  The prototype should then also inherit from the Function prototype object rather than Object prototype object,
-                  in such cases. <a href='http://www.w3.org/mid/AANLkTin_jGLLozPHR6zWNofi0gdROP2UU2DTaFFYsvOF@mail.gmail.com'>(Mail.)</a></p>
-              </div>
+            <div id='es-interface-call' class='section'>
+              <h5>Interface object [[Call]] method</h5>
 
               <p>
                 If the interface is declared with a
                 <a class='xattr' href='#Constructor'>[Constructor]</a> <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>,
-                then the interface object <span class='rfc2119'>MUST</span> also have a
-                <span class='prop'>[[Construct]]</span> internal property, which allows
+                then the interface object <span class='rfc2119'>MUST</span> have a
+                <span class='prop'>[[Call]]</span> internal property, which allows
                 construction of objects that implement the given interface.<!--  The behavior
                 of this <span class='prop'>[[Construct]]</span> method is not
                 necessarily the same as that described for <span class='estype'>Function</span> objects in
@@ -5772,7 +5789,7 @@ c.isMemberOfBreed(undefined);  <span class='comment'>// This passes the string "
               </p>
               <p>-->
                 In order to define how overloaded constructor invocations
-                are resolved within the <span class='prop'>[[Construct]]</span> method, the
+                are resolved within the <span class='prop'>[[Call]]</span> method, the
                 <dfn id='dfn-overload-resolution-algorithm'>overload resolution algorithm</dfn>
                 is defined.  Its input is an <a class='dfnref' href='#dfn-effective-overload-set'>effective overload set</a>,
                 <var>S</var>, and a list of ECMAScript values, <var>arg</var><sub>0..<var>n</var>−1</sub>.
@@ -5882,7 +5899,7 @@ c.isMemberOfBreed(undefined);  <span class='comment'>// This passes the string "
                 <li>Return <var>R</var>.</li>
               </ol>
               <p>
-                The internal <span class='prop'>[[Construct]]</span> method
+                The internal <span class='prop'>[[Call]]</span> method
                 of the interface object behaves as follows, assuming
                 <var>arg</var><sub>0..<var>n</var>−1</sub> is the list
                 of argument values passed to the constructor, and <var>I</var>
@@ -5942,7 +5959,7 @@ c.isMemberOfBreed(undefined);  <span class='comment'>// This passes the string "
                 </li>
               </ol>
               <p>
-                If the internal <span class='prop'>[[Construct]]</span> method
+                If the internal <span class='prop'>[[Call]]</span> method
                 of the <a class='dfnref' href='#dfn-interface-object'>interface object</a>
                 returns normally, then it <span class='rfc2119'>MUST</span>
                 return an object that implements interface <var>I</var>.
@@ -6020,7 +6037,8 @@ c.isMemberOfBreed(undefined);  <span class='comment'>// This passes the string "
               <a class='xattr' href='#NamedConstructor'>[NamedConstructor]</a>
               <a class='dfnref' href='#dfn-extended-attribute'>extended attributes</a>
               with a given <a class='dfnref' href='#dfn-identifier'>identifier</a>
-              <span class='rfc2119'>MUST</span> have a <span class='prop'>[[Construct]]</span>
+              is a <a class='dfnref' href='#dfn-function-object'>function object</a>.
+              It <span class='rfc2119'>MUST</span> have a <span class='prop'>[[Call]]</span>
               internal property, which allows construction of objects that
               implement the interface on which the
               <a class='xattr' href='#NamedConstructor'>[NamedConstructor]</a>
@@ -6085,7 +6103,7 @@ c.isMemberOfBreed(undefined);  <span class='comment'>// This passes the string "
               </li>
             </ol>
             <p>
-              If the internal <span class='prop'>[[Construct]]</span> method
+              If the internal <span class='prop'>[[Call]]</span> method
               of the <a class='dfnref' href='#dfn-named-constructor-object'>named constructor object</a>
               returns normally, then it <span class='rfc2119'>MUST</span>
               return an object that implements interface <var>I</var>.
@@ -6398,8 +6416,8 @@ c.isMemberOfBreed(undefined);  <span class='comment'>// This passes the string "
                 <span class='descriptor'>{ [[Writable]]: <span class='esvalue'>true</span>, [[Enumerable]]: <span class='esvalue'>false</span>, [[Configurable]]: <span class='esvalue'>true</span> }</span>.
               </li>
               <li>
-                The value of the property is a <span class='estype'>Function</span> object whose internal
-                that, when invoked, behaves as follows,
+                The value of the property is a <span class='estype'>Function</span> object whose
+                behavior is as follows,
                 assuming <var>id</var> is the
                 <a class='dfnref' href='#dfn-identifier'>identifier</a>,
                 <var>arg</var><sub>0..<var>n</var>−1</sub> is the list
@@ -6885,7 +6903,7 @@ c.isMemberOfBreed(undefined);  <span class='comment'>// This passes the string "
             <p>
               Support for <a class='dfnref' href='#dfn-name-creator'>name creators</a>
               is handled by the <a href='#defineownproperty'>host object [[DefineOwnProperty]] method</a>
-              defined in section <?sref put?>, and
+              defined in section <?sref defineownproperty?>, and
               support for <a class='dfnref' href='#dfn-name-deleters'>name deleters</a>
               is handled by the <a href='#delete'>host object [[Delete]] method</a>
               defined in section <?sref delete?>.
