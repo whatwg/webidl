@@ -357,7 +357,12 @@
         <p>This version of the document is built from source revision <xsl:text disable-output-escaping='yes'>&amp;#36;</xsl:text><xsl:value-of select='substring($id, 2)'/>.</p>
         <xsl:variable name='n' select='count(//h:div[@class="ednote"])'/>
         <xsl:if test='$n'>
-          <p>There are <xsl:value-of select='$n'/> further editorial notes in the document.</p>
+          <p>
+            There are <xsl:value-of select='$n'/> further editorial notes in the document.
+            <xsl:if test='string(.)'>
+              In addition, there is a list of <a href='{.}'>open bugs</a> on the document, some of which may be covered by editorial notes.
+            </xsl:if>
+          </p>
         </xsl:if>
       </div>
     </xsl:if>
