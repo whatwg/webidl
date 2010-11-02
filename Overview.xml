@@ -15,7 +15,7 @@
   <head>
     <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'/>
     <title>Web IDL</title>
-    <meta name='revision' content='$Id: Overview.xml,v 1.250 2010-10-28 04:50:35 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: Overview.xml,v 1.251 2010-11-02 04:32:51 cmccorma Exp $'/>
     <link rel='stylesheet' href='WebIDL.css' type='text/css'/>
     <script src='section-links.js' type='application/ecmascript'/>
     <script src='dfn.js' type='application/ecmascript'/>
@@ -1176,18 +1176,25 @@ interface Person {
             <p>
               An <dfn id='dfn-operation'>operation</dfn> is an <a class='dfnref' href='#dfn-interface-member'>interface member</a> that matches an
               <a class='nt' href='#prod-AttributeOrOperation'>AttributeOrOperation</a> non-terminal with no
-              <a class='nt' href='#prod-Attribute'>Attribute</a> non-terminal in its derivation.  There are two
-              kinds of operation: <dfn id='dfn-regular-operation'>regular operations</dfn>, which
+              <a class='nt' href='#prod-Attribute'>Attribute</a> non-terminal in its derivation.  There are three
+              kinds of operation:
+            </p>
+            <ol>
+              <li><a class='dfnref' href='#dfn-regular-operation'>regular operations</a>, which
               are those used to declare that objects implementing the
               <a class='dfnref' href='#dfn-interface'>interface</a> will have a method with 
-              the given <a class='dfnref' href='#dfn-identifier'>identifier</a>,
-              and <a class='dfnref' href='#dfn-special-operation'>special operations</a>,
+              the given <a class='dfnref' href='#dfn-identifier'>identifier</a>,</li>
+              <li><a class='dfnref' href='#dfn-special-operation'>special operations</a>,
               which are used to declare special behavior on objects
-              implementing the interface, such as object indexing and stringification.
-            </p>
+              implementing the interface, such as object indexing and stringification, and</li>
+              <li><a class='dfnref' href='#dfn-static-operation'>static operations</a>,
+              which are used to declare operations that are not associated with
+              a particular object implementing the interface.</li>
+            </ol>
             <p>
-              If an operation has an identifier,
-              then it declares a regular operation.  If the operation has one or more
+              If an operation has an identifier but no <span class='terminal'>static</span>
+              keyword, then it declares a <dfn id='dfn-regular-operation'>regular operation</dfn>.
+              If the operation has one or more
               <a class='dfnref' href='#dfn-special-keyword'>special keywords</a>
               used in its declaration (that is, any keyword matching
               <a class='nt' href='#prod-Special'>Special</a>, or
@@ -1206,6 +1213,7 @@ interface Person {
             <p>
               The identifier of a
               <a class='dfnref' href='#dfn-regular-operation'>regular operation</a>
+              or <a class='dfnref' href='#dfn-static-operation'>static operation</a>
               <span class='rfc2119'>MUST NOT</span> be the same as the identifier
               of a <a class='dfnref' href='#dfn-constant'>constant</a> or
               <a class='dfnref' href='#dfn-attribute'>attribute</a>
@@ -1964,15 +1972,66 @@ delete map.cake;  <span class='comment'>// If a named property named "cake" exis
             </div>
           </div>
 
+          <div id='idl-static-operations' class='section'>
+            <h4>Static operations</h4>
+
+            <p>
+              A <dfn id='dfn-static-operation'>static operation</dfn> is one that is
+              not called on a particular instance of the <a class='dfnref' href='#dfn-interface'>interface</a>
+              on which it is declared, and is instead associated with the interface
+              itself.  Static operations are declared by using the
+              <span class='terminal'>"static"</span> keyword in an operation
+              declaration.
+            </p>
+            <div class='example'>
+              <p>
+                The following <a class='dfnref' href='#dfn-idl-fragment'>IDL fragment</a> defines an interface
+                <span class='idltype'>Circle</span> that has a static
+                operation declared on it:
+              </p>
+              <x:codeblock language='idl'>interface Point { /* ... */ };
+
+interface Circle {
+  attribute float cx;
+  attribute float cy;
+  attribute float radius;
+
+  static Point triangulate(in Circle c1, in Circle c2, in Circle c3);
+};</x:codeblock>
+              <p>
+                In the ECMAScript language binding, the <span class='estype'>Function</span> object for
+                <code>triangulate</code> will exist on the <a class='dfnref' href='#dfn-interface-object'>interface object</a>
+                for <span class='idltype'>Circle</span>:
+              </p>
+              <x:codeblock language='es'>var circles = getCircles();    <span class='comment'>// an Array of Circle objects</span>
+
+typeof Circle.triangulate;     <span class='comment'>// Evaluates to "function"</span>
+Circle.prototype.triangulate;  <span class='comment'>// Evaluates to undefined</span>
+circles[0].triangulate;        <span class='comment'>// Also evaluates to undefined</span>
+
+<span class='comment'>// Call the static operation</span>
+var triangulationPoint = Circle.triangulate(circles[0], circles[1], circles[2]);</x:codeblock>
+              <p>
+                In the Java language binding, however, the <code>triangulate</code> method
+                will exist on an abstract class:
+              </p>
+              <x:codeblock language='java'>Circle[] circles = getCircles();  <span class='comment'>// an array of Circle objects</span>
+
+<span class='comment'>// Call the static operation</span>
+Point triangulationPoint = CircleUtils.triangulate(circles[0], circles[1], circles[2]);</x:codeblock>
+            </div>
+          </div>
+
           <div id='idl-overloading' class='section'>
             <h4>Overloading</h4>
 
             <p>
               If a <a class='dfnref' href='#dfn-regular-operation'>regular operation</a>
+              or <a class='dfnref' href='#dfn-static-operation'>static operation</a>
               defined on an <a class='dfnref' href='#dfn-interface'>interface</a>
               has an <a class='dfnref' href='#dfn-identifier'>identifier</a>
               that is the same as the identifier of another operation on that
-              interface, then the operation is said to be
+              interface of the same kind (regular or static), then the operation is said to be
               <dfn id='dfn-overloaded'>overloaded</dfn>.  When the identifier
               of an overloaded operation is used to invoke one of the
               operations on an object that implements the interface, the
@@ -2002,19 +2061,19 @@ delete map.cake;  <span class='comment'>// If a named property named "cake" exis
               set is used to determine whether there are ambiguities in the 
               overloaded operations or constructors specified on the interface.
               The effective overload set is stated to be
-              “for regular operations”, “for constructors” or “for callers”,
-              to distinguish between these three uses.  Effective overload sets for
+              “for regular operations”, “for static operations”, “for constructors” or “for callers”,
+              to distinguish between these four uses.  Effective overload sets for
               callers do not use an identifier; only an argument count,
               interface and target language binding are needed.
             </p>
             <p>
               The elements of an effective overload set are triples of the form
               &lt;<var>f</var>, <var>types</var>, <var>any</var>>.  If the effective overload
-              set is for regular operations or for callers, then <var>f</var> is an operation,
+              set is for regular operations, static operations or callers, then <var>f</var> is an operation,
               and if it is for constructors, then <var>f</var> is an
               extended attribute.  In either case, <var>types</var> is a list
               of IDL types and <var>any</var> is a list of boolean values.
-              Each triple represents an allowable invocation of the regular operation,
+              Each triple represents an allowable invocation of the operation,
               constructor or caller with an argument value list of the given types.
               <var>any</var> specifies whether a particular argument has been
               annotated with the <a class='xattr' href='#AllowAny'>[AllowAny]</a>
@@ -2040,6 +2099,11 @@ delete map.cake;  <span class='comment'>// If a named property named "cake" exis
                   <dt>For regular operations</dt>
                   <dd>
                     The elements of <var>F</var> are the <a class='dfnref' href='#dfn-regular-operation'>regular operations</a> with
+                    identifier <var>A</var> defined on interface <var>I</var>.
+                  </dd>
+                  <dt>For static operations</dt>
+                  <dd>
+                    The elements of <var>F</var> are the <a class='dfnref' href='#dfn-static-operation'>static operations</a> with
                     identifier <var>A</var> defined on interface <var>I</var>.
                   </dd>
                   <dt>For constructors</dt>
@@ -2629,7 +2693,7 @@ interface Person {
             assign to the attribute.
           </p>
 
-          <?productions grammar Type NullableType Nullable UnsignedIntegerType IntegerType OptionalLong?>
+          <?productions grammar Type NullableType Nullable UnsignedIntegerType IntegerType OptionalLong Array?>
 
           <div id='idl-any' class='section'>
             <h4>any</h4>
@@ -5788,8 +5852,12 @@ c.isMemberOfBreed(undefined);  <span class='comment'>// This passes the string "
             </p>
             <p>
               The interface object also has properties that correspond to
-              the <a class='dfnref' href='#dfn-constant'>constants</a> defined on that interface, as described in 
-              <a href='#es-constants'>section <?sref es-constants?></a> <?sdir es-constants?>.
+              the <a class='dfnref' href='#dfn-constant'>constants</a> and
+              <a class='dfnref' href='#dfn-static-operation'>static operations</a>
+              defined on that interface, as described in sections
+              <a href='#es-constants'><?sref es-constants?></a> and
+              <a href='#es-operations'><?sref es-operations?></a>
+              <?sdir es-constants?>.
             </p>
             <p>
               The interface object <span class='rfc2119'>MUST</span> also have a property named
@@ -6418,17 +6486,23 @@ c.isMemberOfBreed(undefined);  <span class='comment'>// This passes the string "
               <a class='dfnref' href='#dfn-operation'>operation</a>
               defined on the <a class='dfnref' href='#dfn-interface'>interface</a>, there
               <span class='rfc2119'>MUST</span> be a corresponding property on
-              the <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype object</a>,
+              the <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype object</a>
+              (if it is a <a class='dfnref' href='#dfn-regular-operation'>regular operation</a>)
+              or the <a class='dfnref' href='#dfn-interface-object'>interface object</a>
+              (if it is a <a class='dfnref' href='#dfn-static-operation'>static operation</a>),
               unless:
             </p>
             <ul>
               <li>
                 the <a class='dfnref' href='#dfn-effective-overload-set'>effective overload set</a>
-                for that identifier and operation and with an argument count of 0 (for the ECMAScript language binding) has no
-                entries;
+                for that <a class='dfnref' href='#dfn-identifier'>identifier</a> and <a class='dfnref' href='#dfn-operation'>operation</a>
+                and with an argument count of 0 (for the ECMAScript language binding) has no
+                entries; or
               </li>
-              <li>the <a class='dfnref' href='#dfn-identifier'>identifier</a> of the operation is “constructor”; or</li>
-              <li>the identifier of the operation is “toString” and the interface has a <a class='dfnref' href='#dfn-stringifier'>stringifier</a>.</li>
+              <li>the operation is a <a class='dfnref' href='#dfn-regular-operation'>regular operation</a> and its identifier is “constructor”; or</li>
+              <li>the operation is a regular operation, its identifier is “toString” and the interface has a <a class='dfnref' href='#dfn-stringifier'>stringifier</a>; or</li>
+              <li>the operation is a <a class='dfnref' href='#dfn-static-operation'>static operation</a> and its identifier is “toString”; or</li>
+              <li>the operation is a static operation and its identifier is “prototype”.</li>
             </ul>
             <p>
               The characteristics of such a corresponding property are as follows:
@@ -6451,7 +6525,10 @@ c.isMemberOfBreed(undefined);  <span class='comment'>// This passes the string "
                   <li>
                     Initialize <var>S</var> to the
                     <a class='dfnref' href='#dfn-effective-overload-set'>effective overload set</a>
-                    for <a class='dfnref' href='#dfn-regular-operation'>regular operations</a> with
+                    for <a class='dfnref' href='#dfn-regular-operation'>regular operations</a>
+                    (if the operation is a regular operation) or for
+                    <a class='dfnref' href='#dfn-static-operation'>static operations</a>
+                    (if the operation is a static operation) with
                     <a class='dfnref' href='#dfn-identifier'>identifier</a>
                     <var>id</var> on <a class='dfnref' href='#dfn-interface'>interface</a>
                     <var>I</var> and with argument count <var>n</var> (for the ECMAScript language binding).
@@ -6502,9 +6579,12 @@ c.isMemberOfBreed(undefined);  <span class='comment'>// This passes the string "
                 property is a <span class='estype'>Number</span> determined as follows:
                 <ol class='algorithm'>
                   <li>
-                    Initialize <var>S</var> to the
+                    Let <var>S</var> be the
                     <a class='dfnref' href='#dfn-effective-overload-set'>effective overload set</a>
-                    for <a class='dfnref' href='#dfn-regular-operation'>regular operations</a> with
+                    for <a class='dfnref' href='#dfn-regular-operation'>regular operations</a>
+                    (if the operation is a regular operation) or for
+                    <a class='dfnref' href='#dfn-static-operation'>static operations</a>
+                    (if the operation is a static operation) with
                     <a class='dfnref' href='#dfn-identifier'>identifier</a>
                     <var>id</var> on <a class='dfnref' href='#dfn-interface'>interface</a>
                     <var>I</var> and with argument count 0 (for the ECMAScript language binding).
@@ -8671,6 +8751,17 @@ module foo {
             every Java interface that corresponds to an interface from which this IDL interface
             <a class='dfnref' href='#dfn-inherit'>inherits</a>.
           </p>
+          <p>
+            If the IDL interface has one or more <a class='dfnref' href='#dfn-static-operation'>static operations</a>
+            declared on it, then there <span class='rfc2119'>MUST</span> also exist
+            a public, abstract Java class, whose name is the concatenation
+            of the <a class='dfnref' href='#dfn-identifier'>identifier</a> of the IDL interface
+            and the string <code>"Utils"</code>, and which also resides in the Java
+            package corresponding to the interface’s enclosing module
+            (or the default package, if there is no enclosing module).
+            This class is known as the <dfn id='dfn-utility-class'>utility class</dfn>
+            for the IDL interface.
+          </p>
 
           <div id='java-constants' class='section'>
             <h4>Constants</h4>
@@ -8702,89 +8793,103 @@ module foo {
 
           <div id='java-operations' class='section'>
             <h4>Operations</h4>
+            <div class='ednote'><p>Need to handle static methods, too.</p></div>
             <p>
               Each <a class='dfnref' href='#dfn-operation'>operation</a> defined on
               the IDL <a class='dfnref' href='#dfn-interface'>interface</a>, <var>I</var>,
               will result in one or more methods being declared on the Java interface.
             </p>
             <p>
-              For each unique identifier <var>id</var> of an
-              <a class='dfnref' href='#dfn-operation'>operation</a> declared
-              on <var>I</var>:
+              For each kind of operation <var>kind</var> in the set { “regular”, “static” }:
             </p>
             <ul>
               <li>
-                For each entry &lt;<var>op</var>, <var>types</var>, <var>any</var>> in the
-                <a class='dfnref' href='#dfn-effective-overload-set'>effective overload set</a>
-                for <a class='dfnref' href='#dfn-regular-operation'>regular operations</a>
-                with identifier <var>id</var> on <var>I</var> and with argument
-                count <var>0</var> (for the Java language binding), there <span class='rfc2119'>MUST</span>
-                exist a method on the Java interface with the following
-                characteristics:
+                For each unique identifier <var>id</var> of the
+                <a class='dfnref' href='#dfn-operation'>operations</a> of kind <var>kind</var>
+                declared on <var>I</var>:
                 <ul>
-                  <li>The method has no modifiers.</li>
                   <li>
-                    The return type of the method is the Java type that corresponds to the operation
-                    <a class='dfnref' href='#dfn-return-type'>return type</a>, according to the rules in
-                    <a href='#java-type-mapping'>section <?sref java-type-mapping?></a> <?sdir java-type-mapping?>.
-                  </li>
-                  <li>
-                    The tenative name of the method is the <a class='dfnref' href='#dfn-java-escaped'>Java escaped</a>
-                    <a class='dfnref' href='#dfn-identifier'>identifier</a> of the operation.
-                    The name of the method is the tenative name of the method prefixed with the smallest number
-                    of <span class='char'>U+005F LOW LINE ("_")</span> characters required to make the
-                    name not equal to the name of a constant declared on the Java interface or one of the
-                    methods on the <span class='javatype'>java.lang.Object</span> class.
-                  </li>
-                  <li>
-                    The method has an argument for each type, in order, that is in <var>types</var>.  The type of
-                    method argument <var>j</var> is the Java type that corresponds to the IDL type <var>types</var><sub><var>j</var></sub>,
-                    according to the rules in <a href='#java-type-mapping'>section <?sref java-type-mapping?></a>
-                    <?sdir java-type-mapping?>.  If the length of <var>types</var> is the length of the
-                    argument list <var>op</var> is declared with, and <var>op</var> is a
-                    <a class='dfnref' href='#dfn-variadic-operation'>variadic operation</a>,
-                    then the method is a <em>variable arity method</em> (<a href='#ref-JLS3'>[JLS3]</a>,
-                    section 8.4.1).
-                  </li>
-                  <li>
-                    If <var>op</var> has IDL <a class='dfnref' href='#dfn-exception'>exceptions</a>
-                    listed in the <a class='nt' href='#prod-Raises'>Raises</a> clause, then the
-                    method <span class='rfc2119'>SHOULD</span> have a <code>throws</code>
-                    clause specifying all of the Java exception classes that correspond
-                    to those IDL exceptions, and no others.  Otherwise, if <var>op</var> has no
-                    exceptions listed in the <a class='nt' href='#prod-Raises'>Raises</a> clause,
-                    then the method <span class='rfc2119'>SHOULD NOT</span> have a <code>throws</code>
-                    clause.
-                  </li>
-                  <li>
-                    An implementation of this method <span class='rfc2119'>MUST</span>
-                    perform the following steps:
-                    <ol class='algorithm'>
+                    For each entry &lt;<var>op</var>, <var>types</var>, <var>any</var>> in the
+                    <a class='dfnref' href='#dfn-effective-overload-set'>effective overload set</a>
+                    for <a class='dfnref' href='#dfn-regular-operation'>regular operations</a>
+                    with identifier <var>id</var> on <var>I</var> and with argument
+                    count <var>0</var> (for the Java language binding), there <span class='rfc2119'>MUST</span>
+                    exist a method with the following
+                    characteristics:
+                    <ul>
                       <li>
-                        Let <var>arg</var><sub>0..<var>n</var>−1</sub> be the list
-                        of Java argument values passed to the method.
+                        If the operation is a <a class='dfnref' href='#dfn-regular-operation'>regular operation</a>,
+                        then the method exists on the Java interface.  Otherwise, the operation is
+                        a <a class='dfnref' href='#dfn-static-operation'>static operation</a>,
+                        and it exists on the <a class='dfnref' href='#dfn-utility-class'>utility class</a>.
+                      </li>
+                      <li>The method is declared with modifiers <code>public static final</code>.</li>
+                      <li>
+                        The return type of the method is the Java type that corresponds to the operation
+                        <a class='dfnref' href='#dfn-return-type'>return type</a>, according to the rules in
+                        <a href='#java-type-mapping'>section <?sref java-type-mapping?></a> <?sdir java-type-mapping?>.
                       </li>
                       <li>
-                        Let <var>idlarg</var><sub>0..<var>n</var>−1</sub> be
-                        a list of IDL values, where <var>idlarg</var><sub><var>i</var></sub>
-                        is the result of <a class='dfnref' href='#dfn-convert-java-to-idl-value'>converting</a>
-                        <var>arg</var><sub><var>i</var></sub> to an IDL value
-                        of the type that the <var>i</var>th argument is declared to be.
+                        The tenative name of the method is the <a class='dfnref' href='#dfn-java-escaped'>Java escaped</a>
+                        <a class='dfnref' href='#dfn-identifier'>identifier</a> of the operation.
+                        The name of the method is the tenative name of the method prefixed with the smallest number
+                        of <span class='char'>U+005F LOW LINE ("_")</span> characters required to make the
+                        name not equal to the name of a constant declared on the Java interface (if the operation
+                        is a <a class='dfnref' href='#dfn-regular-operation'>regular operation</a>)
+                        and not equal to the name of one of the methods on the
+                        <span class='javatype'>java.lang.Object</span> class.
                       </li>
                       <li>
-                        Let <var>R</var> be the result of performing the actions listed in the description of the operation
-                        <var>op</var> with <var>idlarg</var><sub>0..<var>n</var>−1</sub>
-                        as the argument values.
+                        The method has an argument for each type, in order, that is in <var>types</var>.  The type of
+                        method argument <var>j</var> is the Java type that corresponds to the IDL type <var>types</var><sub><var>j</var></sub>,
+                        according to the rules in <a href='#java-type-mapping'>section <?sref java-type-mapping?></a>
+                        <?sdir java-type-mapping?>.  If the length of <var>types</var> is the length of the
+                        argument list <var>op</var> is declared with, and <var>op</var> is a
+                        <a class='dfnref' href='#dfn-variadic-operation'>variadic operation</a>,
+                        then the method is a <em>variable arity method</em> (<a href='#ref-JLS3'>[JLS3]</a>,
+                        section 8.4.1).
                       </li>
                       <li>
-                        If the actions performed in the previous step resulted in an
-                        exception being thrown, then allow that exception to propagate
-                        out from this algorithm.  Otherwise, return the result of
-                        <a class='dfnref' href='#dfn-convert-idl-to-java-value'>converting</a>
-                        <var>R</var> to a Java value of the type <var>op</var>
-                        is declared to return.
+                        If <var>op</var> has IDL <a class='dfnref' href='#dfn-exception'>exceptions</a>
+                        listed in the <a class='nt' href='#prod-Raises'>Raises</a> clause, then the
+                        method <span class='rfc2119'>SHOULD</span> have a <code>throws</code>
+                        clause specifying all of the Java exception classes that correspond
+                        to those IDL exceptions, and no others.  Otherwise, if <var>op</var> has no
+                        exceptions listed in the <a class='nt' href='#prod-Raises'>Raises</a> clause,
+                        then the method <span class='rfc2119'>SHOULD NOT</span> have a <code>throws</code>
+                        clause.
                       </li>
-                    </ol>
+                      <li>
+                        An implementation of this method <span class='rfc2119'>MUST</span>
+                        perform the following steps:
+                        <ol class='algorithm'>
+                          <li>
+                            Let <var>arg</var><sub>0..<var>n</var>−1</sub> be the list
+                            of Java argument values passed to the method.
+                          </li>
+                          <li>
+                            Let <var>idlarg</var><sub>0..<var>n</var>−1</sub> be
+                            a list of IDL values, where <var>idlarg</var><sub><var>i</var></sub>
+                            is the result of <a class='dfnref' href='#dfn-convert-java-to-idl-value'>converting</a>
+                            <var>arg</var><sub><var>i</var></sub> to an IDL value
+                            of the type that the <var>i</var>th argument is declared to be.
+                          </li>
+                          <li>
+                            Let <var>R</var> be the result of performing the actions listed in the description of the operation
+                            <var>op</var> with <var>idlarg</var><sub>0..<var>n</var>−1</sub>
+                            as the argument values.
+                          </li>
+                          <li>
+                            If the actions performed in the previous step resulted in an
+                            exception being thrown, then allow that exception to propagate
+                            out from this algorithm.  Otherwise, return the result of
+                            <a class='dfnref' href='#dfn-convert-idl-to-java-value'>converting</a>
+                            <var>R</var> to a Java value of the type <var>op</var>
+                            is declared to return.
+                          </li>
+                        </ol>
+                      </li>
+                    </ul>
                   </li>
                 </ul>
               </li>
@@ -9569,6 +9674,11 @@ module foo {
           <dt>Current editor’s draft</dt>
           <dd>
             <ul>
+              <li>
+                <p>
+                  Added support for static operations.
+                </p>
+              </li>
               <li>
                 <p>
                   Fixed errors in the <span class='terminal'>float</span> and
