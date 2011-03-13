@@ -15,7 +15,7 @@
   <head>
     <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'/>
     <title>Web IDL</title>
-    <meta name='revision' content='$Id: Overview.xml,v 1.258 2011-03-13 22:29:53 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: Overview.xml,v 1.259 2011-03-13 23:33:51 cmccorma Exp $'/>
     <link rel='stylesheet' href='WebIDL.css' type='text/css'/>
     <script src='section-links.js' type='application/ecmascript'/>
     <script src='dfn.js' type='application/ecmascript'/>
@@ -846,8 +846,9 @@ interface Dog : Animal {
               constant definition gives the value of the constant, which can be
               one of the two boolean literal terminals (<span class='terminal'>"true"</span>
               and <span class='terminal'>"false"</span>), an
-              <a class='nt' href='#prod-integer'>integer</a> terminal or a
-              <a class='nt' href='#prod-float'>float</a> terminal.
+              <a class='nt' href='#prod-integer'>integer</a> terminal, a
+              <a class='nt' href='#prod-float'>float</a> terminal or a
+              <a class='nt' href='#prod-string'>string</a> terminal.
             </p>
             <p>
               The value of the boolean literal terminals are as follows:
@@ -1034,8 +1035,23 @@ interface Dog : Animal {
               <a href='#idl-types'>section <?sref idl-types?></a> <?sdir idl-types?>.
             </p>
             <p>
-              The value assigned to a constant <span class='rfc2119'>MUST</span>
-              have the same type as the type that the constant is declared to be.
+              The value of a <a class='nt' href='#prod-string'>string</a> terminal
+              is a <span class='idltype'>DOMString</span>, determined as follows:
+            </p>
+            <ol class="algorithm">
+              <li>Let <var>s</var> be the string value of the <a class='nt' href='#prod-string'>string</a>
+              terminal with its leading and trailing <span class='char'>U+0022 QUOTATION MARK ('"')</span>
+              characters removed.</li>
+              <li>The value of the <a class='nt' href='#prod-string'>string</a> terminal is the
+              sequence of 16 bit unsigned integer code units corresponding to the UTF-16 encoding
+              of <var>s</var>.</li>
+            </ol>
+            <p>
+              If <var>V</var> is the type of the value assigned to a constant, and <var>C</var>
+              is the type of the constant itself, then these types <span class='rfc2119'>MUST</span>
+              be compatible, which is the case if <var>C</var> and <var>V</var> are identical,
+              or <var>C</var> is a <a class='dfnref' href='#dfn-nullable-type'>nullable type</a> 
+              whose <a class='dfnref' href='#dfn-inner-type'>inner type</a> is <var>V</var>.
             </p>
             <p>
               No <a class='dfnref' href='#dfn-extended-attribute'>extended attributes</a>
@@ -2664,6 +2680,7 @@ interface Person {
           <p>
             The following types are known as <dfn id='dfn-primitive-type'>primitive types</dfn>:
             <a class='idltype' href='#idl-boolean'>boolean</a>,
+            <a class='idltype' href='#idl-byte'>byte</a>,
             <a class='idltype' href='#idl-octet'>octet</a>,
             <a class='idltype' href='#idl-short'>short</a>,
             <a class='idltype' href='#idl-unsigned-short'>unsigned short</a>,
@@ -2699,7 +2716,7 @@ interface Person {
             assign to the attribute.
           </p>
 
-          <?productions grammar Type NullableType Nullable UnsignedIntegerType IntegerType OptionalLong Array?>
+          <?productions grammar Type NullableType Nullable ConstType UnsignedIntegerType IntegerType OptionalLong Array?>
 
           <div id='idl-any' class='section'>
             <h4>any</h4>
@@ -2728,12 +2745,27 @@ interface Person {
             </p>
           </div>
 
+          <div id='idl-byte' class='section'>
+            <h4>byte</h4>
+
+            <p>
+              The <a class='idltype' href='#idl-byte'>byte</a> type is a signed integer
+              type that has values in the range [−128, 127].
+            </p>
+            <p>
+              <a class='idltype' href='#idl-byte'>byte</a> constant values in IDL are
+              represented with <a class='nt' href='#prod-integer'>integer</a>
+              terminals.
+            </p>
+            <p>
+              The <a class='dfnref' href='#dfn-type-name'>type name</a> of the
+              <span class='idltype'>byte</span> type is “Byte”.
+            </p>
+          </div>
+
           <div id='idl-octet' class='section'>
             <h4>octet</h4>
 
-            <div class='ednote'>
-              <p>Request for a signed 8-bit type. <a href='http://lists.w3.org/Archives/Public/public-script-coord/2010JanMar/0000.html'>(Mail.)</a></p>
-            </div>
             <p>
               The <a class='idltype' href='#idl-octet'>octet</a> type is an unsigned integer
               type that has values in the range [0, 255].
@@ -3657,6 +3689,36 @@ Person* p2 = PersonFactory_createPersonWithAge(f, 26);  <span class='comment'>//
                 value</a> is a <span class='estype'>Boolean</span> that
               represents the same truth value as the IDL
               <span class='idltype'>boolean</span> value.
+            </p>
+          </div>
+
+          <div id='es-byte' class='section'>
+            <h4>byte</h4>
+
+            <p>
+              IDL <a class='idltype' href='#idl-byte'>byte</a> values are represented by
+              integer ECMAScript <span class='estype'>Number</span> values in the range [−128, 127].
+            </p>
+            <p>
+              An ECMAScript value <var>V</var> is
+              <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converted</a>
+              to an IDL <span class='idltype'>byte</span> value
+              by running the following algorithm:
+            </p>
+            <ol class='algorithm'>
+              <li>Initialize <var>x</var> to ToNumber(<var>V</var>).</li>
+              <li>If <var>x</var> is <span class='esvalue'>NaN</span>, +0, −0, +∞, or −∞, then return the IDL <span class='idltype'>octet</span> value that represents 0.</li>
+              <li>Set <var>x</var> to sign(<var>x</var>) * floor(abs(<var>x</var>)).</li>
+              <li>Set <var>x</var> to <var>x</var> modulo 2<sup>8</sup>.</li>
+              <li>If <var>x</var> ≥ 2<sup>7</sup>, return the IDL <span class='idltype'>byte</span> value that represents the same numeric value as <var>x</var> − 2<sup>8</sup>.
+                Otherwise, return the IDL <span class='idltype'>byte</span> value that represents the same numeric value as <var>x</var>.</li>
+            </ol>
+            <p>
+              The result of <a class='dfnref' href='#dfn-convert-idl-to-ecmascript-value'>converting</a>
+              an IDL <span class='idltype'>byte</span> value to an ECMAScript
+              value is a <span class='estype'>Number</span> that represents
+              the same numeric value as the IDL
+              <span class='idltype'>byte</span> value.
             </p>
           </div>
 
@@ -7726,7 +7788,7 @@ d.type = et;
                 by <a class='dfnref' href='#dfn-convert-java-to-idl-value'>converting</a>
                 the result of calling the <code>byteValue()</code> method on the
                 <span class='javatype'>java.lang.Byte</span> object to an IDL
-                <span class='idltype'>octet</span> value.
+                <span class='idltype'>byte</span> value.
               </dd>
               <dt>A <span class='javatype'>java.lang.Short</span> object</dt>
               <dd>
@@ -7825,6 +7887,10 @@ d.type = et;
                     <td><code>java.lang.Boolean.valueOf(boolean)</code></td>
                   </tr>
                   <tr>
+                    <td><a class='idltype' href='#idl-byte'>byte</a></td>
+                    <td><code>java.lang.Byte.valueOf(byte)</code></td>
+                  </tr>
+                  <tr>
                     <td><a class='idltype' href='#idl-octet'>octet</a></td>
                     <td><code>java.lang.Byte.valueOf(byte)</code></td>
                   </tr>
@@ -7903,6 +7969,29 @@ d.type = et;
               value is the Java <span class='javatype'>boolean</span> that
               represents the same truth value as the IDL
               <span class='idltype'>boolean</span>.
+            </p>
+          </div>
+
+          <div id='java-byte' class='section'>
+            <h4>byte</h4>
+
+            <p>
+              IDL <a class='idltype' href='#idl-byte'>byte</a> values are
+              represented by Java <span class='javatype'>byte</span> values.
+            </p>
+            <p>
+              The result of <a class='dfnref' href='#dfn-convert-java-to-idl-value'>converting</a>
+              a Java <span class='javatype'>byte</span> value to an IDL value
+              is the IDL <span class='idltype'>byte</span>
+              that represents the same numeric value as the Java
+              <span class='javatype'>byte</span>.
+            </p>
+            <p>
+              The result of <a class='dfnref' href='#dfn-convert-idl-to-java-value'>converting</a>
+              an IDL <span class='idltype'>byte</span> value to a Java
+              value is the Java <span class='javatype'>byte</span> that
+              represents the same numeric value as the IDL
+              <span class='idltype'>byte</span>.
             </p>
           </div>
 
@@ -8286,6 +8375,10 @@ d.type = et;
                 <td><span class='javatype'>java.lang.Boolean</span></td>
               </tr>
               <tr>
+                <td><span class='idltype'><a href='#idl-byte'>byte</a>?</span></td>
+                <td><span class='javatype'>java.lang.Byte</span></td>
+              </tr>
+              <tr>
                 <td><span class='idltype'><a href='#idl-octet'>octet</a>?</span></td>
                 <td><span class='javatype'>java.lang.Byte</span></td>
               </tr>
@@ -8338,11 +8431,11 @@ d.type = et;
               </dd>
               <dt>A <span class='javatype'>java.lang.Byte</span> object</dt>
               <dd>
-                The IDL value is an <span class='idltype'>octet?</span> whose value is obtained
+                The IDL value is a <span class='idltype'>byte?</span> whose value is obtained
                 by <a class='dfnref' href='#dfn-convert-java-to-idl-value'>converting</a>
                 the result of calling the <code>byteValue()</code> method on the
                 <span class='javatype'>java.lang.Byte</span> object
-                to an <span class='idltype'>octet</span>.
+                to a <span class='idltype'>byte</span>.
               </dd>
               <dt>A <span class='javatype'>java.lang.Short</span> object</dt>
               <dd>
@@ -8425,6 +8518,10 @@ d.type = et;
                   <tr>
                     <td><a class='idltype' href='#idl-boolean'>boolean</a></td>
                     <td><code>java.lang.Boolean.valueOf(boolean)</code></td>
+                  </tr>
+                  <tr>
+                    <td><a class='idltype' href='#idl-byte'>byte</a></td>
+                    <td><code>java.lang.Byte.valueOf(byte)</code></td>
                   </tr>
                   <tr>
                     <td><a class='idltype' href='#idl-octet'>octet</a></td>
@@ -9443,10 +9540,6 @@ module foo {
           matches an <a class='dfnref' href='#dfn-idl-fragment'>IDL fragment</a>:
         </p>
 
-        <div class='ednote'>
-          <p>Add a <span class='nt'>ConstType</span> non-terminal. <a href='http://lists.w3.org/Archives/Public/public-script-coord/2010JanMar/0003.html'>(Mail.)</a></p>
-        </div>
-
         <grammar id='grammar' xmlns='http://mcc.id.au/ns/local'>
           <prod nt='Definitions'>ExtendedAttributeList Definition Definitions | ε</prod>
           <prod nt='Definition'>Module | Interface | Exception | Typedef | ImplementsStatement</prod>
@@ -9459,8 +9552,8 @@ module foo {
           <prod nt='ExceptionMembers'>ExtendedAttributeList ExceptionMember ExceptionMembers | ε</prod>
           <prod nt='Typedef'>"typedef" Type identifier ";"</prod>
           <prod nt='ImplementsStatement'>ScopedName "implements" ScopedName ";"</prod>
-          <prod nt='Const'>"const" Type identifier "=" ConstExpr ";"</prod>
-          <prod nt='ConstExpr'>BooleanLiteral | integer | float</prod>
+          <prod nt='Const'>"const" ConstType identifier "=" ConstExpr ";"</prod>
+          <prod nt='ConstExpr'>BooleanLiteral | integer | float | string</prod>
           <prod nt='BooleanLiteral'>"true" | "false"</prod>
           <prod nt='AttributeOrOperation'>"stringifier" StringifierAttributeOrOperation | Attribute | Operation</prod>
           <prod nt='StringifierAttributeOrOperation'>Attribute | OperationRest | ";"</prod>
@@ -9503,7 +9596,7 @@ module foo {
           <prod nt='Other'>
               integer | float | identifier | string <!--| whitespace--> | other
             | "..." | ":" | "::" | ";" | "&lt;" | "=" | ">" | "?"
-            | "false" | "object" | "true" | "any" | "attribute" | "boolean" | "caller"
+            | "false" | "object" | "true" | "any" | "attribute" | "boolean" | "byte" | "caller"
             | "const" | "creator" | "deleter" | "double" | "exception" | "float" | "getraises" | "getter" | "implements" | "in"
             | "interface" | "long" | "module" | "octet" | "omittable" | "optional" | "raises" | "sequence"
             | "setraises" | "setter" | "short" | "DOMString" | "stringifier" | "typedef" | "unsigned" | "void"
@@ -9512,7 +9605,8 @@ module foo {
           <prod nt='OtherOrComma'>Other | ","</prod>
 
           <prod nt='Type'>NullableType Array | ScopedName Array | "any" Array | "object" Array</prod>
-          <prod nt='NullableType'>UnsignedIntegerType Nullable | "boolean" Nullable | "octet" Nullable | "float" Nullable | "double" Nullable | "DOMString" Nullable | "sequence" "&lt;" Type ">" Nullable</prod>
+          <prod nt='NullableType'>ConstType | "sequence" "&lt;" Type ">" Nullable</prod>
+          <prod nt='ConstType'>UnsignedIntegerType Nullable | "boolean" Nullable | "byte" Nullable | "octet" Nullable | "float" Nullable | "double" Nullable | "DOMString" Nullable</prod>
           <prod nt='UnsignedIntegerType'>"unsigned" IntegerType | IntegerType</prod>
           <prod nt='IntegerType'>"short" | "long" OptionalLong</prod>
           <prod nt='OptionalLong'>"long" | ε</prod>
@@ -9538,7 +9632,7 @@ module foo {
           <prod nt='ExtendedAttributeScopedName'>identifier "=" ScopedName</prod>
           <prod nt='ExtendedAttributeNamedArgList'>identifier "=" identifier "(" ArgumentList ")"</prod>
 
-          <!--prod nt='Keyword'>"any" | "attribute" | "boolean" | "const" | "double" | "exception" | "float" | "getraises" | "in" | "interface" | "long" | "module" | "Object" | "octet" | "raises" | "readonly" | "sequence" | "setraises" | "short" | "typedef" | "unsigned | "void"</prod-->
+          <!--prod nt='Keyword'>"any" | "attribute" | "boolean" | "byte" | "const" | "double" | "exception" | "float" | "getraises" | "in" | "interface" | "long" | "module" | "Object" | "octet" | "raises" | "readonly" | "sequence" | "setraises" | "short" | "typedef" | "unsigned | "void"</prod-->
           <!-- the following are the remaining OMG IDL 3 keywords:
           "abstract" |
           "case" |
@@ -9682,6 +9776,17 @@ module foo {
           <dt>Current editor’s draft</dt>
           <dd>
             <ul>
+              <li>
+                <p>
+                  Added a signed 8 bit integer types named <span class='idltype'>byte</span>.
+                </p>
+              </li>
+              <li>
+                <p>
+                  Expanded the allowable types for constants to include <span class='idltype'>DOMString</span>
+                  and nullable primitives.
+                </p>
+              </li>
               <li>
                 <p>
                   Added support for static operations.
