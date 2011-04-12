@@ -15,7 +15,7 @@
   <head>
     <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'/>
     <title>Web IDL</title>
-    <meta name='revision' content='$Id: Overview.xml,v 1.265 2011-04-07 23:23:47 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: Overview.xml,v 1.266 2011-04-12 02:47:53 cmccorma Exp $'/>
     <link rel='stylesheet' href='WebIDL.css' type='text/css'/>
     <script src='section-links.js' type='application/ecmascript'/>
     <script src='dfn.js' type='application/ecmascript'/>
@@ -2429,6 +2429,23 @@ interface C {
             rather than the three types of <a class='dfnref' href='#dfn-interface-member'>interface members</a>.
           </p>
           <p>
+            An exception <dfn id='dfn-inherit-exception'>inherits</dfn> from another if the
+            derivation of the <a class='nt' href='#prod-Exception'>Exception</a>
+            includes an <a class='nt' href='#prod-ExceptionInheritance'>ExceptionInheritance</a>
+            non-terminal. The <a class='dfnref' href='#dfn-scoped-name'>scoped name</a> in the
+            <a class='nt' href='#prod-ExceptionInheritance'>ExceptionInheritance</a>
+            <a class='dfnref' href='#dfn-resolve'>resolves</a>,
+            with respect to the <a class='dfnref' href='#dfn-enclosing-module'>enclosing module</a>
+            of the exception, to that inherited exception.
+            The <a class='nt' href='#prod-ScopedName'>ScopedName</a>
+            <span class='rfc2119'>MUST</span> resolve to an exception whose definition
+            occurs before the definition of the inheriting exception.
+            An object that implements an exception that inherits from another
+            also implements that inherited exception.  The object therefore will also
+            have members that correspond to the
+            exception members from the inherited exception.
+          </p>
+          <p>
             <dfn id='dfn-exception-field'>Exception fields</dfn> declared using the
             <a class='nt' href='#prod-ExceptionField'>ExceptionField</a> production.
             An exception field’s type is given by the <a class='nt' href='#prod-Type'>Type</a>
@@ -2459,7 +2476,7 @@ interface C {
             No <a class='dfnref' href='#dfn-extended-attribute'>extended attributes</a>
             are applicable to exception fields.
           </p>
-          <?productions grammar Exception ExceptionMembers ExceptionMember ExceptionField?>
+          <?productions grammar Exception ExceptionInheritance ExceptionMembers ExceptionMember ExceptionField?>
           <div class='example'>
             <p>
               See <a href='#idl-attributes'>section <?sref idl-attributes?></a>
@@ -4506,7 +4523,7 @@ a[0] = 20;</x:codeblock>
               type.
             </p>
             <p>
-              Array host objects <span class='rfc2119'>MUST</span> have a property named <span class='esstring'>"length"</span>
+              Array host objects <span class='rfc2119'>MUST</span> have a property named “length”
               whose value is a <span class='estype'>Number</span> that is the length
               of the array.  If the array is <a class='dfnref' href='#dfn-fixed-length'>fixed length</a>,
               then this property has attributes <span class='descriptor'>{ [[Writable]]: <span class='esvalue'>false</span>, [[Enumerable]]: <span class='esvalue'>false</span>, [[Configurable]]: <span class='esvalue'>false</span> }</span>.
@@ -4525,14 +4542,14 @@ a[0] = 20;</x:codeblock>
             </p>
             <p>
               Array host objects <span class='rfc2119'>MUST</span> have a property named
-              <span class='esstring'>"toString"</span> with attributes
+              “toString” with attributes
               <span class='descriptor'>{ [[Writable]]: <span class='esvalue'>true</span>, [[Enumerable]]: <span class='esvalue'>false</span>, [[Configurable]]: <span class='esvalue'>true</span> }</span>
               and whose value
               is an object with an internal <span class='prop'>[[Call]]</span> method that behaves as follows:
             </p>
             <ol class='algorithm'>
               <li>Let <var>N</var> be the result of invoking <span class='prop'>[[Get]]</span> on <span class='esvalue'>this</span>
-                with <span class='esstring'>"length"</span> as the property name.</li>
+                with “length” as the property name.</li>
               <li>Initialize <var>i</var> to 0.</li>
               <li>Initialize <var>s</var> to be an empty sequence of 16 bit code units.</li>
               <li>While <var>i</var> &lt; ToUint32(<var>N</var>):
@@ -4547,8 +4564,8 @@ a[0] = 20;</x:codeblock>
               <li>Return the <span class='estype'>String</span> value that represents the same sequence of 16 bit code units as <var>s</var>.</li>
             </ol>
             <p>
-              The <span class='esstring'>"toString"</span> object <span class='rfc2119'>MUST</span> itself
-              have a property named <span class='esstring'>"length"</span>
+              The “toString” object <span class='rfc2119'>MUST</span> itself
+              have a property named “length”
               with attributes <span class='descriptor'>{ [[Writable]]: <span class='esvalue'>false</span>, [[Enumerable]]: <span class='esvalue'>false</span>, [[Configurable]]: <span class='esvalue'>false</span> }</span>
               whose value is the <span class='estype'>Number</span> value 0.
             </p>
@@ -4570,7 +4587,7 @@ a[0] = 20;</x:codeblock>
                 the IDL array value is <span class='idlvalue'>null</span>.</li>
               <li>Otherwise, if <var>V</var> is a native object, then the IDL array value is determined as follows:
                 <ol class='algorithm'>
-                  <li>Initialize <var>n</var> to be the result of calling <span class='prop'>[[Get]]</span> on <var>V</var> with property name <span class='esstring'>"length"</span>.</li>
+                  <li>Initialize <var>n</var> to be the result of calling <span class='prop'>[[Get]]</span> on <var>V</var> with property name “length”.</li>
                   <li>Set <var>n</var> to ToUint32(<var>n</var>).</li>
                   <li>Initialize <var>E</var><sub>0..<var>n</var></sub> to be a list of IDL values.</li>
                   <li>Initialize <var>i</var> to be 0.</li>
@@ -4798,15 +4815,15 @@ results.numbers.length;       <span class='comment'>// Evaluates to 3.</span></x
               </div>
 
               <ol class='algorithm'>
-                <li>Let <var>oldLenDesc</var> be the result of calling the <span class='prop'>[[GetOwnProperty]]</span> internal method of <var>A</var> passing <span class='esstring'>"length"</span> as the argument.</li>
+                <li>Let <var>oldLenDesc</var> be the result of calling the <span class='prop'>[[GetOwnProperty]]</span> internal method of <var>A</var> passing “length” as the argument.</li>
 
                 <li>Initialize <var>oldLen</var> to <var>oldLenDesc</var>.<span class='prop'>[[Value]]</span>.</li>
 
-                <li>If <var>P</var> is <span class='esstring'>"length"</span>, then:
+                <li>If <var>P</var> is “length”, then:
                   <ol>
                     <li>If the <span class='prop'>[[Value]]</span> field of <var>Desc</var> is absent, then:
                       <ol>
-                        <li>Return the result of calling the default <span class='prop'>[[DefineOwnProperty]]</span> internal method (<a href='#ref-ECMA-262'>[ECMA-262]</a>, section 8.12.9) on <var>A</var> passing <span class='esstring'>"length"</span>, <var>Desc</var>, and <var>Throw</var> as arguments.</li>
+                        <li>Return the result of calling the default <span class='prop'>[[DefineOwnProperty]]</span> internal method (<a href='#ref-ECMA-262'>[ECMA-262]</a>, section 8.12.9) on <var>A</var> passing “length”, <var>Desc</var>, and <var>Throw</var> as arguments.</li>
                       </ol>
                     </li>
                     <li>Let <var>newLenDesc</var> be a copy of <var>Desc</var>.</li>
@@ -4836,7 +4853,7 @@ results.numbers.length;       <span class='comment'>// Evaluates to 3.</span></x
                             <li>Set <var>oldLen</var> to <var>oldLen</var> + 1.</li>
                           </ol>
                         </li>
-                        <li>Call the default <span class='prop'>[[DefineOwnProperty]]</span> internal method (<a href='#ref-ECMA-262'>[ECMA-262]</a>, section 8.12.9) on <var>A</var> passing <span class='esstring'>"length"</span>, <var>newLenDesc</var>, and <b>false</b> as arguments.</li>
+                        <li>Call the default <span class='prop'>[[DefineOwnProperty]]</span> internal method (<a href='#ref-ECMA-262'>[ECMA-262]</a>, section 8.12.9) on <var>A</var> passing “length”, <var>newLenDesc</var>, and <b>false</b> as arguments.</li>
                         <li>Return <b>true</b>.</li>
                       </ol>
                     </li>
@@ -4851,7 +4868,7 @@ results.numbers.length;       <span class='comment'>// Evaluates to 3.</span></x
                       </ol>
                     </li>
 
-                    <li>Let <var>succeeded</var> be the result of calling the default <span class='prop'>[[DefineOwnProperty]]</span> internal method (<a href='#ref-ECMA-262'>[ECMA-262]</a>, section 8.12.9) on <var>A</var> passing <span class='esstring'>"length"</span>, <var>newLenDesc</var>, and <var>Throw</var> as arguments.</li>
+                    <li>Let <var>succeeded</var> be the result of calling the default <span class='prop'>[[DefineOwnProperty]]</span> internal method (<a href='#ref-ECMA-262'>[ECMA-262]</a>, section 8.12.9) on <var>A</var> passing “length”, <var>newLenDesc</var>, and <var>Throw</var> as arguments.</li>
                     <li>If <var>succeeded</var> is <b>false</b>, return <b>false</b>.</li>
 
                     <li>While <var>newLen</var> &lt; <var>oldLen</var>:
@@ -4862,7 +4879,7 @@ results.numbers.length;       <span class='comment'>// Evaluates to 3.</span></x
                           <ol>
                             <li>Set <var>newLenDesc</var>.<span class='prop'>[[Value]]</span> to <var>oldLen</var> + 1.</li>
                             <li>If <var>newWritable</var> is <b>false</b>, set <var>newLenDesc</var>.<span class='prop'>[[Writable]]</span> to <b>false</b>.</li>
-                            <li>Call the default <span class='prop'>[[DefineOwnProperty]]</span> internal method (<a href='#ref-ECMA-262'>[ECMA-262]</a>, section 8.12.9) on <var>A</var> passing <span class='esstring'>"length"</span>, <var>newLenDesc</var>, and <b>false</b> as arguments.</li>
+                            <li>Call the default <span class='prop'>[[DefineOwnProperty]]</span> internal method (<a href='#ref-ECMA-262'>[ECMA-262]</a>, section 8.12.9) on <var>A</var> passing “length”, <var>newLenDesc</var>, and <b>false</b> as arguments.</li>
                             <li>Update the IDL array value that <var>A</var> represents to have a length of <var>oldLen</var> + 1.</li>
                             <li>Reject.</li>
                           </ol>
@@ -4874,7 +4891,7 @@ results.numbers.length;       <span class='comment'>// Evaluates to 3.</span></x
 
                     <li>If <var>newWritable</var> is <b>false</b>, then
                       <ol>
-                        <li>Call the default <span class='prop'>[[DefineOwnProperty]]</span> internal method (<a href='#ref-ECMA-262'>[ECMA-262]</a>, section 8.12.9) on <var>A</var> passing <span class='esstring'>"length"</span>, Property Descriptor <span class='desc'>{ [[Writable]]: <span class='esvalue'>false</span> }</span>, and <b>false</b> as arguments. This call will always return <b>true</b>.</li>
+                        <li>Call the default <span class='prop'>[[DefineOwnProperty]]</span> internal method (<a href='#ref-ECMA-262'>[ECMA-262]</a>, section 8.12.9) on <var>A</var> passing “length”, Property Descriptor <span class='desc'>{ [[Writable]]: <span class='esvalue'>false</span> }</span>, and <b>false</b> as arguments. This call will always return <b>true</b>.</li>
                       </ol>
                     </li>
 
@@ -4923,7 +4940,7 @@ results.numbers.length;       <span class='comment'>// Evaluates to 3.</span></x
 
                         <li>Set <var>oldLenDesc</var>.<span class='prop'>[[Value]]</span> to <var>index</var> + 1.</li>
 
-                        <li>Call the default <span class='prop'>[[DefineOwnProperty]]</span> internal method (<a href='#ref-ECMA-262'>[ECMA-262]</a>, section 8.12.9) on <var>A</var> passing <span class='esstring'>"length"</span>, <var>oldLenDesc</var>, and <b>false</b> as arguments. This call will always return <b>true</b>.</li>
+                        <li>Call the default <span class='prop'>[[DefineOwnProperty]]</span> internal method (<a href='#ref-ECMA-262'>[ECMA-262]</a>, section 8.12.9) on <var>A</var> passing “length”, <var>oldLenDesc</var>, and <b>false</b> as arguments. This call will always return <b>true</b>.</li>
                       </ol>
                     </li>
 
@@ -6137,7 +6154,7 @@ c.isMemberOfBreed(undefined);  <span class='comment'>// This passes the string "
               </p>
               <p>
                 Interface objects for interfaces declared with a <a class='xattr' href='#Constructor'>[Constructor]</a>
-                extended attribute <span class='rfc2119'>MUST</span> have a property named <span class='esstring'>"length"</span>
+                extended attribute <span class='rfc2119'>MUST</span> have a property named “length”
                 with attributes <span class='descriptor'>{ [[Writable]]: <span class='esvalue'>false</span>, [[Enumerable]]: <span class='esvalue'>false</span>, [[Configurable]]: <span class='esvalue'>false</span> }</span>
                 whose value is a <span class='estype'>Number</span> determined as follows:
               </p>
@@ -6171,7 +6188,7 @@ c.isMemberOfBreed(undefined);  <span class='comment'>// This passes the string "
               </p>
               <ol class='algorithm'>
                 <li>If <var>V</var> is not an object, return <span class='esvalue'>false</span>.</li>
-                <li>Let <var>O</var> be the result of calling the <span class='prop'>[[Get]]</span> method of <var>A</var> with property name <span class='esstring'>"prototype"</span>.</li>
+                <li>Let <var>O</var> be the result of calling the <span class='prop'>[[Get]]</span> method of <var>A</var> with property name “prototype”.</li>
                 <li>If <var>O</var> is not an object, throw a <span class='estype'>TypeError</span> exception.</li>
                 <li>If <var>V</var> is a host object that implements the
                   interface for which <var>O</var> is the <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype object</a>,
@@ -6268,7 +6285,7 @@ c.isMemberOfBreed(undefined);  <span class='comment'>// This passes the string "
               return an object that implements interface <var>I</var>.
             </p>
             <p>
-              A named constructor <span class='rfc2119'>MUST</span> have a property named <span class='esstring'>"length"</span>
+              A named constructor <span class='rfc2119'>MUST</span> have a property named “length”
               with attributes <span class='descriptor'>{ [[Writable]]: <span class='esvalue'>false</span>, [[Enumerable]]: <span class='esvalue'>false</span>, [[Configurable]]: <span class='esvalue'>false</span> }</span>
               whose value is a <span class='estype'>Number</span> determined as follows:
             </p>
@@ -6312,8 +6329,10 @@ c.isMemberOfBreed(undefined);  <span class='comment'>// This passes the string "
                 <?sref es-constants?></a> <?sdir es-constants?>.
             </p>
             <p>
-              The interface prototype object <span class='rfc2119'>MUST</span>
-              also have a property named <span class='prop'>constructor</span> with attributes
+              If the <a class='xattr' href='#NoInterfaceObject'>[NoInterfaceObject]</a>
+              extended attribute was not specified on the interface, then
+              the interface prototype object <span class='rfc2119'>MUST</span>
+              also have a property named “constructor” with attributes
               <span class='descriptor'>{ [[Writable]]: <span class='esvalue'>true</span>, [[Enumerable]]: <span class='esvalue'>false</span>, [[Configurable]]: <span class='esvalue'>true</span> }</span> whose value
               is a reference to the interface object for the interface.
             </p>
@@ -7437,18 +7456,28 @@ c.isMemberOfBreed(undefined);  <span class='comment'>// This passes the string "
             attributes <span class='descriptor'>{ [[Writable]]: <span class='esvalue'>true</span>, [[Enumerable]]: <span class='esvalue'>false</span>, [[Configurable]]: <span class='esvalue'>true</span> }</span>.
           </p>
 
-          <div id='exception-interface-object' class='section'>
+          <div id='es-exception-interface-object' class='section'>
             <h4>Exception interface object</h4>
 
             <p>
-              The exception interface object for a particular <a class='dfnref' href='#dfn-exception'>exception</a>
-              <span class='rfc2119'>MUST</span> have an internal <span class='prop'>[[Prototype]]</span> object whose
-              value is the <span class='esvalue'>Object</span> prototype object.
+              The exception interface object for a given <a class='dfnref' href='#dfn-exception'>exception</a>
+              <span class='rfc2119'>MUST</span> be a <a class='dfnref' href='#dfn-function-object'>function object</a>
+              with an internal <span class='prop'>[[Prototype]]</span> property whose value is as follows:
             </p>
+            <ul>
+              <li>If the <a class='dfnref' href='#dfn-exception'>exception</a> is declared to
+              <a class='dfnref' href='#dfn-inherit-exception'>inherit</a> from another
+              exception, then the value of the internal <span class='prop'>[[Prototype]]</span> property is the
+              <a class='dfnref' href='#dfn-exception-interface-prototype-object'>exception interface prototype object</a>
+              for the inherited exception.</li>
+              <li>Otherwise, the exception is not declared to inherit from another exception. The
+              value of the internal <span class='prop'>[[Prototype]]</span> property
+              is the <span class='estype'>Error</span> prototype object
+              (<a href="#ref-ECMA-262">[ECMA-262]</a>, section 15.11.3.1).</li>
+            </ul>
             <p>
               If any <a class='dfnref' href='#dfn-constant'>constants</a> have been declared
-              on the exception,
-              then the exception interface object will have
+              on the exception, then the exception interface object will have
               properties corresponding to these constants as described in
               <a href='#es-exception-constants'>section <?sref es-exception-constants?></a>
               <?sdir es-exception-constants?>.
@@ -7462,20 +7491,34 @@ c.isMemberOfBreed(undefined);  <span class='comment'>// This passes the string "
               that are declared on the exception.
             </p>
 
-            <div id='es-exception-hasinstance' class='section'>
-              <h5>Exception interface object [[HasInstance]] method</h5>
+            <div id='es-exception-call' class='section'>
+              <h5>Exception interface object [[Call]] method</h5>
 
               <p>
-                The internal <span class='prop'>[[HasInstance]]</span> method of every
+                The internal <span class='prop'>[[Call]]</span> method of an
                 <a class='dfnref' href='#dfn-exception-interface-object'>exception interface object</a>
-                <var>E</var> <span class='rfc2119'>MUST</span> behave as follows, assuming <var>V</var> is the object
-                argument passed to <span class='prop'>[[HasInstance]]</span>:
+                <span class='rfc2119'>MUST</span> behave as follows, assuming
+                <var>arg</var><sub>0..<var>n</var>−1</sub> is the list
+                of argument values passed to the function, and <var>E</var>
+                is the <a class='dfnref' href='#dfn-interface'>exception</a>
+                corresponding to the exception interface object:
               </p>
               <ol class='algorithm'>
-                <li>If <var>V</var> is not an object, return <span class='esvalue'>false</span>.</li>
-                <li>If <var>V</var> is a host object that is an <a class='dfnref' href='#dfn-exception'>exception</a>
-                  whose exception interface object is <var>E</var>, return <span class='esvalue'>true</span>.</li>
-                <li>Return <span class='esvalue'>false</span>.</li>
+                <li>Let <var>O</var> be a new object whose <span class='prop'>[[Prototype]]</span>
+                internal property is set to the <a class='dfnref' href='#dfn-exception-interface-object'>exception interface object</a>
+                and whose <span class='prop'>[[Class]]</span> internal property
+                is set to the <a class='dfnref' href='#dfn-identifier'>identifier</a>
+                of <var>E</var>.</li>
+                <li>If <var>n</var> > 0, then:
+                  <ol>
+                    <li>Let <var>S</var> be the result of calling ToString(<var>arg</var><sub>0</sub>).</li>
+                    <li>Call the <span class='prop'>[[DefineOwnProperty]]</span> internal method of <var>O</var> passing
+                    “message”, Property Descriptor <span class='descriptor'>{ [[Value]]: <var>S</var>,
+                    [[Writable]]: <span class='esvalue'>true</span>, [[Enumerable]]: <span class='esvalue'>false</span>,
+                    [[Configurable]]: <span class='esvalue'>true</span> }</span>, and <span class='esvalue'>false</span>
+                    as arguments.</li>
+                  </ol></li>
+                <li>Return <var>O</var>.</li>
               </ol>
             </div>
           </div>
@@ -7497,6 +7540,21 @@ c.isMemberOfBreed(undefined);  <span class='comment'>// This passes the string "
               sections <a href='#es-exception-constants'><?sref es-exception-constants?></a> 
               and <a href='#es-exception-members'><?sref es-exception-members?></a>,
               <?sdir es-exception-members?>.
+            </p>
+            <p>
+              There <span class='rfc2119'>MUST</span> be a property named “name”
+              on the exception interface prototype object with attributes
+              <span class='descriptor'>{ [[Writable]]: <span class='esvalue'>true</span>, [[Enumerable]]: <span class='esvalue'>false</span>, [[Configurable]]: <span class='esvalue'>true</span> }</span>
+              and whose value is the <a class='dfnref' href='#dfn-identifier'>identifier</a> of
+              the exception.
+            </p>
+            <p>
+              If the <a class='xattr' href='#NoInterfaceObject'>[NoInterfaceObject]</a>
+              extended attribute was not specified on the exception, then
+              there <span class='rfc2119'>MUST</span> also be a property named “constructor”
+              on the exception interface prototype object with attributes
+              <span class='descriptor'>{ [[Writable]]: <span class='esvalue'>true</span>, [[Enumerable]]: <span class='esvalue'>false</span>, [[Configurable]]: <span class='esvalue'>true</span> }</span>
+              and whose value is a reference to the exception interface object for the exception.
             </p>
           </div>
 
@@ -9553,7 +9611,8 @@ module foo {
           <prod nt='InterfaceInheritance'>":" ScopedNameList | ε</prod>
           <prod nt='InterfaceMembers'>ExtendedAttributeList InterfaceMember InterfaceMembers | ε</prod>
           <prod nt='InterfaceMember'>Const | AttributeOrOperation</prod>
-          <prod nt='Exception'>"exception" identifier "{" ExceptionMembers "}" ";"</prod>
+          <prod nt='Exception'>"exception" identifier ExceptionInheritance "{" ExceptionMembers "}" ";"</prod>
+          <prod nt='ExceptionInheritance'>":" ScopedName | ε</prod>
           <prod nt='ExceptionMembers'>ExtendedAttributeList ExceptionMember ExceptionMembers | ε</prod>
           <prod nt='Typedef'>"typedef" Type identifier ";"</prod>
           <prod nt='ImplementsStatement'>ScopedName "implements" ScopedName ";"</prod>
@@ -9781,6 +9840,18 @@ module foo {
           <dt>Current editor’s draft</dt>
           <dd>
             <ul>
+              <li>
+                <p>
+                  Added “constructor” properties back to interface prototype objects.
+                </p>
+              </li>
+              <li>
+                <p>
+                  Allowed exceptions to inherit from other exceptions, so that they can be more consistent
+                  with native ECMAScript errors and so that we can move away from defining and using
+                  integer exception codes.
+                </p>
+              </li>
               <li>
                 <p>
                   Required that when calling an ECMAScript <span class="estype">Function</span> that
