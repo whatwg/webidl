@@ -15,7 +15,7 @@
   <head>
     <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'/>
     <title>Web IDL</title>
-    <meta name='revision' content='$Id: Overview.xml,v 1.266 2011-04-12 02:47:53 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: Overview.xml,v 1.267 2011-05-03 02:19:47 cmccorma Exp $'/>
     <link rel='stylesheet' href='WebIDL.css' type='text/css'/>
     <script src='section-links.js' type='application/ecmascript'/>
     <script src='dfn.js' type='application/ecmascript'/>
@@ -2444,6 +2444,13 @@ interface C {
             also implements that inherited exception.  The object therefore will also
             have members that correspond to the
             exception members from the inherited exception.
+          </p>
+          <p>
+            Exceptions have an associated <dfn id='dfn-exception-message'>message</dfn>, a
+            <a class='idltype' href='#idl-DOMString'>DOMString</a>, which is
+            exposed on an exception object in a language binding-specific manner.  Exceptions
+            can be <dfn id='dfn-throw'>thrown</dfn>, optionally with a specific message,
+            the behavior of which again is language binding-specific.
           </p>
           <p>
             <dfn id='dfn-exception-field'>Exception fields</dfn> declared using the
@@ -7649,6 +7656,25 @@ c.isMemberOfBreed(undefined);  <span class='comment'>// This passes the string "
             be the <a class='dfnref' href='#dfn-identifier'>identifier</a>
             of the <a class='dfnref' href='#dfn-exception'>exception</a>.
           </p>
+          <p>
+            When an <a class='dfnref' href='#dfn-exception'>exception</a> of type
+            <var>E</var> is to be <a class='dfnref' href='#dfn-throw'>thrown</a>,
+            with an optional message <var>M</var>, the following steps
+            <span class='rfc2119'>MUST</span> be followed:
+          </p>
+          <ol class='algorithm'>
+            <li>Let <var>args</var> be a list of ECMAScript
+            values.  If the optional message <var>M</var> was specified, then this list
+            has a single element whose value is the result of
+            <a class='dfnref' href='#dfn-convert-idl-to-ecmascript-value'>converting</a>
+            <var>M</var> to a <span class='estype'>String</span> value.
+            Otherwise, the list is empty.</li>
+            <li>Let <var>O</var> be the result of running the steps in
+            <a href="#es-exception-call">section <?sref es-exception-call?></a>
+            <?sdir es-exception-call?> with <var>E</var> as the exception and
+            <var>args</var> as the argument list.</li>
+            <li>Throw <var>O</var>.</li>
+          </ol>
         </div>
 
         <div id='es-handling-exceptions' class='section'>
@@ -9323,7 +9349,24 @@ module foo {
             The Java class <span class='rfc2119'>MUST</span> have only the <code>public</code> modifier,
             and be declared to extend <span class='javatype'>java.lang.RuntimeException</span>.
           </p>
+          <p>
+            The class <span class='rfc2119'>MUST</span> also have constructors with definitions as follows,
+            where <var>ExceptionName</var> is the name of the class:
+          </p>
+          <x:codeblock language='java'>public <var>ExceptionName</var>() {
+}
 
+public <var>ExceptionName</var>(String message) {
+    super(message);
+}
+
+public <var>ExceptionName</var>(String message, Throwable cause) {
+    super(message, cause);
+}
+
+public <var>ExceptionName</var>(Throwable cause) {
+    super(cause);
+}</x:codeblock>
           <div id='java-exception-constants' class='section'>
             <h4>Constants</h4>
             <p>
@@ -9375,6 +9418,26 @@ module foo {
                 The instance variable is not declared with an initializer.
               </li>
             </ul>
+          </div>
+
+          <div id='java-exception-throwing' class='section'>
+            <h4>Throwing exceptions</h4>
+            <p>
+              When an <a class='dfnref' href='#dfn-exception'>exception</a> of type
+              <var>E</var> is to be <a class='dfnref' href='#dfn-throw'>thrown</a>,
+              with an optional message <var>M</var>, the following steps
+              <span class='rfc2119'>MUST</span> be followed:
+            </p>
+            <ol class='algorithm'>
+              <li>Let <var>C</var> be the corresponding Java class for <var>E</var>.</li>
+              <li>Let <var>O</var> be the result of constructing a new object of class <var>C</var>.
+              When invoking the constructor, the result of
+              <a class='dfnref' href='#dfn-convert-idl-to-java-value'>converting</a>
+              <var>M</var> to a <span class='javatype'>java.lang.String</span> object to
+              is used as the constructor's sole argument, if <var>M</var> was specified.
+              If <var>M</var> was not specified, no arguments are passed to the constructor.</li>
+              <li>Throw <var>O</var>.</li>
+            </ol>
           </div>
         </div>
       </div>
@@ -9840,6 +9903,16 @@ module foo {
           <dt>Current editor’s draft</dt>
           <dd>
             <ul>
+              <li>
+                <p>
+                  Add constructors to Java classes corresponding to IDL exceptions.
+                </p>
+              </li>
+              <li>
+                <p>
+                  Define what it means to throw an IDL exception with a given message.
+                </p>
+              </li>
               <li>
                 <p>
                   Added “constructor” properties back to interface prototype objects.
