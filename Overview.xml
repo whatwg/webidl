@@ -15,7 +15,7 @@
   <head>
     <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'/>
     <title>Web IDL</title>
-    <meta name='revision' content='$Id: Overview.xml,v 1.272 2011-05-23 22:35:02 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: Overview.xml,v 1.273 2011-05-25 04:14:38 cmccorma Exp $'/>
     <link rel='stylesheet' href='WebIDL.css' type='text/css'/>
     <script src='section-links.js' type='application/ecmascript'/>
     <script src='dfn.js' type='application/ecmascript'/>
@@ -3603,7 +3603,10 @@ Person* p2 = PersonFactory_createPersonWithAge(f, 26);  <span class='comment'>//
           This section describes how definitions written with the IDL defined in
           <a href='#idl'>section <?sref idl?></a> correspond to particular constructs
           in ECMAScript, as defined by the <cite>ECMAScript Language Specification, 5th edition</cite>
-          <a href="#ref-ECMA-262">[ECMA-262]</a>.
+          <a href="#ref-ECMA-262">[ECMA-262]</a>.  A
+          <a href='#dfn-conforming-ecmascript-implementation'>conforming ECMAScript implementation</a>
+          of a given set of <a class='dfnref' href='#dfn-idl-fragment'>IDL fragments</a>
+          <span class='rfc2119'>MUST</span> adhere to the requirements in this section.
         </p>
         <p>
           Objects defined in this section have internal properties as described in
@@ -3627,13 +3630,6 @@ Person* p2 = PersonFactory_createPersonWithAge(f, 26);  <span class='comment'>//
           Unless otherwise specified, the <span class='prop'>[[Prototype]]</span> internal property
           of objects defined in this section is the <span class='esvalue'>Object</span> prototype object.
         </p>
-        <div class='ednote'>
-          <p>We perhaps should specify which global object’s <span class='esvalue'>Object</span> prototype
-            object that is, and add spec hooks to allow cross-origin property accesses to effectively
-            create separate prototype objects in the window that accesses the property.
-            <a href='http://www.w3.org/mid/2A8DF591-6229-44E3-B0D4-A00450E40CE1@apple.com'>(Mail.)</a>
-          </p>
-        </div>
         <p>
           If an object is defined to be a <dfn id='dfn-function-object'>function object</dfn>, then
           it has characteristics as follows:
@@ -3650,6 +3646,62 @@ Person* p2 = PersonFactory_createPersonWithAge(f, 26);  <span class='comment'>//
           ECMA-262 section 5.2 and the ToBoolean, ToNumber, ToUint16, ToInt32, ToUint32, ToString and
           ToObject operators referenced in this section are defined in ECMA-262 section 9.
         </p>
+
+        <div id='es-environment' class='section'>
+          <h3>ECMAScript environment</h3>
+          <p>
+            In a <a class='dfnref' href='#dfn-conforming-ecmascript-implementation'>conforming ECMAScript implementation</a>,
+            there will be a number of ECMAScript objects that exist which correspond to
+            definitions in the <a class='dfnref' href='#dfn-idl-fragment'>IDL fragments</a>
+            that it supports.  These objects are termed the <dfn id='dfn-initial-object'>initial objects</dfn>,
+            and comprise the following:
+          </p>
+          <ul>
+            <li><a class='dfnref' href='#dfn-array-host-object-prototype-object'>array host object prototype objects</a></li>
+            <li><a class='dfnref' href='#dfn-namespace-object'>namespace objects</a></li>
+            <li><a class='dfnref' href='#dfn-interface-object'>interface objects</a></li>
+            <li><a class='dfnref' href='#dfn-named-constructor'>named constructors</a></li>
+            <li><a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype objects</a></li>
+            <li><a class='dfnref' href='#dfn-mixin-prototype-object'>mixin prototype objects</a></li>
+            <li><a class='dfnref' href='#dfn-attribute-getter'>attribute getters</a></li>
+            <li><a class='dfnref' href='#dfn-attribute-setter'>attribute setters</a></li>
+            <li><a href='#es-operations'>the <span class='estype'>Function</span> objects that correspond to operations</a></li>
+            <li><a href='#es-stringifier'>the <span class='estype'>Function</span> objects that correspond to stringifiers</a></li>
+            <li><a class='dfnref' href='#dfn-exception-interface-object'>exception interface objects</a></li>
+            <li><a class='dfnref' href='#dfn-exception-interface-prototype-object'>exception interface prototype objects</a></li>
+            <li><a class='dfnref' href='#dfn-exception-member-getter'>exception member getters</a></li>
+          </ul>
+          <p>
+            Each ECMAScript global environment (<a href='#ref-ECMA-262'>[ECMA-262]</a>, section 10.2.3)
+            <span class='rfc2119'>MUST</span> have its own unique set of each of
+            the <a class='dfnref' href='#dfn-initial-object'>initial objects</a>, created
+            before control enters any ECMAScript execution context, but after the global object
+            for that global environment is created.  Whenever the requirements on the initial
+            objects reference any of the standard built-in ECMAScript objects, they are to be
+            interpreted as the objects from the global environment that owns that initial
+            object.
+          </p>
+          <div class='example'>
+            <p>
+              In an HTML user agent, multiple ECMAScript global environments can exist when
+              multiple frames or windows are created.  Each frame or window will have
+              its own set of <a class='dfnref' href='#dfn-initial-object'>initial objects</a>,
+              which the following HTML document demonstrates:
+            </p>
+            <x:codeblock language='html'>&lt;!DOCTYPE html>
+&lt;title>Diff'rent objects&lt;/title>
+&lt;iframe id=a>&lt;/iframe>
+&lt;script>
+var iframe = document.getElementById("a");
+var otherWindow = iframe.contentWindow;     <span class='comment'>// The global object in the frame</span>
+
+Object == otherWindow.Object;               <span class='comment'>// Evaluates to false, per ECMA-262</span>
+Node == otherWindow.Node;                   <span class='comment'>// Evaluates to false</span>
+iframe instanceof otherWindow.Node;         <span class='comment'>// Evaluates to false</span>
+iframe instanceof otherWindow.Object;       <span class='comment'>// Evaluates to false</span>
+&lt;/script></x:codeblock>
+          </div>
+        </div>
 
         <div id='es-type-mapping' class='section'>
           <h3>ECMAScript type mapping</h3>
@@ -6749,7 +6801,7 @@ c.isMemberOfBreed(undefined);  <span class='comment'>// This passes the string "
               </li>
             </ul>
 
-            <p>
+            <p id="es-stringifier">
               In addition, if the <a class='dfnref' href='#dfn-interface'>interface</a>
               has a <a class='dfnref' href='#dfn-stringifier'>stringifier</a>, then
               a property <span class='rfc2119'>MUST</span> exist on
@@ -6805,6 +6857,13 @@ c.isMemberOfBreed(undefined);  <span class='comment'>// This passes the string "
           <h3>Host objects implementing interfaces</h3>
 
           <p>
+            Every host object is associated with a ECMAScript global environment, just
+            as the <a class='dfnref' href='#dfn-initial-object'>initial objects</a> are.
+            It is the responsibility of specifications using Web IDL to state
+            which global environment (or, by proxy, which global object) each host
+            object is associated with.
+          </p>
+          <p>
             The value of the internal <span class='prop'>[[Prototype]]</span>
             property of a host object implementing one or more interfaces depends on
             exactly what <a class='dfnref' href='#dfn-interface'>interfaces</a> it implements,
@@ -6832,7 +6891,7 @@ c.isMemberOfBreed(undefined);  <span class='comment'>// This passes the string "
               If the host object implements no <a class='dfnref' href='#dfn-interface'>interfaces</a>,
               then its internal <span class='prop'>[[Prototype]]</span> property
               value is a reference to the <span class='estype'>Object</span>
-              prototype object.
+              prototype object from the object’s associated ECMAScript global environment.
             </li>
             <li>
               If the host object implements a single
@@ -6840,7 +6899,7 @@ c.isMemberOfBreed(undefined);  <span class='comment'>// This passes the string "
               internal <span class='prop'>[[Prototype]]</span> property is a
               reference to the
               <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype object</a>
-              of that interface.
+              from the object’s associated ECMAScript global environment for that interface.
             </li>
             <li>
               Otherwise, if the host object has a <a class='dfnref' href='#dfn-primary-prototype-interface'>primary prototype interface</a>
@@ -6849,6 +6908,7 @@ c.isMemberOfBreed(undefined);  <span class='comment'>// This passes the string "
               the internal <span class='prop'>[[Prototype]]</span> property is
               a reference to the
               <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype object</a>
+              from the host object’s associated ECMAScript global environment
               for the host object’s primary prototype interface.
             </li>
             <li>
@@ -6858,8 +6918,8 @@ c.isMemberOfBreed(undefined);  <span class='comment'>// This passes the string "
               or implements some interfaces other than its primary prototype
               interface and all of its ancestors.  The value of the
               internal <span class='prop'>[[Prototype]]</span> property is
-              a reference to the <a class='dfnref' href='#dfn-host-object-mixin-prototype-object'>host
-                object mixin prototype object</a> for the host object (defined below).
+              a reference to the <a class='dfnref' href='#dfn-host-object-mixin-prototype-object'>host object mixin prototype object</a>
+              for the host object (defined below).
             </li>
           </ul>
           <p>
@@ -6910,14 +6970,16 @@ c.isMemberOfBreed(undefined);  <span class='comment'>// This passes the string "
                 is a reference to the <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype object</a>
                 for the host object’s <a class='dfnref' href='#dfn-primary-prototype-interface'>primary prototype interface</a>,
                 or, if the host object has no primary prototype interface, a reference to the
-                <span class='estype'>Object</span> prototype object.</li>
+                <span class='estype'>Object</span> prototype object.  The
+                prototype object chosen for the <span class='prop'>[[Prototype]]</span> property
+                value is the one from the host object’s associated ECMAScript global environment.</li>
             </ul>
             <p>
               If two host objects implement the same set of
-              <a class='dfnref' href='#dfn-interface'>interfaces</a>
-              and have references to
-              <a class='dfnref' href='#dfn-host-object-mixin-prototype-object'>host object mixin prototype objects</a>
+              <a class='dfnref' href='#dfn-interface'>interfaces</a>,
+              have references to <a class='dfnref' href='#dfn-host-object-mixin-prototype-object'>host object mixin prototype objects</a>
               as their internal <span class='prop'>[[Prototype]]</span> property values,
+              and are both associated with the same ECMAScript global environment,
               then these host object mixin prototype objects
               <span class='rfc2119'>MUST</span> be the same object.
             </p>
@@ -7713,6 +7775,56 @@ c.isMemberOfBreed(undefined);  <span class='comment'>// This passes the string "
             be the <a class='dfnref' href='#dfn-identifier'>identifier</a>
             of the <a class='dfnref' href='#dfn-exception'>exception</a>.
           </p>
+        </div>
+
+        <div id='es-throwing-exceptions' class='section'>
+          <h3>Throwing exceptions</h3>
+
+          <p>
+            First, we define the <dfn id='dfn-current-global-environment'>current global environment</dfn>
+            as the result of running the following algorithm:
+          </p>
+          <ol class='algorithm'>
+            <li>
+              Let <var>F</var> be the <span class='estype'>Function</span> object used
+              as the <span class='esvalue'>this</span> value in the top-most call
+              on the ECMAScript call stack where <var>F</var> corresponds to an IDL
+              <a class='dfnref' href='#dfn-attribute'>attribute</a>,
+              <a class='dfnref' href='#dfn-operation'>operation</a>,
+              <a class='dfnref' href='#dfn-idl-indexed-properties'>indexed property</a>,
+              <a class='dfnref' href='#dfn-idl-named-properties'>named property</a>,
+              <a href='#Constructor'>constructor</a>,
+              <a class='dfnref' href='#dfn-named-constructor'>named constructor</a>,
+              <a class='dfnref' href='#dfn-stringifier'>stringifier</a>,
+              <a href='#es-exception-call'>exception constructor</a> or
+              <a class='dfnref' href='#dfn-exception-member-getter'>exception member getter</a>.
+            </li>
+            <li>
+              If <var>F</var> corresponds to an attribute, operation or stringifier, then return
+              the ECMAScript global environment associated with the
+              <a class='dfnref' href='dfn-interface'>interface</a> that definition appears on.
+            </li>
+            <li>
+              Otherwise, if <var>F</var> corresponds to an indexed or named property, then return
+              the ECMAScript global environment associated with the interface that
+              the index or name getter, setter, creator or deleter was defined on.
+            </li>
+            <li>
+              Otherwise, if <var>F</var> is a named constructor for an interface, or is
+              an <a class='dfnref' href='#dfn-interface-object'>interface object</a> for an
+              interface that is a constructor, then return the ECMAScript global environment
+              associated with that interface.
+            </li>
+            <li>
+              Otherwise, if <var>F</var> is an exception member getter, then return
+              the ECMAScript global environment associated with the exception on which the
+              exception member was defined.
+            </li>
+            <li>
+              Otherwise, <var>F</var> is an exception interface object that is a constructor.
+              Return the ECMAScript global environment associated with that exception.
+            </li>
+          </ol>
           <p>
             When an <a class='dfnref' href='#dfn-exception'>exception</a> of type
             <var>E</var> is to be <a class='dfnref' href='#dfn-throw'>thrown</a>,
@@ -7720,18 +7832,75 @@ c.isMemberOfBreed(undefined);  <span class='comment'>// This passes the string "
             <span class='rfc2119'>MUST</span> be followed:
           </p>
           <ol class='algorithm'>
+            <li>Let <var>G</var> be the <a class='dfnref' href='#dfn-current-global-environment'>current global environment</a>.</li>
+
+            <li>Let <var>X</var> be the <a class='dfnref' href='#dfn-exception-interface-object'>exception interface object</a>
+            for <var>E</var> from the ECMAScript global environment <var>G</var>.</li>
+
             <li>Let <var>args</var> be a list of ECMAScript
             values.  If the optional message <var>M</var> was specified, then this list
             has a single element whose value is the result of
             <a class='dfnref' href='#dfn-convert-idl-to-ecmascript-value'>converting</a>
             <var>M</var> to a <span class='estype'>String</span> value.
             Otherwise, the list is empty.</li>
+
             <li>Let <var>O</var> be the result of running the steps in
             <a href="#es-exception-call">section <?sref es-exception-call?></a>
-            <?sdir es-exception-call?> with <var>E</var> as the exception and
+            <?sdir es-exception-call?> with <var>X</var> as the exception and
             <var>args</var> as the argument list.</li>
+
             <li>Throw <var>O</var>.</li>
           </ol>
+          <div class='note'>
+            <p>
+              The above algorithm does not restrict <a class='dfnref' href='#dfn-exception-host-object'>exception host objects</a>
+              propagating out of a <span class='estype'>Function</span> to be
+              ones that are associated with the ECMAScript global environment
+              where that <span class='estype'>Function</span> object originated.
+              For example, consider the IDL:
+            </p>
+            <x:codeblock language='idl'>exception NumberError { };
+
+interface A {
+
+  <span class='comment'>/**
+   * Calls computeSquareRoot on m, passing x as its argument.
+   */</span>
+  float doComputation(in MathUtils m, in float x);
+};
+
+interface MathUtils {
+  <span class='comment'>/**
+   * If x is negative, throws a NumberError exception.  Otherwise, returns
+   * the square root of x.
+   */</span>
+  float computeSquareRoot(in float x);
+};</x:codeblock>
+            <p>
+              If we pass a <span class='idltype'>MathUtils</span> object from
+              a different global environment to doComputation, then the exception
+              thrown will be from that global environment:
+            </p>
+            <x:codeblock language='es'>
+var a = getA();                          // An A object from this global environment.
+var m = otherWindow.getMathUtils();      // A MathUtils object from a different global environment.
+
+a instanceof Object;                     // Evaluates to true.
+m instanceof Object;                     // Evaluates to false.
+m instanceof otherWindow.Object;         // Evaluates to true.
+
+try {
+  a.doComputation(m, -1);
+} catch (e) {
+  e instanceof NumberError;              // Evaluates to false.
+  e instanceof otherWindow.NumberError;  // Evaluates to true.
+}</x:codeblock>
+          </div>
+          <p>
+            Any requirements in this document to throw an instance of an ECMAScript built-in
+            <span class='estype'>Error</span> <span class='rfc2119'>MUST</span> use
+            the built-in from the <a class='dfnref' href='#dfn-current-global-environment'>current global environment</a>.
+          </p>
         </div>
 
         <div id='es-handling-exceptions' class='section'>
@@ -9514,26 +9683,26 @@ public <var>ExceptionName</var>(Throwable cause) {
               </li>
             </ul>
           </div>
+        </div>
 
-          <div id='java-exception-throwing' class='section'>
-            <h4>Throwing exceptions</h4>
-            <p>
-              When an <a class='dfnref' href='#dfn-exception'>exception</a> of type
-              <var>E</var> is to be <a class='dfnref' href='#dfn-throw'>thrown</a>,
-              with an optional message <var>M</var>, the following steps
-              <span class='rfc2119'>MUST</span> be followed:
-            </p>
-            <ol class='algorithm'>
-              <li>Let <var>C</var> be the corresponding Java class for <var>E</var>.</li>
-              <li>Let <var>O</var> be the result of constructing a new object of class <var>C</var>.
-              When invoking the constructor, the result of
-              <a class='dfnref' href='#dfn-convert-idl-to-java-value'>converting</a>
-              <var>M</var> to a <span class='javatype'>java.lang.String</span> object to
-              is used as the constructor's sole argument, if <var>M</var> was specified.
-              If <var>M</var> was not specified, no arguments are passed to the constructor.</li>
-              <li>Throw <var>O</var>.</li>
-            </ol>
-          </div>
+        <div id='java-exception-throwing' class='section'>
+          <h4>Throwing exceptions</h4>
+          <p>
+            When an <a class='dfnref' href='#dfn-exception'>exception</a> of type
+            <var>E</var> is to be <a class='dfnref' href='#dfn-throw'>thrown</a>,
+            with an optional message <var>M</var>, the following steps
+            <span class='rfc2119'>MUST</span> be followed:
+          </p>
+          <ol class='algorithm'>
+            <li>Let <var>C</var> be the corresponding Java class for <var>E</var>.</li>
+            <li>Let <var>O</var> be the result of constructing a new object of class <var>C</var>.
+            When invoking the constructor, the result of
+            <a class='dfnref' href='#dfn-convert-idl-to-java-value'>converting</a>
+            <var>M</var> to a <span class='javatype'>java.lang.String</span> object to
+            is used as the constructor's sole argument, if <var>M</var> was specified.
+            If <var>M</var> was not specified, no arguments are passed to the constructor.</li>
+            <li>Throw <var>O</var>.</li>
+          </ol>
         </div>
       </div>
 
@@ -10000,6 +10169,14 @@ public <var>ExceptionName</var>(Throwable cause) {
           <dt>Current editor’s draft</dt>
           <dd>
             <ul>
+              <li>
+                <p>
+                  Required that multiple ECMAScript global environments have independent
+                  copies of interface objects, interface prototype objects, etc., and
+                  defined which global environment’s objects are used when an exception
+                  is thrown.
+                </p>
+              </li>
               <li>
                 <p>
                   Disallowed sequence types from being used as attribute types.
