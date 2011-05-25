@@ -15,7 +15,7 @@
   <head>
     <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'/>
     <title>Web IDL</title>
-    <meta name='revision' content='$Id: Overview.xml,v 1.273 2011-05-25 04:14:38 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: Overview.xml,v 1.274 2011-05-25 04:40:02 cmccorma Exp $'/>
     <link rel='stylesheet' href='WebIDL.css' type='text/css'/>
     <script src='section-links.js' type='application/ecmascript'/>
     <script src='dfn.js' type='application/ecmascript'/>
@@ -3657,7 +3657,7 @@ Person* p2 = PersonFactory_createPersonWithAge(f, 26);  <span class='comment'>//
             and comprise the following:
           </p>
           <ul>
-            <li><a class='dfnref' href='#dfn-array-host-object-prototype-object'>array host object prototype objects</a></li>
+            <li><a class='dfnref' href='#dfn-array-host-object-prototype'>array host object prototype objects</a></li>
             <li><a class='dfnref' href='#dfn-namespace-object'>namespace objects</a></li>
             <li><a class='dfnref' href='#dfn-interface-object'>interface objects</a></li>
             <li><a class='dfnref' href='#dfn-named-constructor'>named constructors</a></li>
@@ -3676,29 +3676,30 @@ Person* p2 = PersonFactory_createPersonWithAge(f, 26);  <span class='comment'>//
             <span class='rfc2119'>MUST</span> have its own unique set of each of
             the <a class='dfnref' href='#dfn-initial-object'>initial objects</a>, created
             before control enters any ECMAScript execution context, but after the global object
-            for that global environment is created.  Whenever the requirements on the initial
-            objects reference any of the standard built-in ECMAScript objects, they are to be
-            interpreted as the objects from the global environment that owns that initial
-            object.
+            for that global environment is created.  The <span class='prop'>[[Prototype]]</span>s
+            of all initial objects <span class='rfc2119'>MUST</span> come from the
+            same global environment.
           </p>
           <div class='example'>
             <p>
-              In an HTML user agent, multiple ECMAScript global environments can exist when
+              In an HTML user agent, multiple global environments can exist when
               multiple frames or windows are created.  Each frame or window will have
               its own set of <a class='dfnref' href='#dfn-initial-object'>initial objects</a>,
               which the following HTML document demonstrates:
             </p>
             <x:codeblock language='html'>&lt;!DOCTYPE html>
-&lt;title>Diff'rent objects&lt;/title>
+&lt;title>Different global environments&lt;/title>
 &lt;iframe id=a>&lt;/iframe>
 &lt;script>
 var iframe = document.getElementById("a");
-var otherWindow = iframe.contentWindow;     <span class='comment'>// The global object in the frame</span>
+var w = iframe.contentWindow;              <span class='comment'>// The global object in the frame</span>
 
-Object == otherWindow.Object;               <span class='comment'>// Evaluates to false, per ECMA-262</span>
-Node == otherWindow.Node;                   <span class='comment'>// Evaluates to false</span>
-iframe instanceof otherWindow.Node;         <span class='comment'>// Evaluates to false</span>
-iframe instanceof otherWindow.Object;       <span class='comment'>// Evaluates to false</span>
+Object == w.Object;                        <span class='comment'>// Evaluates to false, per ECMA-262</span>
+Node == w.Node;                            <span class='comment'>// Evaluates to false</span>
+iframe instanceof w.Node;                  <span class='comment'>// Evaluates to false</span>
+iframe instanceof w.Object;                <span class='comment'>// Evaluates to false</span>
+iframe.appendChild instanceof Function;    <span class='comment'>// Evaluates to true</span>
+iframe.appendChild instanceof w.Function;  <span class='comment'>// Evaluates to false</span>
 &lt;/script></x:codeblock>
           </div>
         </div>
@@ -6857,7 +6858,7 @@ c.isMemberOfBreed(undefined);  <span class='comment'>// This passes the string "
           <h3>Host objects implementing interfaces</h3>
 
           <p>
-            Every host object is associated with a ECMAScript global environment, just
+            Every host object is associated with a global environment, just
             as the <a class='dfnref' href='#dfn-initial-object'>initial objects</a> are.
             It is the responsibility of specifications using Web IDL to state
             which global environment (or, by proxy, which global object) each host
@@ -6891,7 +6892,7 @@ c.isMemberOfBreed(undefined);  <span class='comment'>// This passes the string "
               If the host object implements no <a class='dfnref' href='#dfn-interface'>interfaces</a>,
               then its internal <span class='prop'>[[Prototype]]</span> property
               value is a reference to the <span class='estype'>Object</span>
-              prototype object from the object’s associated ECMAScript global environment.
+              prototype object from the object’s associated global environment.
             </li>
             <li>
               If the host object implements a single
@@ -6899,7 +6900,7 @@ c.isMemberOfBreed(undefined);  <span class='comment'>// This passes the string "
               internal <span class='prop'>[[Prototype]]</span> property is a
               reference to the
               <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype object</a>
-              from the object’s associated ECMAScript global environment for that interface.
+              from the object’s associated global environment for that interface.
             </li>
             <li>
               Otherwise, if the host object has a <a class='dfnref' href='#dfn-primary-prototype-interface'>primary prototype interface</a>
@@ -6908,7 +6909,7 @@ c.isMemberOfBreed(undefined);  <span class='comment'>// This passes the string "
               the internal <span class='prop'>[[Prototype]]</span> property is
               a reference to the
               <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype object</a>
-              from the host object’s associated ECMAScript global environment
+              from the host object’s associated global environment
               for the host object’s primary prototype interface.
             </li>
             <li>
@@ -6972,14 +6973,14 @@ c.isMemberOfBreed(undefined);  <span class='comment'>// This passes the string "
                 or, if the host object has no primary prototype interface, a reference to the
                 <span class='estype'>Object</span> prototype object.  The
                 prototype object chosen for the <span class='prop'>[[Prototype]]</span> property
-                value is the one from the host object’s associated ECMAScript global environment.</li>
+                value is the one from the host object’s associated global environment.</li>
             </ul>
             <p>
               If two host objects implement the same set of
               <a class='dfnref' href='#dfn-interface'>interfaces</a>,
               have references to <a class='dfnref' href='#dfn-host-object-mixin-prototype-object'>host object mixin prototype objects</a>
               as their internal <span class='prop'>[[Prototype]]</span> property values,
-              and are both associated with the same ECMAScript global environment,
+              and are both associated with the same global environment,
               then these host object mixin prototype objects
               <span class='rfc2119'>MUST</span> be the same object.
             </p>
@@ -7765,9 +7766,18 @@ c.isMemberOfBreed(undefined);  <span class='comment'>// This passes the string "
             <a class='dfnref' href='#dfn-interface'>interface</a>, is not defined.
           </p>
           <p>
+            Every host exception object is associated with a global environment, just
+            as the <a class='dfnref' href='#dfn-initial-object'>initial objects</a> are.
+            When a host exception object is created by calling an <a class='dfnref' href='#dfn-exception-interface-object'>exception interface object</a>,
+            either normally or as part of a <code>new</code> expression, then the global environment
+            the newly created object is associated with is the same one that the exception
+            interface object itself is associated with.
+          </p>
+          <p>
             The value of the internal <span class='prop'>[[Prototype]]</span>
             property of the host exception object
-            <span class='rfc2119'>MUST</span> be the <a class='dfnref' href='#dfn-exception-interface-prototype-object'>exception interface prototype object</a>.
+            <span class='rfc2119'>MUST</span> be the <a class='dfnref' href='#dfn-exception-interface-prototype-object'>exception interface prototype object</a>
+            from the global environment the host exception object is associated with.
           </p>
           <p>
             The value of the internal <span class='prop'>[[Class]]</span>
@@ -7801,28 +7811,28 @@ c.isMemberOfBreed(undefined);  <span class='comment'>// This passes the string "
             </li>
             <li>
               If <var>F</var> corresponds to an attribute, operation or stringifier, then return
-              the ECMAScript global environment associated with the
+              the global environment associated with the
               <a class='dfnref' href='dfn-interface'>interface</a> that definition appears on.
             </li>
             <li>
               Otherwise, if <var>F</var> corresponds to an indexed or named property, then return
-              the ECMAScript global environment associated with the interface that
+              the global environment associated with the interface that
               the index or name getter, setter, creator or deleter was defined on.
             </li>
             <li>
               Otherwise, if <var>F</var> is a named constructor for an interface, or is
               an <a class='dfnref' href='#dfn-interface-object'>interface object</a> for an
-              interface that is a constructor, then return the ECMAScript global environment
+              interface that is a constructor, then return the global environment
               associated with that interface.
             </li>
             <li>
               Otherwise, if <var>F</var> is an exception member getter, then return
-              the ECMAScript global environment associated with the exception on which the
+              the global environment associated with the exception on which the
               exception member was defined.
             </li>
             <li>
               Otherwise, <var>F</var> is an exception interface object that is a constructor.
-              Return the ECMAScript global environment associated with that exception.
+              Return the global environment associated with that exception.
             </li>
           </ol>
           <p>
@@ -7835,7 +7845,7 @@ c.isMemberOfBreed(undefined);  <span class='comment'>// This passes the string "
             <li>Let <var>G</var> be the <a class='dfnref' href='#dfn-current-global-environment'>current global environment</a>.</li>
 
             <li>Let <var>X</var> be the <a class='dfnref' href='#dfn-exception-interface-object'>exception interface object</a>
-            for <var>E</var> from the ECMAScript global environment <var>G</var>.</li>
+            for <var>E</var> from the global environment <var>G</var>.</li>
 
             <li>Let <var>args</var> be a list of ECMAScript
             values.  If the optional message <var>M</var> was specified, then this list
@@ -7855,7 +7865,7 @@ c.isMemberOfBreed(undefined);  <span class='comment'>// This passes the string "
             <p>
               The above algorithm does not restrict <a class='dfnref' href='#dfn-exception-host-object'>exception host objects</a>
               propagating out of a <span class='estype'>Function</span> to be
-              ones that are associated with the ECMAScript global environment
+              ones that are associated with the global environment
               where that <span class='estype'>Function</span> object originated.
               For example, consider the IDL:
             </p>
