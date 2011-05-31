@@ -15,7 +15,7 @@
   <head>
     <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'/>
     <title>Web IDL</title>
-    <meta name='revision' content='$Id: Overview.xml,v 1.284 2011-05-30 03:41:29 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: Overview.xml,v 1.285 2011-05-31 02:39:15 cmccorma Exp $'/>
     <link rel='stylesheet' href='WebIDL.css' type='text/css'/>
     <script src='section-links.js' type='application/ecmascript'/>
     <script src='dfn.js' type='application/ecmascript'/>
@@ -308,6 +308,7 @@
           <p>
             Every <a class='dfnref' href='#dfn-module'>module</a>,
             <a class='dfnref' href='#dfn-interface'>interface</a>,
+            <a class='dfnref' href='#dfn-dictionary'>dictionary</a>,
             <a class='dfnref' href='#dfn-exception'>exception</a>,
             <a class='dfnref' href='#dfn-typedef'>typedef</a>,
             <a class='dfnref' href='#dfn-constant'>constant</a>,
@@ -322,7 +323,9 @@
           </p>
           <ul>
             <li>
-              For <a class='dfnref' href='#dfn-module'>modules</a>, <a class='dfnref' href='#dfn-interface'>interfaces</a>
+              For <a class='dfnref' href='#dfn-module'>modules</a>,
+              <a class='dfnref' href='#dfn-interface'>interfaces</a>,
+              <a class='dfnref' href='#dfn-dictionaries'>dictionaries</a>
               and <a class='dfnref' href='#dfn-exception'>exceptions</a>, the first
               <a class='nt' href='#prod-identifier'>identifier</a> terminal in
               a derivation of the <a class='nt' href='#prod-Interface'>Interface</a>
@@ -387,6 +390,7 @@
           <p>
             Every <a class='dfnref' href='#dfn-module'>module</a>,
             <a class='dfnref' href='#dfn-interface'>interface</a>,
+            <a class='dfnref' href='#dfn-dictionary'>dictionary</a>,
             <a class='dfnref' href='#dfn-exception'>exception</a> and
             <a class='dfnref' href='#dfn-typedef'>typedef</a> also has a <dfn id='dfn-qualified-name'>qualified name</dfn>,
             determined as follows:
@@ -412,10 +416,12 @@
             The <a class='dfnref' href='#dfn-qualified-name'>qualified name</a> of every
             <a class='dfnref' href='#dfn-module'>module</a>,
             <a class='dfnref' href='#dfn-interface'>interface</a>,
+            <a class='dfnref' href='#dfn-dictionary'>dictionary</a>,
             <a class='dfnref' href='#dfn-exception'>exception</a> and
             <a class='dfnref' href='#dfn-typedef'>typedef</a> <span class='rfc2119'>MUST NOT</span>
             be the same as the qualified name of any other
             <a class='dfnref' href='#dfn-interface'>interface</a>,
+            <a class='dfnref' href='#dfn-dictionary'>dictionary</a>,
             <a class='dfnref' href='#dfn-exception'>exception</a> or
             <a class='dfnref' href='#dfn-typedef'>typedef</a>.
           </p>
@@ -833,7 +839,8 @@ interface Dog : Animal {
               The <a class='nt' href='#prod-ConstExpr'>ConstExpr</a> part of a
               constant definition gives the value of the constant, which can be
               one of the two boolean literal terminals (<span class='terminal'>"true"</span>
-              and <span class='terminal'>"false"</span>), an
+              and <span class='terminal'>"false"</span>),
+              the <span class='terminal'>"null"</span> terminal, an
               <a class='nt' href='#prod-integer'>integer</a> terminal, a
               <a class='nt' href='#prod-float'>float</a> terminal or a
               <a class='nt' href='#prod-string'>string</a> terminal.
@@ -1034,6 +1041,13 @@ interface Dog : Animal {
               sequence of 16 bit unsigned integer code units corresponding to the UTF-16 encoding
               of <var>s</var>.</li>
             </ol>
+            <p>
+              The value of the <span class='terminal'>"null"</span> terminal is the special
+              <span class='idlvalue'>null</span> value that is a member of the
+              <a class='dfnref' href='#dfn-nullable-type'>nullable types</a>.  The type of
+              the <span class='terminal'>"null"</span> terminal is the same as the
+              type of the constant it is being used as the value of.
+            </p>
             <p>
               If <var>V</var> is the type of the value assigned to a constant, and <var>C</var>
               is the type of the constant itself, then these types <span class='rfc2119'>MUST</span>
@@ -1248,7 +1262,7 @@ interface Person {
               <a class='dfnref' href='#dfn-resolve'>resolve</a>,
               with respect to the <a class='dfnref' href='#dfn-enclosing-module'>enclosing module</a>
               of the interface on which the operation
-              is defined, to an interface or <a class='dfnref' href='#dfn-typedef'>typedef</a>.
+              is defined, to an interface, dictionary or <a class='dfnref' href='#dfn-typedef'>typedef</a>.
             </p>
             <p>
               The <a class='nt' href='#prod-ArgumentList'>ArgumentList</a> non-terminal gives
@@ -2536,6 +2550,106 @@ interface C {
           </div>
         </div>
 
+        <div id='idl-dictionaries' class='section'>
+          <h3>Dictionaries</h3>
+
+          <p>
+            A <dfn id='dfn-dictionary'>dictionary</dfn> is a definition that matches the
+            <a class='nt' href='#prod-Dictionary'>Dictionary</a> non-terminal, and is
+            used to define an associative array data type with a fixed, ordered set of key–value pairs,
+            termed <dfn id='dfn-dictionary-member'>dictionary members</dfn>,
+            where keys are strings and values are of a particular type specified in the definition.
+            The order of the <a class='dfnref' href='#dfn-dictionary-member'>dictionary members</a>
+            is the order in which they appear in the IDL.
+            The <a class='dfnref' href='#dfn-identifier'>identifier</a> of the
+            <a class='dfnref' href='#dfn-dictionary'>dictionary</a> is given by
+            the <a class='nt' href='#prod-identifier'>identifier</a> terminal.
+          </p>
+          <p>
+            On a given dictionary value, the presence of each dictionary member is optional.
+            When specified in the dictionary value, a dictionary member is said to be
+            <dfn id='dfn-present'>present</dfn>, otherwise it is <a class='dfnref' href='#dfn-present'>not present</a>.
+            Dictionary members can also optionally have a <dfn id='dfn-default-value'>default value</dfn>, which is
+            the value the dictionary member is to be considered to have when not present.
+          </p>
+          <p>
+            Each <a class='dfnref' href='#dfn-dictionary-member'>dictionary member</a> matches the
+            <a class='nt' href='#prod-DictionaryMember'>DictionaryMember</a> non-terminal.
+            The <a class='dfnref' href='#dfn-identifier'>identifier</a> of the dictionary member
+            is given by the <a class='nt' href='#prod-identifier'>identifier</a> terminal.
+            The identifier is the key name of the key–value pair.
+
+            The value type is given by the <a class='nt' href='#prod-Type'>Type</a>
+            non-terminal of the <a class='nt' href='#prod-DictionaryMember'>DictionaryMember</a>.
+            If the <a class='nt' href='#prod-Type'>Type</a>
+            is a <a class='dfnref' href='#dfn-scoped-name'>scoped name</a>, then it
+            <span class='rfc2119'>MUST</span> <a class='dfnref' href='#dfn-resolve'>resolve</a>,
+            with respect to the <a class='dfnref' href='#dfn-enclosing-module'>enclosing module</a>
+            of the dictionary on which the dictionary member is declared, to an
+            interface, dictionary or <a class='dfnref' href='#dfn-typedef'>typedef</a>.
+          </p>
+          <p>
+            If there is a <a class='nt' href='#prod-ConstExpr'>ConstExpr</a> non-terminal
+            present in the derivation of the <a class='nt' href='#prod-DictionaryMember'>DictionaryMember</a>,
+            then that gives the dictionary member its <a class='dfnref' href='#dfn-default-value'>default value</a>,
+            in the same way that a <a class='dfnref' href='#dfn-constant'>constant</a> is
+            given its value.
+          </p>
+          <p>
+            The identifier of a dictionary member <span class='rfc2119'>MUST NOT</span> be
+            the same as that of another dictionary member defined on the dictionary.
+          </p>
+          <p>
+            Dictionaries <span class='rfc2119'>MUST NOT</span> be used as the type of an
+            <a class='dfnref' href='#dfn-attribute'>attribute</a>,
+            <a class='dfnref' href='#dfn-constant'>constant</a> or
+            <a class='dfnref' href='#dfn-exception-field'>exception field</a>.
+          </p>
+          <p>
+            No <a class='dfnref' href='#dfn-extended-attribute'>extended attributes</a>
+            are applicable to dictionaries or dictionary members.
+          </p>
+          <?productions grammar Dictionary DictionaryMembers DictionaryMember DefaultValue?>
+          <div class='example'>
+            <p>
+              One use of dictionary types is to allow a number of optional arguments to
+              an <a class='dfnref' href='#dfn-operation'>operation</a> without being
+              constrained as to the order they are specified at the call site.  For example,
+              consider the following <a class='dfnref' href='#dfn-idl-fragment'>IDL fragment</a>:
+            </p>
+            <x:codeblock language='idl'>[Constructor]
+interface Point {
+  attribute float x;
+  attribute float y;
+};
+
+dictionary PaintOptions {
+  DOMString? fillPattern = "black";
+  DOMString? strokePattern = null;
+  Point position;
+};
+
+interface GraphicsContext {
+  void drawRectangle(in float width, in float height, in optional PaintOptions options);
+};</x:codeblock>
+            <p>
+              In an ECMAScript implementation of the IDL, you an <span class='estype'>Object</span>
+              can be passed in for the optional <span class='idltype'>PaintOptions</span> dictionary:
+            </p>
+            <x:codeblock language='es'><span class='comment'>// Get an instance of GraphicsContext.</span>
+var ctx = getGraphicsContext();
+
+<span class='comment'>// Draw a rectangle.</span>
+ctx.drawRectangle(300, 200, { fillPattern: "red", position: new Point(10, 10) });</x:codeblock>
+            <p>
+              Both fillPattern and strokePattern are given <a class='dfnref' href='#dfn-default-value'>default values</a>,
+              so if they are omitted, the definition of drawRectangle can assume that they
+              have the given default values and not include explicit wording to handle
+              their non-presence.
+            </p>
+          </div>
+        </div>
+
         <div id='idl-exceptions' class='section'>
           <h3>Exceptions</h3>
 
@@ -2590,7 +2704,7 @@ interface C {
             interface or <a class='dfnref' href='#dfn-typedef'>typedef</a>.
           </p>
           <p>
-            The identifier of an exception field <span class='rfc2119'>MUST</span> not be
+            The identifier of an exception field <span class='rfc2119'>MUST NOT</span> be
             the same as that of another <a class='dfnref' href='#dfn-exception-member'>exception member</a>
             or a <a class='dfnref' href='#dfn-constant'>constant</a> defined on the exception.
           </p>
@@ -3214,6 +3328,25 @@ interface Person {
             </p>
           </div>
 
+          <div id='idl-dictionary' class='section'>
+            <h4>Dictionary types</h4>
+
+            <p>
+              A <a class='dfnref' href='#dfn-scoped-name'>scoped name</a> that
+              <a class='dfnref' href='#dfn-resolve'>resolves</a> to a
+              <a class='dfnref' href='#dfn-dictionary'>dictionary</a> is used to refer to
+              a type that corresponds to the set of all dictionaries that adhere to
+              the dictionary definition.
+            </p>
+            <p>
+              There is no way to represent a constant value for dictionary types in IDL.
+            </p>
+            <p>
+              The <a class='dfnref' href='#dfn-type-name'>type name</a> of a dictionary type
+              is the <a class='dfnref' href='#dfn-identifier'>identifier</a> of the dictionary.
+            </p>
+          </div>
+
           <div id='idl-nullable-type' class='section'>
             <h4>Nullable types — <var>T</var>?</h4>
 
@@ -3279,8 +3412,10 @@ interface Person {
               There is no way to represent a sequence constant value in IDL.
             </p>
             <p>
-              Sequences <span class='rfc2119'>MUST NOT</span> be used as
-              type of an <a class='dfnref' href='#dfn-attribute'>attribute</a>.
+              Sequences <span class='rfc2119'>MUST NOT</span> be used as the
+              type of an <a class='dfnref' href='#dfn-attribute'>attribute</a>,
+              <a class='dfnref' href='#dfn-constant'>constant</a> or
+              or <a class='dfnref' href='#dfn-exception-field'>exception field</a>.
             </p>
             <div class='note'>
               <p>
@@ -3738,7 +3873,7 @@ Person* p2 = PersonFactory_createPersonWithAge(f, 26);  <span class='comment'>//
             <li><a href='#es-stringifier'>the <span class='estype'>Function</span> objects that correspond to stringifiers</a></li>
             <li><a class='dfnref' href='#dfn-exception-interface-object'>exception interface objects</a></li>
             <li><a class='dfnref' href='#dfn-exception-interface-prototype-object'>exception interface prototype objects</a></li>
-            <li><a class='dfnref' href='#dfn-exception-member-getter'>exception member getters</a></li>
+            <li><a class='dfnref' href='#dfn-exception-field-getter'>exception field getters</a></li>
           </ul>
           <p>
             Each ECMAScript global environment (<a href='#ref-ECMA-262'>[ECMA-262]</a>, section 10.2.3)
@@ -4394,6 +4529,64 @@ iframe.appendChild instanceof w.Function;  <span class='comment'>// Evaluates to
               value that represents a reference to the same object that the IDL
               <a href='#idl-interface'>interface type</a> value represents.
             </p>
+          </div>
+
+          <div id='es-dictionary' class='section'>
+            <h4>Dictionary types</h4>
+
+            <p>
+              IDL <a href='#idl-dictionary'>dictionary type</a> values are represented
+              by ECMAScript <span class='estype'>Object</span> values.  Properties on
+              the object (or its prototype chain) correspond to <a class='dfnref' href='#dfn-dictionary-member'>dictionary members</a>.
+            </p>
+            <p>
+              An ECMAScript value <var>V</var> is
+              <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converted</a>
+              to an IDL <a href='#idl-dictionary'>dictionary type</a> value
+              by running the following algorithm (where <var>D</var> is the <a class='dfnref' href='#dfn-dictionary'>dictionary</a>):
+            </p>
+            <ol class='algorithm'>
+              <li>Let <var>dict</var> be an empty dictionary value of type <var>D</var>;
+              every <a class='dfnref' href='#dfn-dictionary-member'>dictionary member</a>
+              is initially considered to be <a class='dfnref' href='#dfn-present'>not present</a>.</li>
+              <li>Let <var>object</var> be the result of calling ToObject(<var>V</var>).</li>
+              <li>For each dictionary member <var>member</var> declared on <var>D</var>, in order:
+                <ol>
+                  <li>Let <var>key</var> be the <a class='dfnref' href='#dfn-identifier'>identifier</a> of <var>member</var>.</li>
+                  <li>Let <var>present</var> be the result of calling the <span class='prop'>[[HasProperty]]</span> internal method on <var>object</var> with property name <var>key</var>.</li>
+                  <li>If <var>present</var> is true, then:
+                    <ol>
+                      <li>Let <var>value</var> be the result of calling the <span class='prop'>[[Get]]</span> internal method on <var>object</var> with property name <var>key</var>.</li>
+                      <li>Let <var>idlValue</var> be the result of <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a> <var>value</var> to an IDL value whose type is the type <var>member</var> is declared to be of.</li>
+                      <li>Set the dictionary member on <var>dict</var> with key name <var>key</var> to the value <var>idlValue</var>.  This dictionary member is considered to be <a class='dfnref' href='#dfn-present'>present</a>.</li>
+                    </ol>
+                  </li>
+                </ol>
+              </li>
+              <li>Return <var>dict</var>.</li>
+            </ol>
+            <p>
+              An IDL dictionary value <var>V</var> is
+              <a class='dfnref' href='#dfn-convert-idl-to-ecmascript-value'>converted</a>
+              to an ECMAScript <span class='estype'>Object</span> value
+              by running the following algorithm (where <var>D</var> is the <a class='dfnref' href='#dfn-dictionary'>dictionary</a>):
+            </p>
+            <ol class='algorithm'>
+              <li>Let <var>O</var> be a new <span class='estype'>Object</span> value created as if by the expression <code>({})</code>.</li>
+              <li>For each dictionary member <var>member</var> declared on <var>D</var>, in order:
+                <ol>
+                  <li>Let <var>key</var> be the <a class='dfnref' href='#dfn-identifier'>identifier</a> of <var>member</var>.</li>
+                  <li>If the dictionary member named <var>key</var> is <a class='dfnref' href='#dfn-present'>present</a> on <var>V</var>, then:
+                    <ol>
+                      <li>Let <var>idlValue</var> be the value of <var>member</var> on <var>V</var>.</li>
+                      <li>Let <var>value</var> be the result of <a class='dfnref' href='#dfn-convert-idl-to-ecmascript-value'>converting</a> <var>idlValue</var> to an ECMAScript value.</li>
+                      <li>Call the <span class='prop'>[[Put]]</span> internal method on <var>O</var> with arguments <var>key</var>, <var>value</var> and <span class='esvalue'>false</span>.</li>
+                    </ol>
+                  </li>
+                </ol>
+              </li>
+              <li>Return <var>O</var>.</li>
+            </ol>
           </div>
 
           <div id='es-nullable-type' class='section'>
@@ -5152,7 +5345,7 @@ results.numbers.length;       <span class='comment'>// Evaluates to 3.</span></x
             </ol>
             <p>
               Host objects returning an ECMAScript <span class='estype'>Date</span> object from <a class='dfnref' href='#dfn-attribute'>attributes</a>,
-              <a class='dfnref' href='#dfn-operation'>operations</a> or <a class='dfnref' href='#dfn-exception-member'>exception member</a>
+              <a class='dfnref' href='#dfn-operation'>operations</a> or <a class='dfnref' href='#dfn-exception-field'>exception field</a>
               do not hold on to a reference to the <span class='estype'>Date</span> object.  Script that modifies a <span class='estype'>Date</span> object
               so returned cannot affect the host object it was returned from.
             </p>
@@ -7817,7 +8010,7 @@ c.isMemberOfBreed(undefined);  <span class='comment'>// This passes the string "
               <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>.
               The exception interface prototype object for a particular exception has
               properties that correspond to the <a class='dfnref' href='#dfn-constant'>constants</a>
-              and <a class='dfnref' href='#dfn-exception-member'>exception members</a>
+              and <a class='dfnref' href='#dfn-exception-field'>exception fields</a>
               defined on the exception.  These properties are described in more detail in
               sections <a href='#es-exception-constants'><?sref es-exception-constants?></a> 
               and <a href='#es-exception-members'><?sref es-exception-members?></a>,
@@ -7865,11 +8058,11 @@ c.isMemberOfBreed(undefined);  <span class='comment'>// This passes the string "
             </p>
           </div>
 
-          <div id='es-exception-members' class='section'>
-            <h4>Exception members</h4>
+          <div id='es-exception-field' class='section'>
+            <h4>Exception fields</h4>
 
             <p>
-              For each <a class='dfnref' href='#dfn-exception-member'>exception member</a> whose <a class='dfnref' href='#dfn-identifier'>identifier</a>
+              For each <a class='dfnref' href='#dfn-exception-field'>exception field</a> whose <a class='dfnref' href='#dfn-identifier'>identifier</a>
               is not “constructor” that is defined on the <a class='dfnref' href='#dfn-exception'>exception</a>, there
               <span class='rfc2119'>MUST</span> be a corresponding property on
               the <a class='dfnref' href='#dfn-exception-interface-prototype-object'>exception interface prototype object</a>,
@@ -7877,23 +8070,23 @@ c.isMemberOfBreed(undefined);  <span class='comment'>// This passes the string "
             </p>
             <ul>
               <li>
-                The name of the property is the <a class='dfnref' href='#dfn-identifier'>identifier</a> of the <a class='dfnref' href='#dfn-exception-member'>exception member</a>.
+                The name of the property is the <a class='dfnref' href='#dfn-identifier'>identifier</a> of the <a class='dfnref' href='#dfn-exception-field'>exception field</a>.
               </li>
               <li>
                 The property has attributes <span class='descriptor'>{ [[Get]]: <var>G</var>, [[Enumerable]]: <span class='esvalue'>true</span>, [[Configurable]]: <span class='esvalue'>true</span> }</span>,
-                where <var>G</var> is the <a class='dfnref' href='#dfn-exception-member-getter'>exception member getter</a>,
+                where <var>G</var> is the <a class='dfnref' href='#dfn-exception-field-getter'>exception field getter</a>,
                 defined below.
               </li>
               <li>
-                The <dfn id='dfn-exception-member-getter'>exception member getter</dfn> is a <span class='estype'>Function</span>
+                The <dfn id='dfn-exception-field-getter'>exception field getter</dfn> is a <span class='estype'>Function</span>
                 object whose behavior when invoked is as follows:
                 <ol class='algorithm'>
                   <li>Let <var>O</var> be the result of calling ToObject on the <span class='esvalue'>this</span> value.</li>
                   <li>If <var>O</var> is not a <a class='dfnref' href='#dfn-host-exception-object'>host exception object</a>
                     for the <a class='dfnref' href='#dfn-exception'>exception</a>
-                    on which the exception member was declared, then throw a <span class='estype'>TypeError</span>.</li>
+                    on which the exception field was declared, then throw a <span class='estype'>TypeError</span>.</li>
                   <li>
-                    Let <var>idlValue</var> be the IDL value of <var>O</var>’s exception member.
+                    Let <var>idlValue</var> be the IDL value of <var>O</var>’s exception field.
                   </li>
                   <li>
                     Let <var>V</var> be the result of <a class='dfnref' href='#dfn-convert-idl-to-ecmascript-value'>converting</a>
@@ -7962,7 +8155,7 @@ c.isMemberOfBreed(undefined);  <span class='comment'>// This passes the string "
               <a class='dfnref' href='#dfn-named-constructor'>named constructor</a>,
               <a class='dfnref' href='#dfn-stringifier'>stringifier</a>,
               <a href='#es-exception-call'>exception constructor</a> or
-              <a class='dfnref' href='#dfn-exception-member-getter'>exception member getter</a>.
+              <a class='dfnref' href='#dfn-exception-field-getter'>exception field getter</a>.
             </li>
             <li>
               If <var>F</var> corresponds to an attribute, operation or stringifier, then return
@@ -7981,9 +8174,9 @@ c.isMemberOfBreed(undefined);  <span class='comment'>// This passes the string "
               associated with that interface.
             </li>
             <li>
-              Otherwise, if <var>F</var> is an exception member getter, then return
+              Otherwise, if <var>F</var> is an exception field getter, then return
               the global environment associated with the exception on which the
-              exception member was defined.
+              exception field was defined.
             </li>
             <li>
               Otherwise, <var>F</var> is an exception interface object that is a constructor.
@@ -8239,7 +8432,7 @@ d.type = et;
             when being used as the value of a Java final variable (corresponding
             to a <a class='dfnref' href='#dfn-constant'>constant</a>) or when
             returned from a Java method (corresponding to an operation,
-            attribute or <a class='dfnref' href='#dfn-exception-member'>exception member</a>).
+            attribute or <a class='dfnref' href='#dfn-exception-field'>exception field</a>).
           </p>
 
           <div id='java-any' class='section'>
@@ -8841,6 +9034,71 @@ d.type = et;
             </p>
           </div>
 
+          <div id='java-dictionary' class='section'>
+            <h4>Dictionary types</h4>
+
+            <p>
+              IDL <a href='#idl-dictionary'>dictionary type</a> values are
+              represented by Java references to objects of the
+              <span class='javatype'>java.util.HashMap&lt;java.lang.String,java.lang.Object></span> class.
+              Each <a class='dfnref' href='#dfn-dictionary-member'>dictionary member</a> that is
+              <a class='dfnref' href='#dfn-present'>present</a>
+              corresponds to an entry in the <span class='javatype'>HashMap</span>.
+            </p>
+            <p>
+              A Java <span class='javatype'>java.util.HashMap&lt;java.lang.String,java.lang.Object></span> reference value
+              <var>O</var> is
+              <a class='dfnref' href='#dfn-convert-java-to-idl-value'>converted</a>
+              to an IDL <a href='#idl-dictionary'>dictionary type</a> value
+              by running the following algorithm (where <var>D</var> is the <a class='dfnref' href='#dfn-dictionary'>dictionary</a>):
+            </p>
+            <ol class='algorithm'>
+              <li>If <var>O</var> is <span class='javavalue'>null</span>, then throw a <span class='javatype'>java.lang.NullPointerException</span>.</li>
+              <li>Let <var>dict</var> be an empty dictionary value of type <var>D</var>;
+              every <a class='dfnref' href='#dfn-dictionary-member'>dictionary member</a>
+              is initially considered to be <a class='dfnref' href='#dfn-present'>not present</a>.</li>
+              <li>For each dictionary member <var>member</var> declared on <var>D</var>, in order:
+                <ol>
+                  <li>Let <var>key</var> be the <a class='dfnref' href='#dfn-identifier'>identifier</a> of <var>member</var>.</li>
+                  <li>Let <var>javaKey</var> be the result of <a class='dfnref' href='#dfn-convert-idl-to-java'>converting</a> <var>key</var> to a <span class='javatype'>java.lang.String</span>.</li>
+                  <li>Let <var>present</var> be the result of calling the <code>containsKey</code> method on <var>O</var> with <var>javaKey</var> as the only argument.</li>
+                  <li>If <var>present</var> is true, then:
+                    <ol>
+                      <li>Let <var>value</var> be the result of calling the <code>get</code> method on <var>O</var> <var>javaKey</var> as the only argument.</li>
+                      <li>Let <var>idlValue</var> be the result of <a class='dfnref' href='#dfn-convert-java-to-idl-value'>converting</a> <var>value</var> to an IDL value whose type is the type <var>member</var> is declared to be of.</li>
+                      <li>Set the dictionary member on <var>dict</var> with key name <var>key</var> to the value <var>idlValue</var>.  This dictionary member is considered to be <a class='dfnref' href='#dfn-present'>present</a>.</li>
+                    </ol>
+                  </li>
+                </ol>
+              </li>
+              <li>Return <var>dict</var>.</li>
+            </ol>
+            <p>
+              An IDL <a href='#idl-dictionary'>dictionary type</a> value <var>V</var> is
+              <a class='dfnref' href='#dfn-convert-java-to-idl-value'>converted</a> to a Java
+              <span class='javatype'>java.util.HashMap&lt;java.lang.String,java.lang.Object></span> reference value
+              by running the following algorithm (where <var>D</var> is the <a class='dfnref' href='#dfn-dictionary'>dictionary</a>):
+            </p>
+            <ol class='algorithm'>
+              <li>Let <var>O</var> be a new <span class='javatype'>java.util.HashMap&lt;java.lang.String,java.lang.Object></span> object.</li>
+              <li>For each dictionary member <var>member</var> declared on <var>D</var>, in order:
+                <ol>
+                  <li>Let <var>key</var> be the <a class='dfnref' href='#dfn-identifier'>identifier</a> of <var>member</var>.</li>
+                  <li>Let <var>javaKey</var> be the result of <a class='dfnref' href='#dfn-convert-idl-to-java'>converting</a> <var>key</var> to a <span class='javatype'>java.lang.String</span>.</li>
+                  <li>If the dictionary member named <var>key</var> is <a class='dfnref' href='#dfn-present'>present</a> on <var>V</var>, then:
+                    <ol>
+                      <li>Let <var>idlValue</var> be the value of <var>member</var> on <var>V</var>.</li>
+                      <li>Let <var>value</var> be the result of <a class='dfnref' href='#dfn-convert-idl-to-java-value'>converting</a> <var>idlValue</var> to a Java value
+                      as if <var>value</var> were an IDL <span class='idltype'>any</span> value.</li>
+                      <li>Call the <code>put</code> method on <var>O</var> with arguments <var>javaKey</var> and <var>value</var>.</li>
+                    </ol>
+                  </li>
+                </ol>
+              </li>
+              <li>Return <var>O</var>.</li>
+            </ol>
+          </div>
+
           <div id='java-nullable-type' class='section'>
             <h4>Nullable types — <var>T</var>?</h4>
 
@@ -8853,151 +9111,115 @@ d.type = et;
               <tr>
                 <th>Nullable type</th>
                 <th>Java class</th>
+                <th>Method to get value</th>
               </tr>
               <tr>
                 <td><span class='idltype'><a href='#idl-boolean'>boolean</a>?</span></td>
                 <td><span class='javatype'>java.lang.Boolean</span></td>
+                <td><code>booleanValue()</code></td>
               </tr>
               <tr>
                 <td><span class='idltype'><a href='#idl-byte'>byte</a>?</span></td>
                 <td><span class='javatype'>java.lang.Byte</span></td>
+                <td><code>byteValue()</code></td>
               </tr>
               <tr>
                 <td><span class='idltype'><a href='#idl-octet'>octet</a>?</span></td>
                 <td><span class='javatype'>java.lang.Byte</span></td>
+                <td><code>byteValue()</code></td>
               </tr>
               <tr>
                 <td><span class='idltype'><a href='#idl-short'>short</a>?</span></td>
                 <td><span class='javatype'>java.lang.Short</span></td>
+                <td><code>shortValue()</code></td>
               </tr>
               <tr>
                 <td><span class='idltype'><a href='#idl-unsigned-short'>unsigned short</a>?</span></td>
                 <td><span class='javatype'>java.lang.Short</span></td>
+                <td><code>shortValue()</code></td>
               </tr>
               <tr>
                 <td><span class='idltype'><a href='#idl-long'>long</a>?</span></td>
                 <td><span class='javatype'>java.lang.Integer</span></td>
+                <td><code>intValue()</code></td>
               </tr>
               <tr>
                 <td><span class='idltype'><a href='#idl-unsigned-long'>unsigned long</a>?</span></td>
                 <td><span class='javatype'>java.lang.Integer</span></td>
+                <td><code>intValue()</code></td>
               </tr>
               <tr>
                 <td><span class='idltype'><a href='#idl-long-long'>long long</a>?</span></td>
                 <td><span class='javatype'>java.lang.Long</span></td>
+                <td><code>longValue()</code></td>
               </tr>
               <tr>
                 <td><span class='idltype'><a href='#idl-unsigned-long-long'>unsigned long long</a>?</span></td>
                 <td><span class='javatype'>java.lang.Long</span></td>
+                <td><code>longValue()</code></td>
               </tr>
               <tr>
                 <td><span class='idltype'><a href='#idl-float'>float</a>?</span></td>
                 <td><span class='javatype'>java.lang.Float</span></td>
+                <td><code>floatValue()</code></td>
               </tr>
               <tr>
                 <td><span class='idltype'><a href='#idl-double'>double</a>?</span></td>
                 <td><span class='javatype'>java.lang.Double</span></td>
+                <td><code>doubleValue()</code></td>
               </tr>
               <tr>
                 <td><span class='idltype'><a href='#idl-DOMString'>DOMString</a>?</span></td>
                 <td><span class='javatype'>java.lang.String</span></td>
+                <td>–</td>
               </tr>
               <tr>
                 <td>Interface type <span class='idltype'><var>T</var>?</span></td>
                 <td>The Java interface corresponding to IDL type <var>T</var></td>
+                <td>–</td>
+              </tr>
+              <tr>
+                <td>Dictionary type <span class='idltype'><var>T</var>?</span></td>
+                <td><span class='javatype'>java.util.HashMap&lt;java.lang.String,java.lang.Object></span></td>
+                <td>–</td>
               </tr>
               <tr>
                 <td><span class='idltype'><a href='#idl-sequence'>sequence&lt;<var>T</var>></a>?</span></td>
                 <td><span class='javatype'><var>U</var>[]</span>, where <var>U</var> is the Java type used to represent the IDL type <var>T</var></td>
+                <td>–</td>
               </tr>
               <tr>
                 <td><span class='idltype'><a href='#idl-array'><var>T</var>[]</a>?</span></td>
                 <td>The <a class='dfnref' href='#dfn-java-array-interface'>Java array interface</a> for IDL type <var>T</var></td>
+                <td>–</td>
               </tr>
             </table>
             <p>
               How to <a class='dfnref' href='#dfn-convert-java-to-idl-value'>convert a Java value</a>
-              of one of the above classes to an IDL nullable type value
-              depends on its value:
+              of one of the above classes to an IDL nullable type <span class='idltype'><var>T</var>?</span>
+              depends on the object reference value and the type <var>T</var>:
             </p>
             <dl class='switch'>
-              <dt><span class='javavalue'>null</span></dt>
+              <dt>If the object reference value is <span class='javavalue'>null</span></dt>
               <dd>
-                The IDL value is the <span class='idlvalue'>null</span> value.
+                The IDL value is the <span class='idlvalue'>null</span> <span class='idltype'><var>T</var>?</span> value.
               </dd>
-              <dt>A <span class='javatype'>java.lang.Byte</span> object</dt>
+              <dt>If the value is not an object of the right type for <var>T</var> according to the table above</dt>
               <dd>
-                The IDL value is a <span class='idltype'>byte?</span> whose value is obtained
+                Throw a <span class='javatype'>java.lang.IllegalArgumentException</span>.
+              </dd>
+              <dt>If <var>T</var> is a <a class='dfnref' href='#dfn-primitive-type'>primitive type</a></dt>
+              <dd>
+                Let <var>method</var> be the method indicated in the table above for type <var>T</var>.
+                The IDL value is a <span class='idltype'><var>T</var>?</span> whose value is obtained
                 by <a class='dfnref' href='#dfn-convert-java-to-idl-value'>converting</a>
-                the result of calling the <code>byteValue()</code> method on the
-                <span class='javatype'>java.lang.Byte</span> object
-                to a <span class='idltype'>byte</span>.
+                the result of calling <var>method</var> on the object to type <var>T</var>.
               </dd>
-              <dt>A <span class='javatype'>java.lang.Short</span> object</dt>
+              <dt>Anything else</dt>
               <dd>
-                The IDL value is a <span class='idltype'>short?</span> whose value is obtained
+                The IDL value is a <span class='idltype'><var>T</var>?</span> whose value is obtained
                 by <a class='dfnref' href='#dfn-convert-java-to-idl-value'>converting</a>
-                the result of calling the <code>shortValue()</code> method on the
-                <span class='javatype'>java.lang.Short</span> object
-                to a <span class='idltype'>short</span>.
-              </dd>
-              <dt>A <span class='javatype'>java.lang.Integer</span> object</dt>
-              <dd>
-                The IDL value is a  <span class='idltype'>long?</span> whose value is obtained
-                by <a class='dfnref' href='#dfn-convert-java-to-idl-value'>converting</a>
-                the result of calling the <code>intValue()</code> method on the
-                <span class='javatype'>java.lang.Integer</span> object.
-                to a <span class='idltype'>long</span>.
-              </dd>
-              <dt>A <span class='javatype'>java.lang.Long</span> object</dt>
-              <dd>
-                The IDL value is a <span class='idltype'>long long?</span> whose value is obtained
-                by <a class='dfnref' href='#dfn-convert-java-to-idl-value'>converting</a>
-                the result of calling the <code>longValue()</code> method on the
-                <span class='javatype'>java.lang.Long</span> object
-                to a <span class='idltype'>long long</span>.
-              </dd>
-              <dt>A <span class='javatype'>java.lang.Float</span> object</dt>
-              <dd>
-                The IDL value is a <span class='idltype'>float?</span> whose value is obtained
-                by <a class='dfnref' href='#dfn-convert-java-to-idl-value'>converting</a>
-                the result of calling the <code>floatValue()</code> method on the
-                <span class='javatype'>java.lang.Float</span> object
-                to a <span class='idltype'>float</span>.
-              </dd>
-              <dt>A <span class='javatype'>java.lang.Double</span> object</dt>
-              <dd>
-                The IDL value is a <span class='idltype'>double?</span> whose value is obtained
-                by <a class='dfnref' href='#dfn-convert-java-to-idl-value'>converting</a>
-                the result of calling the <code>doubleValue()</code> method on the
-                <span class='javatype'>java.lang.Double</span> object
-                to a <span class='idltype'>double</span>.
-              </dd>
-              <dt>A <span class='javatype'>java.lang.String</span> object</dt>
-              <dd>
-                The IDL value is a <span class='idltype'>DOMString?</span> whose value is obtained
-                by <a class='dfnref' href='#dfn-convert-java-to-idl-value'>converting</a>
-                the <span class='javatype'>java.lang.String</span> object
-                to a <span class='idltype'>DOMString</span>
-              </dd>
-              <dt>An array object</dt>
-              <dd>
-                The IDL value is a nullable <a href='#idl-sequence'>IDL sequence</a> obtained
-                by <a class='dfnref' href='#dfn-convert-java-to-idl-value'>converting</a>
-                the Java array object to a sequence, as described in
-                <a href='#java-sequence'>section <?sref java-sequence?></a> <?sdir java-sequence?>.
-              </dd>
-              <dt>An object that implements a <a class='dfnref' href='#dfn-java-array-interface'>Java array interface</a></dt>
-              <dd>
-                The IDL value is the <a href='#idl-array'>IDL array</a> obtained
-                by <a class='dfnref' href='#dfn-convert-java-to-idl-value'>converting</a>
-                the Java object to an array, as described in
-                <a href='#java-array'>section <?sref java-array?></a> <?sdir java-array?>.
-              </dd>
-              <dt>An object of any other class</dt>
-              <dd>
-                The IDL value is an <span class='idltype'>object?</span> value
-                that references the same object.
+                the object reference value to type <var>T</var>.
               </dd>
             </dl>
             <p>
@@ -9006,11 +9228,11 @@ d.type = et;
               its value and the <a class='dfnref' href='#dfn-inner-type'>inner type</a>:
             </p>
             <dl class='switch'>
-              <dt>The <span class='idlvalue'>null</span> value</dt>
+              <dt>If the IDL value is <span class='idlvalue'>null</span></dt>
               <dd>
                 The Java value is <span class='javavalue'>null</span>.
               </dd>
-              <dt>A non-<span class='idlvalue'>null</span> nullable <a class='dfnref' href='#dfn-primitive-type'>primitive</a> value</dt>
+              <dt>If the IDL value is a non-<span class='idlvalue'>null</span> nullable <a class='dfnref' href='#dfn-primitive-type'>primitive</a> value</dt>
               <dd>
                 <p>
                   The Java value is the result of <a class='dfnref' href='#dfn-convert-idl-to-java-value'>converting</a>
@@ -9069,25 +9291,31 @@ d.type = et;
                   </tr>
                 </table>
               </dd>
-              <dt>A non-<span class='idlvalue'>null</span> <span class='idltype'>DOMString?</span> value</dt>
+              <dt>If the IDL value is a non-<span class='idlvalue'>null</span> <span class='idltype'>DOMString?</span> value</dt>
               <dd>
                 The Java value is a <span class='javatype'>java.lang.String</span> object representing
                 the same sequence of 16 bit code units as the <span class='idltype'>DOMString?</span> value.
               </dd>
-              <dt>A non-<span class='idlvalue'>null</span> <span class='idltype'>sequence&lt;<var>T</var>>?</span> value</dt>
+              <dt>If the IDL value is a non-<span class='idlvalue'>null</span> <span class='idltype'>sequence&lt;<var>T</var>>?</span> value</dt>
               <dd>
                 The Java value is the result of <a class='dfnref' href='#dfn-convert-idl-to-java-value'>converting</a>
                 the IDL sequence value to a Java array object, as described in
                 <a href='#java-sequence'>section <?sref java-sequence?></a> <?sdir java-sequence?>.
               </dd>
-              <dt>A non-<span class='idlvalue'>null</span> <span class='idltype'><var>T</var>[]</span> value</dt>
+              <dt>If the IDL value is a non-<span class='idlvalue'>null</span> <span class='idltype'><var>T</var>[]?</span> value</dt>
               <dd>
                 The Java value is the result of <a class='dfnref' href='#dfn-convert-idl-to-java-value'>converting</a>
                 the IDL array value to a Java object implementing the <a class='dfnref' href='#dfn-java-array-interface'>Java array interface</a>
                 for <var>T</var>, as described in <a href='#java-sequence'>section <?sref java-array?></a> <?sdir java-array?>.
               </dd>
-              <dt>A non-<span class='idlvalue'>null</span> nullable <a href='#idl-interfaces'>interface type</a> value</dt>
-              <dt>A non-<span class='idlvalue'>null</span> <span class='idltype'>object?</span> value</dt>
+              <dt>If the IDL value is a non-<span class='idlvalue'>null</span> nullable <a href='#idl-interfaces'>dictionary type</a> value</dt>
+              <dd>
+                The Java value is the result of <a class='dfnref' href='#dfn-convert-idl-to-java-value'>converting</a>
+                the IDL dictionary value to a Java <span class='javatype'>java.util.HashMap&lt;java.lang.String,java.lang.Object></span>
+                object, as described in
+                <a href='#java-sequence'>section <?sref java-dictionary?></a> <?sdir java-dictionary?>.
+              </dd>
+              <dt>If the IDL value is a non-<span class='idlvalue'>null</span> nullable <a href='#idl-interfaces'>interface type</a> or <span class='idltype'>object?</span> value</dt>
               <dd>
                 The Java value is a reference to the same object.
               </dd>
@@ -9856,10 +10084,10 @@ public <var>ExceptionName</var>(Throwable cause) {
             </ul>
           </div>
 
-          <div id='java-exception-members' class='section'>
-            <h4>Exception members</h4>
+          <div id='java-exception-fields' class='section'>
+            <h4>Exception fields</h4>
             <p>
-              For each <a class='dfnref' href='#dfn-exception-member'>exception member</a> defined on the
+              For each <a class='dfnref' href='#dfn-exception-field'>exception field</a> defined on the
               <a class='dfnref' href='#dfn-exception'>exception</a>, there
               <span class='rfc2119'>MUST</span> be a corresponding instance variable declared on the Java class
               with the following characteristics:
@@ -9868,12 +10096,12 @@ public <var>ExceptionName</var>(Throwable cause) {
               <li>The instance variable has only the modifier <code>public</code>.</li>
               <li>
                 The type of the instance variable is the Java type that corresponds to the type of
-                the IDL exception member, according to the rules in <a href='#java-type-mapping'>section <?sref java-type-mapping?></a>
+                the IDL exception field, according to the rules in <a href='#java-type-mapping'>section <?sref java-type-mapping?></a>
                 <?sdir java-type-mapping?>.
               </li>
               <li>
                 The name of the instance variable is the <a class='dfnref' href='#dfn-java-escaped'>Java escaped</a>
-                <a class='dfnref' href='#dfn-identifier'>identifier</a> of the exception member.
+                <a class='dfnref' href='#dfn-identifier'>identifier</a> of the exception field.
               </li>
               <li>
                 The instance variable is not declared with an initializer.
@@ -10135,17 +10363,21 @@ public <var>ExceptionName</var>(Throwable cause) {
           <prod nt='InterfaceInheritance'>":" ScopedNameList | ε</prod>
           <prod nt='InterfaceMembers'>ExtendedAttributeList InterfaceMember InterfaceMembers | ε</prod>
           <prod nt='InterfaceMember'>Const | AttributeOrOperation</prod>
+          <prod nt='Dictionary'>"dictionary" identifier "{" DictionaryMembers "}" ";"</prod>
+          <prod nt='DictionaryMembers'>ExtendedAttributeList DictionaryMember DictionaryMembers | ε</prod>
+          <prod nt='DictionaryMember'>Type identifier DefaultValue ";"</prod>
+          <prod nt='DefaultValue'>"=" ConstExpr | ε</prod>
           <prod nt='Exception'>"exception" identifier ExceptionInheritance "{" ExceptionMembers "}" ";"</prod>
           <prod nt='ExceptionInheritance'>":" ScopedName | ε</prod>
           <prod nt='ExceptionMembers'>ExtendedAttributeList ExceptionMember ExceptionMembers | ε</prod>
           <prod nt='Typedef'>"typedef" Type identifier ";"</prod>
           <prod nt='ImplementsStatement'>ScopedName "implements" ScopedName ";"</prod>
           <prod nt='Const'>"const" ConstType identifier "=" ConstExpr ";"</prod>
-          <prod nt='ConstExpr'>BooleanLiteral | integer | float | string</prod>
+          <prod nt='ConstExpr'>BooleanLiteral | integer | float | string | "null"</prod>
           <prod nt='BooleanLiteral'>"true" | "false"</prod>
           <prod nt='AttributeOrOperation'>"stringifier" StringifierAttributeOrOperation | Attribute | Operation</prod>
           <prod nt='StringifierAttributeOrOperation'>Attribute | OperationRest | ";"</prod>
-          <prod nt='Attribute'>ReadOnly "attribute" Type identifier GetRaises SetRaises ";"</prod>
+          <prod nt='Attribute'>ReadOnly "attribute" AttributeType identifier GetRaises SetRaises ";"</prod>
           <prod nt='ReadOnly'>"readonly" | ε</prod>
           <prod nt='GetRaises'>"getraises" ExceptionList | ε</prod>
           <prod nt='SetRaises'>"setraises" ExceptionList | ε</prod>
@@ -10164,7 +10396,7 @@ public <var>ExceptionName</var>(Throwable cause) {
           <prod nt='Optional'>"optional" | ε</prod>
           <prod nt='Ellipsis'>"..." | ε</prod>
           <prod nt='ExceptionMember'>Const | ExceptionField</prod>
-          <prod nt='ExceptionField'>Type identifier ";"</prod>
+          <prod nt='ExceptionField'>AttributeType identifier ";"</prod>
           <prod nt='ExtendedAttributeList'>"[" ExtendedAttribute ExtendedAttributes "]" | ε</prod>
           <prod nt='ExtendedAttributes'>"," ExtendedAttribute ExtendedAttributes | ε</prod>
           <prod nt='ExtendedAttribute'>
@@ -10187,7 +10419,7 @@ public <var>ExceptionName</var>(Throwable cause) {
             | "Date" | "DOMString" | "any" | "attribute" | "boolean" | "byte"
             | "caller" | "const" | "creator" | "deleter" | "double"
             | "exception" | "false" | "float" | "getraises" | "getter" | "implements"
-            | "in" | "interface" | "long" | "module" | "object" | "octet"
+            | "in" | "interface" | "long" | "module" | "null" | "object" | "octet"
             | "omittable" | "optional" | "raises" | "sequence" | "setraises"
             | "setter" | "short" | "static" | "stringifier" | "true" | "typedef"
             | "unsigned" | "void"
@@ -10370,6 +10602,12 @@ public <var>ExceptionName</var>(Throwable cause) {
             <ul>
               <li>
                 <p>
+                  Added the dictionary type and allowed <span class='idlvalue'>null</span> to be specified
+                  as the value of a constant or the default value of a dictionary member.
+                </p>
+              </li>
+              <li>
+                <p>
                   Made <span class='esvalue'>null</span> be converted to the empty
                   <span class='idltype'>DOMString</span> by default, and changed
                   <span class='xattr'>[TreatNullAs]</span> to take the argument
@@ -10528,7 +10766,7 @@ public <var>ExceptionName</var>(Throwable cause) {
                 <p>
                   Moved properties corresponding to attributes from host object
                   instances to their interface prototype objects.  Similarly, moved
-                  properties corresponding to exception members from host exception
+                  properties corresponding to exception fields from host exception
                   objects to their exception interface prototype objects.
                 </p>
               </li>
