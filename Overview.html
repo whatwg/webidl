@@ -11,7 +11,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <title>Web IDL</title>
-    <meta name="revision" content="$Id: Overview.html,v 1.289 2011-06-01 00:08:09 cmccorma Exp $" />
+    <meta name="revision" content="$Id: Overview.html,v 1.290 2011-06-01 04:41:33 cmccorma Exp $" />
     <link rel="stylesheet" href="WebIDL.css" type="text/css" />
     <script src="section-links.js" type="application/ecmascript"></script>
     <script src="dfn.js" type="application/ecmascript"></script>
@@ -48,8 +48,8 @@
             http://www.w3.org/mid/op.vr2r6waf64w2qv@anne-van-kesterens-macbook-pro.local
         -->
           
-      <div class="ednote"><div class="ednoteHeader">Editorial note</div><p>This version of the document is built from source revision &#36;Id: Overview.xml,v 1.290 2011/05/31 23:51:05 cmccorma Exp $.</p><p>
-            There are 16 further editorial notes in the document.
+      <div class="ednote"><div class="ednoteHeader">Editorial note</div><p>This version of the document is built from source revision &#36;Id: Overview.xml,v 1.291 2011/06/01 00:08:09 cmccorma Exp $.</p><p>
+            There are 15 further editorial notes in the document.
             
               In addition, there is a list of <a href="http://www.w3.org/Bugs/Public/buglist.cgi?query_format=advanced&amp;amp;short_desc_type=allwordssubstr&amp;amp;short_desc=&amp;amp;product=WebAppsWG&amp;amp;component=WebIDL&amp;amp;longdesc_type=allwordssubstr&amp;amp;longdesc=&amp;amp;bug_file_loc_type=allwordssubstr&amp;amp;bug_file_loc=&amp;amp;status_whiteboard_type=allwordssubstr&amp;amp;status_whiteboard=&amp;amp;keywords_type=allwords&amp;amp;keywords=&amp;amp;bug_status=NEW&amp;amp;bug_status=ASSIGNED&amp;amp;bug_status=REOPENED&amp;amp;emailtype1=substring&amp;amp;email1=&amp;amp;emailtype2=substring&amp;amp;email2=&amp;amp;bug_id_type=anyexact&amp;amp;bug_id=&amp;amp;votes=&amp;amp;chfieldfrom=&amp;amp;chfieldto=Now&amp;amp;chfieldvalue=&amp;amp;cmdtype=doit&amp;amp;order=Importance&amp;amp;field0-0-0=noop&amp;amp;type0-0-0=noop&amp;amp;value0-0-0=">open bugs</a> on the document, some of which may be covered by editorial notes.
             </p></div>
@@ -2781,16 +2781,45 @@ ctx.drawRectangle(300, 200, { fillPattern: "red", position: new Point(10, 10) })
              <a class="nt" href="#prod-ExceptionField">ExceptionField</a></span></td></tr><tr id="proddef-ExceptionField"><td><span class="prod-number">[41]</span></td><td><a class="nt" href="#prod-ExceptionField">ExceptionField</a></td><td class="prod-mid">→</td><td class="prod-rhs"><span class="prod-lines"><a class="nt" href="#prod-AttributeType">AttributeType</a> <a class="nt" href="#prod-identifier">identifier</a> ";"</span></td></tr></table>
           <div class="example"><div class="exampleHeader">Example</div>
             <p>
-              See <a href="#idl-attributes">section 3.3.2</a>
-              above for an example of an
-              <a class="dfnref" href="#dfn-idl-fragment">IDL fragment</a> that
-              declares <a class="dfnref" href="#dfn-exception">exceptions</a>.
+              The following example demonstrates how a hierarchy of exceptions might
+              be defined for some of the kinds of <span class="idltype">DOMException</span>s
+              that are given in <a href="http://www.w3.org/TR/2000/REC-DOM-Level-2-Core-20001113/core.html"><cite>DOM Level 2 Core</cite></a>,
+              which were historically distinguished only by an integer code.
             </p>
-          </div>
-          <div class="ednote"><div class="ednoteHeader">Editorial note</div>
-            <p>It would be good to have an example of exception inheritance, too,
-            perhaps <a href="http://lists.w3.org/Archives/Public/public-script-coord/2010OctDec/0112.html">the
-            one in this mail</a>.</p>
+            <div class="block"><div class="blockTitleDiv"><span class="blockTitle">IDL</span></div><div class="blockContent"><pre class="code"><code class="idl-code">exception DOMException {
+  const unsigned short INDEX_SIZE_ERR = 1;
+  const unsigned short DOMSTRING_SIZE_ERR = 2;
+  const unsigned short HIERARCHY_REQUEST_ERR = 3;
+  ...
+
+  unsigned short code;
+};
+
+exception IndexSizeError : DOMException { };
+exception DOMStringSizeError : DOMException { };
+exception HierarchyRequestError : DOMException { };</code></pre></div></div>
+            <p>
+              In an ECMAScript implementation, the different types of <span class="idltype">DOMException</span>s
+              could be distinguished in a number of different ways:
+            </p>
+            <div class="block"><div class="blockTitleDiv"><span class="blockTitle">ECMAScript</span></div><div class="blockContent"><pre class="code"><code class="es-code">try {
+  document.appendChild(document);
+} catch (e) {
+  <span class="comment">// The traditional way, by looking at the code.</span>
+  if (e.code == DOMException.HIERARCHY_REQUEST_ERR) {
+    ...
+  }
+
+  <span class="comment">// By looking at the name.</span>
+  if (e.name == "HierarchyRequestError") {
+    ...
+  }
+
+  <span class="comment">// By testing with "instanceof".</span>
+  if (e instanceof HierarchyRequestError) {
+    ...
+  }
+}</code></pre></div></div>
           </div>
         </div>
 
