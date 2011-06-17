@@ -15,7 +15,7 @@
   <head>
     <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'/>
     <title>Web IDL</title>
-    <meta name='revision' content='$Id: Overview.xml,v 1.297 2011-06-17 02:35:49 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: Overview.xml,v 1.298 2011-06-17 04:15:52 cmccorma Exp $'/>
     <link rel='stylesheet' href='WebIDL.css' type='text/css'/>
     <script src='section-links.js' type='application/ecmascript'/>
     <script src='dfn.js' type='application/ecmascript'/>
@@ -5019,35 +5019,6 @@ a[0] = 20;</x:codeblock>
               <span class='descriptor'>{ [[Writable]]: <span class='esvalue'>true</span>, [[Enumerable]]: <span class='esvalue'>true</span>, [[Configurable]]: <span class='esvalue'>false</span> }</span> otherwise.  The values of these properties
               <span class='rfc2119'>MUST</span> be the result of <a class='dfnref' href='#dfn-convert-idl-to-ecmascript-value'>converting</a>
               the value of the array element at the corresponding index to an ECMAScript value.
-            </p>
-            <p>
-              Array host objects <span class='rfc2119'>MUST</span> have a property named
-              “toString” with attributes
-              <span class='descriptor'>{ [[Writable]]: <span class='esvalue'>true</span>, [[Enumerable]]: <span class='esvalue'>false</span>, [[Configurable]]: <span class='esvalue'>true</span> }</span>
-              and whose value
-              is an object with an internal <span class='prop'>[[Call]]</span> method that behaves as follows:
-            </p>
-            <ol class='algorithm'>
-              <li>Let <var>N</var> be the result of invoking <span class='prop'>[[Get]]</span> on <span class='esvalue'>this</span>
-                with “length” as the property name.</li>
-              <li>Initialize <var>i</var> to 0.</li>
-              <li>Initialize <var>s</var> to be an empty sequence of 16 bit code units.</li>
-              <li>While <var>i</var> &lt; ToUint32(<var>N</var>):
-                <ol>
-                  <li>If <var>i</var> ≠ 0, then append to the end of <var>s</var> the 16 bit code unit 0x002C (the UTF-16 encoding of the <span class='char'>U+002C COMMA (",")</span> character).</li>
-                  <li>Let <var>V</var> be the result of invoking <span class='prop'>[[Get]]</span> on <span class='esvalue'>this</span>
-                    with property name ToString(<var>i</var>).</li>
-                  <li>Append to the end of <var>s</var> the sequence of 16 bit code units that ToString(<var>V</var>) represents.</li>
-                  <li>Set <var>i</var> to be <var>i</var> + 1.</li>
-                </ol>
-              </li>
-              <li>Return the <span class='estype'>String</span> value that represents the same sequence of 16 bit code units as <var>s</var>.</li>
-            </ol>
-            <p>
-              The “toString” object <span class='rfc2119'>MUST</span> itself
-              have a property named “length”
-              with attributes <span class='descriptor'>{ [[Writable]]: <span class='esvalue'>false</span>, [[Enumerable]]: <span class='esvalue'>false</span>, [[Configurable]]: <span class='esvalue'>false</span> }</span>
-              whose value is the <span class='estype'>Number</span> value 0.
             </p>
 
             <p>
@@ -10653,6 +10624,21 @@ public <var>ExceptionName</var>(Throwable cause) {
           <dt>Current editor’s draft</dt>
           <dd>
             <ul>
+              <li>
+                <p>
+                  Removed the <span class='prop'>toString</span> property from array host
+                  objects, so that the <span class='prop'>toString</span> inherited from the
+                  <span class='value'>Array</span> prototype object is used instead.
+                </p>
+              </li>
+              <li>
+                <p>
+                  Changed the implementation requirement of indexed and named properties
+                  in ECMAScript to use specific <span class='prop'>[[GetOwnProperty]]</span>
+                  and <span class='prop'>[[DefineOwnProperty]]</span> behavior, instead of
+                  in terms of setting and removing own properties on the object.
+                </p>
+              </li>
               <li>
                 <p>
                   Disallowed sequence and dictionary types from being used as an array
