@@ -15,7 +15,7 @@
   <head>
     <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'/>
     <title>Web IDL</title>
-    <meta name='revision' content='$Id: Overview.xml,v 1.303 2011-06-18 05:37:55 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: Overview.xml,v 1.304 2011-06-19 03:05:22 cmccorma Exp $'/>
     <link rel='stylesheet' href='WebIDL.css' type='text/css'/>
     <script src='section-links.js' type='application/ecmascript'/>
     <script src='dfn.js' type='application/ecmascript'/>
@@ -5919,7 +5919,9 @@ var fn = Query.prototype.lookupEntry;  <span class='comment'>// exception, Query
               extended attribute <span class='rfc2119'>MUST</span>
               <a class='dfnref' href='#dfn-xattr-no-argument'>take no argument</a>
               and <span class='rfc2119'>MUST NOT</span> appear on an interface
-              that does not define a <a class='dfnref' href='#dfn-name-getter'>name getter</a>.
+              that does not define a <a class='dfnref' href='#dfn-name-getter'>name getter</a>
+              or that also is declared with the <a class='xattr' href='#ReplaceableNamedProperties'>[ReplaceableNamedProperties]</a>
+              extended attribute.
             </p>
             <div class='example'>
               <p>
@@ -6212,6 +6214,67 @@ counter.value = 'a';         <span class='comment'>// Replaces the property with
 
 counter.increment();
 counter.value;               <span class='comment'>// Evaluates to 'a'.</span></x:codeblock>
+            </div>
+          </div>
+
+          <div id='ReplaceableNamedProperties' class='section'>
+            <h4>[ReplaceableNamedProperties]</h4>
+
+            <p>
+              If the <a class='xattr' href='#ReplaceableNamedProperties'>[ReplaceableNamedProperties]</a>
+              <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
+              appears on an <a class='dfnref' href='#dfn-interface'>interface</a>,
+              then for objects that
+              <a class='dfnref' href='#dfn-support-named-properties'>support named properties</a>
+              but which do not have a <a class='dfnref' href='#dfn-name-setter'>name setter</a>,
+              attempting to set a property that corresponds to a named property will result in an 
+              own property being defined on the object, rather than in the assignment failing,
+              which is the normal behavior.
+            </p>
+            <div class='note'>
+              <p>The assignment will normally fail because the <a href='#getownproperty'>host object
+              [[GetOwnProperty]] internal method</a> will expose named properties as
+              non-writable data properties.</p>
+            </div>
+            <p>
+              The <a class='xattr' href='#ReplaceableNamedProperties'>[ReplaceableNamedProperties]</a>
+              extended attribute <span class='rfc2119'>MUST</span>
+              <a class='dfnref' href='#dfn-xattr-no-argument'>take no argument</a>.
+            </p>
+            <p>
+              The <a class='xattr' href='#Replaceable'>[Replaceable]</a> extended attribute
+              <span class='rfc2119'>MUST NOT</span> be declared on an <a class='dfnref' href='#dfn-interface'>interface</a>
+              that does not define a <a class='dfnref' href='#dfn-name-getter'>name getter</a>,
+              that does define a <a class='dfnref' href='#dfn-name-setter'>name setter</a> or
+              that also is declared with the <a class='xattr' href='#OverrideBuiltins'>[OverrideBuiltins]</a>
+              extended attribute.
+            </p>
+            <div class='example'>
+              <p>
+                This <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a> is intended
+                to be used by the <span class='idltype'>Window</span> interface as defined in
+                HTML5.  The interface exposes frames as properties on the <span class='idltype'>Window</span>
+                object.  Since the <span class='idltype'>Window</span> object also serves as the
+                ECMAScript global object, variable declarations or assignments to the named properties
+                will result in them being replaced by the new value.
+              </p>
+              <x:codeblock language='idl'>[ReplaceableNamedProperties]
+interface Window {
+  getter any (in DOMString name);
+  // ...
+};</x:codeblock>
+              <p>
+                The following HTML document illustrates how the named properties on the
+                <span class='idltype'>Window</span> object can be replaced:
+              </p>
+              <x:codeblock language='html'>&lt;!DOCTYPE html>
+&lt;title>Replaceable named properties on Window&lt;/title>
+&lt;iframe name=abc>&lt;/iframe>
+&lt;script>
+window.abc;    <span class='comment'>// Evaluates to the HTMLIFrameElement.</span>
+abc = 1;       <span class='comment'>// Replaces the named property.</span>
+window.abc;    <span class='comment'>// Evaluates to 1.</span>
+&lt;/script></x:codeblock>
             </div>
           </div>
 
@@ -7584,6 +7647,7 @@ c.isMemberOfBreed(undefined);  <span class='comment'>// This passes the string "
             </p>
 
             <ol class='algorithm'>
+              <li>Set <var>Desc</var>.<span class='prop'>[[Configurable]]</span> to <span class='esvalue'>true</span>.</li>
               <li>
                 If <var>O</var> <a class='dfnref' href='#dfn-support-indexed-properties'>supports indexed properties</a> and
                 <var>P</var> is an <a class='dfnref' href='#dfn-array-index-property-name'>array index property name</a>, then:
@@ -7617,7 +7681,29 @@ c.isMemberOfBreed(undefined);  <span class='comment'>// This passes the string "
                 If <var>O</var> <a class='dfnref' href='#dfn-support-named-properties'>supports named properties</a>, then:
                 <ol>
                   <li>Let <var>creating</var> be true if <var>P</var> is not a <a class='dfnref' href='#dfn-supported-property-names'>supported property name</a>, and false otherwise.</li>
-                  <li>If <var>O</var> implements an interface with the <a class='xattr' href='#OverrideBuiltins'>[OverrideBuiltins]</a>
+                  <li>If <var>creating</var> is false and <var>O</var> implements an interface with the <a class='xattr' href='#ReplaceableNamedProperties'>[ReplaceableNamedProperties]</a>
+                    <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>, then:
+                    <ol>
+                      <li>If the result of calling IsAccessorProperty(<var>Desc</var>) is <span class='esvalue'>true</span>, then:
+                        <ol>
+                          <li>Create an own accessor property named <var>P</var> on <var>O</var> whose <span class='prop'>[[Get]]</span>,
+                            <span class='prop'>[[Set]]</span>, <span class='prop'>[[Enumerable]]</span> and <span class='prop'>[[Configurable]]</span>
+                            attribute values are described by <var>Desc</var>.  If the value of an attribute field of <var>Desc</var> is absent,
+                            the attribute of the newly created property is set to its default value (<a href='#ref-ECMA-262'>[ECMA-262]</a>, section 8.6.1).</li>
+                        </ol>
+                      </li>
+                      <li>Otherwise:
+                        <ol>
+                          <li>Create an own data property named <var>P</var> on <var>O</var> whose <span class='prop'>[[Value]]</span>,
+                            <span class='prop'>[[Writable]]</span>, <span class='prop'>[[Enumerable]]</span> and <span class='prop'>[[Configurable]]</span>
+                            attribute values are described by <var>Desc</var>.  If the value of an attribute field of <var>Desc</var> is absent,
+                            the attribute of the newly created property is set to its default value (<a href='#ref-ECMA-262'>[ECMA-262]</a>, section 8.6.1).</li>
+                        </ol>
+                      </li>
+                      <li>Return <span class='esvalue'>true</span>.</li>
+                    </ol>
+                  </li>
+                  <li>Otherwise, if <var>O</var> implements an interface with the <a class='xattr' href='#OverrideBuiltins'>[OverrideBuiltins]</a>
                     <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a> or <var>O</var> does not have an own property
                     named <var>P</var>, then:
                     <ol>
@@ -7648,7 +7734,6 @@ c.isMemberOfBreed(undefined);  <span class='comment'>// This passes the string "
                 </ol>
               </li>
 
-              <li>Set <var>Desc</var>.<span class='prop'>[[Configurable]]</span> to <span class='esvalue'>true</span>.</li>
               <li>Call the default <span class='prop'>[[DefineOwnProperty]]</span> internal method (<a href='#ref-ECMA-262'>[ECMA-262]</a>, section 8.12.9) on <var>O</var> passing <var>P</var>, <var>Desc</var>, and <var>Throw</var> as arguments.</li>
             </ol>
           </div>
