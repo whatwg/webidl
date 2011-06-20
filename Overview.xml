@@ -15,7 +15,7 @@
   <head>
     <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'/>
     <title>Web IDL</title>
-    <meta name='revision' content='$Id: Overview.xml,v 1.310 2011-06-20 07:37:47 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: Overview.xml,v 1.311 2011-06-20 08:11:52 cmccorma Exp $'/>
     <link rel='stylesheet' href='WebIDL.css' type='text/css'/>
     <script src='section-links.js' type='application/ecmascript'/>
     <script src='dfn.js' type='application/ecmascript'/>
@@ -798,6 +798,7 @@ module gui {
           <p>
             The following extended attributes are applicable to interfaces:
             <a class='xattr' href='#Callback'>[Callback]</a>,
+            <a class='xattr' href='#CopyInheritedPrototype'>[CopyInheritedPrototype]</a>,
             <a class='xattr' href='#Constructor'>[Constructor]</a>,
             <a class='xattr' href='#NamedConstructor'>[NamedConstructor]</a>,
             <a class='xattr' href='#NoInterfaceObject'>[NoInterfaceObject]</a>,
@@ -5712,6 +5713,41 @@ context.setColorClamped(-1, 255, 257);</x:codeblock>
             </div>
           </div>
 
+          <div id='CopyInheritedPrototype' class='section'>
+            <h4>[CopyInheritedPrototype]</h4>
+
+            <p>
+              If the <a class='xattr' href='#CopyInheritedPrototype'>[CopyInheritedPrototype]</a>
+              <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
+              appears on an <a class='dfnref' href='#dfn-interface'>interface</a>, it indicates that
+              the <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype object</a> for this interface
+              will have a copy of all of the properties that correspond to the
+              <a class='dfnref' href='#dfn-constant'>constants</a>,
+              <a class='dfnref' href='#dfn-attribute'>attributes</a> and
+              <a class='dfnref' href='#dfn-operation'>operations</a> from the
+              interface it <a class='dfnref' href='#dfn-inherit'>inherits</a> from.
+              The prototype chain of objects that implement the
+              <a class='xattr' href='#CopyInheritedPrototype'>[CopyInheritedPrototype]</a>-annotated
+              interface will not include the inherited interface’s
+              interface prototype object.
+            </p>
+            <p>
+              The <a class='xattr' href='#CopyInheritedPrototype'>[CopyInheritedPrototype]</a>
+              extended attribute <span class='rfc2119'>MUST</span>
+              <a class='dfnref' href='#dfn-xattr-no-argument'>take no argument</a>.
+              It <span class='rfc2119'>MUST NOT</span> appear on an interface that
+              is not defined to inherit from another interface, or one that is
+              defined to inherit from another interface which itself has an interface
+              with the <a class='xattr' href='#CopyInheritedPrototype'>[CopyInheritedPrototype]</a>
+              extended attribute in its inheritance chain.
+              The extended attribute also <span class='rfc2119'>MUST NOT</span>
+              appear on an interface if any of its <a class='dfnref' href='#dfn-interface-member'>interface members</a>
+              have the same <a class='dfnref' href='#dfn-identifier'>identifier</a> as an
+              interface member on the inherited interface.
+            </p>
+            <!-- XXX example -->
+          </div>
+
           <div id='Constructor' class='section'>
             <h4>[Constructor]</h4>
 
@@ -7001,20 +7037,41 @@ c.isMemberOfBreed(undefined);  <span class='comment'>// This passes the string "
 
             <p>
               The <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype object</a>
-              for a given exception interface <span class='rfc2119'>MUST</span> have an internal
+              for a given interface <var>A</var> <span class='rfc2119'>MUST</span> have an internal
               <span class='prop'>[[Prototype]]</span> property whose value is as follows:
             </p>
-            <ul>
-              <li>If the <a class='dfnref' href='#dfn-interface'>interface</a> is declared to
-              <a class='dfnref' href='#dfn-inherit'>inherit</a> from another
-              interface, then the value of the internal <span class='prop'>[[Prototype]]</span> property is the
+            <ol class='algorithm'>
+              <li>If <var>A</var> is not declared to inherit from another interface, then the
+              value of the internal <span class='prop'>[[Prototype]]</span> property
+              of <var>A</var> is the <span class='estype'>Object</span> prototype object
+              (<a href="#ref-ECMA-262">[ECMA-262]</a>, section 15.2.4).</li>
+              <li>Otherwise, if <var>A</var> is declared with the <a class='xattr' href='#CopyInheritedPrototype'>[CopyInheritedPrototype]</a>
+              <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>, then
+              value of the internal <span class='prop'>[[Prototype]]</span> property
+              of <var>A</var> is the same as the value of the
+              internal <span class='prop'>[[Prototype]]</span> property of the
+              <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype object</a>
+              of the interface <var>A</var> <a class='dfnref' href='#dfn-inherit'>inherits</a> from.</li>
+              <li>Otherwise, <var>A</var> does <a class='dfnref' href='#dfn-inherit'>inherit</a> from another
+              interface and is not declared with the <a class='xattr' href='#CopyInheritedPrototype'>[CopyInheritedPrototype]</a>
+              <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>.
+              The value of the internal <span class='prop'>[[Prototype]]</span> property of <var>A</var> is the
               <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype object</a>
               for the inherited interface.</li>
-              <li>Otherwise, the interface is not declared to inherit from another interface. The
-              value of the internal <span class='prop'>[[Prototype]]</span> property
-              is the <span class='estype'>Object</span> prototype object
-              (<a href="#ref-ECMA-262">[ECMA-262]</a>, section 15.2.4).</li>
-            </ul>
+            </ol>
+            <p>
+              Any properties corresponding to
+              <a class='dfnref' href='#dfn-constant'>constants</a>,
+              <a class='dfnref' href='#dfn-attribute'>attributes</a> or
+              <a class='dfnref' href='#dfn-operation'>operations</a>
+              that are required to exist on an
+              <a class='dfnref' href='#dfn-interface'>interface</a> <var>A</var>’s
+              <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype object</a>
+              <span class='rfc2119'>MUST</span> also exist, with the same characteristics, on the
+              interface prototype object of interfaces that <a class='dfnref' href='#dfn-inherit'>inherit</a>
+              from <var>A</var> and are declared with the <a class='xattr' href='#CopyInheritedPrototype'>[CopyInheritedPrototype]</a>
+              <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>.
+            </p>
           </div>
 
           <!--
@@ -10778,6 +10835,11 @@ public <var>ExceptionName</var>(Throwable cause) {
           <dt>Current editor’s draft</dt>
           <dd>
             <ul>
+              <li>
+                <p>
+                  Added a <span class='xattr'>[CopyInheritedPrototype]</span> extended attribute.
+                </p>
+              </li>
               <li>
                 <p>
                   Added support for partial interface definitions.
