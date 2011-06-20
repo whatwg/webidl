@@ -15,7 +15,7 @@
   <head>
     <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'/>
     <title>Web IDL</title>
-    <meta name='revision' content='$Id: Overview.xml,v 1.306 2011-06-20 03:40:56 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: Overview.xml,v 1.307 2011-06-20 06:43:10 cmccorma Exp $'/>
     <link rel='stylesheet' href='WebIDL.css' type='text/css'/>
     <script src='section-links.js' type='application/ecmascript'/>
     <script src='dfn.js' type='application/ecmascript'/>
@@ -272,9 +272,11 @@
             scope</dfn> if there is no <a class='nt' href='#prod-Module'>Module</a> ancestor
           of the non-terminal representing the definition in the parse tree for the
           <a class='dfnref' href='#dfn-idl-fragment'>IDL fragment</a>.
+          <!--
           <a class='dfnref' href='#dfn-conforming-idl-fragment'>Conforming IDL fragments</a>
           <span class='rfc2119'>SHOULD NOT</span> have any non-<a class='dfnref' href='#dfn-module'>module</a>
           definitions declared at the outermost scope.
+          -->
         </p>
 
         <!--
@@ -725,32 +727,35 @@ module gui {
             to each of the interface’s members.
           </p>
           <p>
-            An interface <dfn id='dfn-inherit'>inherits</dfn> from another if there is a
-            <a class='dfnref' href='#dfn-scoped-name'>scoped name</a> in the
-            <a class='nt' href='#prod-ScopedNameList'>ScopedNameList</a> that,
-            with respect to the <a class='dfnref' href='#dfn-enclosing-module'>enclosing module</a>
-            of the interface, <a class='dfnref' href='#dfn-resolve'>resolves</a> to that inherited
-            interface.  Every scoped name in the <a class='nt' href='#prod-ScopedNameList'>ScopedNameList</a>
-            <span class='rfc2119'>MUST</span> resolve to an interface whose definition
-            occurs before the definition of the inheriting interface.
+            An interface can be defined to <dfn id='dfn-inherit'>inherit</dfn> from another interface.
+            If the identifier of an interface is followed by a colon and a <a class='dfnref' href='#dfn-scoped-name'>scoped name</a>
+            (as part of the derivation of the <a class='nt' href='#prod-Inheritance'>Inheritance</a> non-terminal)
+            then that scoped name identifies the inherited interface.  The scoped name
+            <span class='rfc2119'>MUST</span> <a class='dfnref' href='#dfn-resolve'>resolve</a>, with respect to the
+            <a class='dfnref' href='#dfn-enclosing-module'>enclosing module</a>, to an interface
+            whose definition occurs before the definition of the inheriting interface.
             An object that implements an interface that inherits from another
             also implements that inherited interface.  The object therefore will also
-            have members that correspond to the
-            interface members from the inherited interface.
+            have members that correspond to the interface members from the inherited interface.
           </p>
-          <div class='ednote'>
-            <p>Multiple inheritance “might not be needed”. <a href='http://www.w3.org/2009/11/02-webapps-minutes.html#item06'>(Minutes.)</a></p>
-          </div>
           <p>
-            An interface
-            <span class='rfc2119'>MUST NOT</span> be declared such that
+            An interface <span class='rfc2119'>MUST NOT</span> be declared such that
             its inheritance hierarchy has a cycle.  That is, an interface
             <var>A</var> cannot inherit from itself, nor can it inherit from another
             interface <var>B</var> that inherits from <var>A</var>, and so on.
           </p>
           <p>
-            Each interface member
-            can be preceded by a list of <a class='dfnref' href='#dfn-extended-attribute'>extended attributes</a> (matching
+            Note that general multiple inheritance of interfaces is not supported, and
+            objects also cannot implement arbitrary sets of interfaces.
+            Objects can be defined to implement a single given interface <var>A</var>,
+            which means that it also implements all of the interfaces <var>A</var>
+            <a class='dfnref' href='#dfn-inherit'>inherits</a> from.  In addition,
+            an <a href='#idl-implements-statement'>implements statement</a> can be
+            used to define that objects implementing ane interface will always
+            also implement another interface.
+          </p>
+          <p>
+            Each interface member can be preceded by a list of <a class='dfnref' href='#dfn-extended-attribute'>extended attributes</a> (matching
             <a class='nt' href='#prod-ExtendedAttributeList'>ExtendedAttributeList</a>),
             which can control how the interface member will be handled in language bindings.
           </p>
@@ -779,10 +784,11 @@ module gui {
             <a class='xattr' href='#Constructor'>[Constructor]</a>,
             <a class='xattr' href='#NamedConstructor'>[NamedConstructor]</a>,
             <a class='xattr' href='#NoInterfaceObject'>[NoInterfaceObject]</a>,
-            <a class='xattr' href='#PrototypeRoot'>[PrototypeRoot]</a>.
+            <a class='xattr' href='#OverrideBuiltins'>[OverrideBuiltins]</a>,
+            <a class='xattr' href='#ReplaceableNamedProperties'>[ReplaceableNamedProperties]</a>.
           </p>
 
-          <?productions grammar Interface InterfaceInheritance InterfaceMembers InterfaceMember ScopedNameList ScopedNames?>
+          <?productions grammar Interface Inheritance InterfaceMembers InterfaceMember ScopedNameList ScopedNames?>
 
           <div class='example'>
             <!--
@@ -1156,6 +1162,7 @@ exception Error {
             <p>
               The following <a class='dfnref' href='#dfn-extended-attribute'>extended attributes</a>
               are applicable to attributes:
+              <a class='xattr' href='#Clamp'>[Clamp]</a>,
               <a class='xattr' href='#PutForwards'>[PutForwards]</a>,
               <a class='xattr' href='#Replaceable'>[Replaceable]</a>,
               <a class='xattr' href='#TreatNullAs'>[TreatNullAs]</a>,
@@ -1246,9 +1253,6 @@ interface Person {
                 The identifier can be the same as that of another operation on the
                 interface, however.  This is how operation overloading is specified.
               </p>
-            </div>
-            <div class='ednote'>
-              <p>Travis requests no operation overloading. <a href='http://www.w3.org/mid/49142F02149340458FDD20841AD0AD564B38DE1A@TK5EX14MBXW652.wingroup.windeploy.ntdev.microsoft.com'>(Mail).</a></p>
             </div>
             <p>
               The <dfn id='dfn-return-type'>return type</dfn> of the operation is given
@@ -1417,6 +1421,7 @@ s.union(1, 4, 7);         <span class='comment'>// Passing three arguments corre
             <p>
               The following extended attributes are applicable to operation arguments:
               <a class='xattr' href='#AllowAny'>[AllowAny]</a>,
+              <a class='xattr' href='#Clamp'>[Clamp]</a>,
               <a class='xattr' href='#TreatNullAs'>[TreatNullAs]</a>,
               <a class='xattr' href='#TreatUndefinedAs'>[TreatUndefinedAs]</a>.
             </p>
@@ -1573,9 +1578,6 @@ dictionary.x = 1;                  <span class='comment'>// Invokes the property
               A given <a class='dfnref' href='#dfn-special-keyword'>special keyword</a> <span class='rfc2119'>MUST NOT</span>
               appear twice on an operation.
             </p>
-            <div class='ednote'>
-              <p>There’s a resolution to remove unnamed getters/setters. <a href='http://www.w3.org/2009/11/02-webapps-minutes.html#item06'>(Minutes.)</a></p>
-            </div>
             <p>
               Getters, setters, creators and deleters come in two varieties: ones that
               take a <span class='idltype'>DOMString</span> as a property name,
@@ -1794,7 +1796,7 @@ var greeting = 'Hi ' + s;  <span class='comment'>// Now greeting == 'Hi Alan Smi
                   If an <a class='dfnref' href='#dfn-index-getter'>index getter</a> was specified using an <a class='dfnref' href='#dfn-operation'>operation</a>
                   with an <a class='dfnref' href='#dfn-identifier'>identifier</a>,
                   then the value returned when indexing the object with a given index
-                  will be the value that is returned by invoking the operation, passing
+                  is the value that would be returned by invoking the operation, passing
                   the index as its only argument.  If the operation used to declare the index getter
                   did not have an identifier, then the interface definition must be accompanied
                   by a description of how to <dfn id='dfn-determine-the-value-of-an-indexed-property'>determine the value of an indexed property</dfn>
@@ -1804,7 +1806,7 @@ var greeting = 'Hi ' + s;  <span class='comment'>// Now greeting == 'Hi Alan Smi
                   If an <a class='dfnref' href='#dfn-index-setter'>index setter</a> was specified using an operation
                   with an identifier,
                   then the behavior that occurs when indexing the object for property assignment with a given property index and value
-                  will be that the operation is invoked, passing
+                  is the same as if the operation is invoked, passing
                   the index as the first argument and the value as the second argument.  If the operation used to declare the index setter
                   did not have an identifier, then the interface definition must be accompanied
                   by a description of how to <dfn id='dfn-set-the-value-of-an-existing-indexed-property'>set the value of an existing indexed property</dfn>
@@ -1814,7 +1816,7 @@ var greeting = 'Hi ' + s;  <span class='comment'>// Now greeting == 'Hi Alan Smi
                   If an <a class='dfnref' href='#dfn-index-creator'>index creator</a> was specified using an operation
                   with an identifier,
                   then the behavior that occurs when indexing the object for property creation with a given property index and value
-                  will be that the operation is invoked, passing
+                  is the same as if the operation is invoked, passing
                   the index as the first argument and the value as the second argument.  If the operation used to declare the index creator
                   did not have an identifier, then the interface definition must be accompanied
                   by a description of how to <dfn id='dfn-set-the-value-of-a-new-indexed-property'>set the value of a new indexed property</dfn>
@@ -1824,7 +1826,7 @@ var greeting = 'Hi ' + s;  <span class='comment'>// Now greeting == 'Hi Alan Smi
                   If an <a class='dfnref' href='#dfn-index-deleter'>index deleter</a> was specified using an operation
                   with an identifier,
                   then the behavior that occurs when indexing the object for property deletion with a given property index
-                  will be that the operation is invoked, passing
+                  is the same as if the operation is invoked, passing
                   the index as the only argument.  If the operation used to declare the index deleter
                   did not have an identifier, then the interface definition must be accompanied
                   by a description of how to <dfn id='dfn-delete-an-existing-indexed-property'>delete an existing indexed property</dfn>
@@ -1956,7 +1958,7 @@ delete map.cake;  <span class='comment'>// If a named property named "cake" exis
                   If a <a class='dfnref' href='#dfn-name-getter'>name getter</a> was specified using an <a class='dfnref' href='#dfn-operation'>operation</a>
                   with an <a class='dfnref' href='#dfn-identifier'>identifier</a>,
                   then the value returned when indexing the object with a given name
-                  will be the value that is returned by invoking the operation, passing
+                  is the value that would be returned by invoking the operation, passing
                   the name as its only argument.  If the operation used to declare the name getter
                   did not have an identifier, then the interface definition must be accompanied
                   by a description of how to <dfn id='dfn-determine-the-value-of-a-named-property'>determine the value of a named property</dfn>
@@ -1966,7 +1968,7 @@ delete map.cake;  <span class='comment'>// If a named property named "cake" exis
                   If a <a class='dfnref' href='#dfn-name-setter'>name setter</a> was specified using an operation
                   with an identifier,
                   then the behavior that occurs when indexing the object for property assignment with a given property name and value
-                  will be that the operation is invoked, passing
+                  is the same as if the operation is invoked, passing
                   the name as the first argument and the value as the second argument.  If the operation used to declare the name setter
                   did not have an identifier, then the interface definition must be accompanied
                   by a description of how to <dfn id='dfn-set-the-value-of-an-existing-named-property'>set the value of an existing named property</dfn>
@@ -1976,7 +1978,7 @@ delete map.cake;  <span class='comment'>// If a named property named "cake" exis
                   If a <a class='dfnref' href='#dfn-name-creator'>name creator</a> was specified using an operation
                   with an identifier,
                   then the behavior that occurs when indexing the object for property creation with a given property name and value
-                  will be that the operation is invoked, passing
+                  is the same as if the operation is invoked, passing
                   the name as the first argument and the value as the second argument.  If the operation used to declare the name creator
                   did not have an identifier, then the interface definition must be accompanied
                   by a description of how to <dfn id='dfn-set-the-value-of-a-new-named-property'>set the value of a new named property</dfn>
@@ -1986,7 +1988,7 @@ delete map.cake;  <span class='comment'>// If a named property named "cake" exis
                   If a <a class='dfnref' href='#dfn-name-deleter'>name deleter</a> was specified using an operation
                   with an identifier,
                   then the behavior that occurs when indexing the object for property deletion with a given property name
-                  will be that the operation is invoked, passing
+                  is the same as if the operation is invoked, passing
                   the name as the only argument.  If the operation used to declare the name deleter
                   did not have an identifier, then the interface definition must be accompanied
                   by a description of how to <dfn id='dfn-delete-an-existing-named-property'>delete an existing named property</dfn>
@@ -2482,7 +2484,7 @@ Point triangulationPoint = CircleUtils.triangulate(circles[0], circles[1], circl
                 These restrictions on argument types reduce 
                 the possibility of resolution ambiguity in
                 <a class='dfnref' href='#dfn-overloaded'>overloaded</a> operations
-                and constructors, but do not
+                and constructors, but do not completely
                 eliminate it.  In the ECMAScript language binding, the
                 restrictions still can result in overloaded operation and constructor invocations
                 that cannot be distinguished solely based on the values passed to
@@ -2605,7 +2607,11 @@ interface C {
           </p>
           <p>
             No <a class='dfnref' href='#dfn-extended-attribute'>extended attributes</a>
-            are applicable to dictionaries or dictionary members.
+            are applicable to dictionaries.
+          </p>
+          <p>
+            The following extended attributes are applicable to dictionary members:
+            <a class='xattr' href='#Clamp'>[Clamp]</a>.
           </p>
           <?productions grammar Dictionary DictionaryMembers DictionaryMember DefaultValue?>
           <div class='example'>
@@ -2668,9 +2674,9 @@ ctx.drawRectangle(300, 200, { fillPattern: "red", position: new Point(10, 10) })
           <p>
             An exception <dfn id='dfn-inherit-exception'>inherits</dfn> from another if the
             derivation of the <a class='nt' href='#prod-Exception'>Exception</a>
-            includes an <a class='nt' href='#prod-ExceptionInheritance'>ExceptionInheritance</a>
+            includes an <a class='nt' href='#prod-Inheritance'>Inheritance</a>
             non-terminal. The <a class='dfnref' href='#dfn-scoped-name'>scoped name</a> in the
-            <a class='nt' href='#prod-ExceptionInheritance'>ExceptionInheritance</a>
+            <a class='nt' href='#prod-Inheritance'>Inheritance</a>
             <a class='dfnref' href='#dfn-resolve'>resolves</a>,
             with respect to the <a class='dfnref' href='#dfn-enclosing-module'>enclosing module</a>
             of the exception, to that inherited exception.
@@ -2682,6 +2688,20 @@ ctx.drawRectangle(300, 200, { fillPattern: "red", position: new Point(10, 10) })
             have members that correspond to the
             exception members from the inherited exception.
           </p>
+
+          <p>
+            An exception can be defined to <dfn id='dfn-inherit-exception'>inherit</dfn> from another exception.
+            If the identifier of an exception is followed by a colon and a <a class='dfnref' href='#dfn-scoped-name'>scoped name</a>
+            (as part of the derivation of the <a class='nt' href='#prod-Inheritance'>Inheritance</a> non-terminal)
+            then that scoped name identifies the inherited exception.  The scoped name
+            <span class='rfc2119'>MUST</span> <a class='dfnref' href='#dfn-resolve'>resolve</a>, with respect to the
+            <a class='dfnref' href='#dfn-enclosing-module'>enclosing module</a>, to an exception
+            whose definition occurs before the definition of the inheriting exception.
+            An object that implements an exception that inherits from another
+            also implements that inherited exception.  The object therefore will also
+            have members that correspond to the exception members from the inherited exception.
+          </p>
+
           <p>
             Exceptions have an associated <dfn id='dfn-exception-message'>message</dfn>, a
             <a class='idltype' href='#idl-DOMString'>DOMString</a>, which is
@@ -2720,7 +2740,7 @@ ctx.drawRectangle(300, 200, { fillPattern: "red", position: new Point(10, 10) })
             No <a class='dfnref' href='#dfn-extended-attribute'>extended attributes</a>
             are applicable to exception fields.
           </p>
-          <?productions grammar Exception ExceptionInheritance ExceptionMembers ExceptionMember ExceptionField?>
+          <?productions grammar Exception ExceptionMembers ExceptionMember ExceptionField?>
           <div class='example'>
             <p>
               The following example demonstrates how a hierarchy of exceptions might
@@ -2851,8 +2871,12 @@ module gui {
             matching <a class='nt' href='#prod-ImplementsStatement'>ImplementsStatement</a>,
             which declares that all objects implementing an interface <var>A</var>
             (identified by the first <a class='dfnref' href='#dfn-scoped-name'>scoped name</a>)
-            <span class='rfc2119'>MUST</span> also implement interface <var>B</var>
-            (identified by the second scoped name).
+            <span class='rfc2119'>MUST</span> additionally implement interface <var>B</var>
+            (identified by the second scoped name), including all other interfaces that
+            <var>B</var> inherits from.  Transitively, if objects implementing <var>B</var>
+            are declared with an <a class='dfnref' href='#dfn-implements-statement'>implements statement</a>
+            to additionally implement interface <var>C</var>, then all objects implementing
+            <var>A</var> do additionally implement interface <var>C</var>.
           </p>
           <p>
             <a class='dfnref' href='#dfn-implements-statement'>Implements statements</a>
@@ -2865,6 +2889,40 @@ module gui {
             with respect to the <a class='dfnref' href='#dfn-enclosing-module'>enclosing module</a>
             of the implements statement, to an interface or <a class='dfnref' href='#dfn-typedef'>typedef</a>.
           </p>
+          <p>
+            The interface identified on the left-hand side of an implements statement
+            <span class='rfc2119'>MUST NOT</span> <a class='dfnref' href='#dfin-inherit'>inherit</a>
+            from the interface identifier on the right-hand side, and vice versa.
+          </p>
+          <p>
+            If each <a class='dfnref' href='#dfn-implements-statement'>implements statement</a> is
+            considered to be an edge in a directed graph, from a node representing the interface
+            on the left-hand side of the statement to a node representing the interface on the
+            right-hand side, then this graph <span class='rfc2119'>MUST NOT</span> have any cycles.
+          </p>
+          <p>
+            Interfaces that a given object implements are partitioned into those that are considered
+            <dfn id='dfn-supplemental-interface'>supplemental interfaces</dfn> and those that are not.
+            An interface <var>A</var> is considered to be a
+            <a class='dfnref' href='#dfn-supplemental-interface'>supplemental interface</a> of an object
+            <var>O</var> if:
+          </p>
+          <ul>
+            <li><var>O</var> implements a different interface <var>B</var>, and the IDL states that
+              <code>B implements A</code>; or</li>
+            <li><var>O</var> implements a different <a class='dfnref' href='#dfn-supplemental-interface'>supplemental interface</a>
+              <var>C</var>, and <var>C</var> <a class='dfnref' href='#dfn-inherit'>inherits</a> from <var>A</var>.</li>
+          </ul>
+          <p>
+            The <dfn id='dfn-consequential-interfaces'>consequential interfaces</dfn> of an interface
+            <var>A</var> are:
+          </p>
+          <ul>
+            <li>each interface <var>B</var> where the IDL states <code>A implements B</code>;</li>
+            <li>each interface that a consequential interface of <var>A</var> inherits from; and</li>
+            <li>each interface <var>D</var> where the IDL states that <code>C implements D</code>,
+              where <var>C</var> is a consequential interface of <var>A</var>.</li>
+          </ul>
           <p>
             No <a class='dfnref' href='#dfn-extended-attribute'>extended attributes</a>
             are applicable to <a class='dfnref' href='#dfn-implements-statement'>implements statements</a>.
@@ -3862,8 +3920,9 @@ Person* p2 = PersonFactory_createPersonWithAge(f, 26);  <span class='comment'>//
           more of the following are redefined in accordance with the rules for host objects:
           <span class="prop">[[Call]]</span>,
           <span class="prop">[[DefineOwnProperty]]</span>,
-          <span class="prop">[[Delete]]</span> and
-          <span class="prop">[[HasInstance]]</span>.
+          <span class="prop">[[GetOwnProperty]]</span> and
+          <span class="prop">[[Delete]]</span><!-- and
+          <span class="prop">[[HasInstance]]</span>-->.
         </p>
         <p>
           If a value for the internal property
@@ -3892,7 +3951,7 @@ Person* p2 = PersonFactory_createPersonWithAge(f, 26);  <span class='comment'>//
         <p>
           Algorithms in this section use the conventions described in ECMA-262
           section 5.2 and the ToBoolean, ToNumber, ToUint16, ToInt32, ToUint32, ToString,
-          ToObject, SameValue and IsDataDescriptor abstract operations referenced in this section
+          ToObject, SameValue, IsAccessorDescriptor and IsDataDescriptor abstract operations referenced in this section
           are defined in ECMA-262 sections 8 and 9.
         </p>
 
@@ -3911,7 +3970,9 @@ Person* p2 = PersonFactory_createPersonWithAge(f, 26);  <span class='comment'>//
             <li><a class='dfnref' href='#dfn-interface-object'>interface objects</a></li>
             <li><a class='dfnref' href='#dfn-named-constructor'>named constructors</a></li>
             <li><a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype objects</a></li>
+            <!--
             <li><a class='dfnref' href='#dfn-mixin-prototype-object'>mixin prototype objects</a></li>
+            -->
             <li><a class='dfnref' href='#dfn-attribute-getter'>attribute getters</a></li>
             <li><a class='dfnref' href='#dfn-attribute-setter'>attribute setters</a></li>
             <li><a href='#es-operations'>the <span class='estype'>Function</span> objects that correspond to operations</a></li>
@@ -5441,6 +5502,10 @@ results.numbers.length;       <span class='comment'>// Evaluates to 3.</span></x
           <div id='AllowAny' class='section'>
             <h4>[AllowAny]</h4>
 
+            <div class='ednote'>
+              <p>We perhaps should drop <span class='xattr'>[AllowAny]</span>, and just make the overload resolution algorithm
+                treat <span class='idltype'>DOMString</span> like “all remaining types”.</p>
+            </div>
             <p>
               If the <a class='xattr' href='#AllowAny'>[AllowAny]</a>
               <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
@@ -5977,6 +6042,7 @@ map2.toString;</x:codeblock>
             </div>
           </div>
 
+          <!--
           <div id='PrototypeRoot' class='section'>
             <h4>[PrototypeRoot]</h4>
 
@@ -6057,6 +6123,7 @@ Node implements EventTarget;</x:codeblock>
               </div>
             </div>
           </div>
+          -->
 
           <div id='PutForwards' class='section'>
             <h4>[PutForwards]</h4>
@@ -6752,6 +6819,7 @@ c.isMemberOfBreed(undefined);  <span class='comment'>// This passes the string "
               </ol>
             </div>
 
+            <!--
             <div id='es-interface-hasinstance' class='section'>
               <h5>Interface object [[HasInstance]] method</h5>
 
@@ -6779,6 +6847,7 @@ c.isMemberOfBreed(undefined);  <span class='comment'>// This passes the string "
                 </li>
               </ol>
             </div>
+            -->
           </div>
 
           <div id='named-constructors' class='section'>
@@ -6912,110 +6981,87 @@ c.isMemberOfBreed(undefined);  <span class='comment'>// This passes the string "
               <span class='descriptor'>{ [[Writable]]: <span class='esvalue'>true</span>, [[Enumerable]]: <span class='esvalue'>false</span>, [[Configurable]]: <span class='esvalue'>true</span> }</span> whose value
               is a reference to the interface object for the interface.
             </p>
-            <p>
-              The value of the internal <span class='prop'>[[Prototype]]</span>
-              property of the <a class='dfnref' href='#dfn-interface-prototype-object'>interface
-                prototype object</a> depends on the structure of the interface’s
-              inheritance hierarchy — specifically, what the interface’s <em>prototype
-                parent</em> is, and whether it has any <em>mixin</em> interfaces.
-            </p>
-            <p>
-              The <dfn id='dfn-prototype-parent'>prototype parent</dfn> of an interface,
-              <var>A</var>, is defined as follows.  If interface <var>A</var> is declared to
-              <a class='dfnref' href='#dfn-inherit'>inherit</a> from one or more
-              other interfaces then the first interface identified by the
-              <a class='nt' href='#prod-InterfaceInheritance'>InterfaceInheritance</a>
-              non-terminal that has an ancestor interface with the
-              <a class='xattr' href='#PrototypeRoot'>[PrototypeRoot]</a>
-              <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
-              is interface <var>A</var>’s prototype parent.  Otherwise,
-              interface <var>A</var> has no prototype parent.  The
-              <dfn id='dfn-prototype-ancestor'>prototype ancestors</dfn> of <var>A</var>
-              is the set of interfaces that includes <var>A</var>’s prototype
-              parent (if it exists), and the prototype parent of any other prototype ancestor
-              of <var>A</var>.
-            </p>
-            <p>
-              A <dfn id='dfn-mixin'>mixin</dfn> of an interface, <var>A</var>, is
-              any interface that is not one of <var>A</var>’s
-              <a class='dfnref' href='#dfn-prototype-ancestor'>prototype ancestors</a>,
-              and also:
-            </p>
-            <ul>
-              <li>is an explicit ancestor interface of <var>A</var>;</li>
-              <li>is identified by an <a class='dfnref' href='#dfn-implements-statement'>implements statement</a>
-                as being implemented on all objects of type <var>A</var>;</li>
-              <li>is a mixin of any other of <var>A</var>’s mixins; or</li>
-              <li>is an explicit ancestor interface of any other of <var>A</var>’s mixins.</li>
-            </ul>
-            <p>
-              The value of the internal <span class='prop'>[[Prototype]]</span>
-              property of an interface’s
-              <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype object</a>
-              is determined as follows:
-            </p>
-            <ul>
-              <li>If the interface has no <a class='dfnref' href='#dfn-mixin'>mixins</a> and
-                no <a class='dfnref' href='#dfn-prototype-parent'>prototype parent</a>, then
-                the internal <span class='prop'>[[Prototype]]</span> property’s
-                value is a reference to the <span class='estype'>Object</span> prototype object.</li>
-              <li>Otherwise, if the interface has no <a class='dfnref' href='#dfn-mixin'>mixins</a>
-                but does have a <a class='dfnref' href='#dfn-prototype-parent'>prototype parent</a>,
-                then the internal <span class='prop'>[[Prototype]]</span> property’s
-                value is a reference to the <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype object</a>
-                of that prototype parent.</li>
-              <li>Otherwise, the interface does have <a class='dfnref' href='#dfn-mixin'>mixins</a>.
-                The internal <span class='prop'>[[Prototype]]</span> property’s value
-                is a reference to the <a class='dfnref' href='#dfn-mixin-prototype-object'>mixin prototype object</a>
-                for the interface (defined below).</li>
-            </ul>
 
-            <div id='mixin-prototype' class='section'>
-              <h5>Mixin prototype object</h5>
-              <div class='ednote'>
-                <p>Travis requests no mixin prototype objects. <a href='http://lists.w3.org/Archives/Public/public-webapps/2009JulSep/0903.html'>(Mail).</a></p>
-              </div>
+            <p>
+              The <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype object</a>
+              for a given exception interface <span class='rfc2119'>MUST</span> have an internal
+              <span class='prop'>[[Prototype]]</span> property whose value is as follows:
+            </p>
+            <ul>
+              <li>If the <a class='dfnref' href='#dfn-interface'>interface</a> is declared to
+              <a class='dfnref' href='#dfn-inherit'>inherit</a> from another
+              interface, then the value of the internal <span class='prop'>[[Prototype]]</span> property is the
+              <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype object</a>
+              for the inherited interface.</li>
+              <li>Otherwise, the interface is not declared to inherit from another interface. The
+              value of the internal <span class='prop'>[[Prototype]]</span> property
+              is the <span class='estype'>Object</span> prototype object
+              (<a href="#ref-ECMA-262">[ECMA-262]</a>, section 15.2.4).</li>
+            </ul>
+          </div>
+
+          <!--
+          <div id='mixin-prototype' class='section'>
+            <h4>Mixin prototype objects</h4>
+
+            <p>
+              If an object implements any interfaces other than those as declared in the IDL,
+              then these interfaces are called <dfn id='dfn-mixin-interface'>mixin interfaces</dfn>
+              for the object.  The <dfn id='dfn-mixin-prototype-object'>mixin prototype object</dfn>
+              for a given object <var>O</var> is an object as follows:
+            </p>
+            <ul>
+              <li>
+                The object has properties that are the union of all properties that initially exist on <var>O</var>’s
+                <a class='dfnref' href='#dfn-mixin-interface'>mixin interfaces</a>’
+                <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype objects</a>.
+                If there are multiple properties with the same name,
+                then it is undefined which of those properties ends up on
+                the mixin prototype object.
+              </li>
+              <li>
+                The object’s internal <span class='prop'>[[Prototype]]</span> property
+                value is a reference to the <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype object</a>
+                for the most derived non-mixin interface that <var>O</var> implements,
+                or, if the object implements no non-mixin interfaces, a reference to the
+                <span class='estype'>Object</span> prototype object
+                (<a href="#ref-ECMA-262">[ECMA-262]</a>, section 15.2.4).</li>
+            </ul>
+            <p>
+              If two objects have the same set of <a class='dfnref' href='#dfn-mixin-interface'>mixin interfaces</a>,
+              then their <a class='dfnref' href='#dfn-mixin-prototype-object'>mixin prototype objects</a>
+              <span class='rfc2119'>MUST</span> be the same object.
+            </p>
+
+            XXX unfinished example
+            <div class='example'>
               <p>
-                The <dfn id='dfn-mixin-prototype-object'>mixin prototype object</dfn>
-                for an interface is an object as follows:
+                The following example illustrates a case when a <a class='dfnref' href='#dfn-mixin-protoype-object'>mixin prototype object</a>
+                will exist.  Consider the following IDL:
               </p>
-              <ul>
-                <li>The object has properties that are the union of all
-                  properties that exist on the interface’s
-                  <a class='dfnref' href='#dfn-mixin'>mixins</a>’
-                  <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype objects</a>.
-                  If there are multiple properties with the same name,
-                  then it is undefined which of those properties ends up on
-                  the mixin prototype object.
-                </li>
-                <li>
-                  The object’s internal <span class='prop'>[[Prototype]]</span> property
-                  value is a reference to the <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype object</a>
-                  for the interface’s <a class='dfnref' href='#dfn-prototype-parent'>prototype parent</a>,
-                  or, if the interface has no prototype parent, a reference to the <span class='estype'>Object</span>
-                  prototype object.</li>
-              </ul>
-              <div class='ednote'>
-                <p>Maybe the functions on mixin prototype objects should just call the relevant function on the original interface’s prototype object.
-                  That way you could overwrite EventTarget.prototype.addEventListener, for example, and the addEventListener
-                  in the prototype chain of a Node would end up calling that new function. <a href='http://www.w3.org/mid/Pine.LNX.4.62.0804110439230.7575@hixie.dreamhostps.com'>(Mail.)</a></p>
-              </div>
-              <p>
-                If two <a class='dfnref' href='#dfn-interface'>interfaces</a> have the same set
-                of <a class='dfnref' href='#dfn-mixin'>mixins</a>, and either both have the same
-                <a class='dfnref' href='#dfn-prototype-parent'>prototype parent</a> or both have no
-                prototype parent, then their <a class='dfnref' href='#dfn-mixin-prototype-object'>mixin prototype objects</a>
-                <span class='rfc2119'>MUST</span> be the same object.
-              </p>
+              <x:codeblock language='idl'>interface Animal {
+  DOMString latinName;
+};
+
+interface Human {
+  DOMString name;
+};
+
+interface LivingHuman {
+  unsigned short age;
+};
+
+interface 
             </div>
           </div>
+          -->
 
           <div id='es-constants' class='section'>
             <h4>Constants</h4>
 
             <p>
               For each <a class='dfnref' href='#dfn-constant'>constant</a> defined on
-              the <a class='dfnref' href='#dfn-interface'>interface</a>, there
+              an <a class='dfnref' href='#dfn-interface'>interface</a> <var>A</var>, there
               <span class='rfc2119'>MUST</span> be a corresponding property on
               the <a class='dfnref' href='#dfn-interface-object'>interface object</a>,
               if it exists, if the <a class='dfnref' href='#dfn-identifier'>identifier</a>
@@ -7333,24 +7379,13 @@ c.isMemberOfBreed(undefined);  <span class='comment'>// This passes the string "
             object is associated with.
           </p>
           <p>
-            The value of the internal <span class='prop'>[[Prototype]]</span>
-            property of a host object implementing one or more interfaces depends on
-            exactly what <a class='dfnref' href='#dfn-interface'>interfaces</a> it implements,
-            and in particular what its <em>primary prototype interface</em> is.
+            The <dfn id='dfn-primary-interface'>primary interface</dfn> of a host object
+            that implements one or more interfaces is the most-derived <a class='dfnref' href='#dfn-supplemental-interface'>non-supplemental interface</a>
+            that it implements.  The value of the internal <span class='prop'>[[Prototype]]</span>
+            property of the host object is the <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype object</a>
+            of the <a class='dfnref' href='#dfn-primary-interface'>primary interface</a>.
           </p>
-          <p>
-            If the host object implements an
-            <a class='dfnref' href='#dfn-interface'>interface</a> that has
-            the <a class='xattr' href='#PrototypeRoot'>[PrototypeRoot]</a>
-            <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>,
-            then the interface the host object implements that has the largest
-            <a class='dfnref' href='#dfn-prototype-ancestor'>prototype ancestor</a>
-            set is deemed to be the <dfn id='dfn-primary-prototype-interface'>primary prototype interface</dfn>
-            of the host object.  (If there are multiple such sets, then it is
-            undefined what value the internal <span class='prop'>[[Prototype]]</span>
-            property has.)  Otherwise, the host object has no
-            primary prototype interface.
-          </p>
+          <!--
           <p>
             The value of the host object’s internal <span class='prop'>[[Prototype]]</span>
             property is determined as follows:
@@ -7391,9 +7426,17 @@ c.isMemberOfBreed(undefined);  <span class='comment'>// This passes the string "
               for the host object (defined below).
             </li>
           </ul>
+          -->
           <p>
             The value of the internal <span class='prop'>[[Class]]</span>
-            property of a host object is determined as follows:
+            property of a host object that implements one or more interfaces
+            <span class='rfc2119'>MUST</span> be the <a class='dfnref' href='#dfn-identifier'>identifier</a> of
+            the <a class='dfnref' href='#dfn-primary-interface'>primary interface</a>
+            of the host object.
+          </p>
+          <!--
+              of that interface.
+            determined as follows:
           </p>
           <ul>
             <li>
@@ -7453,6 +7496,7 @@ c.isMemberOfBreed(undefined);  <span class='comment'>// This passes the string "
               <span class='rfc2119'>MUST</span> be the same object.
             </p>
           </div>
+          -->
 
           <div id='indexed-and-named-properties' class='section'>
             <h4>Indexed and named properties</h4>
@@ -7470,7 +7514,7 @@ c.isMemberOfBreed(undefined);  <span class='comment'>// This passes the string "
               It is permissible for an object to implement multiple interfaces that support indexed properties.
               However, if so, and there are conflicting definitions as to the object’s
               <a class='dfnref' href='#dfn-supported-property-indices'>supported property indices</a>,
-              or if one of the interfaces is a <a class='dfnref' href='#dfn-mixin'>mixin</a> for the
+              or if one of the interfaces is a <a class='dfnref' href='#dfn-supplemental-interface'>supplemental interface</a> for the
               host object, then it is undefined what additional properties the object will appear to
               have, or what its exact behavior will be with regard to its indexed properties.
               The same applies for named properties.
@@ -7665,7 +7709,7 @@ c.isMemberOfBreed(undefined);  <span class='comment'>// This passes the string "
                   <li>If <var>creating</var> is false and <var>O</var> implements an interface with the <a class='xattr' href='#ReplaceableNamedProperties'>[ReplaceableNamedProperties]</a>
                     <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>, then:
                     <ol>
-                      <li>If the result of calling IsAccessorProperty(<var>Desc</var>) is <span class='esvalue'>true</span>, then:
+                      <li>If the result of calling IsAccessorDescriptor(<var>Desc</var>) is <span class='esvalue'>true</span>, then:
                         <ol>
                           <li>Create an own accessor property named <var>P</var> on <var>O</var> whose <span class='prop'>[[Get]]</span>,
                             <span class='prop'>[[Set]]</span>, <span class='prop'>[[Enumerable]]</span> and <span class='prop'>[[Configurable]]</span>
@@ -8002,6 +8046,26 @@ c.isMemberOfBreed(undefined);  <span class='comment'>// This passes the string "
             <li>Let <var>W</var> be the result of <a class='dfnref' href='#dfn-convert-idl-to-ecmascript-value'>converting</a> <var>V</var> to an ECMAScript value.</li>
             <li>Invoke the <span class='prop'>[[Put]]</span> method of <var>O</var> with property name <var>P</var> and value <var>W</var>.</li>
           </ol>
+        </div>
+
+        <div id='es-implements-statements' class='section'>
+          <h3>Implements statements</h3>
+
+          <p>
+            The <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype object</a>
+            of an interface <var>A</var> <span class='rfc2119'>MUST</span> have a copy of
+            each property that corresponds to one of the
+            <a class='dfnref' href='#dfn-constant'>constants</a>,
+            <a class='dfnref' href='#dfn-attribute'>attributes</a> or
+            <a class='dfnref' href='#dfn-operation'>operations</a> that exist on
+            all of the interface prototype objects of <var>A</var>’s
+            <a class='dfnref' href='#dfn-consequential-interfaces'>consequential interfaces</a>,
+            unless <var>A</var>’s interface prototype object already has a property of the same name on it
+            due to <var>A</var>’s interface members.  If there would still be conflicting
+            property definitions, then it is undefined which consequential interface’s
+            interface member that property on <var>A</var>’s interface prototype object
+            corresponds to.
+          </p>
         </div>
 
         <div id='es-exceptions' class='section'>
@@ -10456,15 +10520,14 @@ public <var>ExceptionName</var>(Throwable cause) {
           <prod nt='Definition'>Module | Interface | Dictionary | Exception | Typedef | ImplementsStatement</prod>
           <prod nt='Module'>"module" identifier "{" Definitions "}" ";"</prod>
           <prod nt='Interface'>"interface" identifier InterfaceInheritance "{" InterfaceMembers "}" ";"</prod>
-          <prod nt='InterfaceInheritance'>":" ScopedNameList | ε</prod>
+          <prod nt='Inheritance'>":" ScopedName | ε</prod>
           <prod nt='InterfaceMembers'>ExtendedAttributeList InterfaceMember InterfaceMembers | ε</prod>
           <prod nt='InterfaceMember'>Const | AttributeOrOperation</prod>
           <prod nt='Dictionary'>"dictionary" identifier "{" DictionaryMembers "}" ";"</prod>
           <prod nt='DictionaryMembers'>ExtendedAttributeList DictionaryMember DictionaryMembers | ε</prod>
           <prod nt='DictionaryMember'>Type identifier DefaultValue ";"</prod>
           <prod nt='DefaultValue'>"=" ConstExpr | ε</prod>
-          <prod nt='Exception'>"exception" identifier ExceptionInheritance "{" ExceptionMembers "}" ";"</prod>
-          <prod nt='ExceptionInheritance'>":" ScopedName | ε</prod>
+          <prod nt='Exception'>"exception" identifier Inheritance "{" ExceptionMembers "}" ";"</prod>
           <prod nt='ExceptionMembers'>ExtendedAttributeList ExceptionMember ExceptionMembers | ε</prod>
           <prod nt='Typedef'>"typedef" Type identifier ";"</prod>
           <prod nt='ImplementsStatement'>ScopedName "implements" ScopedName ";"</prod>
@@ -10696,6 +10759,16 @@ public <var>ExceptionName</var>(Throwable cause) {
           <dt>Current editor’s draft</dt>
           <dd>
             <ul>
+              <li>
+                <p>
+                  Removed mixin prototype objects from the ECMAScript binding.  At the IDL level,
+                  objects may now only implement a single inheritance hierarchy of interfaces,
+                  plus any supplemental interfaces that are required due to “implements” statements.
+                  Interface prototype objects for interfaces on the left-hand side of an
+                  “implements” statement now also get properties for members of the interface
+                  on the right-hand side of the statement.
+                </p>
+              </li>
               <li>
                 <p>
                   Tweaked the ECMAScript overload resolution algorithm so that passing too few arguments
