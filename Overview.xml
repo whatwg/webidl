@@ -15,7 +15,7 @@
   <head>
     <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'/>
     <title>Web IDL</title>
-    <meta name='revision' content='$Id: Overview.xml,v 1.308 2011-06-20 06:58:20 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: Overview.xml,v 1.309 2011-06-20 07:36:01 cmccorma Exp $'/>
     <link rel='stylesheet' href='WebIDL.css' type='text/css'/>
     <script src='section-links.js' type='application/ecmascript'/>
     <script src='dfn.js' type='application/ecmascript'/>
@@ -302,7 +302,7 @@
         </ul>
         -->
 
-        <?productions grammar Definitions Definition?>
+        <?productions grammar Definitions Definition NormalDefinition?>
 
         <div id='idl-names' class='section'>
           <h3>Names</h3>
@@ -310,6 +310,7 @@
           <p>
             Every <a class='dfnref' href='#dfn-module'>module</a>,
             <a class='dfnref' href='#dfn-interface'>interface</a>,
+            <a class='dfnref' href='#dfn-partial-interface'>partial interface definition</a>,
             <a class='dfnref' href='#dfn-dictionary'>dictionary</a>,
             <a class='dfnref' href='#dfn-exception'>exception</a>,
             <a class='dfnref' href='#dfn-typedef'>typedef</a>,
@@ -327,6 +328,7 @@
             <li>
               For <a class='dfnref' href='#dfn-module'>modules</a>,
               <a class='dfnref' href='#dfn-interface'>interfaces</a>,
+              <a class='dfnref' href='#dfn-partial-interface'>partial interface definition</a>,
               <a class='dfnref' href='#dfn-dictionaries'>dictionaries</a>
               and <a class='dfnref' href='#dfn-exception'>exceptions</a>, the first
               <a class='nt' href='#prod-identifier'>identifier</a> terminal in
@@ -761,6 +763,21 @@ module gui {
           </p>
 
           <p>
+            The IDL for interfaces can be split into multiple parts by using
+            <dfn id='dfn-partial-interface'>partial interface</dfn> definitions,
+            which match the <a class='nt' href='#prod-PartialInterface'>PartialInterface</a>
+            non-terminal.  The <a class='dfnref' href='#dfn-identifier'>identifier</a>
+            of a partial interface definition <span class='rfc2119'>MUST</span> be the same
+            as the identifier of an interface definition in the same module.  All of
+            the members that appear on the partial interface are considered to be
+            members of the interface itself.
+          </p>
+          <div class='note'>
+            <p>Partial interface definitions are only intended for use as a specification
+              editorial aide, allowing the definition of an interface to be separated
+              over more than one section of the document.</p>
+          </div>
+          <p>
             The relevant language binding determines how interfaces correspond to constructs
             in the language.  Many object-oriented languages support interfaces, in which
             case the mapping of IDL interfaces to language interfaces is simple.
@@ -788,7 +805,7 @@ module gui {
             <a class='xattr' href='#ReplaceableNamedProperties'>[ReplaceableNamedProperties]</a>.
           </p>
 
-          <?productions grammar Interface Inheritance InterfaceMembers InterfaceMember ScopedNameList ScopedNames?>
+          <?productions grammar Interface PartialInterface Inheritance InterfaceMembers InterfaceMember ScopedNameList ScopedNames?>
 
           <div class='example'>
             <!--
@@ -10516,10 +10533,12 @@ public <var>ExceptionName</var>(Throwable cause) {
         </p>
 
         <grammar id='grammar' xmlns='http://mcc.id.au/ns/local'>
-          <prod nt='Definitions'>ExtendedAttributeList Definition Definitions | ε</prod>
-          <prod nt='Definition'>Module | Interface | Dictionary | Exception | Typedef | ImplementsStatement</prod>
+          <prod nt='Definitions'>Definition Definitions | ε</prod>
+          <prod nt='Definition'>ExtendedAttributeList NormalDefinition | PartialInterface</prod>
+          <prod nt='NormalDefinition'>Module | Interface | Dictionary | Exception | Typedef | ImplementsStatement</prod>
           <prod nt='Module'>"module" identifier "{" Definitions "}" ";"</prod>
           <prod nt='Interface'>"interface" identifier InterfaceInheritance "{" InterfaceMembers "}" ";"</prod>
+          <prod nt='PartialInterface'>"partial" "interface" identifier "{" InterfaceMembers "}" ";"</prod>
           <prod nt='Inheritance'>":" ScopedName | ε</prod>
           <prod nt='InterfaceMembers'>ExtendedAttributeList InterfaceMember InterfaceMembers | ε</prod>
           <prod nt='InterfaceMember'>Const | AttributeOrOperation</prod>
