@@ -15,7 +15,7 @@
   <head>
     <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'/>
     <title>Web IDL</title>
-    <meta name='revision' content='$Id: Overview.xml,v 1.305 2011-06-19 03:06:59 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: Overview.xml,v 1.306 2011-06-20 03:40:56 cmccorma Exp $'/>
     <link rel='stylesheet' href='WebIDL.css' type='text/css'/>
     <script src='section-links.js' type='application/ecmascript'/>
     <script src='dfn.js' type='application/ecmascript'/>
@@ -3514,8 +3514,8 @@ interface Person {
               is the concatenation of the type name for <var>T</var> and
               the string “Array”.
             </p>
-            <div class='ednote'>
-              <p>This section could do with an example.</p>
+            <div class='example'>
+              <p>See <a href='es-array'>section <?sref es-array?></a> for an example using array types.</p>
             </div>
           </div>
 
@@ -6271,7 +6271,7 @@ interface Window {
 &lt;title>Replaceable named properties on Window&lt;/title>
 &lt;iframe name=abc>&lt;/iframe>
 &lt;script>
-window.abc;    <span class='comment'>// Evaluates to the HTMLIFrameElement.</span>
+window.abc;    <span class='comment'>// Evaluates to the iframe's Window object.</span>
 abc = 1;       <span class='comment'>// Replaces the named property.</span>
 window.abc;    <span class='comment'>// Evaluates to 1.</span>
 &lt;/script></x:codeblock>
@@ -6571,39 +6571,20 @@ c.isMemberOfBreed(undefined);  <span class='comment'>// This passes the string "
                 <var>S</var>, and a list of ECMAScript values, <var>arg</var><sub>0..<var>n</var>−1</sub>.
                 The algorithm behaves as follows:
               </p>
-              <div class='ednote'>
-                <p>Need to test how implementations actually behave when passed too few or too many arguments.
-                  <a href='http://www.w3.org/mid/Pine.LNX.4.62.0804110237010.7575@hixie.dreamhostps.com'>(Mail.)</a></p>
-              </div>
               <ol class='algorithm'>
-                <li>
-                  Initialize <var>R</var> to a set with the same values as <var>S</var>.
-                </li>
-                <!--
-                <li>
-                  Remove from <var>R</var> all entries whose type list is
-                  longer than <var>n</var>.
-                </li>
-                -->
-                <li>
-                  Remove from <var>R</var> all entries whose type list is
-                  not equal to <var>n</var>.
-                </li>
-                <li>
-                  If <var>R</var> contains more than one entry:
+                <li>Initialize <var>entries</var> to a set with the same values as <var>S</var>.</li>
+                <li>Initialize <var>candidates</var> also to a set with the same values as <var>S</var>.</li>
+                <li>Let <var>maxarg</var> be the length of the longest type list of the entries in <var>S</var>.</li>
+                <li>Let <var>argcount</var> be min(<var>maxarg</var>, <var>n</var>).</li>
+                <li>Remove from <var>candidates</var> all entries whose type list is not of length <var>argcount</var>.</li>
+
+                <li>Initialize <var>i</var> to 0.</li>
+                <li>While <var>i</var> &lt; <var>argcount</var>:
                   <ol>
-                    <li>
-                      Initialize <var>i</var> to 0.
-                    </li>
-                    <li>
-                      While <var>i</var> &lt; <var>n</var>:
+                    <li>If not all entries in <var>entries</var> have identical types at position <var>i</var> in their type lists, then:
                       <ol>
-                        <li>
-                          Initialize <var>types</var> to the set of IDL types
-                          { <span class='idltype'>any</span> }.
-                        </li>
-                        <li>
-                          Depending on the value of <var>arg</var><sub><var>i</var></sub>:
+                        <li>Initialize <var>types</var> to the set of IDL types { <span class='idltype'>any</span> }.</li>
+                        <li>Depending on the value of <var>arg</var><sub><var>i</var></sub>:
                           <dl class='switch'>
                             <dt>An <span class='estype'>Undefined</span>,
                               <span class='estype'>Boolean</span> or
@@ -6662,22 +6643,22 @@ c.isMemberOfBreed(undefined);  <span class='comment'>// This passes the string "
                           </dl>
                         </li>
                         <li>
-                          Remove from <var>R</var> all entries with type list
+                          Remove from <var>candidates</var> all entries with type list
                           <var>t</var> and boolean list <var>a</var> where
                           <var>a</var><sub><var>i</var></sub> is <span class='idlvalue'>false</span>
                           and <var>t</var><sub><var>i</var></sub> ∉ <var>types</var>.
                         </li>
                         <li>
-                          If there exists an entry in <var>R</var>
+                          If there exists an entry in <var>candidates</var>
                           with type list <var>t</var> where
                           <var>t</var><sub><var>i</var></sub> ∈ <var>types</var>,
                           then remove from <var>R</var> all entries with type list
                           <var>t</var> where
                           <var>t</var><sub><var>i</var></sub> ∉ <var>types</var>.
                         </li>
-                        <li>Set <var>i</var> to <var>i</var> + 1.</li>
                       </ol>
                     </li>
+                    <li>Set <var>i</var> to <var>i</var> + 1.</li>
                   </ol>
                 </li>
                 <li>Return <var>R</var>.</li>
@@ -10715,6 +10696,16 @@ public <var>ExceptionName</var>(Throwable cause) {
           <dt>Current editor’s draft</dt>
           <dd>
             <ul>
+              <li>
+                <p>
+                  Tweaked the ECMAScript overload resolution algorithm so that passing too few arguments
+                  will result in an exception being thrown and passing more arguments than the longest
+                  overload will mean those extra arguments will be ignored.  Distinguishing which
+                  overload is called when the overloads have the same argument list length is now
+                  performed only on arguments where across all of the overloads, not all of
+                  the types at that position are the same.
+                </p>
+              </li>
               <li>
                 <p>
                   Added a <span class='xattr'>[ReplaceableNamedProperties]</span> extended attribute to control
