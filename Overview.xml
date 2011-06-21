@@ -15,7 +15,7 @@
   <head>
     <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'/>
     <title>Web IDL</title>
-    <meta name='revision' content='$Id: Overview.xml,v 1.312 2011-06-20 22:16:44 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: Overview.xml,v 1.313 2011-06-21 02:25:03 cmccorma Exp $'/>
     <link rel='stylesheet' href='WebIDL.css' type='text/css'/>
     <script src='section-links.js' type='application/ecmascript'/>
     <script src='dfn.js' type='application/ecmascript'/>
@@ -2581,9 +2581,34 @@ interface C {
             is the order in which they appear in the IDL.
             The <a class='dfnref' href='#dfn-identifier'>identifier</a> of the
             <a class='dfnref' href='#dfn-dictionary'>dictionary</a> is given by
-            the <a class='nt' href='#prod-identifier'>identifier</a> terminal.
+            the <a class='nt' href='#prod-identifier'>identifier</a> terminal that
+            appears directly after the <code>dictionary</code> keyword.
           </p>
           <p>
+            A dictionary <dfn id='dfn-inherit-dictionary'>inherits</dfn> from another if the
+            derivation of the <a class='nt' href='#prod-Dictionary'>Dictionary</a>
+            includes an <a class='nt' href='#prod-Inheritance'>Inheritance</a>
+            non-terminal. The <a class='dfnref' href='#dfn-scoped-name'>scoped name</a> in the
+            <a class='nt' href='#prod-Inheritance'>Inheritance</a>
+            <a class='dfnref' href='#dfn-resolve'>resolves</a>,
+            with respect to the <a class='dfnref' href='#dfn-enclosing-module'>enclosing module</a>
+            of the exception, to that inherited dictionary.
+            The <a class='nt' href='#prod-ScopedName'>ScopedName</a>
+            <span class='rfc2119'>MUST</span> resolve to a dictionary whose definition
+            occurs before the definition of the inheriting dictionary.
+          </p>
+          <p>
+            The <dfn id='dfn-inherited-dictionaries'>inherited dictionaries</dfn> of
+            a given dictionary <var>D</var> is the set of all dictionaries that <var>D</var>
+            inherits from, directly or indirectly.  If <var>D</var> does not <a class='dfnref' href='#dfn-inherit-dictionaries'>inherit</a>
+            from another dictionary, then the set is empty.  Otherwise, the set
+            includes the dictionary <var>E</var> that <var>D</var> <a class='dfnref' href='#dfn-inherit-dictionary'>inherits</a>
+            from and all of <var>E</var>’s <a class='dfnref' href='#dfn-inherited-dictionaries'>inherited dictionaries</a>.
+          </p>
+          <p>
+            A dictionary value of type <var>D</var> can have key–value pairs corresponding
+            to the dictionary members defined on <var>D</var> and on any of <var>D</var>’s
+            <a class='dfnref' href='#dfn-inherited-dictionaries'>inherited dictionaries</a>.
             On a given dictionary value, the presence of each dictionary member is optional.
             When specified in the dictionary value, a dictionary member is said to be
             <dfn id='dfn-present'>present</dfn>, otherwise it is <a class='dfnref' href='#dfn-present'>not present</a>.
@@ -2615,7 +2640,8 @@ interface C {
           </p>
           <p>
             The identifier of a dictionary member <span class='rfc2119'>MUST NOT</span> be
-            the same as that of another dictionary member defined on the dictionary.
+            the same as that of another dictionary member defined on the dictionary or
+            on that dictionary’s <a class='dfnref' href='#dfn-inherited-dictionaries'>inherited dictionaries</a>.
           </p>
           <p>
             Dictionaries <span class='rfc2119'>MUST NOT</span> be used as the type of an
@@ -2705,19 +2731,6 @@ ctx.drawRectangle(300, 200, { fillPattern: "red", position: new Point(10, 10) })
             also implements that inherited exception.  The object therefore will also
             have members that correspond to the
             exception members from the inherited exception.
-          </p>
-
-          <p>
-            An exception can be defined to <dfn id='dfn-inherit-exception'>inherit</dfn> from another exception.
-            If the identifier of an exception is followed by a colon and a <a class='dfnref' href='#dfn-scoped-name'>scoped name</a>
-            (as part of the derivation of the <a class='nt' href='#prod-Inheritance'>Inheritance</a> non-terminal)
-            then that scoped name identifies the inherited exception.  The scoped name
-            <span class='rfc2119'>MUST</span> <a class='dfnref' href='#dfn-resolve'>resolve</a>, with respect to the
-            <a class='dfnref' href='#dfn-enclosing-module'>enclosing module</a>, to an exception
-            whose definition occurs before the definition of the inheriting exception.
-            An object that implements an exception that inherits from another
-            also implements that inherited exception.  The object therefore will also
-            have members that correspond to the exception members from the inherited exception.
           </p>
 
           <p>
@@ -4743,15 +4756,21 @@ iframe.appendChild instanceof w.Function;  <span class='comment'>// Evaluates to
               every <a class='dfnref' href='#dfn-dictionary-member'>dictionary member</a>
               is initially considered to be <a class='dfnref' href='#dfn-present'>not present</a>.</li>
               <li>Let <var>object</var> be the result of calling ToObject(<var>V</var>).</li>
-              <li>For each dictionary member <var>member</var> declared on <var>D</var>, in order:
+              <li>Let <var>dictionaries</var> be a list consisting of <var>D</var> and all of <var>D</var>’s <a class='dfnref' href='#dfn-inherited-dictionaries'>inherited dictionaries</a>,
+                in order from least to most derived.</li>
+              <li>For each dictionary <var>dictionary</var> in <var>dictionaries</var>, in order:
                 <ol>
-                  <li>Let <var>key</var> be the <a class='dfnref' href='#dfn-identifier'>identifier</a> of <var>member</var>.</li>
-                  <li>Let <var>present</var> be the result of calling the <span class='prop'>[[HasProperty]]</span> internal method on <var>object</var> with property name <var>key</var>.</li>
-                  <li>If <var>present</var> is true, then:
+                  <li>For each dictionary member <var>member</var> declared on <var>D</var>, in order:
                     <ol>
-                      <li>Let <var>value</var> be the result of calling the <span class='prop'>[[Get]]</span> internal method on <var>object</var> with property name <var>key</var>.</li>
-                      <li>Let <var>idlValue</var> be the result of <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a> <var>value</var> to an IDL value whose type is the type <var>member</var> is declared to be of.</li>
-                      <li>Set the dictionary member on <var>dict</var> with key name <var>key</var> to the value <var>idlValue</var>.  This dictionary member is considered to be <a class='dfnref' href='#dfn-present'>present</a>.</li>
+                      <li>Let <var>key</var> be the <a class='dfnref' href='#dfn-identifier'>identifier</a> of <var>member</var>.</li>
+                      <li>Let <var>present</var> be the result of calling the <span class='prop'>[[HasProperty]]</span> internal method on <var>object</var> with property name <var>key</var>.</li>
+                      <li>If <var>present</var> is true, then:
+                        <ol>
+                          <li>Let <var>value</var> be the result of calling the <span class='prop'>[[Get]]</span> internal method on <var>object</var> with property name <var>key</var>.</li>
+                          <li>Let <var>idlValue</var> be the result of <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a> <var>value</var> to an IDL value whose type is the type <var>member</var> is declared to be of.</li>
+                          <li>Set the dictionary member on <var>dict</var> with key name <var>key</var> to the value <var>idlValue</var>.  This dictionary member is considered to be <a class='dfnref' href='#dfn-present'>present</a>.</li>
+                        </ol>
+                      </li>
                     </ol>
                   </li>
                 </ol>
@@ -4766,14 +4785,20 @@ iframe.appendChild instanceof w.Function;  <span class='comment'>// Evaluates to
             </p>
             <ol class='algorithm'>
               <li>Let <var>O</var> be a new <span class='estype'>Object</span> value created as if by the expression <code>({})</code>.</li>
-              <li>For each dictionary member <var>member</var> declared on <var>D</var>, in order:
+              <li>Let <var>dictionaries</var> be a list consisting of <var>D</var> and all of <var>D</var>’s <a class='dfnref' href='#dfn-inherited-dictionaries'>inherited dictionaries</a>,
+                in order from least to most derived.</li>
+              <li>For each dictionary <var>dictionary</var> in <var>dictionaries</var>, in order:
                 <ol>
-                  <li>Let <var>key</var> be the <a class='dfnref' href='#dfn-identifier'>identifier</a> of <var>member</var>.</li>
-                  <li>If the dictionary member named <var>key</var> is <a class='dfnref' href='#dfn-present'>present</a> on <var>V</var>, then:
+                  <li>For each dictionary member <var>member</var> declared on <var>dictionary</var>, in order:
                     <ol>
-                      <li>Let <var>idlValue</var> be the value of <var>member</var> on <var>V</var>.</li>
-                      <li>Let <var>value</var> be the result of <a class='dfnref' href='#dfn-convert-idl-to-ecmascript-value'>converting</a> <var>idlValue</var> to an ECMAScript value.</li>
-                      <li>Call the <span class='prop'>[[Put]]</span> internal method on <var>O</var> with arguments <var>key</var>, <var>value</var> and <span class='esvalue'>false</span>.</li>
+                      <li>Let <var>key</var> be the <a class='dfnref' href='#dfn-identifier'>identifier</a> of <var>member</var>.</li>
+                      <li>If the dictionary member named <var>key</var> is <a class='dfnref' href='#dfn-present'>present</a> on <var>V</var>, then:
+                        <ol>
+                          <li>Let <var>idlValue</var> be the value of <var>member</var> on <var>V</var>.</li>
+                          <li>Let <var>value</var> be the result of <a class='dfnref' href='#dfn-convert-idl-to-ecmascript-value'>converting</a> <var>idlValue</var> to an ECMAScript value.</li>
+                          <li>Call the <span class='prop'>[[Put]]</span> internal method on <var>O</var> with arguments <var>key</var>, <var>value</var> and <span class='esvalue'>false</span>.</li>
+                        </ol>
+                      </li>
                     </ol>
                   </li>
                 </ol>
@@ -9222,16 +9247,22 @@ d.type = et;
               <li>Let <var>dict</var> be an empty dictionary value of type <var>D</var>;
               every <a class='dfnref' href='#dfn-dictionary-member'>dictionary member</a>
               is initially considered to be <a class='dfnref' href='#dfn-present'>not present</a>.</li>
-              <li>For each dictionary member <var>member</var> declared on <var>D</var>, in order:
+              <li>Let <var>dictionaries</var> be a list consisting of <var>D</var> and all of <var>D</var>’s <a class='dfnref' href='#dfn-inherited-dictionaries'>inherited dictionaries</a>,
+                in order from least to most derived.</li>
+              <li>For each dictionary <var>dictionary</var> in <var>dictionaries</var>, in order:
                 <ol>
-                  <li>Let <var>key</var> be the <a class='dfnref' href='#dfn-identifier'>identifier</a> of <var>member</var>.</li>
-                  <li>Let <var>javaKey</var> be the result of <a class='dfnref' href='#dfn-convert-idl-to-java'>converting</a> <var>key</var> to a <span class='javatype'>java.lang.String</span>.</li>
-                  <li>Let <var>present</var> be the result of calling the <code>containsKey</code> method on <var>O</var> with <var>javaKey</var> as the only argument.</li>
-                  <li>If <var>present</var> is true, then:
+                  <li>For each dictionary member <var>member</var> declared on <var>dictionary</var>, in order:
                     <ol>
-                      <li>Let <var>value</var> be the result of calling the <code>get</code> method on <var>O</var> <var>javaKey</var> as the only argument.</li>
-                      <li>Let <var>idlValue</var> be the result of <a class='dfnref' href='#dfn-convert-java-to-idl-value'>converting</a> <var>value</var> to an IDL value whose type is the type <var>member</var> is declared to be of.</li>
-                      <li>Set the dictionary member on <var>dict</var> with key name <var>key</var> to the value <var>idlValue</var>.  This dictionary member is considered to be <a class='dfnref' href='#dfn-present'>present</a>.</li>
+                      <li>Let <var>key</var> be the <a class='dfnref' href='#dfn-identifier'>identifier</a> of <var>member</var>.</li>
+                      <li>Let <var>javaKey</var> be the result of <a class='dfnref' href='#dfn-convert-idl-to-java'>converting</a> <var>key</var> to a <span class='javatype'>java.lang.String</span>.</li>
+                      <li>Let <var>present</var> be the result of calling the <code>containsKey</code> method on <var>O</var> with <var>javaKey</var> as the only argument.</li>
+                      <li>If <var>present</var> is true, then:
+                        <ol>
+                          <li>Let <var>value</var> be the result of calling the <code>get</code> method on <var>O</var> <var>javaKey</var> as the only argument.</li>
+                          <li>Let <var>idlValue</var> be the result of <a class='dfnref' href='#dfn-convert-java-to-idl-value'>converting</a> <var>value</var> to an IDL value whose type is the type <var>member</var> is declared to be of.</li>
+                          <li>Set the dictionary member on <var>dict</var> with key name <var>key</var> to the value <var>idlValue</var>.  This dictionary member is considered to be <a class='dfnref' href='#dfn-present'>present</a>.</li>
+                        </ol>
+                      </li>
                     </ol>
                   </li>
                 </ol>
@@ -9246,16 +9277,22 @@ d.type = et;
             </p>
             <ol class='algorithm'>
               <li>Let <var>O</var> be a new <span class='javatype'>java.util.HashMap&lt;java.lang.String,java.lang.Object></span> object.</li>
-              <li>For each dictionary member <var>member</var> declared on <var>D</var>, in order:
+              <li>Let <var>dictionaries</var> be a list consisting of <var>D</var> and all of <var>D</var>’s <a class='dfnref' href='#dfn-inherited-dictionaries'>inherited dictionaries</a>,
+                in order from least to most derived.</li>
+              <li>For each dictionary <var>dictionary</var> in <var>dictionaries</var>, in order:
                 <ol>
-                  <li>Let <var>key</var> be the <a class='dfnref' href='#dfn-identifier'>identifier</a> of <var>member</var>.</li>
-                  <li>Let <var>javaKey</var> be the result of <a class='dfnref' href='#dfn-convert-idl-to-java'>converting</a> <var>key</var> to a <span class='javatype'>java.lang.String</span>.</li>
-                  <li>If the dictionary member named <var>key</var> is <a class='dfnref' href='#dfn-present'>present</a> on <var>V</var>, then:
+                  <li>For each dictionary member <var>member</var> declared on <var>dictionaries</var>, in order:
                     <ol>
-                      <li>Let <var>idlValue</var> be the value of <var>member</var> on <var>V</var>.</li>
-                      <li>Let <var>value</var> be the result of <a class='dfnref' href='#dfn-convert-idl-to-java-value'>converting</a> <var>idlValue</var> to a Java value
-                      as if <var>value</var> were an IDL <span class='idltype'>any</span> value.</li>
-                      <li>Call the <code>put</code> method on <var>O</var> with arguments <var>javaKey</var> and <var>value</var>.</li>
+                      <li>Let <var>key</var> be the <a class='dfnref' href='#dfn-identifier'>identifier</a> of <var>member</var>.</li>
+                      <li>Let <var>javaKey</var> be the result of <a class='dfnref' href='#dfn-convert-idl-to-java'>converting</a> <var>key</var> to a <span class='javatype'>java.lang.String</span>.</li>
+                      <li>If the dictionary member named <var>key</var> is <a class='dfnref' href='#dfn-present'>present</a> on <var>V</var>, then:
+                        <ol>
+                          <li>Let <var>idlValue</var> be the value of <var>member</var> on <var>V</var>.</li>
+                          <li>Let <var>value</var> be the result of <a class='dfnref' href='#dfn-convert-idl-to-java-value'>converting</a> <var>idlValue</var> to a Java value
+                          as if <var>value</var> were an IDL <span class='idltype'>any</span> value.</li>
+                          <li>Call the <code>put</code> method on <var>O</var> with arguments <var>javaKey</var> and <var>value</var>.</li>
+                        </ol>
+                      </li>
                     </ol>
                   </li>
                 </ol>
@@ -10528,12 +10565,12 @@ public <var>ExceptionName</var>(Throwable cause) {
           <prod nt='Definition'>ExtendedAttributeList NormalDefinition | PartialInterface</prod>
           <prod nt='NormalDefinition'>Module | Interface | Dictionary | Exception | Typedef | ImplementsStatement</prod>
           <prod nt='Module'>"module" identifier "{" Definitions "}" ";"</prod>
-          <prod nt='Interface'>"interface" identifier InterfaceInheritance "{" InterfaceMembers "}" ";"</prod>
+          <prod nt='Interface'>"interface" identifier Inheritance "{" InterfaceMembers "}" ";"</prod>
           <prod nt='PartialInterface'>"partial" "interface" identifier "{" InterfaceMembers "}" ";"</prod>
           <prod nt='Inheritance'>":" ScopedName | ε</prod>
           <prod nt='InterfaceMembers'>ExtendedAttributeList InterfaceMember InterfaceMembers | ε</prod>
           <prod nt='InterfaceMember'>Const | AttributeOrOperation</prod>
-          <prod nt='Dictionary'>"dictionary" identifier "{" DictionaryMembers "}" ";"</prod>
+          <prod nt='Dictionary'>"dictionary" identifier Inheritance "{" DictionaryMembers "}" ";"</prod>
           <prod nt='DictionaryMembers'>ExtendedAttributeList DictionaryMember DictionaryMembers | ε</prod>
           <prod nt='DictionaryMember'>Type identifier DefaultValue ";"</prod>
           <prod nt='DefaultValue'>"=" ConstExpr | ε</prod>
