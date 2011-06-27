@@ -15,7 +15,7 @@
   <head>
     <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'/>
     <title>Web IDL</title>
-    <meta name='revision' content='$Id: Overview.xml,v 1.318 2011-06-23 03:26:19 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: Overview.xml,v 1.319 2011-06-27 01:24:56 cmccorma Exp $'/>
     <link rel='stylesheet' href='WebIDL.css' type='text/css'/>
     <script src='section-links.js' type='application/ecmascript'/>
     <script src='dfn.js' type='application/ecmascript'/>
@@ -741,6 +741,14 @@ module gui {
             have members that correspond to the interface members from the inherited interface.
           </p>
           <p>
+            The <dfn id='dfn-inherited-interfaces'>inherited interfaces</dfn> of
+            a given interface <var>A</var> is the set of all interfaces that <var>A</var>
+            inherits from, directly or indirectly.  If <var>A</var> does not <a class='dfnref' href='#dfn-inherit'>inherit</a>
+            from another interface, then the set is empty.  Otherwise, the set
+            includes the interface <var>B</var> that <var>A</var> <a class='dfnref' href='#dfn-inherit-dictionary'>inherits</a>
+            from and all of <var>B</var>’s <a class='dfnref' href='#dfn-inherited-interfaces'>inherited interfaces</a>.
+          </p>
+          <p>
             An interface <span class='rfc2119'>MUST NOT</span> be declared such that
             its inheritance hierarchy has a cycle.  That is, an interface
             <var>A</var> cannot inherit from itself, nor can it inherit from another
@@ -750,8 +758,8 @@ module gui {
             Note that general multiple inheritance of interfaces is not supported, and
             objects also cannot implement arbitrary sets of interfaces.
             Objects can be defined to implement a single given interface <var>A</var>,
-            which means that it also implements all of the interfaces <var>A</var>
-            <a class='dfnref' href='#dfn-inherit'>inherits</a> from.  In addition,
+            which means that it also implements all of <var>A</var>’s
+            <a class='dfnref' href='#dfn-inherited-interfaces'>inherited interfaces</a>.  In addition,
             an <a href='#idl-implements-statement'>implements statement</a> can be
             used to define that objects implementing ane interface will always
             also implement another interface.
@@ -1184,7 +1192,8 @@ exception Error {
               <a class='xattr' href='#PutForwards'>[PutForwards]</a>,
               <a class='xattr' href='#Replaceable'>[Replaceable]</a>,
               <a class='xattr' href='#TreatNullAs'>[TreatNullAs]</a>,
-              <a class='xattr' href='#TreatUndefinedAs'>[TreatUndefinedAs]</a>.
+              <a class='xattr' href='#TreatUndefinedAs'>[TreatUndefinedAs]</a>,
+              <a class='xattr' href='#Unforgeable'>[Unforgeable]</a>.
             </p>
 
             <?productions grammar AttributeOrOperation StringifierAttributeOrOperation Attribute ReadOnly GetRaises SetRaises ExceptionList?>
@@ -6498,6 +6507,73 @@ c.isMemberOfBreed(undefined);  <span class='comment'>// This passes the string "
                                <span class='comment'>// isMemberOfBreed function.</span></x:codeblock>
             </div>
           </div>
+
+          <div id='Unforgeable' class='section'>
+            <h4>[Unforgeable]</h4>
+
+            <p>
+              If the <a class='xattr' href='#Unforgeable'>[Unforgeable]</a>
+              <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
+              appears on a <a class='dfnref' href='#dfn-read-only'>read only</a>
+              <a class='dfnref' href='#dfn-attribute'>attribute</a>, it indicates
+              that the attribute will be reflected as an ECMAScript property in
+              a way that means its behavior cannot be modified and that performing
+              a property lookup on the object will always result in the attribute’s
+              property value being returned.  In particular, the property will be
+              non-configurable and will exist as an own property on the object
+              itself rather than on its prototype.
+            </p>
+            <p>
+              The <a class='xattr' href='#Unforgeable'>[Unforgeable]</a>
+              extended attribute <span class='rfc2119'>MUST</span>
+              <a class='dfnref' href='#dfn-xattr-no-argument'>take no argument</a>.
+            </p>
+            <p>
+              The <a class='xattr' href='#Unforgeable'>[Unforgeable]</a>
+              extended attribute <span class='rfc2119'>MUST NOT</span> appear on
+              anything other than a read only attribute.  It also <span class='rfc2119'>MUST NOT</span>
+              appear on an attribute on interface <var>A</var> if there exists
+              another interface <var>B</var> that defines any
+              <a class='dfnref' href='#dfn-interface-member'>interface member</a> with the same
+              <a class='dfnref' href='#dfn-identifier'>identifier</a>, and which
+              either has <var>A</var> as an <a class='dfnref' href='#dfn-inherited-interfaces'>inherited interface</a>
+              or which is a <a class='dfnref' href='#dfn-consequential-interface'>consequential interface</a> of <var>A</var>.
+            </p>
+            <div class='example'>
+              <p>
+                The following <a class='dfnref' href='#dfn-idl-fragment'>IDL fragment</a> defines
+                an interface that has two <a class='dfnref' href='#dfn-attribute'>attributes</a>,
+                one of which is designated as <a class='xattr' href='#Unforgeable'>[Unforgeable]</a>:
+              </p>
+              <x:codeblock language='idl'>interface System {
+  [Unforgeable] readonly attribute DOMString username;
+  readonly attribute Date loginTime; 
+};</x:codeblock>
+              <p>
+                An ECMAScript implementation of the interface will expose
+                the username attribute as a non-configurable property on the
+                object itself:
+              </p>
+              <x:codeblock language='es'>var system = getSystem();                      <span class='comment'>// Get an instance of System.</span>
+
+system.hasOwnProperty("username");             <span class='comment'>// Evaluates to true.</span>
+system.hasOwnProperty("loginTime");            <span class='comment'>// Evaluates to false.</span>
+System.prototype.hasOwnProperty("username");   <span class='comment'>// Evaluates to false.</span>
+System.prototype.hasOwnProperty("loginTime");  <span class='comment'>// Evaluates to true.</span>
+
+try {
+  <span class='comment'>// This call would fail, since the property is non-configurable.</span>
+  Object.defineProperty(system, "username", { value: "administrator" });
+} catch (e) { }
+
+<span class='comment'>// This defineProperty call would succeed, because System.prototype.loginTime</span>
+<span class='comment'>// is configurable.</span>
+var forgedLoginTime = new Date(new Date() - 3600000);
+Object.defineProperty(System.prototype, "loginTime", { value: forgedLoginTime });
+
+system.loginTime;  <span class='comment'>// So this now evaluates to forgedLoginTime.</span></x:codeblock>
+            </div>
+          </div>
         </div>
 
         <div id='es-modules' class='section'>
@@ -7120,9 +7196,9 @@ interface
             <p>
               For each <a class='dfnref' href='#dfn-attribute'>attribute</a> defined on
               the <a class='dfnref' href='#dfn-interface'>interface</a>, there
-              <span class='rfc2119'>MUST</span> be a corresponding property on
-              the <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype object</a>,
-              unless:
+              <span class='rfc2119'>MUST</span> be a corresponding property
+              either on the <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype object</a>
+              or on every object that implements the interface, unless:
             </p>
             <ul>
               <li>the <a class='dfnref' href='#dfn-identifier'>identifier</a> of the attribute is “constructor”; or</li>
@@ -7133,13 +7209,23 @@ interface
             </p>
             <ul>
               <li>
+                If the attribute was declared with the <a class='xattr' href='#Unforgeable'>[Unforgeable]</a>
+                <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>, then the property
+                exists on every object that implements the interface.  Otherwise, it exists on the
+                interface’s <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype object</a>.
+              </li>
+              <li>
                 The name of the property is the <a class='dfnref' href='#dfn-identifier'>identifier</a> of the <a class='dfnref' href='#dfn-attribute'>attribute</a>.
               </li>
               <li>
-                The property has attributes <span class='descriptor'>{ [[Get]]: <var>G</var>, [[Set]]: <var>S</var>, [[Enumerable]]: <span class='esvalue'>true</span>, [[Configurable]]: <span class='esvalue'>true</span> }</span>,
-                where <var>G</var> is the <a class='dfnref' href='#dfn-attribute-getter'>attribute getter</a>
-                and <var>S</var> is the <a class='dfnref' href='#dfn-attribute-setter'>attribute setter</a>,
-                both of which are defined below.
+                The property has attributes <span class='descriptor'>{ [[Get]]: <var>G</var>, [[Set]]: <var>S</var>, [[Enumerable]]: <span class='esvalue'>true</span>, [[Configurable]]: <var>configurable</var> }</span>,
+                where:
+                <ul>
+                  <li><var>configurable</var> is <span class='esvalue'>false</span> if the attribute was
+                    declared with the <a class='xattr' href='#Unforgeable'>[Unforgeable]</a> extended attribute and <span class='esvalue'>true</span> otherwise;</li>
+                  <li><var>G</var> is the <a class='dfnref' href='#dfn-attribute-getter'>attribute getter</a>, defined below; and</li>
+                  <li><var>S</var> is the <a class='dfnref' href='#dfn-attribute-setter'>attribute setter</a>, also defined below.</li>
+                </ul>
               </li>
               <li>
                 The <dfn id='dfn-attribute-getter'>attribute getter</dfn> is a <span class='estype'>Function</span>
@@ -7586,6 +7672,9 @@ interface
               operates as follows, with property name <var>P</var> and object <var>O</var>:
             </p>
             <ol class='algorithm'>
+              <li>If <var>O</var> implements an <a class='dfnref' href='#dfn-interface'>interface</a> with
+                an <a class='xattr' href='#Unforgeable'>[Unforgeable]</a>-annotated <a class='dfnref' href='#dfn-attribute'>attribute</a>
+                whose <a class='dfnref' href='#dfn-identifier'>identifier</a> is <var>P</var>, then return false.</li>
               <li>If <var>P</var> is not a <a class='dfnref' href='#dfn-supported-property-names'>supported property name</a>
                 of <var>O</var>, then return false.</li>
               <li>If <var>O</var> implements an interface that has the <a class='xattr' href='#OverrideBuiltins'>[OverrideBuiltins]</a>
@@ -7734,7 +7823,9 @@ interface
               </li>
 
               <li>
-                If <var>O</var> <a class='dfnref' href='#dfn-support-named-properties'>supports named properties</a>, then:
+                If <var>O</var> <a class='dfnref' href='#dfn-support-named-properties'>supports named properties</a> and <var>P</var>
+                is not the <a class='dfnref' href='#dfn-identifier'>identifier</a> of an <a class='xattr' href='#Unforgeable'>[Unforgeable]</a>-annotated <a class='dfnref' href='#dfn-attribute'>attribute</a>
+                on an interface that <var>O</var> implements, then:
                 <ol>
                   <li>Let <var>creating</var> be true if <var>P</var> is not a <a class='dfnref' href='#dfn-supported-property-names'>supported property name</a>, and false otherwise.</li>
                   <li>If <var>creating</var> is false and <var>O</var> implements an interface with the <a class='xattr' href='#ReplaceableNamedProperties'>[ReplaceableNamedProperties]</a>
@@ -7862,7 +7953,12 @@ interface
                 </ol>
               </li>
 
-              <li>If <var>P</var> has an own property with name <var>P</var>, then remove it.</li>
+              <li>If <var>O</var> has an own property with name <var>P</var>, then:
+                <ol>
+                  <li>If the property is not configurable, then Reject.</li>
+                  <li>Otherwise, remove the property from <var>O</var>.</li>
+                </ol>
+              </li>
               <li>Return <span class='esvalue'>true</span>.</li>
             </ol>
           </div>
@@ -10805,6 +10901,13 @@ public <var>ExceptionName</var>(Throwable cause) {
           <dt>Current editor’s draft</dt>
           <dd>
             <ul>
+              <li>
+                <p>
+                  Added an <span class='xattr'>[Unforgeable]</span> extended attribute
+                  to require properties corresponding to IDL attribtues be non-configurable
+                  and to appear as own properties on the object rather than on the prototype.
+                </p>
+              </li>
               <li>
                 <p>
                   Allowed <span class='xattr'>[Callback]</span> interfaces to inherit from
