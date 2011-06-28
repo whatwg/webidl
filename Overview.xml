@@ -15,7 +15,7 @@
   <head>
     <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'/>
     <title>Web IDL</title>
-    <meta name='revision' content='$Id: Overview.xml,v 1.320 2011-06-28 02:54:32 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: Overview.xml,v 1.321 2011-06-28 04:45:27 cmccorma Exp $'/>
     <link rel='stylesheet' href='WebIDL.css' type='text/css'/>
     <script src='section-links.js' type='application/ecmascript'/>
     <script src='dfn.js' type='application/ecmascript'/>
@@ -245,15 +245,21 @@
         <h2>Interface definition language</h2>
 
         <p>
-          This section describes a language with which interfaces can be defined
-          in a language independent manner.
+          This section describes a language, <em>Web IDL</em>, which can be used to define
+          interfaces for APIs in the Web platform.  A specification that defines Web APIs
+          can include one or more <dfn id='dfn-idl-fragment'>IDL fragments</dfn> that
+          describe the interfaces (in the object-oriented sense) for the APIs defined by that specification.
+          An <a class='dfnref' href='#dfn-idl-fragment'>IDL fragment</a> is
+          a sequence of definitions that matches the <a class='nt' href='#prod-Definitions'>Definitions</a> non-terminal
+          in the grammar.  See <a href='#idl-grammar'>Appendix <?sref idl-grammar?></a>
+          for the complete grammar and an explanation of the notation used.
         </p>
 
         <p>
-          An <dfn id='dfn-idl-fragment'>IDL fragment</dfn> is a sequence of definitions that matches the
-          <a class='nt' href='#prod-Definitions'>Definitions</a> non-terminal
-          in the grammar.  See <a href='#idl-grammar'>Appendix <?sref idl-grammar?></a>
-          for the complete grammar and an explanation of the notation used.
+          Definitions that can appear in an <a class='dfnref' href='#dfn-idl-fragment'>IDL fragment</a>
+          include <a href='#idl-interfaces'>interfaces</a>, <a href='#idl-modules'>modules</a>,
+          <a href='#idl-exceptions'>exception</a> and more.  These are all defined in the following
+          sections.
         </p>
 
         <p>
@@ -272,35 +278,70 @@
             scope</dfn> if there is no <a class='nt' href='#prod-Module'>Module</a> ancestor
           of the non-terminal representing the definition in the parse tree for the
           <a class='dfnref' href='#dfn-idl-fragment'>IDL fragment</a>.
-          <!--
-          <a class='dfnref' href='#dfn-conforming-idl-fragment'>Conforming IDL fragments</a>
-          <span class='rfc2119'>SHOULD NOT</span> have any non-<a class='dfnref' href='#dfn-module'>module</a>
-          definitions declared at the outermost scope.
-          -->
         </p>
 
-        <!--
-        <p>
-          A definition has been <dfn id='dfn-declared-previously'>declared previously</dfn>,
-          relative to a given <a class='dfnref' href='#dfn-scoped-name'>scoped name</a> that
-          <a class='dfnref' href='#dfn-resolve'>resolved</a> to the definition, if:
-        </p>
-        <ul>
-          <li>
-            the scoped name resolves to a definition other than an
-            <a class='dfnref' href='#dfn-interface'>interface</a>, and
-            the first terminal symbol of the <a class='nt' href='#prod-Definition'>Definition</a>
-            for the interface occurs before the scoped name; or,
-          </li>
-          <li>
-            the scoped name resolves to an
-            <a class='dfnref' href='#dfn-interface'>interface</a>, and
-            the first terminal symbol of the <a class='nt' href='#prod-Definition'>Definition</a>
-            for the interface or a <a class='dfnref' href='#dfn-interface-forward-declaration'>forward declaration</a>
-            for the interface occurs before scoped name.
-          </li>
-        </ul>
-        -->
+        <div class='example'>
+          <p>
+            The following is an example of an <a class='dfnref' href='#dfn-idl-fragment'>IDL fragment</a>.
+          </p>
+          <x:codeblock language='idl'>module gfx {
+  exception GraphicsException {
+    DOMString reason;
+  };
+
+  interface Paint { };
+
+  interface SolidColor : Paint {
+    attribute float red;
+    attribute float green;
+    attribute float blue;
+  };
+
+  interface Pattern : Paint {
+    attribute DOMString imageURL;
+  };
+
+  [Constructor]
+  interface GraphicalWindow {
+    readonly attribute unsigned long width;
+    readonly attribute unsigned long height;
+
+    attribute Paint currentPaint;
+
+    void drawRectangle(in float x, in float y, in float width, in float height)
+      raises(GraphicsException);
+
+    void drawText(in float x, in float y, in DOMString text)
+      raises(GraphicsException);
+  };
+};</x:codeblock>
+          <p>
+            Here, four <a class='dfnref' href='#dfn-interface'>interfaces</a> are being
+            defined and one <a class='dfnref' href='#dfn-exception'>exception</a>.
+            The <span class='idltype'>GraphicalWindow</span> interface has two
+            <a class='dfnref' href='#dfn-read-only'>read only</a> <a class='dfnref' href='#dfn-dfn-attribute'>attributes</a>,
+            one writable attribute, and two <a class='dfnref' href='#dfn-operation'>operation</a>
+            defined on it.  Objects in the system that implement the <span class='idltype'>GraphicalWindow</span> interface
+            will expose these attributes and operations in a manner appropriate to the
+            particular language being used. For example, in ECMAScript, the attributes
+            will be exposed as accessor properties and the operations as <span class='estype'>Function</span>-valued
+            data properties on a prototype object for all <span class='idltype'>GraphicalWindow</span>
+            objects; each ECMAScript object that implements <span class='idltype'>GraphicalWindow</span>
+            will have that prototype object in its prototype chain.
+          </p>
+          <p>
+            Since the interfaces and the exception all appear inside a <a class='dfnref' href='#dfn-module'>module</a>,
+            they are not <a class='dfnref' href='#dfn-outermost-scope'>declared at the outermost scope</a>.
+            The module itself, however, is.
+          </p>
+          <p>
+            The <a class='xattr' href='#Constructor'>[Constructor]</a> that appears on <span class='idltype'>GraphicalWindow</span>
+            is an <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>.
+            This extended attribute causes a constructor to exist in ECMAScript implementations,
+            so that calling <code>new GraphicalWindow()</code> would return a new object
+            that implemented the interface.
+          </p>
+        </div>
 
         <?productions grammar Definitions Definition NormalDefinition?>
 
@@ -359,7 +400,7 @@
           <div class='note'>
             <p>
               Operations can have no identifier when they are being used to declare a
-              special kind of operation, such as a getter or setter.
+              <a href='#idl-special-operations'>special kind of operation</a>, such as a getter or setter.
             </p>
           </div>
           <p>
