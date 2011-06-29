@@ -15,7 +15,7 @@
   <head>
     <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'/>
     <title>Web IDL</title>
-    <meta name='revision' content='$Id: Overview.xml,v 1.321 2011-06-28 04:45:27 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: Overview.xml,v 1.322 2011-06-29 05:25:41 cmccorma Exp $'/>
     <link rel='stylesheet' href='WebIDL.css' type='text/css'/>
     <script src='section-links.js' type='application/ecmascript'/>
     <script src='dfn.js' type='application/ecmascript'/>
@@ -618,7 +618,8 @@ module framework {
           <h3>Modules</h3>
 
           <div class='ednote'>
-            <p>Should W3C specs place use modules at all?  <a href='http://www.w3.org/mid/20090719235817.GA10248@arc.mcc.id.au'>(Mail.)</a></p>
+            <p>Should W3C specs use modules at all?  And if not, should we just remove them?
+              <a href='http://www.w3.org/mid/20090719235817.GA10248@arc.mcc.id.au'>(Mail.)</a></p>
           </div>
           <p>
             A <dfn id='dfn-module'>module</dfn> is a definition that matches the
@@ -1710,7 +1711,8 @@ dictionary.x = 1;                  <span class='comment'>// Invokes the property
 };</x:codeblock>
                 <p>
                   An ECMAScript implementation supporting this interface would
-                  allow a host object that implements <span class='idltype'>NumberQuadrupler</span>
+                  allow a <a class='dfnref' href='#dfn-platform-object'>platform object</a>
+                  that implements <span class='idltype'>NumberQuadrupler</span>
                   to be called as a function:
                 </p>
                 <x:codeblock language='es'>var f = getNumberQuadrupler();  <span class='comment'>// Obtain an instance of NumberQuadrupler.</span>
@@ -1941,16 +1943,16 @@ var greeting = 'Hi ' + s;  <span class='comment'>// Now greeting == 'Hi Alan Smi
                   </p>
                 </blockquote>
                 <p>
-                  As described in section <a href='#host-objects'>section <?sref host-objects?></a>,
+                  As described in section <a href='#es-platform-objects'>section <?sref es-platform-objects?></a>,
                   an ECMAScript implementation would create
-                  properties on a host object implementing
+                  properties on a <a class='dfnref' href='#dfn-platform-object'>platform object</a> implementing
                   <span class='idltype'>OrderedMap</span> that correspond to
                   entries in both the named and indexed property sets.
                   These properties can then be used to interact
                   with the object in the same way as invoking the object’s
                   methods, as demonstrated below:
                 </p>
-                <x:codeblock language='es'><span class='comment'>// Assume map is a host object implementing the OrderedMap interface.</span>
+                <x:codeblock language='es'><span class='comment'>// Assume map is a platform object implementing the OrderedMap interface.</span>
 var map = getOrderedMap();
 var x, y;
 
@@ -3054,6 +3056,93 @@ EventTarget et = (EventTarget) n; <span class='comment'>// This should never thr
           </div>
         </div>
 
+        <div id='idl-objects' class='section'>
+          <h3>Objects implementing interfaces</h3>
+
+          <p>
+            In systems described by <a class='dfnref' href='#dfn-idl-fragment'>IDL fragments</a>,
+            each object that implements one or more <a class='dfnref' href='#dfn-idl-interface'>interfaces</a>
+            is considered to be either a <dfn id='dfn-platform-object'>platform object</dfn> or a
+            <dfn id='dfn-user-object'>user object</dfn>.  Platform objects are those which are
+            created and supplied by an implementation of those IDL fragments.  In a browser, for example,
+            the browser-implemented DOM objects (implementing interfaces such as <span class='idltype'>Node</span> and
+            <span class='idltype'>Document</span>) that provide access to a web page’s contents
+            to ECMAScript running in the page would be platform objects.  An ECMAScript library
+            that adds support for some Web API that is not natively supported by a browser
+            would also be considered to expose platform objects.  Exception objects are also
+            considered to be platform objects.
+          </p>
+          <p>
+            On the other hand, user objects are those that authors would create, implementing
+            particular interfaces that the Web APIs use to be able to invoke author-defined
+            operations or to send and receive values to the author’s program through
+            manipulating the object’s attributes.  In a web page, script that implements
+            the <span class='idltype'>EventListener</span> interface, which is used to
+            register a callback that the DOM Events implementation invokes, would be considered
+            to be a user object.  There is no way for a user object to represent an exception.
+          </p>
+          <p>
+            In IDL, the <a class='xattr' href='#Callback'>[Callback]</a>
+            <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
+            is used to annotate <a class='dfnref' href='#dfn-interface'>interfaces</a> that
+            can be implemented as user objects.  These interfaces may or may not also be
+            implemented as platform objects.
+          </p>
+          <p>
+            Only interfaces with the following characteristics can be implemented
+            as user objects:
+          </p>
+          <ul>
+            <li>
+              The interface has a 
+              <a class='xattr' href='#Callback'>[Callback]</a>
+              <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
+              on it.
+            </li>
+            <li>
+              The interface does not <a class='dfnref' href='#dfn-inherit'>inherit</a>
+              from any non-<a class='xattr' href='#Callback'>[Callback]</a>-annotated interface.
+            </li>
+            <li>
+              The interface and all of its <a class='dfnref' href='#dfn-inherited-interfaces'>inherited interface</a>
+              do not have any <a class='dfnref' href='#dfn-consequential-interface'>consequential interfaces</a>.
+            </li>
+            <li>
+              The interface does not have a
+              <a class='xattr' href='#Constructor'>[Constructor]</a> or
+              <a class='xattr' href='#NamedConstructor'>[NamedConstructor]</a>
+              extended attribute on it.
+            </li>
+            <li>
+              The interface has no
+              <a class='dfnref' href='#dfn-getter'>getters</a>,
+              <a class='dfnref' href='#dfn-setter'>setters</a>,
+              <a class='dfnref' href='#dfn-creator'>creators</a>,
+              <a class='dfnref' href='#dfn-deleter'>deleters</a>,
+              <a class='dfnref' href='#dfn-caller'>caller</a> or
+              <a class='dfnref' href='#dfn-stringifier'>stringifier</a>.
+            </li>
+            <li>
+              No <a class='dfnref' href='#dfn-attribute'>attribute</a> on the interface has a
+              <a class='xattr' href='#PutForwards'>[PutForwards]</a>,
+              <a class='xattr' href='#Replaceable'>[Replaceable]</a>,
+              <a class='xattr' href='#TreatNullAs'>[TreatNullAs]</a> or
+              <a class='xattr' href='#TreatUndefinedAs'>[TreatUndefinedAs]</a>
+              extended attribute on it.
+            </li>
+          </ul>
+          <p>
+            When a user object is passed to a platform object expecting an object of a
+            particular interface, be it as an argument value in an operation invocation,
+            by assignment to an attribute, or through a dictionary member, and that
+            interface was not declared using the <a class='xattr' href='#Callback'>[Callback]</a>
+            <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>, then
+            the object will not be considered to be one that implements that interface.
+            Language bindings define precisely how this check is made and what happens
+            in response in such a case (such as throwing an exception).
+          </p>
+        </div>
+
         <!--
         <div id='idl-valuetypes' class='section'>
           <h3>Valuetypes</h3>
@@ -3880,7 +3969,7 @@ FileIOException.FILE_NOT_FOUND;  <span class='comment'>// evaluates to 1</x:code
                 be assigned to the <span class='prop'>name</span> property or passed as the
                 argument to the <span class='prop'>isMemberOfBreed</span> function:
               </p>
-              <x:codeblock language='es'>var d = getDog();         <span class='comment'>// Assume d is a host object implementing the Dog interface.</span>
+              <x:codeblock language='es'>var d = getDog();         <span class='comment'>// Assume d is a platform object implementing the Dog interface.</span>
 
 d.name = null;            <span class='comment'>// This assigns the string "null" to the .name property.</span>
 d.isMemberOfBreed(null);  <span class='comment'>// This passes the string "null" to the isMemberOfBreed function.</x:codeblock></span>
@@ -3929,11 +4018,11 @@ interface PersonFactory {
   [Overloads=createPerson] Person createPersonWithAge(in short age);
 };</x:codeblock>
               <p>
-                Since the ECMAScript binding allows overloading, a host object
+                Since the ECMAScript binding allows overloading, a platform object
                 implementing the <span class='idltype'>PersonFactory</span>
                 interface will have a single property <span class='prop'>createPerson</span>:
               </p>
-              <x:codeblock language='es'>var f = getFactory();          <span class='comment'>// Assume f is a host object implementing the PersonFactory interface.</span>
+              <x:codeblock language='es'>var f = getFactory();          <span class='comment'>// Assume f is a platform object implementing the PersonFactory interface.</span>
 
 typeof f.createPerson;         <span class='comment'>// Evaluates to "function".</span>
 typeof f.createPersonWithAge;  <span class='comment'>// Evaluates to "undefined".</span>
@@ -3952,6 +4041,101 @@ Person* p2 = PersonFactory_createPersonWithAge(f, 26);  <span class='comment'>//
             </div>
           </div>
           -->
+
+          <div id='Callback' class='section'>
+            <h4>[Callback]</h4>
+
+            <div class='ednote'>
+              <p>
+                Since the <a class='xattr' href='#Callback'>[Callback]</a> extended attribute
+                is now important at the IDL level to indicate whether user objects can
+                implement a given interface, does it make sense to hoist it up into
+                proper syntax (i.e., not be an extended attribute)?
+              </p>
+              <p>
+                It may be that <a class='xattr' href='#Callback'>[Callback]</a>
+                is not the best name for the extended attribute anyway, although
+                it does capture many uses of interfaces that user objects can
+                implement.
+              </p>
+            </div>
+            <p>
+              If the <a class='xattr' href='#Callback'>[Callback]</a>
+              <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
+              appears on an <a class='dfnref' href='#dfn-interface'>interface</a>,
+              it indicates that <a class='dfnref' href='#dfn-user-object'>user objects</a>
+              can implement the interface.  As described in <a href='#idl-objects'>section <?sref idl-objects?> <?sdir idl-objects?></a>,
+              user objects will only be considered to implement a given interface if
+              the interface is annotated with <a class='xattr' href='#Callback'>[Callback]</a>.
+              User objects implementing an interface are most often
+              used to provide callback methods to a <a class='dfnref' href='#dfn-platform-object'>platform object</a>,
+              hence the name of this extended attribute.
+            </p>
+            <p>
+              The <a class='xattr' href='#Callback'>[Callback]</a> extended attribute
+              <span class='rfc2119'>MUST</span> either <a class='dfnref' href='#dfn-xattr-no-argument'>take no argument</a>
+              or <a class='dfnref' href='#dfn-xattr-identifier'>take an identifier</a>.
+              The identifier, if present, is used only by the ECMAScript language binding,
+              to control exactly which kinds of objects can be considered to
+              implement a <a class='xattr' href='#Callback'>[Callback]</a>-annotated
+              interface.  See <a href='#es-Callback'>section <?sref es-Callback?> <?sdir es-Callback?></a> for
+              details.
+            </p>
+            <p>
+              The <a class='xattr' href='#Callback'>[Callback]</a> extended attribute
+              <span class='rfc2119'>MUST NOT</span> be used on an interface that
+              does not meet the criteria for an interface that can implemented by
+              user objects, as described in <a href="#idl-objects">section <?sref idl-objects?> <?sdir idl-objects?></a>.
+            </p>
+            <div class='example'>
+              <p>
+                The following <a class='dfnref' href='#dfn-idl-fragment'>IDL fragment</a> defines
+                simplified versions of a few DOM <a class='dfnref' href='#dfn-interface'>interfaces</a>, one of which
+                is annotated with the <a class='xattr' href='#Callback'>[Callback]</a>
+                <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>.
+              </p>
+              <x:codeblock language='idl'>interface Node {
+  readonly attribute DOMString nodeName;
+  readonly attribute Node? parentNode;
+  Node appendChild(in Node newChild);
+  void addEventListener(in DOMString type, in EventListener listener);
+};
+
+[Callback]
+interface EventListener {
+  void handleEvent(in Event event);
+};</x:codeblock>
+              <p>
+                Since the <span class='idltype'>EventListener</span> interface is annotated
+                with <a class='xattr' href='#Callback'>[Callback]</a>, <a class='dfnref' href='#dfn-user-object'>user objects</a>
+                can implement it:
+              </p>
+              <x:codeblock language='es'>var node = getNode();  <span class='comment'>// Obtain an instance of Node.</span>
+
+var listener = {
+  handleEvent: function(event) {
+    ...
+  }
+};
+node.addEventListener("click", listener);</x:codeblock>
+              <p>
+                It is not possible for a user object to implement <span class='idltype'>Node</span>, however:
+              </p>
+              <x:codeblock language='es'>var node = getNode();  <span class='comment'>// Obtain an instance of Node.</span>
+
+var newNode = {
+  nodeName: "span",
+  parentNode: null,
+  appendChild: function(newchild) {
+    ...
+  },
+  addEventListener: function(type, listener) {
+    ...
+  }
+};
+node.appendChild(newNode);  <span class='comment'>// This will throw a TypeError exception.</span></x:codeblock>
+            </div>
+          </div>
 
           <div id='Prefix' class='section'>
             <h4>[Prefix]</h4>
@@ -4046,9 +4230,6 @@ Person* p2 = PersonFactory_createPersonWithAge(f, 26);  <span class='comment'>//
             and comprise the following:
           </p>
           <ul>
-            <!--
-            <li><a class='dfnref' href='#dfn-array-host-object-prototype'>array host object prototype objects</a></li>
-            -->
             <li><a class='dfnref' href='#dfn-namespace-object'>namespace objects</a></li>
             <li><a class='dfnref' href='#dfn-interface-object'>interface objects</a></li>
             <li><a class='dfnref' href='#dfn-named-constructor'>named constructors</a></li>
@@ -4103,28 +4284,13 @@ iframe.appendChild instanceof w.Function;  <span class='comment'>// Evaluates to
           <p>
             This section describes how types in the IDL map to types in ECMAScript.
           </p>
-          <!--
-          <p>
-            <dfn id='dfn-pass-to-host-object'>Passing a value to a host object expecting type <var>T</var></dfn>
-            is used in this sub-section to describe passing an ECMAScript value as an argument to a function whose corresponding
-            <a class='dfnref' href='#dfn-operation'>operation</a> in the IDL specifies that
-            the argument is of type <var>T</var>, or assigning to a property whose corresponding
-            <a class='dfnref' href='#dfn-attribute'>attribute</a> or
-            <a class='dfnref' href='#dfn-exception-member'>exception member</a> in the IDL
-            is of type <var>T</var>.  Conversely, <dfn id='dfn-return-from-host-object'>returning a value of type
-              <var>T</var> from a host object</dfn> is used to describe obtaining the ECMAScript return value
-            from a function whose corresponding operation in the IDL specifies a
-            <a class='dfnref' href='#dfn-return-type'>return type</a> <var>T</var>,
-            or retrieving a property whose corresponding attribute or exception member in the IDL is of type <var>T</var>.
-          </p>
-          -->
           <p>
             Each sub-section below describes how values of a given IDL type are represented
             in ECMAScript.  For each IDL type, it is described how ECMAScript values are
             <dfn id='dfn-convert-ecmascript-to-idl-value'>converted to an IDL value</dfn>
-            when passed to a host object expecting that type, and how IDL values
+            when passed to a <a class='dfnref' href='#dfn-platform-object'>platform object</a> expecting that type, and how IDL values
             of that type are <dfn id='dfn-convert-idl-to-ecmascript-value'>converted to ECMAScript values</dfn>
-            when returned from a host object.
+            when returned from a platform object.
           </p>
 
           <div id='es-any' class='section'>
@@ -4201,7 +4367,7 @@ iframe.appendChild instanceof w.Function;  <span class='comment'>// Evaluates to
             <p>
               The only place that the <a class='idltype' href='#idl-void'>void</a> type may appear
               in IDL is as the <a class='dfnref' href='#dfn-return-type'>return type</a> of an
-              <a class='dfnref' href='#dfn-operation'>operation</a>.  Functions on host objects
+              <a class='dfnref' href='#dfn-operation'>operation</a>.  Functions on <a class='dfnref' href='#dfn-platform-object'>platform objects</a>
               that implement an operation whose IDL specifies a
               <a class='idltype' href='#idl-void'>void</a> return type <span class='rfc2119'>MUST</span> return the
               <span class='esvalue'>undefined</span> value.
@@ -4687,11 +4853,11 @@ iframe.appendChild instanceof w.Function;  <span class='comment'>// Evaluates to
                     annotated with <a class='xattr' href='#TreatNullAs'>[TreatNullAs=EmptyString]</a>,
                   </li>
                   <li>
-                    <var>V</var> is being returned from a native object implementation of an
+                    <var>V</var> is being returned from a <a class='dfnref' href='#dfn-user-object'>user object</a> implementation of an
                     operation annotated with <a class='xattr' href='#TreatNullAs'>[TreatNullAs=EmptyString]</a>, or
                   </li>
                   <li>
-                    <var>V</var> is being returned from a native object implementation of an
+                    <var>V</var> is being returned from a <a class='dfnref' href='#dfn-user-object'>user object</a> implementation of an
                     attribute annotated with <a class='xattr' href='#TreatNullAs'>[TreatNullAs=EmptyString]</a>,
                   </li>
                 </ul>
@@ -4711,11 +4877,11 @@ iframe.appendChild instanceof w.Function;  <span class='comment'>// Evaluates to
                     annotated with <a class='xattr' href='#TreatUndefinedAs'>[TreatUndefinedAs=EmptyString]</a>,
                   </li>
                   <li>
-                    <var>V</var> is being returned from a native object implementation of an
+                    <var>V</var> is being returned from a <a class='dfnref' href='#dfn-user-object'>user object</a> implementation of an
                     operation annotated with <a class='xattr' href='#TreatUndefinedAs'>[TreatUndefinedAs=EmptyString]</a>, or
                   </li>
                   <li>
-                    <var>V</var> is being returned from a native object implementation of an
+                    <var>V</var> is being returned from a <a class='dfnref' href='#dfn-user-object'>user object</a> implementation of an
                     attribute annotated with <a class='xattr' href='#TreatUndefinedAs'>[TreatUndefinedAs=EmptyString]</a>,
                   </li>
                 </ul>
@@ -4774,8 +4940,8 @@ iframe.appendChild instanceof w.Function;  <span class='comment'>// Evaluates to
             </p>
             <ol class='algorithm'>
               <li>Let <var>x</var> be the result of calling ToObject(<var>V</var>).</li>
-              <li>If <var>x</var> is a host object that implements <var>I</var>, then return the IDL <a href='#idl-interface'>interface type</a> value that represents a reference to that host object.</li>
-              <li>If <var>x</var> is a native object that is considered to implement <var>I</var> according to the rules in <a href='#native-objects'>section <?sref native-objects?></a>, then return the IDL <a href='#idl-interface'>interface type</a> value that represents a reference to that native object.</li>
+              <li>If <var>x</var> is a <a class='dfnref' href='#dfn-platform-object'>platform object</a> that implements <var>I</var>, then return the IDL <a href='#idl-interface'>interface type</a> value that represents a reference to that platform object.</li>
+              <li>If <var>x</var> is a <a class='dfnref' href='#dfn-user-object'>user object</a> that is considered to implement <var>I</var> according to the rules in <a href='#es-user-objects'>section <?sref es-user-objects?></a>, then return the IDL <a href='#idl-interface'>interface type</a> value that represents a reference to that user object.</li>
               <li>Throw a <span class='esvalue'>TypeError</span>.</li>
             </ol>
             <p>
@@ -4889,11 +5055,11 @@ iframe.appendChild instanceof w.Function;  <span class='comment'>// Evaluates to
                         annotated with <a class='xattr' href='#TreatUndefinedAs'>[TreatUndefinedAs]</a>,
                       </li>
                       <li>
-                        <var>V</var> is being returned from a native object implementation of an
+                        <var>V</var> is being returned from a <a class='dfnref' href='#dfn-user-object'>user object</a> implementation of an
                         operation annotated with <a class='xattr' href='#TreatUndefinedAs'>[TreatUndefinedAs]</a>, or
                       </li>
                       <li>
-                        <var>V</var> is being returned from a native object implementation of an
+                        <var>V</var> is being returned from a <a class='dfnref' href='#dfn-user-object'>user object</a> implementation of an
                         attribute annotated with <a class='xattr' href='#TreatUndefinedAs'>[TreatUndefinedAs]</a>,
                       </li>
                     </ul>
@@ -5046,7 +5212,7 @@ canvas.getSupportedImageCodecs() == canvas.getSupportedImageCodecs();
 <span class='comment'>// An Array of Numbers...</span>
 var a = [0, 0, 100, 0, 50, 62.5];
 
-<span class='comment'>// ...can be passed to a host object expecting a sequence&lt;float>.</span>
+<span class='comment'>// ...can be passed to a platform object expecting a sequence&lt;float>.</span>
 canvas.drawPolygon(a);
 
 <span class='comment'>// Each element will be converted to a float by first calling ToNumber().</span>
@@ -5141,23 +5307,22 @@ a[0] = 20;</x:codeblock>
 
             <p>
               IDL array values are represented by references to objects known
-              as <dfn id='dfn-array-host-object'>array host objects</dfn>, with particular
+              as <dfn id='dfn-platform-array-object'>platform array objects</dfn>, with particular
               characteristics that allow them to behave similarly to native <span class='estype'>Array</span>
               objects.
             </p>
             <p>
               The value of the internal <span class='prop'>[[Prototype]]</span> property of an
-              <a class='dfnref' href='#dfn-array-host-object'>array host object</a>
+              <a class='dfnref' href='#dfn-platform-array-object'>platform array object</a>
               <span class='rfc2119'>MUST</span> be the
-              <a class='dfnref' href='#dfn-array-host-object-prototype'>array host object prototype object</a>,
               <span class='estype'>Array</span> prototype object
               (<a href='#ref-ECMA-262'>[ECMA-262]</a>, section 15.4.4).
             </p>
             <div class='note'>
               <p>
                 Note that some of the functions from the <span class='estype'>Array</span> prototype object
-                will not behave on a <a class='dfnref' href='#dfn-fixed-length'>fixed length</a> array
-                host object as they do on an <span class='estype'>Array</span> object, since
+                will not behave on a <a class='dfnref' href='#dfn-fixed-length'>fixed length</a>
+                platform array object as they do on an <span class='estype'>Array</span> object, since
                 attempting to assign to the <span class='prop'>length</span> property will fail.
                 Similarly, most of the functions from the <span class='estype'>Array</span>
                 prototype object will not perform any useful operation on
@@ -5166,13 +5331,13 @@ a[0] = 20;</x:codeblock>
             </div>
             <p>
               The value of the internal <span class='prop'>[[Class]]</span> property of an
-              array host object <span class='rfc2119'>MUST</span> be
+              platform array object <span class='rfc2119'>MUST</span> be
               the <a class='dfnref' href='#dfn-type-name'>type name</a> of the array
               type.
             </p>
             <!--
             <p>
-              Array host objects <span class='rfc2119'>MUST</span> have a property named “length”
+              Platform array objects <span class='rfc2119'>MUST</span> have a property named “length”
               whose value is a <span class='estype'>Number</span> that is the length
               of the array.  If the array is <a class='dfnref' href='#dfn-fixed-length'>fixed length</a>,
               then this property has attributes <span class='descriptor'>{ [[Writable]]: <span class='esvalue'>false</span>, [[Enumerable]]: <span class='esvalue'>false</span>, [[Configurable]]: <span class='esvalue'>false</span> }</span>.
@@ -5180,7 +5345,7 @@ a[0] = 20;</x:codeblock>
               and the property has attributes <span class='descriptor'>{ [[Writable]]: <span class='esvalue'>true</span>, [[Enumerable]]: <span class='esvalue'>false</span>, [[Configurable]]: <span class='esvalue'>false</span> }</span>.
             </p>
             <p>
-              Array host objects <span class='rfc2119'>MUST</span> always have a property named
+              Platform array objects <span class='rfc2119'>MUST</span> always have a property named
               ToString(<var>i</var>) for every integer index 0 ≤ <var>i</var> &lt; <var>n</var>,
               where <var>n</var> is the length of the array.  These properties have attributes
               <span class='descriptor'>{ [[Writable]]: <span class='esvalue'>false</span>, [[Enumerable]]: <span class='esvalue'>true</span>, [[Configurable]]: <span class='esvalue'>false</span> }</span> if the array is
@@ -5192,7 +5357,7 @@ a[0] = 20;</x:codeblock>
             -->
 
             <p>
-              Array host objects appear to have a <span class='prop'>length</span> property and a property
+              Platform array objects appear to have a <span class='prop'>length</span> property and a property
               for each element of the array.  The values and behaviors of these properties are
               implemented by the internal <span class='prop'>[[GetOwnProperty]]</span>,
               <span class='prop'>[[DefineOwnProperty]]</span> and <span class='prop'>[[Delete]]</span>
@@ -5200,7 +5365,7 @@ a[0] = 20;</x:codeblock>
             </p>
 
             <p>
-              Array host objects defy being fixed; if <code>Object.freeze</code>, <code>Object.seal</code>
+              Platform array objects defy being fixed; if <code>Object.freeze</code>, <code>Object.seal</code>
               or <code>Object.preventExtensions</code> is called on one, the function
               <span class='rfc2119'>MUST</span> throw a <span class='estype'>TypeError</span>.
             </p>
@@ -5211,9 +5376,9 @@ a[0] = 20;</x:codeblock>
             </p>
             <ul>
               <li>Let <var>O</var> be the result of calling ToObject(<var>V</var>).</li>
-              <li>If <var>O</var> is an <a class='dfnref' href='#dfn-array-host-object'>array host object</a>,
-                then the IDL array value is the array value that the array host object represents.</li>
-              <li>Otherwise, if <var>O</var> is a native object, then the IDL array value is determined as follows:
+              <li>If <var>O</var> is an <a class='dfnref' href='#dfn-platform-array-object'>platform array object</a>,
+                then the IDL array value is the array value that the platform array object represents.</li>
+              <li>Otherwise, the IDL array value is determined as follows:
                 <ol class='algorithm'>
                   <li>Initialize <var>n</var> to be the result of calling <span class='prop'>[[Get]]</span> on <var>V</var> with property name “length”.</li>
                   <li>Set <var>n</var> to ToUint32(<var>n</var>).</li>
@@ -5233,7 +5398,6 @@ a[0] = 20;</x:codeblock>
                     array of length <var>n</var> whose values are <var>E</var><sub>0..<var>n</var></sub>.</li>
                 </ol>
               </li>
-              <li>Otherwise, throw a <span class='estype'>TypeError</span>.</li>
             </ul>
 
             <p>
@@ -5242,9 +5406,9 @@ a[0] = 20;</x:codeblock>
               ECMAScript value as follows:
             </p>
             <ul>
-              <li>If <var>V</var> is already represented by an <a class='dfnref' href='#dfn-array-host-object'>array host object</a>,
-                then the ECMAScript value is that array host object.</li>
-              <li>Otherwise, the ECMAScript value is a newly created array host object that represents <var>V</var>.</li>
+              <li>If <var>V</var> is already represented by an <a class='dfnref' href='#dfn-platform-array-object'>platform array object</a>,
+                then the ECMAScript value is that platform array object.</li>
+              <li>Otherwise, the ECMAScript value is a newly created platform array object that represents <var>V</var>.</li>
             </ul>
 
             <div class='example'>
@@ -5261,7 +5425,7 @@ interface LotteryResults {
                 of 6, the following ECMAScript code illustrates how the array
                 attribute in the above interface would behave:
               </p>
-              <x:codeblock language='es'>var results = new LotteryResults();  <span class='comment'>// results is a new host object</span>
+              <x:codeblock language='es'>var results = new LotteryResults();  <span class='comment'>// results is a new platform object</span>
                                      <span class='comment'>// implementing the LotteryResults interface.</span>
 
 var a = [4, 8, 15, 16, 23, 42];      <span class='comment'>// Numbers can be assigned into the array.</span>
@@ -5276,7 +5440,7 @@ a[0] = 5;                            <span class='comment'>// Change the array.<
 results.numbers[0];                  <span class='comment'>// Evaluates to 4, since results.numbers is</span>
                                      <span class='comment'>// not a reference to 'a'.</span>
 
-results.numbers[0] = 5;              <span class='comment'>// Modifies the array stored in the host</span>
+results.numbers[0] = 5;              <span class='comment'>// Modifies the array stored in the platform</span>
                                      <span class='comment'>// object.</span>
 results.numbers[0];                  <span class='comment'>// Now evaluates to 5.</span>
 
@@ -5300,8 +5464,8 @@ delete results.numbers[3];           <span class='comment'>// Has no effect and 
                                      <span class='comment'>// since the array index properties are</span>
                                      <span class='comment'>// non-configurable.</span></x:codeblock>
               <p>
-                If passing an <span class='estype'>Array</span> object to a host object
-                expecting an IDL array value, a new <a class='dfnref' href='#dfn-array-host-object'>array host object</a>
+                If passing an <span class='estype'>Array</span> object to a <a class='dfnref' href='#dfn-platform-object'>platform object</a>
+                expecting an IDL array value, a new <a class='dfnref' href='#dfn-platform-array-object'>platform array object</a>
                 will be created to represent an IDL array value determined from that <span class='estype'>Array</span>.
                 If the <span class='idltype'>LotteryResults</span> interface is instead defined as:
               </p>
@@ -5326,7 +5490,7 @@ var a = [1, 3, 5];
 results.numbers = a;          <span class='comment'>// Assigns a fixed length IDL array of length 3 to</span>
                               <span class='comment'>// the numbers attribute.</span>
 
-results.numbers;              <span class='comment'>// This now evaluates to an array host object</span>
+results.numbers;              <span class='comment'>// This now evaluates to an platform array object</span>
                               <span class='comment'>// that represents the fixed length IDL array,</span>
                               <span class='comment'>// not the Array object assigned in the previous</span>
                               <span class='comment'>// statement.</span>
@@ -5334,12 +5498,12 @@ results.numbers;              <span class='comment'>// This now evaluates to an 
 results.numbers.length;       <span class='comment'>// Evaluates to 3.</span></x:codeblock>
             </div>
 
-            <div id='array-host-object-getownproperty' class='section'>
-              <h5>Array host object [[GetOwnProperty]] method</h5>
+            <div id='platform-array-object-getownproperty' class='section'>
+              <h5>Platform array object [[GetOwnProperty]] method</h5>
 
               <p>
                 The internal <span class='prop'>[[GetOwnProperty]]</span> method of every
-                <a class='dfnref' href='#dfn-array-host-object'>array host object</a>
+                <a class='dfnref' href='#dfn-platform-array-object'>platform array object</a>
                 <var>A</var> with element type <var>T</var>
                 <span class='rfc2119'>MUST</span> behave as follows when
                 called with property name <var>P</var>:
@@ -5376,12 +5540,12 @@ results.numbers.length;       <span class='comment'>// Evaluates to 3.</span></x
               </ol>
             </div>
 
-            <div id='array-host-object-defineownproperty' class='section'>
-              <h5>Array host object [[DefineOwnProperty]] method</h5>
+            <div id='platform-array-object-defineownproperty' class='section'>
+              <h5>Platform array object [[DefineOwnProperty]] method</h5>
 
               <p>
                 The internal <span class='prop'>[[DefineOwnProperty]]</span> method of every
-                <a class='dfnref' href='#dfn-array-host-object'>array host object</a>
+                <a class='dfnref' href='#dfn-platform-array-object'>platform array object</a>
                 <var>A</var> with element type <var>T</var>
                 <span class='rfc2119'>MUST</span> behave as follows when passed
                 property name <var>P</var>, property descriptor <var>Desc</var> and
@@ -5445,12 +5609,12 @@ results.numbers.length;       <span class='comment'>// Evaluates to 3.</span></x
               </ol>
             </div>
 
-            <div id='array-host-object-delete' class='section'>
-              <h5>Array host object [[Delete]] method</h5>
+            <div id='platform-array-object-delete' class='section'>
+              <h5>Platform array object [[Delete]] method</h5>
 
               <p>
                 The internal <span class='prop'>[[Delete]]</span> method of every
-                <a class='dfnref' href='#dfn-array-host-object'>array host object</a>
+                <a class='dfnref' href='#dfn-platform-array-object'>platform array object</a>
                 <var>A</var> with element type <var>T</var>
                 <span class='rfc2119'>MUST</span> behave as follows when passed
                 property name <var>P</var> and Boolean flag <var>Throw</var>:
@@ -5504,10 +5668,10 @@ results.numbers.length;       <span class='comment'>// Evaluates to 3.</span></x
               the same millisecond as <var>V</var>.</li>
             </ol>
             <p>
-              Host objects returning an ECMAScript <span class='estype'>Date</span> object from <a class='dfnref' href='#dfn-attribute'>attributes</a>,
+              <a class='dfnref' href='#dfn-platform-object'>Platform objects</a> returning an ECMAScript <span class='estype'>Date</span> object from <a class='dfnref' href='#dfn-attribute'>attributes</a>,
               <a class='dfnref' href='#dfn-operation'>operations</a> or <a class='dfnref' href='#dfn-exception-field'>exception field</a>
               do not hold on to a reference to the <span class='estype'>Date</span> object.  Script that modifies a <span class='estype'>Date</span> object
-              so returned cannot affect the host object it was returned from.
+              so returned cannot affect the platform object it was returned from.
             </p>
           </div>
 
@@ -5580,54 +5744,57 @@ b.g(a);          <span class='comment'>// Equivalent to calling b.g with ToStrin
             </div>
           </div>
 
-          <div id='Callback' class='section'>
+          <div id='es-Callback' class='section'>
             <h4>[Callback]</h4>
 
             <p>
-              If the <a class='xattr' href='#Callback'>[Callback]</a>
-              <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
-              appears on an <a class='dfnref' href='#dfn-interface'>interface</a>,
-              it indicates that the interface can be implemented by an ECMAScript native object
-              (see <a href='#native-objects'>section <?sref native-objects?></a>
-              <?sdir native-objects?>), and such an object can be
-              <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converted to an IDL value</a>
-              of that interface type.
-              A native object implementing the interface is most often
-              used to provide callback methods to a host object, hence
-              the name of this extended attribute.
+              As described in <a href='#Callback'>section <?sref Callback?> <?sdir Callback?></a>,
+              the <a class='xattr' href='#Callback'>[Callback]</a>
+              <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a> is used to
+              indicate that an <a class='dfnref' href='#dfn-interface'>interface</a>
+              can be implemented by a <a class='dfnref' href='#dfn-user-object'>user object</a>.
+              In the ECMAScript language binding, the <a class='dfnref' href='#dfn-xattr-identifier'>identifier argument</a>
+              of <a class='xattr' href='#Callback'>[Callback]</a>, or the lack of one,
+              is used to control which kinds of ECMAScript objects can be used as user object implementations of
+              the interface, as follows:
             </p>
+            <ul>
+              <li>If the <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a> was specified
+              as <code>[Callback]</code> (with no identifier argument) or as <code>[Callback=PropertyOnly]</code>,
+              then any native ECMAScript object is considered to be a <a class='dfnref' href='#dfn-user-object'>user object</a>
+              implementation of the <a class='dfnref' href='#dfn-interface'>interface</a>.</li>
+              <li>Otherwise, if it was specified as <code>[Callback=FunctionOnly]</code>, then only <span class='estype'>Function</span>
+              objects are considered to be user object implementations of the interface.</li>
+            </ul>
             <p>
-              The <a class='xattr' href='#Callback'>[Callback]</a> extended attribute
-              <span class='rfc2119'>MUST</span> either <a class='dfnref' href='#dfn-xattr-no-argument'>take no argument</a>
-              or <a class='dfnref' href='#dfn-xattr-identifier'>take the identifier</a> <span class='idlident'>FunctionOnly</span> or <span class='idlident'>PropertyOnly</span>.
-              If no argument is given, then any native object is considered
-              to implement the interface.  Otherwise, if the
-              <span class='idlident'>FunctionOnly</span> argument is given,
-              then only <span class='estype'>Function</span> objects can
-              be considered to implement the interface.
+              <code>[Callback=FunctionOnly]</code> <span class='rfc2119'>MUST NOT</span> be specified on
+              an <a class='dfnref' href='#dfn-interface'>interface</a> that is not a
+              <dfn id='single-operation-interface'>single operation interface</dfn>, which is an
+              interface that:
             </p>
+            <ul>
+              <li>is not declared to <a class='dfnref' href='#dfn-inherit'>inherit</a> from another interface,</li>
+              <li>has no <a class='dfnref' href='#dfn-considered-interfaces'>consequential interfaces</a>,</li>
+              <li>has no <a class='dfnref' href='#dfn-attribute'>attributes</a>, and</li>
+              <li>has one or more <a class='dfnref' href='#dfn-regular-operation'>regular operations</a>
+                that all have the same <a class='dfnref' href='#dfn-identifier'>identifier</a>,
+                and no others.</li>
+            </ul>
             <p>
-              The <a class='xattr' href='#Callback'>[Callback]</a> extended attribute
-              <span class='rfc2119'>MUST NOT</span> be used on an interface that
-              does not meet the criteria for an interface that can have native object
-              implementations, as described in <a href="#native-objects">section <?sref native-objects?></a>
-              <?sdir native-objects?>.  If the <a class='xattr' href='#Callback'>[Callback]</a>
-              extended attribute is used on an interface that has any
-              <a class='dfnref' href='#dfn-attribute'>attributes</a>, has
-              zero <a class='dfnref' href='#dfn-operation'>operations</a>, or
-              has multiple operations with different
-              <a class='dfnref' href='#dfn-identifier'>identifiers</a>,
-              then the extended attribute <span class='rfc2119'>MUST</span>
-              take no argument.
+              <a href='#es-user-objects'>Section <?sref es-user-objects?> <?sdir es-user-objects?></a> details how
+              native ECMAScript objects are used as <a class='dfnref' href='#dfn-user-object'>user objects</a>
+              implementing an interface and exactly how <a class='xattr' href='#Callback'>[Callback]</a>
+              influences this.
             </p>
+
             <div class='example'>
               <p>
-                The following <a class='dfnref' href='#dfn-idl-fragment'>IDL
-                  fragment</a> defines a simple callback interface and an
+                The following <a class='dfnref' href='#dfn-idl-fragment'>IDL fragment</a> defines a simple callback interface and an
                 interface for an object that expects an object that
                 implements that callback:
               </p>
-              <x:codeblock language='idl'>[Callback] interface Listener {
+              <x:codeblock language='idl'>[Callback]
+interface Listener {
   void eventOccurred();
 };
 
@@ -5812,7 +5979,7 @@ interface Circle {
                 have a <span class='prop'>[[Construct]]</span> property.
               </p>
               <x:codeblock language='es'>var x = new Circle();      <span class='comment'>// The uses the zero-argument constructor to create a</span>
-                           <span class='comment'>// reference to a host object that implements the</span>
+                           <span class='comment'>// reference to a platform object that implements the</span>
                            <span class='comment'>// Circle interface.</span>
 
 var y = new Circle(1.25);  <span class='comment'>// This also creates a Circle object, this time using</span>
@@ -6027,7 +6194,7 @@ var fn = Query.prototype.lookupEntry;  <span class='comment'>// exception, Query
               If the <a class='xattr' href='#OverrideBuiltins'>[OverrideBuiltins]</a>
               <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
               appears on an <a class='dfnref' href='#dfn-interface'>interface</a>,
-              it indicates that for a host object implementing the interface,
+              it indicates that for a <a class='dfnref' href='#dfn-platform-object'>platform object</a> implementing the interface,
               properties will appear to be own the object corresponding to all of
               the object’s <a class='dfnref' href='#dfn-supported-property-names'>supported property names</a>,
               regardless of what other properties exist on the object or its
@@ -6293,7 +6460,7 @@ p.name.full = 'John Citizen';  <span class='comment'>// ...has the same behavior
               appears on a <a class='dfnref' href='#dfn-read-only'>read only</a>
               <a class='dfnref' href='#dfn-attribute'>attribute</a>,
               it indicates that setting the corresponding property on the
-              host object will result in that property being reconfigured
+              <a class='dfnref' href='#dfn-platform-object'>platform object</a> will result in that property being reconfigured
               to one that is unrelated to the attribute,
               and which has the value being assigned.
             </p>
@@ -6322,7 +6489,7 @@ p.name.full = 'John Citizen';  <span class='comment'>// ...has the same behavior
 };</x:codeblock>
               <p>
                 Assigning to the <span class='prop'>value</span> property
-                on a host object implementing <span class='idltype'>Counter</span>
+                on a <a class='dfnref' href='#dfn-platform-object'>platform object</a> implementing <span class='idltype'>Counter</span>
                 will sever the link between the property and the IDL
                 <a class='dfnref' href='#dfn-attribute'>attribute</a> it
                 initially corresponds to:
@@ -6357,7 +6524,7 @@ counter.value;               <span class='comment'>// Evaluates to 'a'.</span></
               which is the normal behavior.
             </p>
             <div class='note'>
-              <p>The assignment will normally fail because the <a href='#getownproperty'>host object
+              <p>The assignment will normally fail because the <a href='#getownproperty'>platform object
               [[GetOwnProperty]] internal method</a> will expose named properties as
               non-writable data properties.</p>
             </div>
@@ -6420,7 +6587,7 @@ window.abc;    <span class='comment'>// Evaluates to 1.</span>
             </p>
             <p>
               If <a class='xattr' href='#TreatNullAs'>[TreatNullAs]</a> is specified on
-              an operation itself, then it indicates that a <a href='#native-objects'>native object
+              an operation itself, then it indicates that a <a href='#es-user-objects'>user object
                 implementing the interface</a> will have the return
               value of the function that implements the operation
               handled in the same way as for operation arguments
@@ -6455,7 +6622,7 @@ window.abc;    <span class='comment'>// Evaluates to 1.</span>
                 assigned to the <span class='prop'>name</span> property or passed as the
                 argument to the <span class='prop'>isMemberOfBreed</span> function:
               </p>
-              <x:codeblock language='es'>var d = getDog();         <span class='comment'>// Assume d is a host object implementing the Dog</span>
+              <x:codeblock language='es'>var d = getDog();         <span class='comment'>// Assume d is a platform object implementing the Dog</span>
                           <span class='comment'>// interface.</span>
 
 d.name = null;            <span class='comment'>// This assigns the string "null" to the .name</span>
@@ -6497,7 +6664,7 @@ d.isMemberOfBreed(null);  <span class='comment'>// This passes the string "" to 
             </ul>
             <p>
               If <a class='xattr' href='#TreatUndefinedAs'>[TreatUndefinedAs]</a> is specified on
-              an operation itself, then it indicates that a <a href='#native-objects'>native object
+              an operation itself, then it indicates that a <a href='#es-user-objects'>user object
                 implementing the interface</a> will have the return
               value of the function that implements the operation
               handled in the same way as for operation arguments
@@ -6793,19 +6960,19 @@ system.loginTime;  <span class='comment'>// So this now evaluates to forgedLogin
                             <dd>
                               Add to <var>types</var> all nullable types.
                             </dd>
-                            <dt>An <a class='dfnref' href='#dfn-array-host-object'>array host object</a></dt>
+                            <dt>An <a class='dfnref' href='#dfn-platform-array-object'>platform array object</a></dt>
                             <dd>
                               Add to <var>types</var> the <span class='idltype'>object</span> type
                               and an <a href='#idl-array'>array type</a> that corresponds to
-                              the type of the IDL array the host array object represents.
+                              the type of the IDL array the platform array object represents.
                             </dd>
-                            <dt>Any other host object</dt>
+                            <dt>Any other <a class='dfnref' href='#dfn-platform-object'>platform object</a></dt>
                             <dd>
                               Add to <var>types</var> the <span class='idltype'>object</span> type
                               and an <a href='#idl-interface'>interface type</a>
                               for all <a class='dfnref' href='#dfn-interface'>interfaces</a>
                               that are equal to, or <a class='dfnref' href='#dfn-inherit'>inherit</a> from, at least one
-                              of the interfaces that the host object implements.
+                              of the interfaces that the <a class='dfnref' href='#dfn-platform-object'>platform object</a> implements.
                             </dd>
                             <dt>A native <span class='estype'>Array</span> object</dt>
                             <dd>
@@ -6825,7 +6992,7 @@ system.loginTime;  <span class='comment'>// So this now evaluates to forgedLogin
                               <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
                               and the <a href='#idl-Date'>Date</a> type.
                             </dd>
-                            <dt>Any other native object</dt>
+                            <dt>Any other object</dt>
                             <dd>
                               Add to <var>types</var> the <span class='idltype'>object</span> type
                               and an <a href='#idl-interface'>interface type</a>
@@ -7524,21 +7691,41 @@ interface
 
         </div>
 
-        <div id='host-objects' class='section'>
-          <h3>Host objects implementing interfaces</h3>
+        <div id='es-implements-statements' class='section'>
+          <h3>Implements statements</h3>
 
           <p>
-            Every host object is associated with a global environment, just
+            The <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype object</a>
+            of an interface <var>A</var> <span class='rfc2119'>MUST</span> have a copy of
+            each property that corresponds to one of the
+            <a class='dfnref' href='#dfn-constant'>constants</a>,
+            <a class='dfnref' href='#dfn-attribute'>attributes</a> or
+            <a class='dfnref' href='#dfn-operation'>operations</a> that exist on
+            all of the interface prototype objects of <var>A</var>’s
+            <a class='dfnref' href='#dfn-consequential-interfaces'>consequential interfaces</a>,
+            unless <var>A</var>’s interface prototype object already has a property of the same name on it
+            due to <var>A</var>’s interface members.  If there would still be conflicting
+            property definitions, then it is undefined which consequential interface’s
+            interface member that property on <var>A</var>’s interface prototype object
+            corresponds to.
+          </p>
+        </div>
+
+        <div id='es-platform-objects' class='section'>
+          <h3>Platform objects implementing interfaces</h3>
+
+          <p>
+            Every <a class='dfnref' href='#dfn-platform-object'>platform object</a> is associated with a global environment, just
             as the <a class='dfnref' href='#dfn-initial-object'>initial objects</a> are.
             It is the responsibility of specifications using Web IDL to state
-            which global environment (or, by proxy, which global object) each host
+            which global environment (or, by proxy, which global object) each platform
             object is associated with.
           </p>
           <p>
-            The <dfn id='dfn-primary-interface'>primary interface</dfn> of a host object
+            The <dfn id='dfn-primary-interface'>primary interface</dfn> of a platform object
             that implements one or more interfaces is the most-derived <a class='dfnref' href='#dfn-supplemental-interface'>non-supplemental interface</a>
             that it implements.  The value of the internal <span class='prop'>[[Prototype]]</span>
-            property of the host object is the <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype object</a>
+            property of the platform object is the <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype object</a>
             of the <a class='dfnref' href='#dfn-primary-interface'>primary interface</a>.
           </p>
           <!--
@@ -7585,10 +7772,10 @@ interface
           -->
           <p>
             The value of the internal <span class='prop'>[[Class]]</span>
-            property of a host object that implements one or more interfaces
+            property of a platform object that implements one or more interfaces
             <span class='rfc2119'>MUST</span> be the <a class='dfnref' href='#dfn-identifier'>identifier</a> of
             the <a class='dfnref' href='#dfn-primary-interface'>primary interface</a>
-            of the host object.
+            of the platform object.
           </p>
           <!--
               of that interface.
@@ -7658,7 +7845,7 @@ interface
             <h4>Indexed and named properties</h4>
 
             <p>
-              If a host object implements an <a class='dfnref' href='#dfn-interface'>interface</a> that
+              If a <a class='dfnref' href='#dfn-platform-object'>platform object</a> implements an <a class='dfnref' href='#dfn-interface'>interface</a> that
               <a class='dfnref' href='#dfn-support-indexed-properties'>supports indexed</a> or
               <a class='dfnref' href='#dfn-support-named-properties'>named properties</a>,
               the object will appear to have additional properties that correspond to the
@@ -7671,14 +7858,14 @@ interface
               However, if so, and there are conflicting definitions as to the object’s
               <a class='dfnref' href='#dfn-supported-property-indices'>supported property indices</a>,
               or if one of the interfaces is a <a class='dfnref' href='#dfn-supplemental-interface'>supplemental interface</a> for the
-              host object, then it is undefined what additional properties the object will appear to
+              platform object, then it is undefined what additional properties the object will appear to
               have, or what its exact behavior will be with regard to its indexed properties.
               The same applies for named properties.
             </p>
             <p>
               The <a class='dfnref' href='#dfn-index-getter'>index getter</a>
               that is defined on the derived-most interface that the
-              host object implements is the one that defines the behavior
+              platform object implements is the one that defines the behavior
               when indexing the object with an array index.  Similarly for
               <a class='dfnref' href='#dfn-index-setter'>index setters</a>,
               <a class='dfnref' href='#dfn-index-deleter'>deleters</a> and
@@ -7688,7 +7875,7 @@ interface
             </p>
 
             <p>
-              Host objects implementing an interface that support indexed or named properties defy being fixed; if <code>Object.freeze</code>, <code>Object.seal</code>
+              Platform objects implementing an interface that support indexed or named properties defy being fixed; if <code>Object.freeze</code>, <code>Object.seal</code>
               or <code>Object.preventExtensions</code> is called on one, these the function
               <span class='rfc2119'>MUST</span> throw a <span class='estype'>TypeError</span>.
             </p>
@@ -7729,25 +7916,25 @@ interface
 
             <p>
               Support for <a class='dfnref' href='#dfn-getter'>getters</a> is
-              handled by the <a href='#defineownproperty'>host object [[GetOwnProperty]] method</a>
+              handled by the <a href='#defineownproperty'>platform object [[GetOwnProperty]] method</a>
               defined in section <?sref getownproperty?>,
               for <a class='dfnref' href='#dfn-creator'>creators</a> and
               <a class='dfnref' href='#dfn-setter'>setters</a>
-              by the <a href='#defineownproperty'>host object [[DefineOwnProperty]] method</a>
+              by the <a href='#defineownproperty'>platform object [[DefineOwnProperty]] method</a>
               defined in section <?sref defineownproperty?>, and
               for <a class='dfnref' href='#dfn-deleter'>deleters</a>
-              by the <a href='#delete'>host object [[Delete]] method</a>
+              by the <a href='#delete'>platform object [[Delete]] method</a>
               defined in section <?sref delete?>.
             </p>
           </div>
 
           <div id='getownproperty' class='section'>
-            <h4>Host object [[GetOwnProperty]] method</h4>
+            <h4>Platform object [[GetOwnProperty]] method</h4>
 
             <p>
               The internal <span class='prop'>[[GetOwnProperty]]</span> method of every
-              host object <var>O</var> that implements an <a class='dfnref' href='#dfn-interface'>interface</a>
-              that <a class='dfnref' href='#dfn-support-indexed-properties'>supports indexed</a> or
+              <a class='dfnref' href='#dfn-platform-object'>platform object</a> <var>O</var> that implements an <a class='dfnref' href='#dfn-interface'>interface</a>
+              which <a class='dfnref' href='#dfn-support-indexed-properties'>supports indexed</a> or
               <a class='dfnref' href='#dfn-support-named-properties'>named properties</a>
               <span class='rfc2119'>MUST</span> behave as follows when called with property name <var>P</var>:
             </p>
@@ -7818,12 +8005,12 @@ interface
           </div>
 
           <div id='defineownproperty' class='section'>
-            <h4>Host object [[DefineOwnProperty]] method</h4>
+            <h4>Platform object [[DefineOwnProperty]] method</h4>
 
             <p>
               The internal <span class='prop'>[[DefineOwnProperty]]</span> method of every
-              host object <var>O</var> that implements an <a class='dfnref' href='#dfn-interface'>interface</a>
-              that <a class='dfnref' href='#dfn-support-indexed-properties'>supports indexed</a> or
+              <a class='dfnref' href='#dfn-platform-object'>platform object</a> <var>O</var> that implements an <a class='dfnref' href='#dfn-interface'>interface</a>
+              which <a class='dfnref' href='#dfn-support-indexed-properties'>supports indexed</a> or
               <a class='dfnref' href='#dfn-support-named-properties'>named properties</a>
               <span class='rfc2119'>MUST</span> behave as follows when called with property name <var>P</var>,
               property descriptor <var>Desc</var> and Boolean flag <var>Throw</var>.  The term “Reject”
@@ -7928,12 +8115,12 @@ interface
           </div>
 
           <div id='delete' class='section'>
-            <h4>Host object [[Delete]] method</h4>
+            <h4>Platform object [[Delete]] method</h4>
 
             <p>
               The internal <span class='prop'>[[Delete]]</span> method of every
-              host object <var>O</var> that implements an <a class='dfnref' href='#dfn-interface'>interface</a>
-              that <a class='dfnref' href='#dfn-support-indexed-properties'>supports indexed</a> or
+              <a class='dfnref' href='#dfn-platform-object'>platform object</a> <var>O</var> that implements an <a class='dfnref' href='#dfn-interface'>interface</a>
+              which <a class='dfnref' href='#dfn-support-indexed-properties'>supports indexed</a> or
               <a class='dfnref' href='#dfn-support-named-properties'>named properties</a>
               <span class='rfc2119'>MUST</span> behave as follows when called with property name <var>P</var>
               and Boolean flag <var>Throw</var>.  The term “Reject” is used as defined in
@@ -8005,11 +8192,11 @@ interface
           </div>
 
           <div id='call' class='section'>
-            <h4>Host object [[Call]] method</h4>
+            <h4>Platform object [[Call]] method</h4>
 
             <p>
               The internal <span class='prop'>[[Call]]</span> method of every
-              host object <var>O</var> that implements an <a class='dfnref' href='#dfn-interface'>interface</a>
+              <a class='dfnref' href='#dfn-platform-object'>platform object</a> <var>O</var> that implements an <a class='dfnref' href='#dfn-interface'>interface</a>
               <var>I</var> with at least one <a class='dfnref' href='#dfn-caller'>caller</a>
               <span class='rfc2119'>MUST</span> behave as follows, assuming
               <var>arg</var><sub>0..<var>n</var>−1</sub> is the list of argument
@@ -8049,9 +8236,9 @@ interface
 
             <p>
               This document does not define a complete property enumeration order
-              for all host objects implementing <a class='dfnref' href='#dfn-interface'>interfaces</a>
-              (neither for <a class='dfnref' href='#dfn-host-exception-object'>host exception objects</a>).
-              However, if a host object implements an interface that
+              for all <a class='dfnref' href='#dfn-platform-object'>platform objects</a> implementing <a class='dfnref' href='#dfn-interface'>interfaces</a>
+              (or for <a href='#es-exception-objects'>platform objects representing exceptions</a>).
+              However, if a platform object implements an interface that
               <a class='dfnref' href='#dfn-support-indexed-properties'>supports indexed</a> or
               <a class='dfnref' href='#dfn-support-named-properties'>named properties</a>, then
               properties on the object <span class='rfc2119'>MUST</span> be
@@ -8073,107 +8260,74 @@ interface
           </div>
         </div>
 
-        <div id='native-objects' class='section'>
-          <h3>Native objects implementing interfaces</h3>
+        <div id='es-user-objects' class='section'>
+          <h3>User objects implementing interfaces</h3>
 
           <p>
-            Some <a class='dfnref' href='#dfn-interface'>interfaces</a> can be
-            implemented in script by an ECMAScript native object.  Only interfaces
-            with the following characteristics can have native object implementations:
+            As described in <a href='#idl-objects'>section <?sref idl-objects?> <?sdir idl-objects?></a>,
+            some <a class='dfnref' href='#dfn-interface'>interfaces</a> can be
+            implemented in script by an ECMAScript native object.
+            The following cases determine whether a given native object
+            is considered to be a user object implementing an interface with
+            the required characteristics:
           </p>
           <ul>
             <li>
-              The interface has a 
-              <a class='xattr' href='#Callback'>[Callback]</a>
-              <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
-              on it.
+              If the <code>[Callback=FunctionOnly]</code> <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
+              apepars on the interface, then the native object is considered to
+              implement that interface only if it is a <span class='estype'>Function</span>
+              object.  The <span class='estype'>Function</span> object itself is the
+              implementation of the <a class='dfnref' href='#dfn-operation'>operation</a>
+              (or set of overloaded operations, if multiple operations with the same
+              <a class='dfnref' href='#dfn-identifier'>identifier</a> are defined on
+              the interface).
             </li>
             <li>
-              The interface does not <a class='dfnref' href='#dfn-inherit'>inherit</a>
-              from any non-<a class='xattr' href='#Callback'>[Callback]</a>-annotated interface.
-            </li>
-            <li>
-              The interface and all of its inherited interfaces do not appear on
-              the left-hand side of an <a href='#idl-implements-statement'>implements statement</a>.
-            </li>
-            <li>
-              The interface does not have a
-              <a class='xattr' href='#Constructor'>[Constructor]</a> or
-              <a class='xattr' href='#NamedConstructor'>[NamedConstructor]</a>
-              extended attribute on it.
-            </li>
-            <li>
-              The interface has no
-              <a class='dfnref' href='#dfn-getter'>getters</a>,
-              <a class='dfnref' href='#dfn-setter'>setters</a>,
-              <a class='dfnref' href='#dfn-creator'>creators</a>,
-              <a class='dfnref' href='#dfn-deleter'>deleters</a>,
-              <a class='dfnref' href='#dfn-caller'>caller</a> or
-              <a class='dfnref' href='#dfn-stringifier'>stringifier</a>.
-            </li>
-            <li>
-              No <a class='dfnref' href='#dfn-attribute'>attribute</a> on the interface
-              has a
-              <a class='xattr' href='#PutForwards'>[PutForwards]</a>,
-              <a class='xattr' href='#Replaceable'>[Replaceable]</a>,
-              <a class='xattr' href='#TreatNullAs'>[TreatNullAs]</a> or
-              <a class='xattr' href='#TreatUndefinedAs'>[TreatUndefinedAs]</a>
-              extended attribute on it.
-            </li>
-          </ul>
-          <p>
-            The following cases determine whether and how a given native object implements
-            an interface with the above characteristics:
-          </p>
-          <ul>
-            <li>
-              If the interface is declared with one or more operations that all
-              have the same <a class='dfnref' href='#dfn-identifier'>identifier</a>,
-              the <a class='xattr' href='#Callback'>[Callback]</a>
-              extended attribute on the interface has the <span class='idlident'>FunctionOnly</span>
-              argument and there are no <a class='dfnref' href='#dfn-attribute'>attributes</a>
-              on the interface, then the native object is considered to implement that interface if
-              it is a <span class='estype'>Function</span> object.  The native object
-              itself is the implementation of the operation.
-            </li>
-            <li>
-              Otherwise, if the interface is declared with one or more operations that all
-              have the same identifier but the <a class='xattr' href='#Callback'>[Callback]</a>
+              Otherwise, if the interface is a <a class='dfnref' href='#dfn-single-operation-interface'>single operation interface</a>
+              but the <a class='xattr' href='#Callback'>[Callback]</a>
               extended attribute on the interface does not have the <span class='idlident'>FunctionOnly</span>
               argument, then any native object is considered to implement that interface.
-              If the native object is a <span class='estype'>Function</span> object,
-              the <a class='xattr' href='#Callback'>[Callback]</a> extended attribute
-              does not have the <span class='idlident'>PropertyOnly</span> argument
-              and the interface has no <a class='dfnref' href='#dfn-attribute'>attributes</a>,
-              then the function itself is the implementation of the operation.
-              Otherwise, the implementation of the operation is the result of
-              invoking <span class='prop'>[[Get]]</span> on the native object
-              with a property name that is the identifier of the operation.
+              The implementation of the operation (or set of overloaded operations) is
+              as follows:
+              <ul>
+                <li>If the native object is a <span class='estype'>Function</span> object and the
+                <a class='xattr' href='#Callback'>[Callback]</a> extended attribute
+                does not have the <span class='idlident'>PropertyOnly</span> argument, then the
+                implementation of the operation (or set of overloaded operations) is
+                the <span class='estype'>Function</span> object itself.</li>
+                <li>Otherwise, the native object is not a <span class='estype'>Function</span> object
+                or the interface did have <code>[Callback=PropertyOnly]</code> specified on it.
+                The implementation of the operation (or set of overloaded operations) is
+                the result of invoking the internal <span class='prop'>[[Get]]</span> method
+                on the native object with a property name that is the <a class='dfnref' href='#dfn-identifier'>identifier</a>
+                of the operation.</li>
+              </ul>
             </li>
             <li>
-              Otherwise, the operations declared on the interface have zero or more than
-              one distinct identifiers or the interface has attributes declared on it.
+              Otherwise, the interface is not a <a class='dfnref' href='#dfn-single-operation-interface'>single operation interface</a>.
               Any native object is considered to implement the interface.
-              For each operation declared on the interface, the implementation
-              of that operation is the result of invoking
-              <span class='prop'>[[Get]]</span> on the native object with a
-              property name that is the identifier of the operation.
+              For each operation declared on the interface with a given <a class='dfnref' href='#dfn-identifier'>identifier</a>, the implementation
+              is the result of invoking <span class='prop'>[[Get]]</span> on the native object with a
+              property name that is that identifier.
             </li>
           </ul>
           <p>
-            A user agent calls a native object’s operation implementation with a list
-            of IDL argument values <var>idlarg</var><sub>0..<var>n</var>−1</sub> by
+            A <a class='dfnref' href='#dfn-user-object'>user object</a>’s
+            <a class='dfnref' href='#dfn-operation'>operation</a> is called
+            with a list of IDL argument values <var>idlarg</var><sub>0..<var>n</var>−1</sub> by
             following the algorithm below.  The <dfn id='dfn-callback-this-value'>callback this value</dfn>
             is the value to use as the <span class='esvalue'>this</span> value
-            when calling the native object’s operation implementation
+            when calling the native object’s operation implementation internal
             <span class='prop'>[[Call]]</span> method.  By default, the native object
             itself is used as the <a class='dfnref' href='#dfn-callback-this-value'>callback this value</a>,
             however this <span class='rfc2119'>MAY</span> be overridden by other
             specifications.
           </p>
           <ol class='algorithm'>
-            <li>Let <var>O</var> be the native object.</li>
-            <li>Let <var>X</var> be the implementation of the operation.</li>
+            <li>Let <var>O</var> be the native object that is the <a class='dfnref' href='#dfn-user-object'>user object</a> implementing the <a class='dfnref' href='#dfn-interface'>interface</a>.</li>
+            <li>Let <var>X</var> be the implementation of the operation.  If <var>O</var> is a <span class='estype'>Function</span> object that itself is
+              considered to be the implementation of the operation, then <var>X</var> is <var>O</var>.  Otherwise, <var>X</var> is the result of calling
+              the internal <span class='prop'>[[Get]]</span> method of <var>O</var> with the identifier of the operation as the property name.</li>
             <li>If Type(<var>X</var>) is not Object, throw a <span class='estype'>TypeError</span> exception.</li>
             <li>If <var>X</var> does not implement the internal <span class='prop'>[[Call]]</span> method, throw a <span class='estype'>TypeError</span> exception.</li>
             <li>
@@ -8192,54 +8346,35 @@ interface
             </li>
           </ol>
           <p>
-            Note that while an <a class='dfnref' href='#dfn-interface'>interface</a>
-            with <a class='dfnref' href='#dfn-constant'>constants</a> can be
-            implemented by a native object, no properties corresponding to those
-            constants need be on the object.
+            Note that native ECMAScript objects need not have
+            properties corresponding to <a class='dfnref' href='#dfn-constant'>constants</a>
+            on them to be considered as <a class='dfnref' href='#dfn-user-object'>user objects</a>
+            implementing <a class='dfnref' href='#dfn-interface'>interfaces</a> that happen
+            to have constants declared on them.
           </p>
           <p>
-            A user agent retrieves the value of a native object’s
-            <a class='dfnref' href='#dfn-attribute'>attribute</a> using the following
-            algorithm:
+            The value of a <a class='dfnref' href='#dfn-user-object'>user object</a>’s
+            <a class='dfnref' href='#dfn-attribute'>attribute</a> is retrieved using the
+            following algorithm:
           </p>
           <ol class='algorithm'>
-            <li>Let <var>O</var> be the native object.</li>
+            <li>Let <var>O</var> be the native object that is the <a class='dfnref' href='#dfn-user-object'>user object</a> implementing the <a class='dfnref' href='#dfn-interface'>interface</a>.</li>
             <li>Let <var>P</var> be the <a class='dfnref' href='#dfn-identifier'>identifier</a> of the attribute.</li>
             <li>Let <var>R</var> be the result of invoking the <span class='prop'>[[Get]]</span> method of <var>O</var> with property name <var>P</var>.</li>
             <li>Return the result of <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a> <var>R</var> to an IDL value of the same type as the attribute’s type.</li>
           </ol>
           <p>
-            A user agent sets the value of a native object’s
-            <a class='dfnref' href='#dfn-attribute'>attribute</a> using the following
-            algorithm:
+            The value of a <a class='dfnref' href='#dfn-user-object'>user object</a>’s
+            <a class='dfnref' href='#dfn-attribute'>attribute</a> is set using the
+            following algorithm:
           </p>
           <ol class='algorithm'>
-            <li>Let <var>O</var> be the native object.</li>
+            <li>Let <var>O</var> be the native object that is the <a class='dfnref' href='#dfn-user-object'>user object</a> implementing the <a class='dfnref' href='#dfn-interface'>interface</a>.</li>
             <li>Let <var>P</var> be the <a class='dfnref' href='#dfn-identifier'>identifier</a> of the attribute.</li>
             <li>Let <var>V</var> be the IDL value to be assigned to the attribute.</li>
             <li>Let <var>W</var> be the result of <a class='dfnref' href='#dfn-convert-idl-to-ecmascript-value'>converting</a> <var>V</var> to an ECMAScript value.</li>
             <li>Invoke the <span class='prop'>[[Put]]</span> method of <var>O</var> with property name <var>P</var> and value <var>W</var>.</li>
           </ol>
-        </div>
-
-        <div id='es-implements-statements' class='section'>
-          <h3>Implements statements</h3>
-
-          <p>
-            The <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype object</a>
-            of an interface <var>A</var> <span class='rfc2119'>MUST</span> have a copy of
-            each property that corresponds to one of the
-            <a class='dfnref' href='#dfn-constant'>constants</a>,
-            <a class='dfnref' href='#dfn-attribute'>attributes</a> or
-            <a class='dfnref' href='#dfn-operation'>operations</a> that exist on
-            all of the interface prototype objects of <var>A</var>’s
-            <a class='dfnref' href='#dfn-consequential-interfaces'>consequential interfaces</a>,
-            unless <var>A</var>’s interface prototype object already has a property of the same name on it
-            due to <var>A</var>’s interface members.  If there would still be conflicting
-            property definitions, then it is undefined which consequential interface’s
-            interface member that property on <var>A</var>’s interface prototype object
-            corresponds to.
-          </p>
         </div>
 
         <div id='es-exceptions' class='section'>
@@ -8413,7 +8548,7 @@ interface
                 object whose behavior when invoked is as follows:
                 <ol class='algorithm'>
                   <li>Let <var>O</var> be the result of calling ToObject on the <span class='esvalue'>this</span> value.</li>
-                  <li>If <var>O</var> is not a <a class='dfnref' href='#dfn-host-exception-object'>host exception object</a>
+                  <li>If <var>O</var> is not a <a href='#dfn-es-exception-object'>platform object representing an exception</a>
                     for the <a class='dfnref' href='#dfn-exception'>exception</a>
                     on which the exception field was declared, then throw a <span class='estype'>TypeError</span>.</li>
                   <li>
@@ -8434,33 +8569,31 @@ interface
           </div>
         </div>
 
-        <div id='host-exception-objects' class='section'>
-          <h3>Host exception objects</h3>
+        <div id='es-exception-objects' class='section'>
+          <h3>Exception objects</h3>
 
           <p>
-            A <dfn id='dfn-host-exception-object'>host exception object</dfn>
-            is a host object that represents a given <a class='dfnref' href='#dfn-exception'>exception</a>.
-            The behavior of a host object that represents more than one exception, or
-            one that represents an exception as well as implements an
-            <a class='dfnref' href='#dfn-interface'>interface</a>, is not defined.
+            Objects representing particular IDL <a class='dfnref' href='#dfn-exception'>exceptions</a>
+            are <a class='dfnref' href='#dfn-platform-object'>platform objects</a>.  Such objects
+            can only represent a single exception, and also cannot simultaneously
+            represent an exception and implement an <a class='dfnref' href='#dfn-interface'>interface</a>.
           </p>
           <p>
-            Every host exception object is associated with a global environment, just
+            Every platform object representing an exception in ECMAScript is associated with a global environment, just
             as the <a class='dfnref' href='#dfn-initial-object'>initial objects</a> are.
-            When a host exception object is created by calling an <a class='dfnref' href='#dfn-exception-interface-object'>exception interface object</a>,
+            When an exception object is created by calling an <a class='dfnref' href='#dfn-exception-interface-object'>exception interface object</a>,
             either normally or as part of a <code>new</code> expression, then the global environment
             the newly created object is associated with is the same one that the exception
             interface object itself is associated with.
           </p>
           <p>
             The value of the internal <span class='prop'>[[Prototype]]</span>
-            property of the host exception object
-            <span class='rfc2119'>MUST</span> be the <a class='dfnref' href='#dfn-exception-interface-prototype-object'>exception interface prototype object</a>
-            from the global environment the host exception object is associated with.
+            property of the exception object <span class='rfc2119'>MUST</span> be the <a class='dfnref' href='#dfn-exception-interface-prototype-object'>exception interface prototype object</a>
+            from the global environment the exception object is associated with.
           </p>
           <p>
             The value of the internal <span class='prop'>[[Class]]</span>
-            property of the host exception object <span class='rfc2119'>MUST</span>
+            property of the exception object <span class='rfc2119'>MUST</span>
             be the <a class='dfnref' href='#dfn-identifier'>identifier</a>
             of the <a class='dfnref' href='#dfn-exception'>exception</a>.
           </p>
@@ -8542,7 +8675,7 @@ interface
           </ol>
           <div class='note'>
             <p>
-              The above algorithm does not restrict <a class='dfnref' href='#dfn-exception-host-object'>exception host objects</a>
+              The above algorithm does not restrict <a class='dfnref' href='#dfn-es-exception-object'>platform objects representing exceptions</a>
               propagating out of a <span class='estype'>Function</span> to be
               ones that are associated with the global environment
               where that <span class='estype'>Function</span> object originated.
@@ -9357,9 +9490,24 @@ d.type = et;
               corresponding Java interfaces.)
             </p>
             <p>
-              Conversions <a class='dfnref' href='#dfn-convert-java-to-idl-value'>to</a> and
-              <a class='dfnref' href='#dfn-convert-idl-to-java-value'>from</a> IDL
-              <a href='#idl-interface'>interface type</a> values
+              A Java value <var>V</var> is
+              <a class='dfnref' href='#dfn-convert-java-to-idl-value'>converted</a>
+              to an IDL <a href='#idl-interface'>interface type</a> value
+              by running the following algorithm (where <var>I</var> is the <a class='dfnref' href='#dfn-interface'>interface</a>):
+            </p>
+            <ol class='algorithm'>
+              <li>If <var>V</var> is a <a class='dfnref' href='#dfn-platform-object'>platform object</a> that implements <var>I</var>,
+                then return the IDL <a href='#idl-interface'>interface type</a> value that represents a reference to that platform object.</li>
+              <li>If <var>V</var> is a <a class='dfnref' href='#dfn-user-object'>user object</a> that is considered to implement <var>I</var>
+                according to the rules in <a href='#java-user-objects'>section <?sref java-user-objects?></a>,
+                then return the IDL <a href='#idl-interface'>interface type</a> value that represents a reference to that user object.</li>
+              <li>Otherwise, <var>V</var> is an object that implements the Java interface for <var>I</var> but <var>I</var> is
+                not annotated with the <a class='xattr' href='#Callback'>[Callback]</a> <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>.
+                Throw a <span class='javatype'>java.lang.IllegalArgumentException</span>.</li>
+            </ol>
+            <p>
+              <a class='dfnref' href='#dfn-convert-idl-to-java-value'>Conversions from</a> IDL
+              <a href='#idl-interface'>interface type</a> values to Java values
               are performed in the same way as that for the IDL
               <a class='idltype' href='#idl-object'>object</a> type.
             </p>
@@ -10310,11 +10458,11 @@ module foo {
           </div>
         </div>
 
-        <div id='java-implementing' class='section'>
-          <h3>Objects implementing interfaces</h3>
+        <div id='java-platform-objects' class='section'>
+          <h3>Platform objects implementing interfaces</h3>
           <p>
-            A Java object that implements an IDL <a class='dfnref' href='#dfn-interface'>interface</a>
-            <span class='rfc2119'>MUST</span> be of a Java class that implements the Java interface
+            A Java <a class='dfnref' href='#dfn-platform-object'>platform object</a> that implements an IDL <a class='dfnref' href='#dfn-interface'>interface</a>
+            <span class='rfc2119'>MUST</span> be of a Java class which implements the Java interface
             that corresponds to the IDL interface.
           </p>
           <p>
@@ -10362,6 +10510,16 @@ module foo {
             the behavior of the overridden <code>toString()</code>
             method is the <a class='dfnref' href='#dfn-stringification-behavior'>stringification behavior</a>
             of the IDL interface, as described in the prose for the IDL interface.
+          </p>
+        </div>
+
+        <div id='java-user-objects' class='section'>
+          <h3>User objects implementing interfaces</h3>
+
+          <p>
+            A Java <a class='dfnref' href='#dfn-user-object'>user object</a> that implements an IDL <a class='dfnref' href='#dfn-interface'>interface</a>
+            <span class='rfc2119'>MUST</span> be of a Java class that implements the Java interface
+            that corresponds to the IDL interface.
           </p>
         </div>
 
@@ -10946,6 +11104,17 @@ public <var>ExceptionName</var>(Throwable cause) {
           <dt>Current editor’s draft</dt>
           <dd>
             <ul>
+              <li>
+                <p>
+                  Introduced the terms “platform object” and “user object” to distinguish
+                  between objects provided by the implementation and those created and
+                  supplied by the user of an API.  Most of mentions of ECMAScript native
+                  objects were replaced with “user object” and host objects with
+                  “platform object”.  Specific requirements on what ECMAScript objects can
+                  be passed to platform objects expecting non-<span class='xattr'>[Callback]</span>
+                  interface types are now given.
+                </p>
+              </li>
               <li>
                 <p>
                   Added an <span class='xattr'>[Unforgeable]</span> extended attribute
