@@ -15,7 +15,7 @@
   <head>
     <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'/>
     <title>Web IDL</title>
-    <meta name='revision' content='$Id: Overview.xml,v 1.326 2011-06-29 23:56:20 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: Overview.xml,v 1.327 2011-06-30 02:36:26 cmccorma Exp $'/>
     <link rel='stylesheet' href='WebIDL.css' type='text/css'/>
     <script src='section-links.js' type='application/ecmascript'/>
     <script src='dfn.js' type='application/ecmascript'/>
@@ -7895,6 +7895,19 @@ interface
             </ol>
 
             <p>
+              Specifications can state that certain named properties are <dfn id='dfn-resolved-before-prototype-properties'>resolved
+              before prototype properties</dfn>.  This means that such named properties will be resolved after real own
+              properties on the object (as with all non-<a class='xattr' href='#OverrideBuiltins'>[OverrideBuiltins]</a> named
+              properties), but before properties from the prototype chain.  Specifications <span class='rfc2119'>SHOULD NOT</span>
+              declare any named properties to be <a href='#dfn-resolved-before-prototype-properties'>resolved before prototype properties</a>
+              unless this is required to specify the behavior of legacy APIs.
+            </p>
+            <div class='note'>
+              <p>At the time of writing, the only known justifiable use of named properties that are
+              <a href='#dfn-resolved-before-prototype-properties'>resolved before prototype properties</a>
+              is the <span class='esvalue'>Window</span> interface defined in HTML5.</p>
+            </div>
+            <p>
               The <dfn id='dfn-named-property-visibility'>named property visibility algorithm</dfn> is used to determine if
               a given named property is exposed on an object.  Some named properties are not exposed on an object
               depending on whether the <a class='xattr' href='#OverrideBuiltins'>[OverrideBuiltins]</a>
@@ -7910,12 +7923,34 @@ interface
               <li>If <var>O</var> implements an interface that has the <a class='xattr' href='#OverrideBuiltins'>[OverrideBuiltins]</a>
                 <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>, then return true.</li>
               <li>If <var>O</var> has an own property named <var>P</var>, then return false.</li>
+              <li>If <var>P</var> is to be <a class='dfnref' href='#dfn-resolved-before-prototype-properties'>resolved before prototype properties</a>, then return true.</li>
               <li>Let <var>prototype</var> be the value of the internal <span class='prop'>[[Prototype]]</span> property of <var>O</var>.</li>
               <li>If <var>prototype</var> is <span class='esvalue'>null</span>, then return true.</li>
               <li>If the result of calling the <span class='prop'>[[HasProperty]]</span> internal method on <var>prototype</var> with property name <var>P</var> is <span class='esvalue'>true</span>, then return false.</li>
               <li>Return true.</li>
             </ol>
-
+            <div class='note'>
+              <p>This should ensure that for objects with named properties, property resolution is done in the following order:</p>
+              <ol>
+                <li>Indexed properties.</li>
+                <li>Unforgeable attributes.</li>
+                <li>Then, if <a class='xattr' href='#OverrideBuiltins'>[OverrideBuiltins]</a>:
+                  <ol>
+                    <li>Named properties.</li>
+                    <li>Own properties.</li>
+                    <li>Properties from the prototype chain.</li>
+                  </ol>
+                </li>
+                <li>Otherwise, if not <a class='xattr' href='#OverrideBuiltins'>[OverrideBuiltins]</a>:
+                  <ol>
+                    <li>Own properties.</li>
+                    <li>Any named properties to be <a class='dfnref' href='#dfn-resolved-before-prototype-properties'>resolved before prototype properties</a>.</li>
+                    <li>Properties from the prototype chain.</li>
+                    <li>Any other named properties.</li>
+                  </ol>
+                </li>
+              </ol>
+            </div>
             <p>
               Support for <a class='dfnref' href='#dfn-getter'>getters</a> is
               handled by the <a href='#defineownproperty'>platform object [[GetOwnProperty]] method</a>
@@ -11115,6 +11150,13 @@ public <var>ExceptionName</var>(Throwable cause) {
           <dt>Current editor’s draft</dt>
           <dd>
             <ul>
+              <li>
+                <p>
+                  Added the notion of named properties being “resolved before prototype properties”
+                  to handle the <span class='estype'>Window</span> object’s odd treatment
+                  of named properties.
+                </p>
+              </li>
               <li>
                 <p>
                   Specified attributes of ECMAScript properties corresponding to stringifiers,
