@@ -15,7 +15,7 @@
   <head>
     <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'/>
     <title>Web IDL</title>
-    <meta name='revision' content='$Id: Overview.xml,v 1.334 2011-07-03 02:30:23 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: Overview.xml,v 1.335 2011-07-04 03:04:39 cmccorma Exp $'/>
     <link rel='stylesheet' href='WebIDL.css' type='text/css'/>
     <script src='section-links.js' type='application/ecmascript'/>
     <script src='dfn.js' type='application/ecmascript'/>
@@ -288,6 +288,8 @@ interface <i>identifier</i> {
           those that are not are said to be <dfn id='dfn-outermost-scope'>declared at the outermost scope</dfn>.
         </p>
 
+        <?productions grammar Definitions Definition NormalDefinition?>
+
         <div class='example'>
           <p>
             The following is an example of an <a class='dfnref' href='#dfn-idl-fragment'>IDL fragment</a>.
@@ -324,11 +326,11 @@ interface <i>identifier</i> {
   };
 };</x:codeblock>
           <p>
-            Here, four <a class='dfnref' href='#dfn-interface'>interfaces</a> are being
-            defined and one <a class='dfnref' href='#dfn-exception'>exception</a>.
+            Here, four <a class='dfnref' href='#dfn-interface'>interfaces</a> and one
+            <a class='dfnref' href='#dfn-exception'>exception</a> are being defined.
             The <span class='idltype'>GraphicalWindow</span> interface has two
             <a class='dfnref' href='#dfn-read-only'>read only</a> <a class='dfnref' href='#dfn-dfn-attribute'>attributes</a>,
-            one writable attribute, and two <a class='dfnref' href='#dfn-operation'>operation</a>
+            one writable attribute, and two <a class='dfnref' href='#dfn-operation'>operations</a>
             defined on it.  Objects in the system that implement the <span class='idltype'>GraphicalWindow</span> interface
             will expose these attributes and operations in a manner appropriate to the
             particular language being used. For example, in ECMAScript, the attributes
@@ -351,8 +353,6 @@ interface <i>identifier</i> {
           </p>
         </div>
 
-        <?productions grammar Definitions Definition NormalDefinition?>
-
         <div id='idl-names' class='section'>
           <h3>Names</h3>
 
@@ -364,8 +364,9 @@ interface <i>identifier</i> {
             <a class='dfnref' href='#dfn-exception'>exception</a> and
             <a class='dfnref' href='#dfn-typedef'>typedef</a> (together called <dfn id='dfn-named-definition'>named definitions</dfn>)
             and every <a class='dfnref' href='#dfn-constant'>constant</a>,
-            <a class='dfnref' href='#dfn-attribute'>attribute</a> and
-            <a class='dfnref' href='#dfn-exception-field'>exception field</a> has an
+            <a class='dfnref' href='#dfn-attribute'>attribute</a>,
+            <a class='dfnref' href='#dfn-exception-field'>exception field</a>
+            and <a class='dfnref' href='#dfn-dictionary-member'>dictionary member</a> has an
             <dfn id='dfn-identifier'>identifier</dfn>, as do some
             <a class='dfnref' href='#dfn-operation'>operations</a>.
             The identifier is determined by an
@@ -387,7 +388,8 @@ dictionary <em>dictionary-identifier</em> { <i>dictionary-members…</i> };</pre
             </li>
             <li>
               For <a class='dfnref' href='#dfn-constant'>constants</a>, <a class='dfnref' href='#dfn-attribute'>attributes</a>,
-              <a class='dfnref' href='#dfn-typedef'>typedefs</a> and <a class='dfnref' href='#dfn-exception-field'>exception fields</a>,
+              <a class='dfnref' href='#dfn-typedef'>typedefs</a>, <a class='dfnref' href='#dfn-exception-field'>exception fields</a>
+              and <a class='dfnref' href='#dfn-dictionary-member'>dictionary members</a>,
               the final <a class='sym' href='#prod-identifier'>identifier</a> token before the
               semicolon at the end of the declaration determines the identifier.
               <pre class='syntax'>interface <i>identifier</i> {
@@ -399,6 +401,10 @@ typedef <i>type</i> <em>typedef-identifier</em>;
 
 exception <i>identifier</i> {
   <i>type</i> <em>exception-member-identifier</em>;
+};
+
+dictionary <i>identifier</i> {
+  <i>type</i> <em>dictionary-member-identifier</em>;
 };</pre>
             </li>
             <li>
@@ -409,7 +415,7 @@ exception <i>identifier</i> {
               grammar symbol in an <a class='sym' href='#prod-Operation'>Operation</a>) determines the identifier of the operation.  If
               there is no such <a class='sym' href='#prod-identifier'>identifier</a> token,
               then the operation does not have an identifier.
-              <pre class='syntax'><i>type</i> <em>operation-identifier</em>(<i>arguments…</i>);</pre>
+              <pre class='syntax'><i>return-type</i> <em>operation-identifier</em>(<i>arguments…</i>);</pre>
             </li>
           </ul>
           <div class='note'>
@@ -419,10 +425,8 @@ exception <i>identifier</i> {
             </p>
           </div>
           <p>
-            The <a class='dfnref' href='#dfn-identifier'>identifier</a> of the <a class='dfnref' href='#dfn-named-definition'>named definition</a>,
-            <a class='dfnref' href='#dfn-interface-member'>interface member</a> or
-            <a class='dfnref' href='#dfn-exception-member'>exception member</a> is the value of the
-            <a class='sym' href='#prod-identifier'>identifier</a> token with any single leading
+            For all of these constructs, the <a class='dfnref' href='#dfn-identifier'>identifier</a>
+            is the value of the <a class='sym' href='#prod-identifier'>identifier</a> token with any single leading
             <span class='char'>U+005F LOW LINE ("_")</span> character removed.
           </p>
           <div class='note'>
@@ -480,7 +484,7 @@ exception <i>identifier</i> {
             A <dfn id='dfn-scoped-name'>scoped name</dfn> (matching <a class='sym' href='#prod-ScopedName'>ScopedName</a>)
             is a string formed by concatenating a sequence of one or more identifiers and placing two consecutive 
             <span class='char'>U+003A COLON (":")</span> characters between each pair of
-            adjacent identifier, and is
+            adjacent identifiers, and is
             used in IDL to refer to definitions in different scopes.
             A scoped name is an <dfn id='dfn-absolute-scoped-name'>absolute scoped name</dfn>
             if it begins with two consecutive <span class='char'>U+003A COLON (":")</span>
@@ -547,8 +551,10 @@ exception <i>identifier</i> {
             <a class='dfnref' href='#dfn-enclosing-module'>enclosing module</a>
             of the <a class='dfnref' href='#dfn-definition'>definition</a>
             on which the scoped name appears, or the outermost scope if it appears
-            on a definition <a class='dfnref' href='#dfn-outermost-scope'>outermost scope</a>.
+            on a definition <a class='dfnref' href='#dfn-outermost-scope'>declared at the outermost scope</a>.
           </p>
+
+          <?productions grammar ScopedName AbsoluteScopedName RelativeScopedName ScopedNameParts?>
 
           <div class='example'>
             <p>
@@ -614,8 +620,6 @@ module framework {
               to obtain the attribute’s <a class='dfnref' href='#dfn-identifier'>identifier</a>.
             </p>
           </div>
-
-          <?productions grammar ScopedName AbsoluteScopedName RelativeScopedName ScopedNameParts?>
         </div>
 
         <div id='idl-modules' class='section'>
@@ -627,7 +631,7 @@ module framework {
           </div>
           <p>
             A <dfn id='dfn-module'>module</dfn> is a <a class='dfnref' href='#dfn-definition'>definition</a>
-            (macthing <a class='sym' href='#prod-Module'>Module</a>) that serves
+            (matching <a class='sym' href='#prod-Module'>Module</a>) that serves
             as a container for grouping together related definitions in a single namespace.
           </p>
           <pre class='syntax'>module <i>identifier</i> {
@@ -724,9 +728,9 @@ module framework {
             <x:codeblock language='idl'>module gfx {
 
   module geom {
-    interface Shape { /* ... */ };
-    interface Rectangle : Shape { /* ... */ };
-    interface Path : Shape { /* ... */ };
+    interface Shape { <span class='comment'>/* ... */</span> };
+    interface Rectangle : Shape { <span class='comment'>/* ... */</span> };
+    interface Path : Shape { <span class='comment'>/* ... */</span> };
   };
 
   interface GraphicsContext {
@@ -737,13 +741,13 @@ module framework {
 
 module gui {
 
-  interface Widget { /* ... */  };
+  interface Widget { <span class='comment'>/* ... */</span> };
 
   interface Window : Widget {
     gfx::GraphicsContext getGraphicsContext();
   };
 
-  interface Button : Widget { /* ... */  };
+  interface Button : Widget { <span class='comment'>/* ... */</span> };
 };</x:codeblock>
           </div>
         </div>
@@ -754,25 +758,27 @@ module gui {
           <p>
             An <dfn id='dfn-interface'>interface</dfn> is a definition (matching
             <a class='sym' href='#prod-Interface'>Interface</a>) that defines
-            an interface in the object-oriented sense.
+            an interface that objects in the system can implement.
           </p>
           <pre class='syntax'>interface <i>identifier</i> {
   <i>interface-members…</i>
 };</pre>
           <p>
             An interface is a specification of a set of
-            <dfn id='dfn-interface-member'>interface members</dfn>, which are the
-            <a class='dfnref' href='#dfn-constant'>constants</a>,
+            <dfn id='dfn-interface-member'>interface members</dfn>
+            (matching <a class='sym' href='#prod-InterfaceMembers'>InterfaceMembers</a>),
+            which are the <a class='dfnref' href='#dfn-constant'>constants</a>,
             <a class='dfnref' href='#dfn-attribute'>attributes</a> and
             <a class='dfnref' href='#dfn-operation'>operations</a>
-            given by the <a class='sym' href='#prod-InterfaceMembers'>InterfaceMembers</a>
-            part of the <a class='sym' href='#prod-Interface'>Interface</a>.
+            that appear between the braces in the interface declaration.
             Objects implementing the interface will have members that correspond
             to each of the interface’s members.
           </p>
           <p>
             An interface can be defined to <dfn id='dfn-inherit'>inherit</dfn> from another interface.
-            If the identifier of the interface is followed by a colon and a <a class='dfnref' href='#dfn-scoped-name'>scoped name</a>,
+            If the identifier of the interface is followed by a
+            <span class='char'>U+003A COLON (":")</span> character
+            and a <a class='dfnref' href='#dfn-scoped-name'>scoped name</a>,
             then that scoped name identifies the inherited interface.  The scoped name
             <span class='rfc2119'>MUST</span> <a class='dfnref' href='#dfn-resolve'>resolve</a> to a
             a different interface.  An object that implements an interface that inherits from another
@@ -820,7 +826,7 @@ module gui {
   attribute <i>type</i> <i>identifier</i>;
 
   [<em>extended-attributes</em>]
-  <i>type</i> <i>identifier</i>(<i>arguments…</i>);
+  <i>return-type</i> <i>identifier</i>(<i>arguments…</i>);
 };</pre>
 
           <p>
@@ -929,7 +935,8 @@ interface Dog : Animal {
             </p>
             <p>
               The <a class='sym' href='#prod-ConstExpr'>ConstExpr</a> part of a
-              constant definition gives the value of the constant, which can be
+              constant declaration (or <a class='dfnref' href='#dfn-dictionary-member'>dictionary member</a>
+              declaration) gives the value of the constant (or the default value of the dictionary member), which can be
               one of the two boolean literal tokens (<code>true</code>
               and <code>false</code>),
               the <code>null</code> token, an
@@ -938,93 +945,36 @@ interface Dog : Animal {
               <a class='sym' href='#prod-string'>string</a> token.
             </p>
             <p>
-              The value of the boolean literal tokens are as follows:
+              The value of the boolean literal tokens <code>true</code> and
+              <code>false</code> are the IDL <a class='idltype' href='#idl-boolean'>boolean</a> values
+              <span class='idlvalue'>true</span> and <span class='idlvalue'>false</span>.
             </p>
-            <ul>
-              <li>
-                The value of the <code>true</code> token
-                is the <a class='idltype' href='#idl-boolean'>boolean</a> value
-                <span class='idlvalue'>true</span>.
-              </li>
-              <li>
-                The value of the <code>false</code> token
-                is the <a class='idltype' href='#idl-boolean'>boolean</a> value
-                <span class='idlvalue'>false</span>.
-              </li>
-            </ul>
             <p>
-              The value of an <a class='sym' href='#prod-integer'>integer</a> token
-              is an integer, and is determined as follows:
+              The value of an <a class='sym' href='#prod-integer'>integer</a> token is an integer,
+              parsed in a manner common to many programming languages, as follows:
             </p>
             <ol class='algorithm'>
               <li>Let <var>S</var> be the string value of the <a class='sym' href='#prod-integer'>integer</a> token.</li>
-              <li>Let <var>n</var> be the length of <var>S</var>.</li>
-              <li>Initialize <var>mag</var> to 0.</li>
-              <li>Initialize <var>sign</var> to 1.</li>
-              <li>Initialize <var>base</var> to 10.</li>
-              <li>Initialize <var>i</var> to 0.</li>
-              <li>
-                If the first character of <var>S</var> is <span class='char'>U+002D HYPHEN-MINUS ("-")</span>,
-                then:
-                <ol>
-                  <li>Set <var>sign</var> to −1.</li>
-                  <li>Set <var>i</var> to 1.</li>
-                </ol>
+              <li>Let <var>sign</var> be −1 if <var>S</var> begins with <span class='char'>U+002D HYPHEN-MINUS ("-")</span>, and 1 otherwise.</li>
+              <li>Let <var>base</var> be the base of the number based on the characters that follow the optional leading <span class='char'>U+002D HYPHEN-MINUS ("-")</span> character:
+                <dl class='switch'>
+                  <dt><span class='char'>U+0030 DIGIT ZERO ("0")</span>, <span class='char'>U+0058 LATIN CAPTIAL LETTER X ("X")</span></dt>
+                  <dt><span class='char'>U+0030 DIGIT ZERO ("0")</span>, <span class='char'>U+0058 LATIN SMALL LETTER X ("X")</span></dt>
+                  <dd>The base is 16.</dd>
+                  <dt><span class='char'>U+0030 DIGIT ZERO ("0")</span></dt>
+                  <dd>The base is 8.</dd>
+                  <dt><span class='char'>Otherwise</span></dt>
+                  <dd>The base is 10.</dd>
+                </dl>
               </li>
-              <li>
-                If the <var>i</var>th zero-based character of <var>S</var> is
-                <span class='char'>U+0030 DIGIT ZERO ("0")</span>, then:
-                <ol>
-                  <li>Set <var>i</var> to <var>i</var> + 1.</li>
-                  <li>If the <var>i</var>th zero-based character of <var>S</var> is
-                    <span class='char'>U+0058 LATIN CAPITAL LETTER X ("X")</span> or
-                    <span class='char'>U+0078 LATIN SMALL LETTER X ("x")</span>, then:
-                    <ol>
-                      <li>Set <var>i</var> to <var>i</var> + 1.</li>
-                      <li>Set <var>base</var> to 16.</li>
-                    </ol>
-                  </li>
-                  <li>Otherwise, set <var>base</var> to 8.</li>
-                </ol>
-              </li>
-              <li>While <var>i</var> &lt; n:
-                <ol>
-                  <li>Let <var>c</var> be the <var>i</var>th zero-based character of <var>S</var>.</li>
-                  <li x:step='b'>
-                    Let <var>digit</var> be a value as follows, according to <var>c</var>:
-                    <dl class='switch'>
-                      <dt>In the range <span class='char'>U+0030 DIGIT ZERO ("0")</span> to <span class='char'>U+0039 DIGIT NINE ("9")</span></dt>
-                      <dd>The value is the Unicode codepoint of <var>c</var> minus 48.</dd>
-                      <dt>In the range <span class='char'>U+0041 LATIN CAPITAL LETTER A ("A")</span> to <span class='char'>U+0046 LATIN CAPITAL LETTER F ("F")</span></dt>
-                      <dd>The value is the Unicode codepoint of <var>c</var> minus 65.</dd>
-                      <dt>In the range <span class='char'>U+0061 LATIN SMALL LETTER A ("a")</span> to <span class='char'>U+0066 LATIN SMALL LETTER F ("f")</span></dt>
-                      <dd>The value is the Unicode codepoint of <var>c</var> minus 97.</dd>
-                    </dl>
-                  </li>
-                  <li>Set <var>mag</var> to <var>mag</var> * <var>base</var> + <var>digit</var>.</li>
-                  <li>Set <var>i</var> to <var>i</var> + 1.</li>
-                </ol>
-              </li>
-              <li>
-                The value of the <a class='sym' href='#prod-integer'>integer</a> token
-                is <var>sign</var> * <var>mag</var>.
-              </li>
+              <li>Let <var>number</var> be the result of interpreting all remaining characters following the optional leading <span class='char'>U+002D HYPHEN-MINUS ("-")</span>
+                character and any characters indicating the base as an integer specified in base <var>base</var>.</li>
+              <li>Return <var>sign</var> × <var>number</var>.</li>
             </ol>
-            <div class='note'>
-              <p>
-                The algorithm above specifies nothing unexpected.  It interprets
-                strings that match the regular expressions <span class='regex'>^-?0[Xx][0-9A-Fa-f]+$</span>,
-                <span class='regex'>^-?0[0-7]+$</span> and <span class='regex'>^-?[0-9]+$</span>
-                as hexadecimal, octal and decimal integers, respectively.  It
-                differs from the Java <code>java.lang.Long.parseLong(String)</code>
-                method only in that it can parse integers outside the range
-                of a Java <span class='javatype'>long</span>.
-              </p>
-            </div>
             <p>
               The type of an <a class='sym' href='#prod-integer'>integer</a> token is the same
-              as the type of the constant it is being used as the value of.  The value of the
-              <a class='sym' href='#prod-integer'>integer</a> token <span class='rfc2119'>MUST NOT</span>
+              as the type of the constant or dictionary member it is being used as the value of.
+              The value of the <a class='sym' href='#prod-integer'>integer</a> token <span class='rfc2119'>MUST NOT</span>
               lie outside the valid range of values for its type, as given in
               <a href='#idl-types'>section <?sref idl-types?></a> <?sdir idl-types?>.
             </p>
@@ -1032,72 +982,13 @@ interface Dog : Animal {
               The value of a <a class='sym' href='#prod-float'>float</a> token is
               either an IEEE 754 single-precision floating point number or an IEEE 754
               double-precision floating point number, depending on the type of the
-              constant it is being used as the value for, determined as follows:
+              constant or dictionary member it is being used as the value for, determined as follows:
             </p>
             <ol class='algorithm'>
               <li>Let <var>S</var> be the string value of the <a class='sym' href='#prod-float'>float</a> token.</li>
-              <li>Let <var>n</var> be the length of <var>S</var>.</li>
-              <li>Initialize <var>mant</var> to 0.</li>
-              <li>Initialize <var>sign</var> to 1.</li>
-              <li>Initialize <var>exp1</var> to 0.</li>
-              <li>Initialize <var>exp2</var> to 0.</li>
-              <li>Initialize <var>expSign</var> to 1.</li>
-              <li>Initialize <var>afterDot</var> to <b>false</b>.</li>
-              <li>Initialize <var>i</var> to 0.</li>
+              <li>Let <var>value</var> be the Mathematical Value that would be obtained if <var>S</var> were
+                parsed as an ECMAScript <em>NumericLiteral</em> (<a href='#ref-ECMA-262'>[ECMA-262]</a>, section 7.8.3).</li>
               <li>
-                If the first character of <var>S</var> is <span class='char'>U+002D HYPHEN-MINUS ("-")</span>, then:
-                <ol>
-                  <li>Set <var>sign</var> to −1.</li>
-                  <li>Set <var>i</var> to 1.</li>
-                </ol>
-              </li>
-              <li>
-                While <var>i</var> &lt; <var>n</var> and the <var>i</var>th zero-based character of <var>S</var> is neither
-                <span class='char'>U+0045 LATIN CAPITAL LETTER E ("E")</span> nor
-                <span class='char'>U+0045 LATIN SMALL LETTER E ("e")</span>, then:
-                <ol>
-                  <li>If the <var>i</var>th zero-based character of <var>S</var> is <span class='char'>U+002E FULL STOP (".")</span>,
-                    then set <var>afterDot</var> to <b>true</b>.</li>
-                  <li>Otherwise:
-                    <ol>
-                      <li>
-                        Let <var>digit</var> be the Unicode codepoint of the <var>i</var>th
-                        zero-based character of <var>S</var> minus 48.
-                      </li>
-                      <li>Set <var>mant</var> to <var>mant</var> * 10 + <var>digit</var>.</li>
-                      <li>If <var>afterDot</var> is <b>true</b>, set <var>exp1</var> to <var>exp1</var> − 1.</li>
-                    </ol>
-                  </li>
-                  <li>Set <var>i</var> to <var>i</var> + 1.</li>
-                </ol>
-              </li>
-              <li>
-                If <var>i</var> &lt; <var>n</var>, then:
-                <ol>
-                  <li>If the <var>i</var>th zero-based character of <var>S</var> is 
-                    <span class='char'>U+002D HYPHEN-MINUS ("-")</span>, then:
-                    <ol>
-                      <li>Set <var>expSign</var> to −1.</li>
-                      <li>Set <var>i</var> to <var>i</var> + 1.</li>
-                    </ol>
-                  </li>
-                  <li>If the <var>i</var>th zero-based character of <var>S</var> is
-                    <span class='char'>U+002B PLUS SIGN ("+")</span>, then set
-                    <var>i</var> to <var>i</var> + 1.</li>
-                  <li>While <var>i</var> &lt; <var>n</var>:
-                    <ol>
-                      <li>
-                        Let <var>digit</var> be the Unicode codepoint of the <var>i</var>th
-                        zero-based character of <var>S</var> minus 48.
-                      </li>
-                      <li>Set <var>exp2</var> to <var>exp2</var> * 10 + <var>digit</var>.</li>
-                      <li>Set <var>i</var> to <var>i</var> + 1.</li>
-                    </ol>
-                  </li>
-                </ol>
-              </li>
-              <li>Let <var>result</var> be <var>sign</var> * <var>mant</var> * 10<sup><var>expSign</var> * <var>exp2</var> + <var>exp1</var></sup>.</li>
-              <li x:step='f'>
                 If the <a class='sym' href='#prod-float'>float</a> token is being
                 used as the value for a <span class='idltype'>float</span>, then
                 the value of the <a class='sym' href='#prod-float'>float</a> token
@@ -1111,12 +1002,12 @@ interface Dog : Animal {
               </li>
             </ol>
             <p>
-              It is not possible to specify an infinite or not-a-number
-              <span class='idltype'>float</span> constant.
+              It is not possible to specify an infinite or Not-a-Number
+              <span class='idltype'>float</span> constant or dictionary member default value.
             </p>
             <p>
               The type of a <a class='sym' href='#prod-float'>float</a> token is the same
-              as the type of the constant it is being used as the value of.  The value of the
+              as the type of the constant or dictionary member it is being used as the value of.  The value of the
               <a class='sym' href='#prod-float'>float</a> token <span class='rfc2119'>MUST NOT</span>
               lie outside the valid range of values for its type, as given in
               <a href='#idl-types'>section <?sref idl-types?></a> <?sdir idl-types?>.
@@ -1126,26 +1017,26 @@ interface Dog : Animal {
               is a <span class='idltype'>DOMString</span>, determined as follows:
             </p>
             <ol class="algorithm">
-              <li>Let <var>s</var> be the string value of the <a class='sym' href='#prod-string'>string</a>
+              <li>Let <var>S</var> be the string value of the <a class='sym' href='#prod-string'>string</a>
               token with its leading and trailing <span class='char'>U+0022 QUOTATION MARK ('"')</span>
               characters removed.</li>
               <li>The value of the <a class='sym' href='#prod-string'>string</a> token is the
               sequence of 16 bit unsigned integer code units corresponding to the UTF-16 encoding
-              of <var>s</var>.</li>
+              of <var>S</var>.</li>
             </ol>
             <p>
               The value of the <code>null</code> token is the special
               <span class='idlvalue'>null</span> value that is a member of the
               <a class='dfnref' href='#dfn-nullable-type'>nullable types</a>.  The type of
               the <code>null</code> token is the same as the
-              type of the constant it is being used as the value of.
+              type of the constant or dictionary member it is being used as the value of.
             </p>
             <p>
-              If <var>V</var> is the type of the value assigned to a constant, and <var>C</var>
-              is the type of the constant itself, then these types <span class='rfc2119'>MUST</span>
-              be compatible, which is the case if <var>C</var> and <var>V</var> are identical,
-              or <var>C</var> is a <a class='dfnref' href='#dfn-nullable-type'>nullable type</a> 
-              whose <a class='dfnref' href='#dfn-inner-type'>inner type</a> is <var>V</var>.
+              If <var>VT</var> is the type of the value assigned to a constant, and <var>DT</var>
+              is the type of the constant or dictionary member itself, then these types <span class='rfc2119'>MUST</span>
+              be compatible, which is the case if <var>DT</var> and <var>VT</var> are identical,
+              or <var>DT</var> is a <a class='dfnref' href='#dfn-nullable-type'>nullable type</a> 
+              whose <a class='dfnref' href='#dfn-inner-type'>inner type</a> is <var>VT</var>.
             </p>
             <p>
               No <a class='dfnref' href='#dfn-extended-attribute'>extended attributes</a>
@@ -1180,7 +1071,7 @@ exception Error {
 
             <p>
               An <dfn id='dfn-attribute'>attribute</dfn> is an <a class='dfnref' href='#dfn-interface-member'>interface member</a>
-              (matching <a class='sym' href='#prod-AttributeOrOperation'>AttributeOrOperation</a> → <span class='sym'>"stringifier"</span> <a class='sym' href='#prod-Attribute'>Attribute</a> | <a class='sym' href='#prod-Attribute'>Attribute</a>)
+              (matching <span class='sym'>"stringifier"</span> <a class='sym' href='#prod-Attribute'>Attribute</a> or <a class='sym' href='#prod-Attribute'>Attribute</a>)
               that is used to declare that objects implementing the <a class='dfnref' href='#dfn-interface'>interface</a> will have an attribute with the given
               <a class='dfnref' href='#dfn-identifier'>identifier</a> whose value can
               be retrieved and (in some cases) changed.
@@ -1195,7 +1086,7 @@ exception Error {
             </p>
             <p>
               The type of the attribute is given by the type (matching <a class='sym' href='#prod-AttributeType'>AttributeType</a>)
-              that appears after the <code>attribute</code> keyword.  This allows for which allows for
+              that appears after the <code>attribute</code> keyword.  This allows for
               any type except <a class='dfnref' href='#dfn-sequence'>sequence types</a>.
               If the <a class='sym' href='#prod-AttributeType'>AttributeType</a> is a
               <a class='dfnref' href='#dfn-scoped-name'>scoped name</a>, then it <span class='rfc2119'>MUST</span>
@@ -1321,7 +1212,7 @@ interface Person : Animal {
 
             <p>
               An <dfn id='dfn-operation'>operation</dfn> is an <a class='dfnref' href='#dfn-interface-member'>interface member</a>
-              (matching <a class='sym' href='#prod-AttributeOrOperation'>AttributeOrOperation</a> → <span class='sym'>"stringifier"</span> <a class='sym' href='#prod-OperationRest'>OperationRest</a> | <a class='sym' href='#prod-Operation'>Operation</a>)
+              (matching <span class='sym'>"stringifier"</span> <a class='sym' href='#prod-OperationRest'>OperationRest</a> or <a class='sym' href='#prod-Operation'>Operation</a>)
               that defines a behavior that can be invoked on objects implementing the interface.
               There are three kinds of operation:
             </p>
@@ -1507,11 +1398,10 @@ s.union(1, 4, 7);         <span class='comment'>// Passing three arguments corre
 };</x:codeblock>
             </div>
             <p>
-              The <a class='sym' href='#prod-Raises'>Raises</a> clause is used
+              A <code>raises</code> clause (matching <a class='sym' href='#prod-Raises'>Raises</a>) is used
               to declare the possible <a class='dfnref' href='#dfn-exception'>exceptions</a>
               that can be thrown when invoking the operation.
-              Each scoped name in the 
-              <a class='sym' href='#prod-Raises'>Raises</a> clause
+              Each scoped name in the <code>Raises</code> clause
               <span class='rfc2119'>MUST</span> resolve to an exception.
             </p>
             <pre class='syntax'><i>return-type</i> <i>identifier</i>(<i>arguments</i>…) raises(<i>scoped-name</i>, …);</pre>
@@ -1666,7 +1556,7 @@ dictionary.x = 1;                  <span class='comment'>// Invokes the property
             <p>
               Defining a special operation without using the <code>omittable</code> keyword
               on an operation but giving the operation an <a class='dfnref' href='#dfn-identifier'>identifier</a>
-              is equivalent to separating the special operation out into a separate
+              is equivalent to separating the special operation out into its own
               declaration without an identifier.  This approach is admitted to
               simplify prose descriptions of an interface’s operations.
             </p>
@@ -2861,7 +2751,8 @@ ctx.drawRectangle(300, 200, { fillPattern: "red", position: new Point(10, 10) })
           </p>
           <p>
             An exception can be defined to <dfn id='dfn-inherit-exception'>inherit</dfn> from another exception.
-            If the identifier of the exception is followed by a colon and a <a class='dfnref' href='#dfn-scoped-name'>scoped name</a>,
+            If the identifier of the exception is followed by a <span class='char'>U+003A COLON (":")</span>
+            character and a <a class='dfnref' href='#dfn-scoped-name'>scoped name</a>,
             then that scoped name identifies the inherited exception.  The scoped name
             <span class='rfc2119'>MUST</span> <a class='dfnref' href='#dfn-resolve'>resolve</a> to
             a different exception.
@@ -3180,7 +3071,7 @@ EventTarget et = (EventTarget) n; <span class='comment'>// This should never thr
             <span class='idltype'>Document</span>) that provide access to a web page’s contents
             to ECMAScript running in the page would be platform objects.  An ECMAScript library
             that adds support for some Web API that is not natively supported by a browser
-            would also be considered to expose platform objects.  Exception objects are also
+            would also be considered to expose platform objects.  Exception objects too are
             considered to be platform objects.
           </p>
           <p>
@@ -3225,13 +3116,7 @@ EventTarget et = (EventTarget) n; <span class='comment'>// This should never thr
               extended attribute on it.
             </li>
             <li>
-              The interface has no
-              <a class='dfnref' href='#dfn-getter'>getters</a>,
-              <a class='dfnref' href='#dfn-setter'>setters</a>,
-              <a class='dfnref' href='#dfn-creator'>creators</a>,
-              <a class='dfnref' href='#dfn-deleter'>deleters</a>,
-              <a class='dfnref' href='#dfn-caller'>caller</a> or
-              <a class='dfnref' href='#dfn-stringifier'>stringifier</a>.
+              The interface has no <a class='dfnref' href='#dfn-special-operation'>special operations</a>.
             </li>
             <li>
               No <a class='dfnref' href='#dfn-attribute'>attribute</a> on the interface has a
@@ -3623,12 +3508,12 @@ interface Person {
                       <dd>Append to <var>U</var> the Unicode character with code point <var>c</var>. </dd>
 
                       <dt>0xDC00 ≤ <var>c</var> ≤ 0xDFFF</dt>
-                      <dd>Append to <var>U</var> a U+FFFD REPLACEMENT CHARACTER.</dd>
+                      <dd>Append to <var>U</var> a <span class='char'>U+FFFD REPLACEMENT CHARACTER</span>.</dd>
 
                       <dt>0xD800 ≤ <var>c</var> ≤ 0xDBFF</dt>
                       <dd>
                         <ol class='only'>
-                          <li>If <var>i</var> = <var>n</var>−1, then append to <var>U</var> a U+FFFD REPLACEMENT CHARACTER.</li>
+                          <li>If <var>i</var> = <var>n</var>−1, then append to <var>U</var> a <span class='char'>U+FFFD REPLACEMENT CHARACTER</span>.</li>
                           <li>Otherwise, <var>i</var> &lt; <var>n</var>−1:
                             <ol>
                               <li>Let <var>d</var> be the code unit in <var>S</var> at index
@@ -3643,7 +3528,7 @@ interface Person {
                                 </ol>
                               </li>
                               <li>Otherwise, <var>d</var> &lt; 0xDC00 or <var>d</var> > 0xDFFF.
-                                Append to <var>U</var> a U+FFFD REPLACEMENT CHARACTER.</li>
+                                Append to <var>U</var> a <span class='char'>U+FFFD REPLACEMENT CHARACTER</span>.</li>
                             </ol>
                           </li>
                         </ol>
@@ -3742,8 +3627,7 @@ interface Person {
             <p>
               Nullable type constant values in IDL are represented in the same way that
               constant values of their <a class='dfnref' href='#dfn-inner-type'>inner type</a>
-              would be represented.  There is no way to represent the <span class='idlvalue'>null</span>
-              constant value, however.
+              would be represented, or with the <code>null</code> token.
             </p>
             <p>
               The <a class='dfnref' href='#dfn-type-name'>type name</a> of a nullable type
@@ -3793,7 +3677,7 @@ interface Person {
             <p>
               Sequences <span class='rfc2119'>MUST NOT</span> be used as the
               type of an <a class='dfnref' href='#dfn-attribute'>attribute</a>,
-              <a class='dfnref' href='#dfn-constant'>constant</a> or
+              <a class='dfnref' href='#dfn-constant'>constant</a>
               or <a class='dfnref' href='#dfn-exception-field'>exception field</a>.
             </p>
             <div class='note'>
@@ -3822,12 +3706,11 @@ interface Person {
               is a parameterized type whose values are non-null references to (possibly zero-length) arrays
               of values of type <var>T</var>.
               Unlike <a class='dfnref' href='#idl-sequence'>sequences</a>,
-              arrays are passed by reference.  Passing an array to a user agent
-              implemented object could result in that array being modified
-              by the object.  An array returned from a user agent implemented
-              object might also be modified by the object, and any modifications
-              to the array performed by user code might be acted upon by the
-              user agent implemented object.
+              arrays are passed by reference.  Passing an array to a <a class='dfnref' href='#dfn-platform-object'>platform object</a>
+              could result in that array being modified by the object.
+              An array returned from a platform object might also be modified by the object,
+              and any modifications to the array performed by user code might be acted upon by the
+              platform object.
             </p>
             <p>
               The element type of an array <span class='rfc2119'>MUST NOT</span> be
@@ -3894,8 +3777,9 @@ interface Person {
             that can appear on
             <!--a class='dfnref' href='#dfn-definition'-->definitions<!--/a-->,
             <a class='dfnref' href='#dfn-interface-member'>interface members</a>,
-            <a class='dfnref' href='#dfn-exception-member'>exception members</a> and
-            <a class='dfnref' href='#dfn-operation'>operation</a> arguments, and
+            <a class='dfnref' href='#dfn-exception-member'>exception members</a>,
+            <a class='dfnref' href='#dfn-dictionary-member'>dictionary members</a>,
+            and <a class='dfnref' href='#dfn-operation'>operation</a> arguments, and
             is used to control how language bindings will handle those constructs.
             Extended attributes are specified with an
             <a class='sym' href='#prod-ExtendedAttributeList'>ExtendedAttributeList</a>,
@@ -5660,7 +5544,7 @@ results.numbers.length;       <span class='comment'>// Evaluates to 3.</span></x
                 <var>A</var> with element type <var>T</var>
                 <span class='rfc2119'>MUST</span> behave as follows when passed
                 property name <var>P</var>, property descriptor <var>Desc</var> and
-                Boolean flag <var>Throw</var>:
+                boolean flag <var>Throw</var>:
               </p>
 
               <ol class='algorithm'>
@@ -5728,7 +5612,7 @@ results.numbers.length;       <span class='comment'>// Evaluates to 3.</span></x
                 <a class='dfnref' href='#dfn-platform-array-object'>platform array object</a>
                 <var>A</var> with element type <var>T</var>
                 <span class='rfc2119'>MUST</span> behave as follows when passed
-                property name <var>P</var> and Boolean flag <var>Throw</var>:
+                property name <var>P</var> and boolean flag <var>Throw</var>:
               </p>
 
               <ol class='algorithm'>
@@ -5928,8 +5812,8 @@ t.addListener(function() { });
 
 <span class='comment'>// This also works, but it is the function with /* 1 */ in it that is the</span>
 <span class='comment'>// implementation of eventOccurred.</span>
-var x = function() { /* 1 */ };                    
-x.eventOccurred = function() { /* 2 */ };          
+var x = function() { <span class='comment'>/* 1 */</span> };
+x.eventOccurred = function() { <span class='comment'>/* 2 */</span> };
 t.addListener(x);
 
 <span class='comment'>// This works too, and the value of the eventOccurred property is the</span>
@@ -7077,7 +6961,7 @@ system.loginTime;  <span class='comment'>// So this now evaluates to forgedLogin
                             <dd>
                               Add to <var>types</var> all nullable types.
                             </dd>
-                            <dt>An <a class='dfnref' href='#dfn-platform-array-object'>platform array object</a></dt>
+                            <dt>A <a class='dfnref' href='#dfn-platform-array-object'>platform array object</a></dt>
                             <dd>
                               Add to <var>types</var> the <span class='idltype'>object</span> type
                               and an <a href='#idl-array'>array type</a> that corresponds to
@@ -8174,7 +8058,7 @@ interface
               which <a class='dfnref' href='#dfn-support-indexed-properties'>supports indexed</a> or
               <a class='dfnref' href='#dfn-support-named-properties'>named properties</a>
               <span class='rfc2119'>MUST</span> behave as follows when called with property name <var>P</var>,
-              property descriptor <var>Desc</var> and Boolean flag <var>Throw</var>.  The term “Reject”
+              property descriptor <var>Desc</var> and boolean flag <var>Throw</var>.  The term “Reject”
               is used in the same sense as that defined in ECMA-262, namely, to mean “If <var>Throw</var> is
               <span class='esvalue'>true</span>, then throw a <span class='esvalue'>TypeError</span> exception,
               otherwise return <span class='esvalue'>false</span>”.
@@ -8284,7 +8168,7 @@ interface
               which <a class='dfnref' href='#dfn-support-indexed-properties'>supports indexed</a> or
               <a class='dfnref' href='#dfn-support-named-properties'>named properties</a>
               <span class='rfc2119'>MUST</span> behave as follows when called with property name <var>P</var>
-              and Boolean flag <var>Throw</var>.  The term “Reject” is used as defined in
+              and boolean flag <var>Throw</var>.  The term “Reject” is used as defined in
               <a href='#defineownproperty'><?sref defineownproperty?> <?sdir defineownproperty?></a>.
             </p>
 
@@ -8435,7 +8319,7 @@ interface
           <ul>
             <li>
               If the <code>[Callback=FunctionOnly]</code> <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
-              apepars on the interface, then the native object is considered to
+              appears on the interface, then the native object is considered to
               implement that interface only if it is a <span class='estype'>Function</span>
               object.  The <span class='estype'>Function</span> object itself is the
               implementation of the <a class='dfnref' href='#dfn-operation'>operation</a>
