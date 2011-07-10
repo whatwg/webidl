@@ -552,7 +552,7 @@
     <tr id='proddef-{@nt}'>
       <td><span class='prod-number'>[<xsl:value-of select='count(preceding-sibling::x:prod) + 1'/>]</span></td>
       <td>
-        <a class='nt' href='#prod-{@nt}'><xsl:value-of select='@nt'/></a>
+        <a class='sym' href='#prod-{@nt}'><xsl:value-of select='@nt'/></a>
         <xsl:if test='@whitespace="explicit"'>
           <sub class='nt-attr'>explicit</sub>
         </xsl:if>
@@ -572,7 +572,7 @@
     <tr id='prod-{@nt}'>
       <td><span class='prod-number'>[<xsl:value-of select='count(preceding-sibling::x:prod) + 1'/>]</span></td>
       <td>
-        <a class='nt' href='#proddef-{@nt}'><xsl:value-of select='@nt'/></a>
+        <a class='sym' href='#proddef-{@nt}'><xsl:value-of select='@nt'/></a>
         <xsl:if test='@whitespace="explicit"'>
           <sub class='nt-attr'>explicit</sub>
         </xsl:if>
@@ -601,7 +601,7 @@
               <xsl:with-param name='s' select='substring($s, 2)'/>
             </xsl:call-template>
           </xsl:variable>
-          <a class='nt' href='#prod-{$nt}'><xsl:value-of select='$nt'/></a>
+          <a class='sym' href='#prod-{$nt}'><xsl:value-of select='$nt'/></a>
           <xsl:call-template name='bnf'>
             <xsl:with-param name='s' select='substring($s, string-length($nt) + 1)'/>
           </xsl:call-template>

@@ -6,7 +6,7 @@ document.addEventListener('DOMContentLoaded', function(event) {
       span.textContent = '\xa0';
       var a = document.createElement('a');
       a.href = '#' + n.parentNode.id;
-      a.textContent = '\xb6';
+      a.textContent = '\xa7';
       span.appendChild(a);
       n.appendChild(span);
     } else {
