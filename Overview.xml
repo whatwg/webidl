@@ -15,7 +15,7 @@
   <head>
     <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'/>
     <title>Web IDL</title>
-    <meta name='revision' content='$Id: Overview.xml,v 1.341 2011-08-16 22:51:31 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: Overview.xml,v 1.342 2011-08-19 00:39:38 cmccorma Exp $'/>
     <link rel='stylesheet' href='WebIDL.css' type='text/css'/>
     <script src='section-links.js' type='application/ecmascript'/>
     <script src='dfn.js' type='application/ecmascript'/>
@@ -408,15 +408,21 @@ dictionary <i>identifier</i> {
           <p>
             For all of these constructs, the <a class='dfnref' href='#dfn-identifier'>identifier</a>
             is the value of the <a class='sym' href='#prod-identifier'>identifier</a> token with any single leading
-            <span class='char'>U+005F LOW LINE ("_")</span> character removed.
+            <span class='char'>U+005F LOW LINE ("_")</span> character (underscore) removed.
           </p>
           <div class='note'>
             <p>
               A leading <span class='char'>"_"</span> is used to escape an identifier from looking
               like a reserved word so that, for example, an interface named “interface” can be
-              defined.
+              defined.  The leading <span class='char'>"_"</span> is dropped to unescape the
+              identifier.
             </p>
           </div>
+          <p>
+            The <a class='dfnref' href='#dfn-identifier'>identifier</a> of any of the abovementioned
+            IDL constructs <a class='rfc2119'>MUST NOT</a> be “prototype”, “constructor”, “toString”
+            or begin with a <span class='char'>U+005F LOW LINE ("_")</span> character.
+          </p>
           <p>
             Every <a class='dfnref' href='#dfn-named-definition'>named definition</a>
             also has a <dfn id='dfn-qualified-name'>qualified name</dfn>, determined as follows:
@@ -428,14 +434,15 @@ dictionary <i>identifier</i> {
               then the qualified name
               of the definition is two consecutive <span class='char'>U+003A COLON (":")</span>
               characters followed by the <a class='dfnref' href='#dfn-identifier'>identifier</a>
-              of the definition.
+              of the definition.  (Hereafter, two consecutive <span class='char'>U+003A COLON (":")</span>
+              characters are referred to as a <dfn id='dfn-double-colon'>double colon</dfn>.)
             </li>
             <li>
               Otherwise, the definition is not declared at the outermost scope.  The qualified name
               of the definition is the qualified name
               of the definition’s <a class='dfnref' href='#dfn-enclosing-module'>enclosing module</a>
-              followed by two consecutive <span class='char'>U+003A COLON (":")</span>
-              characters followed by the identifier of the definition.
+              followed by a <a class='dfnref' href='#dfn-double-colon'>double colon</a>
+              followed by the identifier of the definition.
             </li>
           </ul>
           <p>
@@ -463,14 +470,12 @@ dictionary <i>identifier</i> {
           </div>
           <p>
             A <dfn id='dfn-scoped-name'>scoped name</dfn> (matching <a class='sym' href='#prod-ScopedName'>ScopedName</a>)
-            is a string formed by concatenating a sequence of one or more identifiers and placing two consecutive 
-            <span class='char'>U+003A COLON (":")</span> characters between each pair of
-            adjacent identifiers, and is
-            used in IDL to refer to definitions in different scopes.
+            is a string formed by concatenating a sequence of one or more identifiers with a
+            <a class='dfnref' href='#dfn-double-colon'>double colon</a> between each pair of
+            adjacent identifiers, and is used in IDL to refer to definitions in other scopes.
             A scoped name is an <dfn id='dfn-absolute-scoped-name'>absolute scoped name</dfn>
-            if it begins with two consecutive <span class='char'>U+003A COLON (":")</span>
-            characters, or a <dfn id='dfn-relative-scoped-name'>relative scoped name</dfn>
-            if it does not.
+            if it begins with a <a class='dfnref' href='#dfn-double-colon'>double colon</a>,
+            or a <dfn id='dfn-relative-scoped-name'>relative scoped name</dfn> if it does not.
           </p>
           <p>
             A scoped name can be <dfn id='dfn-resolve'>resolved</dfn> (relative to a <a class='dfnref' href='#dfn-module'>module</a>
@@ -491,17 +496,17 @@ dictionary <i>identifier</i> {
                   Loop:
                   <ol>
                     <li>
-                      Let <var>definition</var> be the <a class='dfnref' href='#dfn-definition'>definition</a> whose
+                      If there is a <a class='dfnref' href='#dfn-definition'>definition</a> whose
                       <a class='dfnref' href='#dfn-qualified-name'>qualified name</a> is
-                      equal to the concatenation of <var>name</var>, two
-                      <span class='char'>U+003A COLON (":")</span> characters and
+                      equal to the concatenation of <var>name</var>, a 
+                      <a class='dfnref' href='#dfn-double-colon'>double colon</a> and
                       the scoped name, then the scoped name resolves to that definition;
                       end these steps.
                     </li>
                     <li>
                       Remove the last name component from <var>name</var> (that is, from
-                      the second last <span class='char'>U+003A COLON (":")</span>
-                      character to the end of the string, inclusive).
+                      the last <a class='dfnref' href='#dfn-double-colon'>double colon</a>
+                      to the end of the string, inclusive).
                     </li>
                   </ol>
                   until <var>name</var> is the empty string.
@@ -600,6 +605,13 @@ module framework {
               not a keyword in the IDL grammar), it is still unescaped
               to obtain the attribute’s <a class='dfnref' href='#dfn-identifier'>identifier</a>.
             </p>
+            <p>
+              Also note that the <a class='dfnref' href='#dfn-exception-field'>exception fields</a>,
+              <a class='dfnref' href='#dfn-operation'>operations</a> and
+              <a class='dfnref' href='#dfn-attribute'>attributes</a> above do not have
+              <a class='dfnref' href='#dfn-qualified-name'>qualified names</a>, simply because
+              there is no need to be able to reference them from other scopes.
+            </p>
           </div>
         </div>
 
@@ -636,23 +648,30 @@ module framework {
             <li>
               If the <a class='dfnref' href='#dfn-module'>module</a> has a
               <a class='xattr' href='#Prefix'>[Prefix]</a> <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
-              whose argument starts with the string “::”, then the
+              whose argument starts with a <a class='dfnref' href='#dfn-double-colon'>double colon</a>, then the
               <a class='dfnref' href='#dfn-prefixed-name'>prefixed name</a> of
               the module is a <a class='dfnref' href='#dfn-scoped-name'>scoped name</a>
               constructed by concatenating the <a class='xattr' href='#Prefix'>[Prefix]</a>
-              argument, the string “::” and the module’s <a class='dfnref' href='#dfn-identifier'>identifier</a>.
+              argument, a <a class='dfnref' href='#dfn-double-colon'>double colon</a>
+              and the module’s <a class='dfnref' href='#dfn-identifier'>identifier</a>.
             </li>
             <li>
               Otherwise, if the <a class='dfnref' href='#dfn-module'>module</a> has a
               <a class='xattr' href='#Prefix'>[Prefix]</a> <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
-              whose argument does not start with the string “::”, then the
+              whose argument does not start with a <a class='dfnref' href='#dfn-double-colon'>double colon</a>, then the
               <a class='dfnref' href='#dfn-prefixed-name'>prefixed name</a> of
               the module is a <a class='dfnref' href='#dfn-scoped-name'>scoped name</a>
-              constructed by concatenating the <a class='dfnref' href='#dfn-prefixed-name'>prefixed name</a>
-              of the module’s <a class='dfnref' href='#dfn-enclosing-module'>enclosing module</a>
-              (or “::” if there is no enclosing module), the string “::”, the
-              <a class='xattr' href='#Prefix'>[Prefix]</a> argument, the string
-              “::” and the module’s <a class='dfnref' href='#dfn-identifier'>identifier</a>.
+              constructed by concatenating:
+              <ol>
+                <li>the <a class='dfnref' href='#dfn-prefixed-name'>prefixed name</a>
+                of the module’s <a class='dfnref' href='#dfn-enclosing-module'>enclosing module</a>
+                followed by a <a class='dfnref' href='#dfn-double-colon'>double colon</a>, or
+                simply a <a class='dfnref' href='#dfn-double-colon'>double colon</a> if there
+                is no enclosing module,</li>
+                <li>the <a class='xattr' href='#Prefix'>[Prefix]</a> argument,</li>
+                <li>a <a class='dfnref' href='#dfn-double-colon'>double colon</a>,</li>
+                <li>and the module’s <a class='dfnref' href='#dfn-identifier'>identifier</a>.</li>
+              </ol>
             </li>
             <li>
               Otherwise, if the <a class='dfnref' href='#dfn-qualified-name'>qualified name</a>
@@ -673,14 +692,16 @@ module framework {
               Otherwise, the <a class='dfnref' href='#dfn-prefixed-name'>prefixed name</a>
               of the module is a <a class='dfnref' href='#dfn-scoped-name'>scoped name</a>
               constructed by concatenating the prefixed name of the module’s
-              <a class='dfnref' href='#dfn-enclosing-module'>enclosing module</a>
+              <a class='dfnref' href='#dfn-enclosing-module'>enclosing module</a>,
+              a <a class='dfnref' href='#dfn-double-colon'>double colon</a>
               and the module’s <a class='dfnref' href='#dfn-identifier'>identifier</a>.
             </li>
           </ul>
           <p>
             In the Java language binding, the name of the Java package is
             derived by taking the <a class='dfnref' href='#dfn-prefixed-name'>prefixed name</a>
-            and replacing occurrences of “::” with “.” (see <a href='#java-modules'>section <?sref java-modules?></a>).
+            and replacing all <a class='dfnref' href='#dfn-double-colon'>double colons</a>
+            with “.” (see <a href='#java-modules'>section <?sref java-modules?></a>).
             It is expected that bindings for other languages that typically
             use reversed domain names for namespacing will also use the prefixed
             name of a module to determine namespace names.
@@ -761,7 +782,7 @@ module gui {
             <span class='char'>U+003A COLON (":")</span> character
             and a <a class='dfnref' href='#dfn-scoped-name'>scoped name</a>,
             then that scoped name identifies the inherited interface.  The scoped name
-            <span class='rfc2119'>MUST</span> <a class='dfnref' href='#dfn-resolve'>resolve</a> to a
+            <span class='rfc2119'>MUST</span> <a class='dfnref' href='#dfn-resolve'>resolve</a> to
             a different interface.  An object that implements an interface that inherits from another
             also implements that inherited interface.  The object therefore will also
             have members that correspond to the interface members from the inherited interface.
@@ -790,7 +811,7 @@ module gui {
             which means that it also implements all of <var>A</var>’s
             <a class='dfnref' href='#dfn-inherited-interfaces'>inherited interfaces</a>.  In addition,
             an <a href='#idl-implements-statements'>implements statement</a> can be
-            used to define that objects implementing ane interface will always
+            used to define that objects implementing an interface will always
             also implement another interface.
           </p>
           <p>
@@ -817,7 +838,7 @@ module gui {
             The <a class='dfnref' href='#dfn-identifier'>identifier</a> of a partial
             interface definition <span class='rfc2119'>MUST</span> be the same
             as the identifier of an interface definition in the same module.  All of
-            the members that appear on the partial interface are considered to be
+            the members that appear on each of the partial interfaces are considered to be
             members of the interface itself.
           </p>
           <pre class='syntax'>interface <em>SomeInterface</em> {
@@ -887,11 +908,11 @@ partial interface <em>SomeInterface</em> {
 };
 
 interface Human : Animal {
-  attribute Dog pet;
+  attribute Dog? pet;
 };
 
 interface Dog : Animal {
-  attribute Human owner;
+  attribute Human? owner;
 };</x:codeblock>
           </div>
 
@@ -939,7 +960,7 @@ interface Dog : Animal {
               <li>Let <var>sign</var> be −1 if <var>S</var> begins with <span class='char'>U+002D HYPHEN-MINUS ("-")</span>, and 1 otherwise.</li>
               <li>Let <var>base</var> be the base of the number based on the characters that follow the optional leading <span class='char'>U+002D HYPHEN-MINUS ("-")</span> character:
                 <dl class='switch'>
-                  <dt><span class='char'>U+0030 DIGIT ZERO ("0")</span>, <span class='char'>U+0058 LATIN CAPTIAL LETTER X ("X")</span></dt>
+                  <dt><span class='char'>U+0030 DIGIT ZERO ("0")</span>, <span class='char'>U+0058 LATIN CAPITAL LETTER X ("X")</span></dt>
                   <dt><span class='char'>U+0030 DIGIT ZERO ("0")</span>, <span class='char'>U+0058 LATIN SMALL LETTER X ("X")</span></dt>
                   <dd>The base is 16.</dd>
                   <dt><span class='char'>U+0030 DIGIT ZERO ("0")</span></dt>
@@ -1347,7 +1368,7 @@ s.union(1, 4, 7);         <span class='comment'>// Passing three arguments corre
               is also considered to be an optional argument. Declaring an argument
               to be optional indicates that an the argument value can be omitted
               when the operation is invoked. An argument <span class='rfc2119'>MUST NOT</span>
-              be declared to be optional unless any subsequent arguments to the
+              be declared to be optional unless all subsequent arguments to the
               operation are also optional.
             </p>
             <pre class='syntax'><i>return-type</i> <i>identifier</i>(<i>type</i> <i>identifier</i>, optional <i>type</i> <i>identifier</i>);</pre>
@@ -1389,7 +1410,7 @@ s.union(1, 4, 7);         <span class='comment'>// Passing three arguments corre
               has been supplied to the implementation), and that attempt results in an
               exception being thrown, then, unless otherwise specified, that
               exception will be propagated to the user code that caused the
-              implementation to access the attribute.  Similarly, if a value
+              implementation to invoke the operation.  Similarly, if a value
               returned from invoking the operation cannot be converted to
               an IDL type, then any exception resulting from this will also
               be propagated to the user code that resulted in the implementation
@@ -1473,6 +1494,13 @@ s.union(1, 4, 7);         <span class='comment'>// Passing three arguments corre
               not support the particular kind of special operations there simply
               will not be such functionality.
             </p>
+            <p>
+              Some language bindings, such as ECMAScript, do not distinguish
+              assignment to an existing indexed or named property and the creation
+              of a new one.  Regardless, it is the creator that is invoked when
+              an attempt is made to create a new indexed or named property, and
+              the setter when the property already exists.
+            </p>
             <div class='example'>
               <p>The following IDL fragment defines an interface with a getter and a setter:</p>
               <x:codeblock language='idl'>interface Dictionary {
@@ -1533,7 +1561,7 @@ dictionary.x = 1;                  <span class='comment'>// Invokes the property
               Defining a special operation without using the <code>omittable</code> keyword
               on an operation but giving the operation an <a class='dfnref' href='#dfn-identifier'>identifier</a>
               is equivalent to separating the special operation out into its own
-              declaration without an identifier.  This approach is admitted to
+              declaration without an identifier.  This approach is allowed to
               simplify prose descriptions of an interface’s operations.
             </p>
             <div class='example'>
@@ -1566,16 +1594,16 @@ dictionary.x = 1;                  <span class='comment'>// Invokes the property
               Getters, setters, creators and deleters come in two varieties: ones that
               take a <span class='idltype'>DOMString</span> as a property name,
               known as
-              <dfn id='dfn-name-getter'>name getters</dfn>,
-              <dfn id='dfn-name-setter'>name setters</dfn>,
-              <dfn id='dfn-name-creator'>name creators</dfn> and
-              <dfn id='dfn-name-deleter'>name deleters</dfn>,
+              <dfn id='dfn-named-property-getter'>named property getters</dfn>,
+              <dfn id='dfn-named-property-setter'>named property setters</dfn>,
+              <dfn id='dfn-named-property-creator'>named property creators</dfn> and
+              <dfn id='dfn-named-property-deleter'>named property deleters</dfn>,
               and ones that take an <span class='idltype'>unsigned long</span>
               as a property index, known as
-              <dfn id='dfn-index-getter'>index getters</dfn>,
-              <dfn id='dfn-index-setter'>index setters</dfn>,
-              <dfn id='dfn-index-creator'>index creators</dfn> and
-              <dfn id='dfn-index-deleter'>index deleters</dfn>.
+              <dfn id='dfn-indexed-property-getter'>indexed property getters</dfn>,
+              <dfn id='dfn-indexed-property-setter'>indexed property setters</dfn>,
+              <dfn id='dfn-indexed-property-creator'>indexed property creators</dfn> and
+              <dfn id='dfn-indexed-property-deleter'>indexed property deleters</dfn>.
               See <a href='#idl-indexed-properties'>section <?sref idl-indexed-properties?></a>
               and <a href='#idl-named-properties'>section <?sref idl-named-properties?></a>
               for details.
@@ -1595,7 +1623,7 @@ dictionary.x = 1;                  <span class='comment'>// Invokes the property
             <p>
               If an object implements more than one <a class='dfnref' href='#dfn-interface'>interface</a>
               that defines a given special operation, then it is undefined which (if any)
-              special operation is invoked.
+              special operation is invoked for that operation.
             </p>
 
             <div id='idl-callers' class='section'>
@@ -1767,10 +1795,10 @@ var greeting = 'Hi ' + s;  <span class='comment'>// Now greeting == 'Hi Alan Smi
 
               <p>
                 An <a class='dfnref' href='#dfn-interface'>interface</a> that defines
-                an <a class='dfnref' href='#dfn-index-getter'>index getter</a>,
-                <a class='dfnref' href='#dfn-index-setter'>index setter</a>,
-                <a class='dfnref' href='#dfn-index-creator'>index creator</a>
-                and/or an <a class='dfnref' href='#dfn-index-deleter'>index deleter</a>
+                an <a class='dfnref' href='#dfn-indexed-property-getter'>indexed property getter</a>,
+                <a class='dfnref' href='#dfn-indexed-property-setter'>indexed property setter</a>,
+                <a class='dfnref' href='#dfn-indexed-property-creator'>indexed property creator</a>
+                and/or an <a class='dfnref' href='#dfn-indexed-property-deleter'>indexed property deleter</a>
                 is said to <dfn id='dfn-support-indexed-properties'>support indexed properties</dfn>.
               </p>
               <p>
@@ -1800,45 +1828,45 @@ omittable setter <i>type</i> <i>identifier</i>(unsigned long <i>identifier</i>, 
 omittable creator <i>type</i> <i>identifier</i>(unsigned long <i>identifier</i>, <i>type</i> <i>identifier</i>);
 omittable deleter <i>type</i> <i>identifier</i>(unsigned long <i>identifier</i>);</pre>
               <p>
-                The following requirements apply to the definitions of index getters, setters, creators and deleters:
+                The following requirements apply to the definitions of indexed property getters, setters, creators and deleters:
               </p>
               <ul>
                 <li>
-                  If an <a class='dfnref' href='#dfn-index-getter'>index getter</a> was specified using an <a class='dfnref' href='#dfn-operation'>operation</a>
+                  If an <a class='dfnref' href='#dfn-indexed-property-getter'>indexed property getter</a> was specified using an <a class='dfnref' href='#dfn-operation'>operation</a>
                   with an <a class='dfnref' href='#dfn-identifier'>identifier</a>,
                   then the value returned when indexing the object with a given index
                   is the value that would be returned by invoking the operation, passing
-                  the index as its only argument.  If the operation used to declare the index getter
+                  the index as its only argument.  If the operation used to declare the indexed property getter
                   did not have an identifier, then the interface definition must be accompanied
                   by a description of how to <dfn id='dfn-determine-the-value-of-an-indexed-property'>determine the value of an indexed property</dfn>
                   for a given index.
                 </li>
                 <li>
-                  If an <a class='dfnref' href='#dfn-index-setter'>index setter</a> was specified using an operation
+                  If an <a class='dfnref' href='#dfn-indexed-property-setter'>indexed property setter</a> was specified using an operation
                   with an identifier,
                   then the behavior that occurs when indexing the object for property assignment with a given property index and value
                   is the same as if the operation is invoked, passing
-                  the index as the first argument and the value as the second argument.  If the operation used to declare the index setter
+                  the index as the first argument and the value as the second argument.  If the operation used to declare the indexed property setter
                   did not have an identifier, then the interface definition must be accompanied
                   by a description of how to <dfn id='dfn-set-the-value-of-an-existing-indexed-property'>set the value of an existing indexed property</dfn>
                   for a given property index and value.
                 </li>
                 <li>
-                  If an <a class='dfnref' href='#dfn-index-creator'>index creator</a> was specified using an operation
+                  If an <a class='dfnref' href='#dfn-indexed-property-creator'>indexed property creator</a> was specified using an operation
                   with an identifier,
                   then the behavior that occurs when indexing the object for property creation with a given property index and value
                   is the same as if the operation is invoked, passing
-                  the index as the first argument and the value as the second argument.  If the operation used to declare the index creator
+                  the index as the first argument and the value as the second argument.  If the operation used to declare the indexed property creator
                   did not have an identifier, then the interface definition must be accompanied
                   by a description of how to <dfn id='dfn-set-the-value-of-a-new-indexed-property'>set the value of a new indexed property</dfn>
                   for a given property index and value.
                 </li>
                 <li>
-                  If an <a class='dfnref' href='#dfn-index-deleter'>index deleter</a> was specified using an operation
+                  If an <a class='dfnref' href='#dfn-indexed-property-deleter'>indexed property deleter</a> was specified using an operation
                   with an identifier,
                   then the behavior that occurs when indexing the object for property deletion with a given property index
                   is the same as if the operation is invoked, passing
-                  the index as the only argument.  If the operation used to declare the index deleter
+                  the index as the only argument.  If the operation used to declare the indexed property deleter
                   did not have an identifier, then the interface definition must be accompanied
                   by a description of how to <dfn id='dfn-delete-an-existing-indexed-property'>delete an existing indexed property</dfn>
                   for a given property index.
@@ -1874,9 +1902,9 @@ omittable deleter <i>type</i> <i>identifier</i>(unsigned long <i>identifier</i>)
                 </p>
                 <blockquote>
                   <p>
-                    Objects implementing <span class='idlvalue'>OrderedMap</span>
+                    An object <var>map</var> implementing <span class='idlvalue'>OrderedMap</span>
                     support indexed properties with indices in the range
-                    0 ≤ <var>index</var> &lt; <code>OrderedMap::length</code>.
+                    0 ≤ <var>index</var> &lt; <code>map.size</code>.
                   </p>
                   <p>
                     Such objects also support a named property for every name that,
@@ -1911,7 +1939,7 @@ map[1] = false;   <span class='comment'>// If map.length > 1, then this will set
                   //   map.setByIndex(1, false)
                   //
                   // Otherwise, if map.length ≤ 1, then it will set the
-                  // property but have no other effect (since an index creator
+                  // property but have no other effect (since an indexed property creator
                   // was not specified).</span>
 
 y = map.apple;    <span class='comment'>// If there exists a named property named "apple", then this
@@ -1942,24 +1970,24 @@ delete map.cake;  <span class='comment'>// If a named property named "cake" exis
 
               <p>
                 An <a class='dfnref' href='#dfn-interface'>interface</a> that defines
-                a <a class='dfnref' href='#dfn-name-getter'>name getter</a>,
-                <a class='dfnref' href='#dfn-name-setter'>name setter</a>,
-                <a class='dfnref' href='#dfn-name-creator'>name creator</a>
-                and/or a <a class='dfnref' href='#dfn-name-deleter'>name deleter</a>
+                a <a class='dfnref' href='#dfn-named-property-getter'>named property getter</a>,
+                <a class='dfnref' href='#dfn-named-property-setter'>named property setter</a>,
+                <a class='dfnref' href='#dfn-named-property-creator'>named property creator</a>
+                and/or a <a class='dfnref' href='#dfn-named-property-deleter'>named property deleter</a>
                 is said to <dfn id='dfn-support-named-properties'>support named properties</dfn>.
               </p>
               <p>
                 If an interface <a class='dfnref' href='#dfn-support-named-properties'>supports named properties</a>,
                 then the interface definition <span class='rfc2119'>MUST</span> be accompanied by
-                a description of what the ordered set of names the object can be
-                indexed with at any given time is.  These names are called the
+                a description of the ordered set of names that can be used to index the object
+                at any given time.  These names are called the
                 <dfn id='dfn-supported-property-names'>supported property names</dfn>.
               </p>
               <p>
                 Name getters and deleters <span class='rfc2119'>MUST</span>
                 be declared to take a single <span class='idltype'>DOMString</span> argument.
                 Index setters and creators <span class='rfc2119'>MUST</span>
-                be declared to take two arguments, where the first is an <span class='idltype'>DOMString</span>.
+                be declared to take two arguments, where the first is a <span class='idltype'>DOMString</span>.
               </p>
               <pre class='syntax'>getter <i>type</i> <i>identifier</i>(DOMString <i>identifier</i>);
 setter <i>type</i> <i>identifier</i>(DOMString <i>identifier</i>, <i>type</i> <i>identifier</i>);
@@ -1976,45 +2004,45 @@ omittable setter <i>type</i> <i>identifier</i>(DOMString <i>identifier</i>, <i>t
 omittable creator <i>type</i> <i>identifier</i>(DOMString <i>identifier</i>, <i>type</i> <i>identifier</i>);
 omittable deleter <i>type</i> <i>identifier</i>(DOMString <i>identifier</i>);</pre>
               <p>
-                The following requirements apply to the definitions of name getters, setters, creators and deleters:
+                The following requirements apply to the definitions of named property getters, setters, creators and deleters:
               </p>
               <ul>
                 <li>
-                  If a <a class='dfnref' href='#dfn-name-getter'>name getter</a> was specified using an <a class='dfnref' href='#dfn-operation'>operation</a>
+                  If a <a class='dfnref' href='#dfn-named-property-getter'>named property getter</a> was specified using an <a class='dfnref' href='#dfn-operation'>operation</a>
                   with an <a class='dfnref' href='#dfn-identifier'>identifier</a>,
                   then the value returned when indexing the object with a given name
                   is the value that would be returned by invoking the operation, passing
-                  the name as its only argument.  If the operation used to declare the name getter
+                  the name as its only argument.  If the operation used to declare the named property getter
                   did not have an identifier, then the interface definition must be accompanied
                   by a description of how to <dfn id='dfn-determine-the-value-of-a-named-property'>determine the value of a named property</dfn>
                   for a given property name.
                 </li>
                 <li>
-                  If a <a class='dfnref' href='#dfn-name-setter'>name setter</a> was specified using an operation
+                  If a <a class='dfnref' href='#dfn-named-property-setter'>named property setter</a> was specified using an operation
                   with an identifier,
                   then the behavior that occurs when indexing the object for property assignment with a given property name and value
                   is the same as if the operation is invoked, passing
-                  the name as the first argument and the value as the second argument.  If the operation used to declare the name setter
+                  the name as the first argument and the value as the second argument.  If the operation used to declare the named property setter
                   did not have an identifier, then the interface definition must be accompanied
                   by a description of how to <dfn id='dfn-set-the-value-of-an-existing-named-property'>set the value of an existing named property</dfn>
                   for a given property name and value.
                 </li>
                 <li>
-                  If a <a class='dfnref' href='#dfn-name-creator'>name creator</a> was specified using an operation
+                  If a <a class='dfnref' href='#dfn-named-property-creator'>named property creator</a> was specified using an operation
                   with an identifier,
                   then the behavior that occurs when indexing the object for property creation with a given property name and value
                   is the same as if the operation is invoked, passing
-                  the name as the first argument and the value as the second argument.  If the operation used to declare the name creator
+                  the name as the first argument and the value as the second argument.  If the operation used to declare the named property creator
                   did not have an identifier, then the interface definition must be accompanied
                   by a description of how to <dfn id='dfn-set-the-value-of-a-new-named-property'>set the value of a new named property</dfn>
                   for a given property name and value.
                 </li>
                 <li>
-                  If a <a class='dfnref' href='#dfn-name-deleter'>name deleter</a> was specified using an operation
+                  If a <a class='dfnref' href='#dfn-named-property-deleter'>named property deleter</a> was specified using an operation
                   with an identifier,
                   then the behavior that occurs when indexing the object for property deletion with a given property name
                   is the same as if the operation is invoked, passing
-                  the name as the only argument.  If the operation used to declare the name deleter
+                  the name as the only argument.  If the operation used to declare the named property deleter
                   did not have an identifier, then the interface definition must be accompanied
                   by a description of how to <dfn id='dfn-delete-an-existing-named-property'>delete an existing named property</dfn>
                   for a given property name.
@@ -2033,6 +2061,11 @@ omittable deleter <i>type</i> <i>identifier</i>(DOMString <i>identifier</i>);</p
               itself.  Static operations are declared by using the
               <code>static</code> keyword in an operation
               declaration.
+            </p>
+            <p>
+              It is language binding specific whether it is possible to invoke
+              a static operation through a reference to an instance of the
+              interface.
             </p>
             <div class='example'>
               <p>
@@ -2595,7 +2628,13 @@ interface C {
             If the identifier of the dictionary is followed by a colon and a <a class='dfnref' href='#dfn-scoped-name'>scoped name</a>,
             then that scoped name identifies the inherited dictionary.  The scoped name
             <span class='rfc2119'>MUST</span> <a class='dfnref' href='#dfn-resolve'>resolve</a> to
-            a different dictionary.
+            a dictionary.
+          </p>
+          <p>
+            A dictionary <span class='rfc2119'>MUST NOT</span> be declared such that
+            its inheritance hierarchy has a cycle.  That is, an interface
+            <var>A</var> cannot inherit from itself, nor can it inherit from another
+            interface <var>B</var> that inherits from <var>A</var>, and so on.
           </p>
           <pre class='syntax'>dictionary <em>Base</em> {
   <i>dictionary-members…</i>
@@ -2690,7 +2729,7 @@ interface GraphicsContext {
   void drawRectangle(float width, float height, optional PaintOptions options);
 };</x:codeblock>
             <p>
-              In an ECMAScript implementation of the IDL, you an <span class='estype'>Object</span>
+              In an ECMAScript implementation of the IDL, an <span class='estype'>Object</span>
               can be passed in for the optional <span class='idltype'>PaintOptions</span> dictionary:
             </p>
             <x:codeblock language='es'><span class='comment'>// Get an instance of GraphicsContext.</span>
@@ -2731,7 +2770,15 @@ ctx.drawRectangle(300, 200, { fillPattern: "red", position: new Point(10, 10) })
             character and a <a class='dfnref' href='#dfn-scoped-name'>scoped name</a>,
             then that scoped name identifies the inherited exception.  The scoped name
             <span class='rfc2119'>MUST</span> <a class='dfnref' href='#dfn-resolve'>resolve</a> to
-            a different exception.
+            an exception
+          </p>
+          <p>
+            An exception <span class='rfc2119'>MUST NOT</span> be declared such that
+            its inheritance hierarchy has a cycle.  That is, an interface
+            <var>A</var> cannot inherit from itself, nor can it inherit from another
+            interface <var>B</var> that inherits from <var>A</var>, and so on.
+          </p>
+          <p>
             An object that implements an exception that inherits from another
             also implements that inherited exception.  The object therefore will also
             have members that correspond to the
@@ -2816,7 +2863,7 @@ exception DOMStringSizeError : DOMException { };
 exception HierarchyRequestError : DOMException { };</x:codeblock>
             <p>
               In an ECMAScript implementation, the different types of <span class='idltype'>DOMException</span>s
-              could be distinguished in a number of different ways:
+              could be distinguished in a couple of different ways:
             </p>
             <x:codeblock language='es'>try {
   document.appendChild(document);
@@ -2830,11 +2877,6 @@ exception HierarchyRequestError : DOMException { };</x:codeblock>
   if (e.name == "HierarchyRequestError") {
     ...
   }
-
-  <span class='comment'>// By testing with "instanceof".</span>
-  if (e instanceof HierarchyRequestError) {
-    ...
-  }
 }</x:codeblock>
             <p>
               The advantage of looking at the name rather than code is that exception
@@ -2844,6 +2886,14 @@ exception HierarchyRequestError : DOMException { };</x:codeblock>
               could be thrown inside the one <code>try</code> block, authors would
               need to check both the code and the interface of the exception object
               to be sure of what kind of exception was thrown.
+            </p>
+            <p>
+              Note that using <code>e instanceof <var>ExceptionType</var></code>
+              can return <code>false</code> if the exception object comes from a
+              different document than the global scope of the running script, even if
+              the exception is an instance of the <var>ExceptionType</var> in
+              its own document.  For this reason, authors are suggested not to use
+              <code>instanceof</code> to perform exception type testing.
             </p>
           </div>
         </div>
@@ -2855,7 +2905,7 @@ exception HierarchyRequestError : DOMException { };</x:codeblock>
             A <dfn id='dfn-typedef'>typedef</dfn> is a definition (matching
             <a class='sym' href='#prod-Typedef'>Typedef</a>)
             used to declare a new name for a type.  This new name is not exposed
-            in language bindings; it is purely used as a shorthand for referencing
+            by language bindings; it is purely used as a shorthand for referencing
             the type in the IDL.
           </p>
           <pre class='syntax'>typedef <i>type</i> <i>identifier</i>;</pre>
@@ -2868,7 +2918,9 @@ exception HierarchyRequestError : DOMException { };</x:codeblock>
           <p>
             The <a class='sym' href='#prod-Type'>Type</a> <span class='rfc2119'>MUST NOT</span>
             be a <a class='dfnref' href='#dfn-scoped-name'>scoped name</a> that
-            <a class='dfnref' href='#dfn-resolve'>resolves</a> to an <a class='dfnref' href='#dfn-interface'>interface</a>.
+            <a class='dfnref' href='#dfn-resolve'>resolves</a> to an
+            <a class='dfnref' href='#dfn-interface'>interface</a> or
+            <a class='dfnref' href='#dfn-dictionary'>dictionary</a>.
           </p>
           <p>
             No <a class='dfnref' href='#dfn-extended-attribute'>extended attributes</a>
@@ -2943,7 +2995,7 @@ module gui {
           </p>
           <p>
             <a class='dfnref' href='#dfn-implements-statement'>Implements statements</a>
-            can appear on a <a class='dfnref' href='#dfn-module'>module</a>
+            can appear in a <a class='dfnref' href='#dfn-module'>module</a>
             or at the <a class='dfnref' href='#dfn-outermost-scope'>outermost scope</a>.
           </p>
           <p>
@@ -2984,6 +3036,12 @@ module gui {
             <li>each interface <var>D</var> where the IDL states that <code>C implements D</code>,
               where <var>C</var> is a consequential interface of <var>A</var>.</li>
           </ul>
+          <p>
+            Implements statements <span class='rfc2119'>MUST NOT</span>
+            be used such that the identifier of any member of one
+            interface’s consequential interfaces is the same as the
+            identifier of one of the interface’s own members.
+          </p>
           <p>
             No <a class='dfnref' href='#dfn-extended-attribute'>extended attributes</a>
             are applicable to <a class='dfnref' href='#dfn-implements-statement'>implements statements</a>.
@@ -3067,7 +3125,7 @@ EventTarget et = (EventTarget) n; <span class='comment'>// This should never thr
             implemented as platform objects.
           </p>
           <p>
-            Only interfaces with the following characteristics can be implemented
+            Only interfaces with all of the following characteristics can be implemented
             as user objects:
           </p>
           <ul>
@@ -3082,7 +3140,7 @@ EventTarget et = (EventTarget) n; <span class='comment'>// This should never thr
               from any non-<a class='xattr' href='#Callback'>[Callback]</a>-annotated interface.
             </li>
             <li>
-              The interface and all of its <a class='dfnref' href='#dfn-inherited-interfaces'>inherited interface</a>
+              The interface and all of its <a class='dfnref' href='#dfn-inherited-interfaces'>inherited interfaces</a>
               do not have any <a class='dfnref' href='#dfn-consequential-interfaces'>consequential interfaces</a>.
             </li>
             <li>
@@ -3179,8 +3237,8 @@ interface Person {
           <h3>Types</h3>
 
           <p>
-            This section lists the types supported by the IDL, the set of values
-            each type correspond to, and how <a class='dfnref' href='#dfn-constant'>constants</a>
+            This section lists the types supported by Web IDL, the set of values
+            corresponding to each type, and how <a class='dfnref' href='#dfn-constant'>constants</a>
             of that type are represented.
           </p>
           <p>
@@ -3217,7 +3275,7 @@ interface Person {
             IDL types in order to invoke an <a class='dfnref' href='#dfn-operation'>operation</a>
             or assign a value to an <a class='dfnref' href='#dfn-attribute'>attribute</a>,
             all conversions necessary will be performed before the operation
-            is invoked or the attribute updated.  If the conversion cannot
+            is invoked or the attribute is updated.  If the conversion cannot
             be performed, then the operation will not be invoked or
             the attribute will not be updated.  In some language bindings,
             type conversions could result in an exception being thrown.
@@ -3226,7 +3284,7 @@ interface Person {
             assign to the attribute.
           </p>
 
-          <?productions grammar Type AttributeType ConstType Null PrimitiveOrStringType UnsignedIntegerType IntegerType OptionalLong TypeSuffix TypeSuffixStartingWithArray?>
+          <?productions grammar Type AttributeType SequenceType ConstType Null PrimitiveOrStringType UnsignedIntegerType IntegerType OptionalLong TypeSuffix TypeSuffixStartingWithArray?>
 
           <div id='idl-any' class='section'>
             <h4>any</h4>
@@ -3234,6 +3292,20 @@ interface Person {
             <p>
               The <a class='idltype' href='#idl-any'>any</a> type is the union of all other possible types.
               Its <a class='dfnref' href='#dfn-type-name'>type name</a> is “Any”.
+            </p>
+            <p>
+              The <a class='idltype' href='#idl-any'>any</a> type is like
+              a discriminated union type, in that each of its values has a
+              specific non-<a class='idltype' href='#idl-any'>any</a> type
+              associated with it.  For example, one value of the
+              <a class='idltype' href='#idl-any'>any</a> type is the
+              <a class='idltype' href='#idl-unsigned-long'>unsigned long</a>
+              150, while another is the <a class='idltype' href='#idl-long'>long</a> 150.
+              These are distinct values.
+            </p>
+            <p>
+              The particular type of an <a class='idltype' href='#idl-any'>any</a>
+              value is known as its <dfn id='dfn-specific-type'>specific type</dfn>.
             </p>
           </div>
 
@@ -3458,16 +3530,16 @@ interface Person {
                 is not a value of type <span class='idltype'>DOMString</span>.
                 To allow <span class='idlvalue'>null</span>, a
                 <a href='#idl-nullable-type'>nullable</a> <span class='idltype'>DOMString</span>,
-                written as <code>DOMString?</code> in IDL, can be used.
+                written as <code>DOMString?</code> in IDL, needs to be used.
               </p>
             </div>
             <p>
               Nothing in this specification requires a <span class='idltype'>DOMString</span>
               value to be a valid UTF-16 string.  For example, a <span class='idltype'>DOMString</span>
-              value might include unmatched surrogate pair characters.  Authors
+              value might include unmatched surrogate pair characters.  However, authors
               of specifications using Web IDL might want to obtain a sequence of
               Unicode characters given a particular sequence of 16 bit unsigned
-              integer code units, however.  The following algorithm defines a way to
+              integer code units.  The following algorithm defines a way to
               <dfn id='dfn-obtain-unicode'>convert a DOMString to a sequence of Unicode characters</dfn>:
             </p>
             <ol class='algorithm'>
@@ -3530,8 +3602,8 @@ interface Person {
               all possible non-null object references.
             </p>
             <p>
-              There is no way to represent an <a class='idltype' href='#idl-object'>object</a>
-              constant value in IDL.
+              There is no way to represent a constant <a class='idltype' href='#idl-object'>object</a>
+              value in IDL.
             </p>
             <p>
               To denote a type that includes all possible object references plus the
@@ -3555,7 +3627,8 @@ interface Person {
               implement that interface.
             </p>
             <p>
-              There is no way to represent a constant value for interface types in IDL.
+              There is no way to represent a constant object reference value for
+              a particular interface type in IDL.
             </p>
             <p>
               To denote a type that includes all possible references to objects implementing
@@ -3579,7 +3652,7 @@ interface Person {
               the dictionary definition.
             </p>
             <p>
-              There is no way to represent a constant value for dictionary types in IDL.
+              There is no way to represent a constant dictionary value in IDL.
             </p>
             <p>
               The <a class='dfnref' href='#dfn-type-name'>type name</a> of a dictionary type
@@ -3648,7 +3721,7 @@ interface Person {
               will be a copy and modifications made to it will not be visible to the object.
             </p>
             <p>
-              There is no way to represent a sequence constant value in IDL.
+              There is no way to represent a constant sequence value in IDL.
             </p>
             <p>
               Sequences <span class='rfc2119'>MUST NOT</span> be used as the
@@ -3663,7 +3736,7 @@ interface Person {
                 are copied rather than having references
                 to them passed around.  Instead of a writable <a class='dfnref' href='#dfn-attribute'>attribute</a> of a sequence
                 type, it is suggested that a pair of <a class='dfnref' href='#dfn-operation'>operations</a> to get and set the
-                sequence is used.  Another option is to use an <a href='#idl-array'>array</a> type,
+                sequence is used.  Another option is to use an <a href='#idl-array'>array type</a>,
                 which can be used as the type of an attribute.
               </p>
             </div>
@@ -3705,7 +3778,7 @@ interface Person {
               If an array is read only, then it is also implicitly <a class='dfnref' href='#dfn-fixed-length'>fixed length</a>.
             </p>
             <p>
-              There is no way to represent an array constant value in IDL.
+              There is no way to represent an constant array value in IDL.
             </p>
             <p>
               The <a class='dfnref' href='#dfn-type-name'>type name</a> of an array type
@@ -3727,7 +3800,7 @@ interface Person {
               with ECMAScript <span class='estype'>Date</span> objects (<a href='#ref-ECMA-262'>[ECMA-262]</a>,
               section 15.9.1.1) – namely, every millisecond in the 200,000,000 days centered
               around midnight of 1 January, 1970 UTC, except for any millisecond that is part
-              of an inserted leap seconds, which cannot be represented with this type.
+              of an inserted leap second, because they cannot be represented by this type.
             </p>
             <p>
               An additional value that this type can represent is one that indicates
@@ -3735,8 +3808,8 @@ interface Person {
               <span class='idlvalue'>undefined</span>.
             </p>
             <p>
-              There is no way to represent a <a class='idltype' href='#idl-Date'>Date</a>
-              constant value in IDL.
+              There is no way to represent a constant <a class='idltype' href='#idl-Date'>Date</a>
+              value in IDL.
             </p>
             <p>
               The <a class='dfnref' href='#dfn-type-name'>type name</a> of the
@@ -3770,7 +3843,7 @@ interface Person {
             Any extended attribute encountered in an
             <a class='dfnref' href='#dfn-idl-fragment'>IDL fragment</a> is
             matched against the following five grammar symbols to determine
-            what form (or forms) it is in:
+            which form (or forms) it is in:
           </p>
           <table class='vert'>
             <tr>
@@ -3780,10 +3853,10 @@ interface Person {
             </tr>
             <tr>
               <td>
-                <a class='sym' href='#prod-ExtendedAttributeNoArg'>ExtendedAttributeNoArg</a>
+                <a class='sym' href='#prod-ExtendedAttributeNoArgs'>ExtendedAttributeNoArgs</a>
               </td>
               <td>
-                <dfn id='dfn-xattr-no-argument'>takes no argument</dfn>
+                <dfn id='dfn-xattr-no-arguments'>takes no argument</dfn>
               </td>
               <td>
                 <code>[Replaceable]</code>
@@ -3846,10 +3919,10 @@ interface Person {
             <a class='sym' href='#prod-ExtendedAttributeIdent'>ExtendedAttributeIdent</a> and
             <a class='sym' href='#prod-ExtendedAttributeScopedName'>ExtendedAttributeScopedName</a>
             are ambiguous, no extended attribute defined in this document
-            can take both of those forms.
+            takes both of those forms.
           </p>
 
-          <?productions grammar ExtendedAttributeList ExtendedAttribute ExtendedAttributes ExtendedAttributeRest ExtendedAttributeInner Other OtherOrComma ExtendedAttributeNoArg ExtendedAttributeArgList ExtendedAttributeIdent ExtendedAttributeScopedName ExtendedAttributeNamedArgList?>
+          <?productions grammar ExtendedAttributeList ExtendedAttribute ExtendedAttributes ExtendedAttributeRest ExtendedAttributeInner Other OtherOrComma ExtendedAttributeNoArgs ExtendedAttributeArgList ExtendedAttributeIdent ExtendedAttributeScopedName ExtendedAttributeNamedArgList?>
 
           <!--
           <div id='ExceptionConsts' class='section'>
@@ -4044,13 +4117,13 @@ Person* p2 = PersonFactory_createPersonWithAge(f, 26);  <span class='comment'>//
             </p>
             <p>
               The <a class='xattr' href='#Callback'>[Callback]</a> extended attribute
-              <span class='rfc2119'>MUST</span> either <a class='dfnref' href='#dfn-xattr-no-argument'>take no argument</a>
-              or <a class='dfnref' href='#dfn-xattr-identifier'>take an identifier</a>.
+              <span class='rfc2119'>MUST</span> either <a class='dfnref' href='#dfn-xattr-identifier'>take an identifier</a>
+              or <a class='dfnref' href='#dfn-xattr-no-argumnet'>no argument</a>.
               The identifier, if present, is used only by the ECMAScript language binding,
               to control exactly which kinds of objects can be considered to
               implement a <a class='xattr' href='#Callback'>[Callback]</a>-annotated
               interface.  See <a href='#es-Callback'>section <?sref es-Callback?> <?sdir es-Callback?></a> for
-              details.
+              details and an example of this.
             </p>
             <p>
               The <a class='xattr' href='#Callback'>[Callback]</a> extended attribute
@@ -4186,7 +4259,8 @@ node.appendChild(newNode);  <span class='comment'>// This will throw a TypeError
         </ul>
         <p>
           Algorithms in this section use the conventions described in ECMA-262
-          section 5.2 and the ToBoolean, ToNumber, ToUint16, ToInt32, ToUint32, ToString,
+          section 5.2, such as the use of steps and substeps, the use of mathematical
+          operations, and so on.  The ToBoolean, ToNumber, ToUint16, ToInt32, ToUint32, ToString,
           ToObject, IsAccessorDescriptor and IsDataDescriptor abstract operations referenced in this section
           are defined in ECMA-262 sections 8 and 9.
         </p>
@@ -4220,10 +4294,10 @@ node.appendChild(newNode);  <span class='comment'>// This will throw a TypeError
             Each ECMAScript global environment (<a href='#ref-ECMA-262'>[ECMA-262]</a>, section 10.2.3)
             <span class='rfc2119'>MUST</span> have its own unique set of each of
             the <a class='dfnref' href='#dfn-initial-object'>initial objects</a>, created
-            before control enters any ECMAScript execution context, but after the global object
-            for that global environment is created.  The <span class='prop'>[[Prototype]]</span>s
-            of all initial objects <span class='rfc2119'>MUST</span> come from the
-            same global environment.
+            before control enters any ECMAScript execution context associated with the
+            environment, but after the global object for that environment is created.  The <span class='prop'>[[Prototype]]</span>s
+            of all initial objects in a given global environment <span class='rfc2119'>MUST</span> come from the
+            that same global environment.
           </p>
           <div class='example'>
             <p>
@@ -4327,8 +4401,9 @@ iframe.appendChild instanceof w.Function;  <span class='comment'>// Evaluates to
               reference to a special object that represents an ECMAScript <span class='esvalue'>undefined</span>
               value, then it is converted to the ECMAScript
               <span class='esvalue'>undefined</span> value.  Otherwise,
-              the rules for converting the specific type of the IDL value
-              are performed.
+              the rules for converting the <a class='dfnref' href='#dfn-particular-type'>particular type</a>
+              of the IDL <a class='idltype' href='#idl-any'>any</a> value
+              as described in the remainder of this section are performed.
             </p>
           </div>
 
@@ -4365,7 +4440,7 @@ iframe.appendChild instanceof w.Function;  <span class='comment'>// Evaluates to
             </p>
             <ol class='algorithm'>
               <li>Let <var>x</var> be the result of computing ToBoolean(<var>V</var>).</li>
-              <li>Return the IDL <a class='idltype' href='#idl-boolean'>boolean</a> value is the one that represents the same truth value as the ECMAScript <span class='estype'>Boolean</span> value <var>x</var>.</li>
+              <li>Return the IDL <a class='idltype' href='#idl-boolean'>boolean</a> value that is the one that represents the same truth value as the ECMAScript <span class='estype'>Boolean</span> value <var>x</var>.</li>
             </ol>
             <p>
               The result of <a class='dfnref' href='#dfn-convert-idl-to-ecmascript-value'>converting
@@ -5141,6 +5216,7 @@ iframe.appendChild instanceof w.Function;  <span class='comment'>// Evaluates to
   sequence&lt;DOMString> getSupportedImageCodecs();
 
   void drawPolygon(sequence&lt;float> coordinates);
+  sequence&lt;float> getLastDrawnPolygon();
 
   <span class='comment'>// ...</span>
 };</x:codeblock>
@@ -5154,8 +5230,8 @@ iframe.appendChild instanceof w.Function;  <span class='comment'>// Evaluates to
                 value; every time the <span class='prop'>getSupportedImageCodecs()</span>
                 function is called a new <span class='estype'>Array</span> is
                 returned, and whenever an <span class='estype'>Array</span> is
-                passed to <span class='prop'>drawPolygon</span> a reference to
-                it will never be kept.
+                passed to <span class='prop'>drawPolygon</span> no reference
+                will be kept after the call completes.
               </p>
               <x:codeblock language='es'>
 <span class='comment'>// Obtain an instance of Canvas.  Assume that getSupportedImageCodecs()</span>
@@ -5189,14 +5265,16 @@ canvas.drawPolygon(a);
 <span class='comment'>// Each element will be converted to a float by first calling ToNumber().</span>
 <span class='comment'>// So the following call is equivalent to the previous one, except that</span>
 <span class='comment'>// "hi" will be alerted before drawPolygon() returns.</span>
-canvas.drawPolygon
-  ([false, '',
-    { valueOf: function() { alert('hi'); return 100 } }, 0,
-    '50', new Number(62.5)]);
+a = [false, '',
+     { valueOf: function() { alert('hi'); return 100; } }, 0,
+     '50', new Number(62.5)];
+canvas.drawPolygon(s);
 
 <span class='comment'>// Modifying an Array that was passed to drawPolygon() is guaranteed not to</span>
 <span class='comment'>// have an effect on the Canvas, since the Array is effectively passed by value.</span>
-a[0] = 20;</x:codeblock>
+a[4] = 20;
+var b = canvas.getLastDrawnPolygon();
+alert(b[4]);    <span class='comment'>// This would alert "50".</span></x:codeblock>
             </div>
             <!--
             <div class='ignore'>
@@ -5280,14 +5358,17 @@ a[0] = 20;</x:codeblock>
               IDL array values are represented by references to objects known
               as <dfn id='dfn-platform-array-object'>platform array objects</dfn>, with particular
               characteristics that allow them to behave similarly to native <span class='estype'>Array</span>
-              objects.
+              objects.  All <a class='dfnref' href='#dfn-platform-array-object'>platform array objects</a>
+              are <a class='dfnref' href='#dfn-platform-object'>platform objects</a>, and
+              thus are associated with a particular global environment.
             </p>
             <p>
-              The value of the internal <span class='prop'>[[Prototype]]</span> property of an
+              The value of the internal <span class='prop'>[[Prototype]]</span> property of a
               <a class='dfnref' href='#dfn-platform-array-object'>platform array object</a>
               <span class='rfc2119'>MUST</span> be the
               <span class='estype'>Array</span> prototype object
-              (<a href='#ref-ECMA-262'>[ECMA-262]</a>, section 15.4.4).
+              (<a href='#ref-ECMA-262'>[ECMA-262]</a>, section 15.4.4)
+              from its associated global environment.
             </p>
             <div class='note'>
               <p>
@@ -5303,8 +5384,8 @@ a[0] = 20;</x:codeblock>
             <p>
               The value of the internal <span class='prop'>[[Class]]</span> property of an
               platform array object <span class='rfc2119'>MUST</span> be
-              the <a class='dfnref' href='#dfn-type-name'>type name</a> of the array
-              type.
+              the <a class='dfnref' href='#dfn-type-name'>type name</a> of the
+              <a href='#idl-array'>array type</a>.
             </p>
             <!--
             <p>
@@ -5336,7 +5417,7 @@ a[0] = 20;</x:codeblock>
             </p>
 
             <p>
-              Platform array objects defy being fixed; if <code>Object.freeze</code>, <code>Object.seal</code>
+              Platform array objects cannot be fixed; if <code>Object.freeze</code>, <code>Object.seal</code>
               or <code>Object.preventExtensions</code> is called on one, the function
               <span class='rfc2119'>MUST</span> throw a <span class='estype'>TypeError</span>.
             </p>
@@ -5347,26 +5428,26 @@ a[0] = 20;</x:codeblock>
             </p>
             <ul>
               <li>Let <var>O</var> be the result of calling ToObject(<var>V</var>).</li>
-              <li>If <var>O</var> is an <a class='dfnref' href='#dfn-platform-array-object'>platform array object</a>,
+              <li>If <var>O</var> is a <a class='dfnref' href='#dfn-platform-array-object'>platform array object</a>,
                 then the IDL array value is the array value that the platform array object represents.</li>
               <li>Otherwise, the IDL array value is determined as follows:
                 <ol class='algorithm'>
                   <li>Initialize <var>n</var> to be the result of calling <span class='prop'>[[Get]]</span> on <var>V</var> with property name “length”.</li>
                   <li>Set <var>n</var> to ToUint32(<var>n</var>).</li>
-                  <li>Initialize <var>E</var><sub>0..<var>n</var></sub> to be a list of IDL values.</li>
+                  <li>Initialize <var>values</var><sub>0..<var>n</var>−1</sub> to be a list of IDL values.</li>
                   <li>Initialize <var>i</var> to be 0.</li>
                   <li>While <var>i</var> &lt; <var>n</var>:
                     <ol>
                       <li>Let <var>x</var> be the result of calling <span class='prop'>[[Get]]</span> on <var>V</var> with
                         property name ToString(<var>i</var>).</li>
-                      <li>Set <var>E</var><sub><var>i</var></sub> to be the result of
+                      <li>Set <var>values</var><sub><var>i</var></sub> to be the result of
                         <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a>
                         <var>x</var> to an IDL value of type <var>T</var>.</li>
                       <li>Set <var>i</var> to <var>i</var> + 1.</li>
                     </ol>
                   </li>
                   <li>The IDL array value is a <a class='dfnref' href='#dfn-fixed-length'>fixed length</a>
-                    array of length <var>n</var> whose values are <var>E</var><sub>0..<var>n</var></sub>.</li>
+                    array of length <var>n</var> whose values are <var>values</var><sub>0..<var>n</var>−1</sub>.</li>
                 </ol>
               </li>
             </ul>
@@ -5377,7 +5458,7 @@ a[0] = 20;</x:codeblock>
               ECMAScript value as follows:
             </p>
             <ul>
-              <li>If <var>V</var> is already represented by an <a class='dfnref' href='#dfn-platform-array-object'>platform array object</a>,
+              <li>If <var>V</var> is already represented by a <a class='dfnref' href='#dfn-platform-array-object'>platform array object</a>,
                 then the ECMAScript value is that platform array object.</li>
               <li>Otherwise, the ECMAScript value is a newly created platform array object that represents <var>V</var>.</li>
             </ul>
@@ -5423,7 +5504,7 @@ results.numbers.length = 7;          <span class='comment'>// Has no effect, sin
                                      <span class='comment'>// fixed length.</span>
 results.numbers[6];                  <span class='comment'>// Evaluates to undefined.</span>
 
-results.numbers.slice(0, 2);         <span class='comment'>// Evaluates to an Array [4, 8].</span>
+results.numbers.slice(0, 2);         <span class='comment'>// Evaluates to an Array [6, 8].</span>
 
 results.numbers.push(108);           <span class='comment'>// Has no effect, since the definition of</span>
                                      <span class='comment'>// push() relies on calling [[Put]] on a</span>
@@ -5461,12 +5542,17 @@ var a = [1, 3, 5];
 results.numbers = a;          <span class='comment'>// Assigns a fixed length IDL array of length 3 to</span>
                               <span class='comment'>// the numbers attribute.</span>
 
-results.numbers;              <span class='comment'>// This now evaluates to an platform array object</span>
+results.numbers;              <span class='comment'>// This now evaluates to a platform array object</span>
                               <span class='comment'>// that represents the fixed length IDL array,</span>
                               <span class='comment'>// not the Array object assigned in the previous</span>
                               <span class='comment'>// statement.</span>
 
-results.numbers.length;       <span class='comment'>// Evaluates to 3.</span></x:codeblock>
+results.numbers == a;         <span class='comment'>// Evaluates to false.</span>
+
+results.numbers.length;       <span class='comment'>// Evaluates to 3.</span>
+                            
+results.numbers.push(7);      <span class='comment'>// Silently ignored in non-strict mode.</span>
+results.numbers.length;       <span class='comment'>// So this still evaluates to 3.</span></x:codeblock>
             </div>
 
             <div id='platform-array-object-getownproperty' class='section'>
@@ -5641,8 +5727,8 @@ results.numbers.length;       <span class='comment'>// Evaluates to 3.</span></x
             <p>
               <a class='dfnref' href='#dfn-platform-object'>Platform objects</a> returning an ECMAScript <span class='estype'>Date</span> object from <a class='dfnref' href='#dfn-attribute'>attributes</a>,
               <a class='dfnref' href='#dfn-operation'>operations</a> or <a class='dfnref' href='#dfn-exception-field'>exception field</a>
-              do not hold on to a reference to the <span class='estype'>Date</span> object.  Script that modifies a <span class='estype'>Date</span> object
-              so returned cannot affect the platform object it was returned from.
+              do not hold on to a reference to the <span class='estype'>Date</span> object.  A script that modifies a <span class='estype'>Date</span> object
+              so retrieved cannot affect the platform object it was retrieved from.
             </p>
           </div>
 
@@ -5679,7 +5765,7 @@ results.numbers.length;       <span class='comment'>// Evaluates to 3.</span></x
             </p>
             <p>
               The <a class='xattr' href='#AllowAny'>[AllowAny]</a> extended attribute
-              <span class='rfc2119'>MUST</span> <a class='dfnref' href='#dfn-xattr-no-argument'>take no argument</a>.
+              <span class='rfc2119'>MUST</span> <a class='dfnref' href='#dfn-xattr-no-arguments'>takes no argument</a>.
             </p>
             <div class='example'>
               <p>
@@ -5709,7 +5795,11 @@ interface B {
               <x:codeblock language='es'>var a = getA();  <span class='comment'>// Obtain an instance of A.</span>
 var b = getB();  <span class='comment'>// Obtain an instance of B.</span>
 
-a.f(1.23);       <span class='comment'>// Throws a TypeError.</span>
+try {
+  a.f(1.23);     <span class='comment'>// Throws a TypeError.</span>
+} catch (e) {
+}
+
 b.g(1.23);       <span class='comment'>// Equivalent to b.g("1.23").</span>
 b.g(a);          <span class='comment'>// Equivalent to calling b.g with ToString(a).</span></x:codeblock>
             </div>
@@ -5817,7 +5907,7 @@ t.addListener({ eventOccurred: function() { } });</x:codeblock>
             <p>
               The <a class='xattr' href='#Clamp'>[Clamp]</a>
               extended attribute <span class='rfc2119'>MUST</span>
-              <a class='dfnref' href='#dfn-xattr-no-argument'>take no argument</a>.
+              <a class='dfnref' href='#dfn-xattr-no-arguments'>takes no argument</a>.
             </p>
             <p>
               The <a class='xattr' href='#Clamp'>[Clamp]</a> extended attribute
@@ -5877,7 +5967,7 @@ context.setColorClamped(-1, 255, 257);</x:codeblock>
             <p>
               The <a class='xattr' href='#CopyInheritedPrototype'>[CopyInheritedPrototype]</a>
               extended attribute <span class='rfc2119'>MUST</span>
-              <a class='dfnref' href='#dfn-xattr-no-argument'>take no argument</a>.
+              <a class='dfnref' href='#dfn-xattr-no-arguments'>takes no argument</a>.
               It <span class='rfc2119'>MUST NOT</span> appear on an interface that
               is not defined to inherit from another interface, or one that is
               defined to inherit from another interface which itself has an interface
@@ -5907,13 +5997,18 @@ context.setColorClamped(-1, 255, 257);</x:codeblock>
             <p>
               The <a class='xattr' href='#Constructor'>[Constructor]</a>
               extended attribute <span class='rfc2119'>MUST</span> either
-              <a class='dfnref' href='#dfn-xattr-no-argument'>take no argument</a> or
+              <a class='dfnref' href='#dfn-xattr-no-arguments'>takes no argument</a> or
               <a class='dfnref' href='#dfn-xattr-argument-list'>take an argument list</a>.
               The bare form, <code>[Constructor]</code>, has the same meaning as
               using an empty argument list, <code>[Constructor()]</code>.  For each
               <a class='xattr' href='#Constructor'>[Constructor]</a> extended attribute
               on the interface, there will be a way to construct an object that implements
               the interface by passing the specified arguments.
+            </p>
+            <p>
+              If the <a class='xattr' href='#Constructor'>[Constructor]</a> extended attribute
+              is specified on an interface, then the <a class='xattr' href='#NoInterfaceObject'>[NoInterfaceObject]</a>
+              extended attribute <span class='rfc2119'>MUST NOT</span> also be specified on that interface.
             </p>
             <p>
               See <a href='#es-interface-call'>section <?sref es-interface-call?></a>
@@ -5989,10 +6084,12 @@ var z = new NodeList();    <span class='comment'>// This would throw a TypeError
             <p>
               The identifier used for the named constructor <span class='rfc2119'>MUST NOT</span>
               be the same as that used by an <a class='xattr' href='#NamedConstructor'>[NamedConstructor]</a>
-              extended attribute on another interface, and it <span class='rfc2119'>MUST NOT</span>
+              extended attribute on another interface, <span class='rfc2119'>MUST NOT</span>
               be the same as an identifier of an interface (or <a class='dfnref' href='#dfn-exception'>exception</a>)
               that has an <a class='dfnref' href='#dfn-interface-object'>interface object</a>
-              (or <a class='dfnref' href='#dfn-exception-interface-object'>exception interface object</a>).
+              (or <a class='dfnref' href='#dfn-exception-interface-object'>exception interface object</a>),
+              and <span class='rfc2119'>MUST NOT</span> be one of the
+              <a class='dfnref' href='#dfn-reserved-identifier'>reserved identifiers</a>.
             </p>
             <p>
               See <a href='#named-constructors'>section <?sref named-constructors?></a>
@@ -6046,7 +6143,7 @@ var a2 = new Audio('a.flac');   <span class='comment'>// Creates an HTMLAudioEle
             <p>
               The <a class='xattr' href='#NamespaceObject'>[NamespaceObject]</a>
               extended attribute <span class='rfc2119'>MUST</span>
-              <a class='dfnref' href='#dfn-xattr-no-argument'>take no argument</a>.
+              <a class='dfnref' href='#dfn-xattr-no-arguments'>takes no argument</a>.
             </p>
             <p>
               The <a class='xattr' href='#NamespaceObject'>[NamespaceObject]</a>
@@ -6117,12 +6214,14 @@ new acme.pim.RecurringEvent(10);  <span class='comment'>// Creates an object imp
             </p>
             <p>
               The <a class='xattr' href='#NoInterfaceObject'>[NoInterfaceObject]</a> extended attribute
-              <span class='rfc2119'>MUST</span> <a class='dfnref' href='#dfn-xattr-no-argument'>take no argument</a>.
+              <span class='rfc2119'>MUST</span> <a class='dfnref' href='#dfn-xattr-no-arguments'>takes no argument</a>.
             </p>
             <p>
               If the <a class='xattr' href='#NoInterfaceObject'>[NoInterfaceObject]</a> extended attribute
               is specified on an interface, then the <a class='xattr' href='#Constructor'>[Constructor]</a>
               extended attribute <span class='rfc2119'>MUST NOT</span> also be specified on that interface.
+              A <a class='xattr' href='#NamedConstructor'>[NamedConstructor]</a> extended attribute is fine,
+              however.
             </p>
             <div class='example'>
               <p>
@@ -6166,21 +6265,22 @@ var fn = Query.prototype.lookupEntry;  <span class='comment'>// exception, Query
               <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
               appears on an <a class='dfnref' href='#dfn-interface'>interface</a>,
               it indicates that for a <a class='dfnref' href='#dfn-platform-object'>platform object</a> implementing the interface,
-              properties will appear to be own the object corresponding to all of
-              the object’s <a class='dfnref' href='#dfn-supported-property-names'>supported property names</a>,
+              properties corresponding to all of
+              the object’s <a class='dfnref' href='#dfn-supported-property-names'>supported property names</a>
+              will appear to be on the object,
               regardless of what other properties exist on the object or its
               prototype chain.  This means that named properties will always shadow
               any properties that would otherwise appear on the object.
-              This is in constrast to the usual behavior, which is for named properties
+              This is in contrast to the usual behavior, which is for named properties
               to be exposed only if there is no property with the
               same name on the object itself or somewhere on its prototype chain.
             </p>
             <p>
               The <a class='xattr' href='#OverrideBuiltins'>[OverrideBuiltins]</a>
               extended attribute <span class='rfc2119'>MUST</span>
-              <a class='dfnref' href='#dfn-xattr-no-argument'>take no argument</a>
+              <a class='dfnref' href='#dfn-xattr-no-arguments'>takes no argument</a>
               and <span class='rfc2119'>MUST NOT</span> appear on an interface
-              that does not define a <a class='dfnref' href='#dfn-name-getter'>name getter</a>
+              that does not define a <a class='dfnref' href='#dfn-named-property-getter'>named property getter</a>
               or that also is declared with the <a class='xattr' href='#ReplaceableNamedProperties'>[ReplaceableNamedProperties]</a>
               extended attribute.
             </p>
@@ -6188,7 +6288,7 @@ var fn = Query.prototype.lookupEntry;  <span class='comment'>// exception, Query
               <p>
                 The following <a class='dfnref' href='#dfn-idl-fragment'>IDL fragment</a>
                 defines two <a class='dfnref' href='#dfn-interface'>interfaces</a>,
-                one that has a <a class='dfnref' href='#dfn-name-getter'>name getter</a>
+                one that has a <a class='dfnref' href='#dfn-named-property-getter'>named property getter</a>
                 and one that does not.
               </p>
               <x:codeblock language='idl'>interface StringMap {
@@ -6210,7 +6310,7 @@ interface StringMap2 {
 <span class='comment'>// "toString" as supported property names.</span>
 var map1 = getStringMap();  
 
-<span class='comment'>// This invokes the name getter.</span>
+<span class='comment'>// This invokes the named property getter.</span>
 map1.abc;
 
 <span class='comment'>// This fetches the "length" property on the object that corresponds to the</span>
@@ -6225,14 +6325,14 @@ map1.toString;
 <span class='comment'>// and "toString" as supported property names.</span>
 var map2 = getStringMap2();  
 
-<span class='comment'>// This invokes the name getter.</span>
+<span class='comment'>// This invokes the named property getter.</span>
 map2.abc;
 
-<span class='comment'>// This also invokes the name getter, despite the fact that the "length"</span>
+<span class='comment'>// This also invokes the named property getter, despite the fact that the "length"</span>
 <span class='comment'>// property on the object corresponds to the length attribute.</span>
 map2.length;
 
-<span class='comment'>// This too invokes the name getter, despite the fact that "toString" is</span>
+<span class='comment'>// This too invokes the named property getter, despite the fact that "toString" is</span>
 <span class='comment'>// a property in map2's prototype chain.</span>
 map2.toString;</x:codeblock>
             </div>
@@ -6264,7 +6364,7 @@ map2.toString;</x:codeblock>
             </p>
             <p>
               The <a class='xattr' href='#PrototypeRoot'>[PrototypeRoot]</a>
-              extended attribute <span class='rfc2119'>MUST</span> <a class='dfnref' href='#dfn-xattr-no-argument'>take no argument</a>,
+              extended attribute <span class='rfc2119'>MUST</span> <a class='dfnref' href='#dfn-xattr-no-arguments'>takes no argument</a>,
               and <span class='rfc2119'>MUST NOT</span> appear on an
               <a class='dfnref' href='#dfn-interface'>interface</a> that
               <a class='dfnref' href='#dfn-inherit'>inherits</a> from another
@@ -6431,14 +6531,16 @@ p.name.full = 'John Citizen';  <span class='comment'>// ...has the same behavior
               appears on a <a class='dfnref' href='#dfn-read-only'>read only</a>
               <a class='dfnref' href='#dfn-attribute'>attribute</a>,
               it indicates that setting the corresponding property on the
-              <a class='dfnref' href='#dfn-platform-object'>platform object</a> will result in that property being reconfigured
-              to one that is unrelated to the attribute,
-              and which has the value being assigned.
+              <a class='dfnref' href='#dfn-platform-object'>platform object</a> will result in
+              an own property with the same name being created on the object
+              which has the value being assigned.  This property will shadow
+              the accessor property corresponding to the attribute, which
+              exists on the <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype object</a>.
             </p>
             <p>
               The <a class='xattr' href='#Replaceable'>[Replaceable]</a>
               extended attribute <span class='rfc2119'>MUST</span>
-              <a class='dfnref' href='#dfn-xattr-no-argument'>take no argument</a>.
+              <a class='dfnref' href='#dfn-xattr-no-arguments'>takes no argument</a>.
             </p>
             <p>
               An attribute with the <a class='xattr' href='#Replaceable'>[Replaceable]</a>
@@ -6461,22 +6563,29 @@ p.name.full = 'John Citizen';  <span class='comment'>// ...has the same behavior
               <p>
                 Assigning to the <span class='prop'>value</span> property
                 on a <a class='dfnref' href='#dfn-platform-object'>platform object</a> implementing <span class='idltype'>Counter</span>
-                will sever the link between the property and the IDL
-                <a class='dfnref' href='#dfn-attribute'>attribute</a> it
-                initially corresponds to:
+                will shadow the property that corresponds to the
+                <a class='dfnref' href='#dfn-attribute'>attribute</a>:
               </p>
-              <x:codeblock language='es'>var counter = getCounter();  <span class='comment'>// Obtain an instance of Counter.</span>
-counter.value;               <span class='comment'>// Evaluates to 0.</span>
+              <x:codeblock language='es'>var counter = getCounter();                              <span class='comment'>// Obtain an instance of Counter.</span>
+counter.value;                                           <span class='comment'>// Evaluates to 0.</span>
+
+counter.hasOwnProperty("value");                         <span class='comment'>// Evaluates to false.</span>
+Object.getPrototypeOf(counter).hasOwnProperty("value");  <span class='comment'>// Evaluates to true.</span>
 
 counter.increment();
 counter.increment();
-counter.value;               <span class='comment'>// Evaluates to 2.</span>
+counter.value;                                           <span class='comment'>// Evaluates to 2.</span>
 
-counter.value = 'a';         <span class='comment'>// Replaces the property with one that is unrelated</span>
-                             <span class='comment'>// to Counter::value.</span>
+counter.value = 'a';                                     <span class='comment'>// Shadows the property with one that is unrelated</span>
+                                                         <span class='comment'>// to Counter::value.</span>
+
+counter.hasOwnProperty("value");                         <span class='comment'>// Evaluates to true.</span>
 
 counter.increment();
-counter.value;               <span class='comment'>// Evaluates to 'a'.</span></x:codeblock>
+counter.value;                                           <span class='comment'>// Evaluates to 'a'.</span>
+
+delete counter.value;                                    <span class='comment'>// Reveals the original property.</span>
+counter.value;                                           <span class='comment'>// Evaluates to 3.</span></x:codeblock>
             </div>
           </div>
 
@@ -6489,7 +6598,7 @@ counter.value;               <span class='comment'>// Evaluates to 'a'.</span></
               appears on an <a class='dfnref' href='#dfn-interface'>interface</a>,
               then for objects that
               <a class='dfnref' href='#dfn-support-named-properties'>support named properties</a>
-              but which do not have a <a class='dfnref' href='#dfn-name-setter'>name setter</a>,
+              but which do not have a <a class='dfnref' href='#dfn-named-property-setter'>named property setter</a>,
               attempting to set a property that corresponds to a named property will result in an 
               own property being defined on the object, rather than in the assignment failing,
               which is the normal behavior.
@@ -6502,13 +6611,13 @@ counter.value;               <span class='comment'>// Evaluates to 'a'.</span></
             <p>
               The <a class='xattr' href='#ReplaceableNamedProperties'>[ReplaceableNamedProperties]</a>
               extended attribute <span class='rfc2119'>MUST</span>
-              <a class='dfnref' href='#dfn-xattr-no-argument'>take no argument</a>.
+              <a class='dfnref' href='#dfn-xattr-no-arguments'>takes no argument</a>.
             </p>
             <p>
               The <a class='xattr' href='#ReplaceableNamedProperties'>[ReplaceableNamedProperties]</a> extended attribute
               <span class='rfc2119'>MUST NOT</span> be declared on an <a class='dfnref' href='#dfn-interface'>interface</a>
-              that does not define a <a class='dfnref' href='#dfn-name-getter'>name getter</a>,
-              that does define a <a class='dfnref' href='#dfn-name-setter'>name setter</a> or
+              that does not define a <a class='dfnref' href='#dfn-named-property-getter'>named property getter</a>,
+              that does define a <a class='dfnref' href='#dfn-named-property-setter'>named property setter</a> or
               that also is declared with the <a class='xattr' href='#OverrideBuiltins'>[OverrideBuiltins]</a>
               extended attribute.
             </p>
@@ -6574,6 +6683,10 @@ window.abc;    <span class='comment'>// Evaluates to 1.</span>
               <span class='rfc2119'>MUST NOT</span> be specified on an operation argument,
               attribute or operation return value whose type is not <span class='idltype'>DOMString</span>.
             </p>
+            <div class='note'>
+              <p>This means that even an attribute of type <span class='idltype'>DOMString?</span> must not
+              use <a class='xattr' href='#TreatNullAs'>[TreatNullAs]</a>.</p>
+            </div>
             <div class='example'>
               <p>
                 The following <a class='dfnref' href='#dfn-idl-fragment'>IDL fragment</a> defines an interface that has one
@@ -6583,7 +6696,7 @@ window.abc;    <span class='comment'>// Evaluates to 1.</span>
               </p>
               <x:codeblock language='idl'>interface Dog {
   attribute DOMString name;
-  attribute DOMString owner;
+  [TreatNullAs=EmptyString] attribute DOMString owner;
 
   boolean isMemberOfBreed([TreatNullAs=EmptyString] DOMString breedName);
 };</x:codeblock>
@@ -6591,13 +6704,16 @@ window.abc;    <span class='comment'>// Evaluates to 1.</span>
                 An ECMAScript implementation implementing the <span class='idltype'>Dog</span>
                 interface would convert a <span class='esvalue'>null</span> value
                 assigned to the <span class='prop'>name</span> property or passed as the
-                argument to the <span class='prop'>isMemberOfBreed</span> function:
+                argument to the <span class='prop'>isMemberOfBreed</span> function
+                to the empty string rather than <code>"null"</code>:
               </p>
               <x:codeblock language='es'>var d = getDog();         <span class='comment'>// Assume d is a platform object implementing the Dog</span>
                           <span class='comment'>// interface.</span>
 
 d.name = null;            <span class='comment'>// This assigns the string "null" to the .name</span>
                           <span class='comment'>// property.</span>
+
+d.owner = null;           <span class='comment'>// This assigns the string "" to the .owner property.</span>
 
 d.isMemberOfBreed(null);  <span class='comment'>// This passes the string "" to the isMemberOfBreed</span>
                           <span class='comment'>// function.</span></x:codeblock>
@@ -6664,23 +6780,26 @@ d.isMemberOfBreed(null);  <span class='comment'>// This passes the string "" to 
               </p>
               <x:codeblock language='idl'>interface Cat {
   attribute DOMString name;
-  attribute DOMString owner;
+  [TreatUndefinedAs=Null] attribute DOMString? owner;
 
   boolean isMemberOfBreed([TreatUndefinedAs=EmptyString] DOMString breedName);
 };</x:codeblock>
               <p>
                 An ECMAScript implementation implementing the <span class='idltype'>Cat</span>
                 interface would convert an <span class='esvalue'>undefined</span> value
-                assigned to the <span class='prop'>name</span> or <span class='prop'>owner</span> property 
-                to the string <span class='idlstring'>"undefined"</span>, and
-                an <span class='esvalue'>undefined</span> value passed as the
-                argument to the <span class='prop'>isMemberOfBreed</span> function
-                would be converted to the empty string <span class='idlstring'>""</span>:
+                assied to the <span class='prop'>name</span> and <span class='prop'>owner</span>
+                properties and passed as the argument to the <span class='prop'>isMemberOfBreed</span> function
+                all differently; the value would be converted to the string
+                <span class='idlstring'>"undefined"</span>, the <span class='idlvalue'>null</span>
+                value, and the empty string <span class='idlvalue'>""</span>, respectively:
               </p>
               <x:codeblock language='es'>var c = getCat();              <span class='comment'>// Obtain an instance of Cat.</span>
 
 c.name = undefined;            <span class='comment'>// This assigns the string "undefined" to the</span>
                                <span class='comment'>// .name property.</span>
+
+c.owner = undefined;           <span class='comment'>// This assigns the null value to the</span>
+                               <span class='comment'>// .owner property.</span>
 
 c.isMemberOfBreed(undefined);  <span class='comment'>// This passes the string "" to the</span>
                                <span class='comment'>// isMemberOfBreed function.</span></x:codeblock>
@@ -6705,19 +6824,24 @@ c.isMemberOfBreed(undefined);  <span class='comment'>// This passes the string "
             <p>
               The <a class='xattr' href='#Unforgeable'>[Unforgeable]</a>
               extended attribute <span class='rfc2119'>MUST</span>
-              <a class='dfnref' href='#dfn-xattr-no-argument'>take no argument</a>.
+              <a class='dfnref' href='#dfn-xattr-no-arguments'>takes no argument</a>.
             </p>
             <p>
               The <a class='xattr' href='#Unforgeable'>[Unforgeable]</a>
               extended attribute <span class='rfc2119'>MUST NOT</span> appear on
               anything other than a read only attribute.  It also <span class='rfc2119'>MUST NOT</span>
               appear on an attribute on interface <var>A</var> if there exists
-              another interface <var>B</var> that defines any
-              <a class='dfnref' href='#dfn-interface-member'>interface member</a> with the same
-              <a class='dfnref' href='#dfn-identifier'>identifier</a>, and which
-              either has <var>A</var> as an <a class='dfnref' href='#dfn-inherited-interfaces'>inherited interface</a>
-              or which is a <a class='dfnref' href='#dfn-consequential-interfaces'>consequential interface</a> of <var>A</var>.
+              another interface <var>B</var> that 
+              has <var>A</var> as an <a class='dfnref' href='#dfn-inherited-interfaces'>inherited interface</a>.
             </p>
+            <div class='note'>
+              <p>For example, the following IDL would be invalid:</p>
+              <x:codeblock language='idl'>interface A {
+  [Unforgeable] readonly attribute DOMString key;
+};
+
+interface B : A { };</x:codeblock>
+            </div>
             <div class='example'>
               <p>
                 The following <a class='dfnref' href='#dfn-idl-fragment'>IDL fragment</a> defines
@@ -6729,8 +6853,8 @@ c.isMemberOfBreed(undefined);  <span class='comment'>// This passes the string "
   readonly attribute Date loginTime; 
 };</x:codeblock>
               <p>
-                An ECMAScript implementation of the interface will expose
-                the username attribute as a non-configurable property on the
+                In a <a class='dfnref' href='#dfn-conforming-ecmascript-implementation'>conforming ECMAScript implementation</a>
+                of the interface, the username attribute will be exposed as a non-configurable property on the
                 object itself:
               </p>
               <x:codeblock language='es'>var system = getSystem();                      <span class='comment'>// Get an instance of System.</span>
@@ -6815,11 +6939,9 @@ system.loginTime;  <span class='comment'>// So this now evaluates to forgedLogin
             interface’s <a class='dfnref' href='#dfn-relevant-namespace-object'>relevant namespace object</a>.
             The name of the property is the <a class='dfnref' href='#dfn-identifier'>identifier</a> of the interface,
             and its value is an object called the
-            <dfn id='dfn-interface-object'>interface object</dfn>, which provides access to the
-            <a class='dfnref' href='#dfn-constant'>constants</a>, <a class='dfnref' href='#dfn-attribute'>attributes</a>
-            and <a class='dfnref' href='#dfn-operation'>operations</a> defined on the interface.
+            <dfn id='dfn-interface-object'>interface object</dfn>.
             The property has the attributes <span class='descriptor'>{ [[Writable]]: <span class='esvalue'>true</span>, [[Enumerable]]: <span class='esvalue'>false</span>, [[Configurable]]: <span class='esvalue'>true</span> }</span>.
-            The characteristics of an interface object is described in <a href='#interface-object'>section <?sref interface-object?></a>
+            The characteristics of an interface object are described in <a href='#interface-object'>section <?sref interface-object?></a>
             <?sdir interface-object?>.
           </p>
           
@@ -6833,7 +6955,7 @@ system.loginTime;  <span class='comment'>// So this now evaluates to forgedLogin
             <dfn id='dfn-named-constructor'>named constructor</dfn>, which allows
             construction of objects that implement the interface.  The property has the
             attributes <span class='descriptor'>{ [[Writable]]: <span class='esvalue'>true</span>, [[Enumerable]]: <span class='esvalue'>false</span>, [[Configurable]]: <span class='esvalue'>true</span> }</span>.
-            The characteristics of a named constructor is described in
+            The characteristics of a named constructor are described in
             <a href='#named-constructors'>section <?sref named-constructors?></a>
             <?sdir named-constructors?>.
           </p>
@@ -6941,14 +7063,14 @@ system.loginTime;  <span class='comment'>// So this now evaluates to forgedLogin
                             <dd>
                               Add to <var>types</var> the <span class='idltype'>object</span> type
                               and an <a href='#idl-array'>array type</a> that corresponds to
-                              the type of the IDL array the platform array object represents.
+                              the type of the IDL array that the platform array object represents.
                             </dd>
                             <dt>Any other <a class='dfnref' href='#dfn-platform-object'>platform object</a></dt>
                             <dd>
                               Add to <var>types</var> the <span class='idltype'>object</span> type
                               and an <a href='#idl-interface'>interface type</a>
-                              for all <a class='dfnref' href='#dfn-interface'>interfaces</a>
-                              that are equal to, or <a class='dfnref' href='#dfn-inherit'>inherit</a> from, at least one
+                              for each <a class='dfnref' href='#dfn-interface'>interface</a>
+                              that is equal to, or is an <a class='dfnref' href='#dfn-inherited-interfaces'>inherited interface</a> of, at least one
                               of the interfaces that the <a class='dfnref' href='#dfn-platform-object'>platform object</a> implements.
                             </dd>
                             <dt>A native <span class='estype'>Array</span> object</dt>
@@ -6958,7 +7080,7 @@ system.loginTime;  <span class='comment'>// So this now evaluates to forgedLogin
                               an <a href='#idl-interface'>interface type</a>
                               for each interface annotated with the <a class='xattr' href='#Callback'>[Callback]</a>
                               <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
-                              and all <a href='#idl-array'>array types</a>.
+                              and all <a href='#idl-array'>array</a> and <a href='#idl-sequence'>sequence types</a>.
                             </dd>
                             <dt>A native <span class='estype'>Date</span> object</dt>
                             <dd>
@@ -7359,8 +7481,7 @@ interface
               an <a class='dfnref' href='#dfn-interface'>interface</a> <var>A</var>, there
               <span class='rfc2119'>MUST</span> be a corresponding property on
               the <a class='dfnref' href='#dfn-interface-object'>interface object</a>,
-              if it exists, if the <a class='dfnref' href='#dfn-identifier'>identifier</a>
-              of the constant is not “prototype”.  The property has the following characteristics:
+              if it exists.  The property has the following characteristics:
             </p>
             <ul>
               <li>The name of the property is the <a class='dfnref' href='#dfn-identifier'>identifier</a> of the <a class='dfnref' href='#dfn-constant'>constant</a>.</li>
@@ -7369,15 +7490,8 @@ interface
             </ul>
             <p>
               In addition, a property with the same characteristics <span class='rfc2119'>MUST</span>
-              exist on the <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype object</a>,
-              unless:
+              exist on the <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype object</a>.
             </p>
-            <ul>
-              <li>the <a class='dfnref' href='#dfn-identifier'>identifier</a> of the
-                <a class='dfnref' href='#dfn-constant'>constant</a> is “constructor”; or</li>
-              <li>the identifier of the constant is “toString” and
-                the interface has a <a class='dfnref' href='#dfn-stringifier'>stringifier</a>.</li>
-            </ul>
           </div>
 
           <div id='es-attributes' class='section'>
@@ -7388,12 +7502,8 @@ interface
               the <a class='dfnref' href='#dfn-interface'>interface</a>, there
               <span class='rfc2119'>MUST</span> be a corresponding property
               either on the <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype object</a>
-              or on every object that implements the interface, unless:
+              or on every object that implements the interface.
             </p>
-            <ul>
-              <li>the <a class='dfnref' href='#dfn-identifier'>identifier</a> of the attribute is “constructor”; or</li>
-              <li>the identifier of the attribute is “toString” and the interface has a <a class='dfnref' href='#dfn-stringifier'>stringifier</a>.</li>
-            </ul>
             <p>
               The characteristics of these properties are as follows:
             </p>
@@ -7432,7 +7542,7 @@ interface
                   </li>
                   <li>
                     Let <var>V</var> be the result of <a class='dfnref' href='#dfn-convert-idl-to-ecmascript-value'>converting</a>
-                    the <var>idlValue</var> to an ECMAScript value.
+                    the <var>idlValue</var> for this attribute to an ECMAScript value.
                   </li>
                   <li>
                     Return <var>V</var>.
@@ -7511,20 +7621,11 @@ interface
               (if it is a <a class='dfnref' href='#dfn-regular-operation'>regular operation</a>)
               or the <a class='dfnref' href='#dfn-interface-object'>interface object</a>
               (if it is a <a class='dfnref' href='#dfn-static-operation'>static operation</a>),
-              unless:
+              unless the <a class='dfnref' href='#dfn-effective-overload-set'>effective overload set</a>
+              for that <a class='dfnref' href='#dfn-identifier'>identifier</a> and <a class='dfnref' href='#dfn-operation'>operation</a>
+              and with an argument count of 0 (for the ECMAScript language binding) has no
+              entries.
             </p>
-            <ul>
-              <li>
-                the <a class='dfnref' href='#dfn-effective-overload-set'>effective overload set</a>
-                for that <a class='dfnref' href='#dfn-identifier'>identifier</a> and <a class='dfnref' href='#dfn-operation'>operation</a>
-                and with an argument count of 0 (for the ECMAScript language binding) has no
-                entries; or
-              </li>
-              <li>the operation is a <a class='dfnref' href='#dfn-regular-operation'>regular operation</a> and its identifier is “constructor”; or</li>
-              <li>the operation is a regular operation, its identifier is “toString” and the interface has a <a class='dfnref' href='#dfn-stringifier'>stringifier</a>; or</li>
-              <li>the operation is a <a class='dfnref' href='#dfn-static-operation'>static operation</a> and its identifier is “toString”; or</li>
-              <li>the operation is a static operation and its identifier is “prototype”.</li>
-            </ul>
             <p>
               The characteristics of such a corresponding property are as follows:
             </p>
@@ -7688,12 +7789,7 @@ interface
             <a class='dfnref' href='#dfn-attribute'>attributes</a> or
             <a class='dfnref' href='#dfn-operation'>operations</a> that exist on
             all of the interface prototype objects of <var>A</var>’s
-            <a class='dfnref' href='#dfn-consequential-interfaces'>consequential interfaces</a>,
-            unless <var>A</var>’s interface prototype object already has a property of the same name on it
-            due to <var>A</var>’s interface members.  If there would still be conflicting
-            property definitions, then it is undefined which consequential interface’s
-            interface member that property on <var>A</var>’s interface prototype object
-            corresponds to.
+            <a class='dfnref' href='#dfn-consequential-interfaces'>consequential interfaces</a>.
           </p>
         </div>
 
@@ -7712,7 +7808,8 @@ interface
             that implements one or more interfaces is the most-derived <a class='dfnref' href='#dfn-supplemental-interface'>non-supplemental interface</a>
             that it implements.  The value of the internal <span class='prop'>[[Prototype]]</span>
             property of the platform object is the <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype object</a>
-            of the <a class='dfnref' href='#dfn-primary-interface'>primary interface</a>.
+            of the <a class='dfnref' href='#dfn-primary-interface'>primary interface</a>
+            from the <a class='dfnref' href='#dfn-platform-object'>platform object</a>’s associated global environment.
           </p>
           <!--
           <p>
@@ -7849,20 +7946,20 @@ interface
               The same applies for named properties.
             </p>
             <p>
-              The <a class='dfnref' href='#dfn-index-getter'>index getter</a>
+              The <a class='dfnref' href='#dfn-indexed-property-getter'>indexed property getter</a>
               that is defined on the derived-most interface that the
               platform object implements is the one that defines the behavior
               when indexing the object with an array index.  Similarly for
-              <a class='dfnref' href='#dfn-index-setter'>index setters</a>,
-              <a class='dfnref' href='#dfn-index-deleter'>deleters</a> and
-              <a class='dfnref' href='#dfn-index-creator'>creators</a>.
+              <a class='dfnref' href='#dfn-indexed-property-setter'>indexed property setters</a>,
+              <a class='dfnref' href='#dfn-indexed-property-deleter'>deleters</a> and
+              <a class='dfnref' href='#dfn-indexed-property-creator'>creators</a>.
               This way, the definitions of these special operations from
               ancestor interfaces can be overridden.
             </p>
 
             <p>
-              Platform objects implementing an interface that support indexed or named properties defy being fixed; if <code>Object.freeze</code>, <code>Object.seal</code>
-              or <code>Object.preventExtensions</code> is called on one, these the function
+              Platform objects implementing an interface that supports indexed or named properties cannot be fixed; if <code>Object.freeze</code>, <code>Object.seal</code>
+              or <code>Object.preventExtensions</code> is called on one of these objects, these the function
               <span class='rfc2119'>MUST</span> throw a <span class='estype'>TypeError</span>.
             </p>
 
@@ -7968,7 +8065,7 @@ interface
                   <li>Let <var>index</var> be the result of calling ToUint32(<var>P</var>).</li>
                   <li>If <var>index</var> is a <a class='dfnref' href='#dfn-supported-property-indices'>supported property index</a>, then:
                     <ol>
-                      <li>Let <var>operation</var> be the operation used to declare the index getter.</li>
+                      <li>Let <var>operation</var> be the operation used to declare the indexed property getter.</li>
 
                       <li>Let <var>value</var> be an uninitialized variable.</li>
                       <li>If <var>operation</var> was defined without an <a class='dfnref' href='#dfn-identifier'>identifier</a>, then
@@ -7981,7 +8078,7 @@ interface
                       <li>Let <var>desc</var> be a newly created property descriptor (<a href='#ref-ECMA-262'>[ECMA-262]</a>, section 8.10) with no fields.</li>
                       <li>Set <var>desc</var>.<span class='prop'>[[Value]]</span> to the result of <a class='dfnref' href='#dfn-convert-idl-to-ecmascript-value'>converting</a>
                         <var>value</var> to an ECMAScript value.</li>
-                      <li>If <var>O</var> implements an interface with an <a class='dfnref' href='#dfn-index-setter'>index setter</a>, then set
+                      <li>If <var>O</var> implements an interface with an <a class='dfnref' href='#dfn-indexed-property-setter'>indexed property setter</a>, then set
                         <var>desc</var>.<span class='prop'>[[Writable]]</span> to <span class='esvalue'>true</span>, otherwise set it to
                         <span class='esvalue'>false</span>.</li>
                       <li>Set <var>desc</var>.<span class='prop'>[[Enumerable]]</span> and <var>desc</var>.<span class='prop'>[[Configurable]]</span> to <span class='esvalue'>true</span>.</li>
@@ -7996,7 +8093,7 @@ interface
                   <li>If the result of running the <a class='dfnref' href='#dfn-named-property-visibility'>named property visibility algorithm</a> with
                     property name <var>P</var> and object <var>O</var> is true, then:
                     <ol>
-                      <li>Let <var>operation</var> be the operation used to declare the name getter.</li>
+                      <li>Let <var>operation</var> be the operation used to declare the named property getter.</li>
 
                       <li>Let <var>value</var> be an uninitialized variable.</li>
                       <li>If <var>operation</var> was defined without an <a class='dfnref' href='#dfn-identifier'>identifier</a>, then
@@ -8009,7 +8106,7 @@ interface
                       <li>Let <var>desc</var> be a newly created property descriptor (<a href='#ref-ECMA-262'>[ECMA-262]</a>, section 8.10) with no fields.</li>
                       <li>Set <var>desc</var>.<span class='prop'>[[Value]]</span> to the result of <a class='dfnref' href='#dfn-convert-idl-to-ecmascript-value'>converting</a>
                         <var>value</var> to an ECMAScript value.</li>
-                      <li>If <var>O</var> implements an interface with an <a class='dfnref' href='#dfn-name-setter'>name setter</a> and
+                      <li>If <var>O</var> implements an interface with an <a class='dfnref' href='#dfn-named-property-setter'>named property setter</a> and
                         <var>O</var> does not implement an interface with the <a class='xattr' href='#ReplaceableNamedProperties'>[ReplaceableNamedProperties]</a>
                         <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>, then set
                         <var>desc</var>.<span class='prop'>[[Writable]]</span> to <span class='esvalue'>true</span>, otherwise set it to
@@ -8049,10 +8146,10 @@ interface
                   <li>If the result of calling IsDataDescriptor(<var>Desc</var>) is <span class='esvalue'>false</span>, then Reject.</li>
                   <li>Let <var>index</var> be the result of calling ToUint32(<var>P</var>).</li>
                   <li>Let <var>creating</var> be true if <var>index</var> is not a <a class='dfnref' href='#dfn-supported-property-indices'>supported property index</a>, and false otherwise.</li>
-                  <li>If <var>creating</var> is true and <var>O</var> does not implement an interface with an <a class='dfnref' href='#dfn-index-creator'>index creator</a>, then Reject.</li>
-                  <li>If <var>creating</var> is false and <var>O</var> does not implement an interface with an <a class='dfnref' href='#dfn-index-setter'>index setter</a>, then Reject.</li>
-                  <li>Let <var>operation</var> be the operation used to declare the index creator if <var>creating</var> is true,
-                    or the index setter if <var>creating</var> is false.</li>
+                  <li>If <var>creating</var> is true and <var>O</var> does not implement an interface with an <a class='dfnref' href='#dfn-indexed-property-creator'>indexed property creator</a>, then Reject.</li>
+                  <li>If <var>creating</var> is false and <var>O</var> does not implement an interface with an <a class='dfnref' href='#dfn-indexed-property-setter'>indexed property setter</a>, then Reject.</li>
+                  <li>Let <var>operation</var> be the operation used to declare the indexed property creator if <var>creating</var> is true,
+                    or the indexed property setter if <var>creating</var> is false.</li>
                   <li>Let <var>T</var> be the type of the second argument of <var>operation</var>.</li>
                   <li>Let <var>value</var> be the result of <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a> <var>Desc</var>.<span class='prop'>[[Value]]</span> to an IDL value of type <var>T</var>.</li>
                   <li>If <var>operation</var> was defined without an <a class='dfnref' href='#dfn-identifier'>identifier</a>, then:
@@ -8103,12 +8200,12 @@ interface
                     <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a> or <var>O</var> does not have an own property
                     named <var>P</var>, then:
                     <ol>
-                      <li>If <var>creating</var> is false and <var>O</var> does not implement an interface with a <a class='dfnref' href='#dfn-name-setter'>name setter</a>, then Reject.</li>
-                      <li>If <var>creating</var> is false or <var>O</var> implements an interface with a <a class='dfnref' href='#dfn-name-creator'>name creator</a>, then:
+                      <li>If <var>creating</var> is false and <var>O</var> does not implement an interface with a <a class='dfnref' href='#dfn-named-property-setter'>named property setter</a>, then Reject.</li>
+                      <li>If <var>creating</var> is false or <var>O</var> implements an interface with a <a class='dfnref' href='#dfn-named-property-creator'>named property creator</a>, then:
                         <ol>
                           <li>If the result of calling IsDataDescriptor(<var>Desc</var>) is <span class='esvalue'>false</span>, then Reject.</li>
-                          <li>Let <var>operation</var> be the operation used to declare the name creator if <var>creating</var> is true,
-                            or the name setter if <var>creating</var> is false.</li>
+                          <li>Let <var>operation</var> be the operation used to declare the named property creator if <var>creating</var> is true,
+                            or the named property setter if <var>creating</var> is false.</li>
                           <li>Let <var>T</var> be the type of the second argument of <var>operation</var>.</li>
                           <li>Let <var>value</var> be the result of <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a> <var>Desc</var>.<span class='prop'>[[Value]]</span> to an IDL value of type <var>T</var>.</li>
                           <li>If <var>operation</var> was defined without an <a class='dfnref' href='#dfn-identifier'>identifier</a>, then:
@@ -8155,8 +8252,8 @@ interface
                 <ol>
                   <li>Let <var>index</var> be the result of calling ToUint32(<var>P</var>).</li>
                   <li>If <var>index</var> is not a <a class='dfnref' href='#dfn-supported-property-indices'>supported property index</a>, then return <span class='esvalue'>true</span>.</li>
-                  <li>If <var>O</var> does not implement an interface with an <a class='dfnref' href='#dfn-index-deleter'>index deleter</a>, then Reject.</li>
-                  <li>Let <var>operation</var> be the operation used to declare the index deleter.</li>
+                  <li>If <var>O</var> does not implement an interface with an <a class='dfnref' href='#dfn-indexed-property-deleter'>indexed property deleter</a>, then Reject.</li>
+                  <li>Let <var>operation</var> be the operation used to declare the indexed property deleter.</li>
                   <li>If <var>operation</var> was defined without an <a class='dfnref' href='#dfn-identifier'>identifier</a>, then:
                     <ol>
                       <li>Perform the steps listed in the interface description to
@@ -8181,8 +8278,8 @@ interface
                 the result of calling the <a class='dfnref' href='#dfn-named-property-visibility'>named property visibility algorithm</a>
                 with property name <var>P</var> and object <var>O</var> is true, then:
                 <ol>
-                  <li>If <var>O</var> does not to implement an interface with an <a class='dfnref' href='#dfn-name-deleter'>name deleter</a>, then Reject.</li>
-                  <li>Let <var>operation</var> be the operation used to declare the name deleter.</li>
+                  <li>If <var>O</var> does not to implement an interface with an <a class='dfnref' href='#dfn-named-property-deleter'>named property deleter</a>, then Reject.</li>
+                  <li>Let <var>operation</var> be the operation used to declare the named property deleter.</li>
                   <li>If <var>operation</var> was defined without an <a class='dfnref' href='#dfn-identifier'>identifier</a>, then:
                     <ol>
                       <li>Perform the steps listed in the interface description to
@@ -8539,9 +8636,7 @@ interface
             </ul>
             <p>
               In addition, a property with the same characteristics <span class='rfc2119'>MUST</span>
-              exist on the <a class='dfnref' href='#dfn-exception-interface-prototype-object'>exception interface prototype object</a>,
-              if the <a class='dfnref' href='#dfn-identifier'>identifier</a> of the
-              <a class='dfnref' href='#dfn-constant'>constant</a> is not “constructor”.
+              exist on the <a class='dfnref' href='#dfn-exception-interface-prototype-object'>exception interface prototype object</a>.
             </p>
           </div>
 
@@ -8549,8 +8644,7 @@ interface
             <h4>Exception fields</h4>
 
             <p>
-              For each <a class='dfnref' href='#dfn-exception-field'>exception field</a> whose <a class='dfnref' href='#dfn-identifier'>identifier</a>
-              is not “constructor” that is defined on the <a class='dfnref' href='#dfn-exception'>exception</a>, there
+              For each <a class='dfnref' href='#dfn-exception-field'>exception field</a>, there
               <span class='rfc2119'>MUST</span> be a corresponding property on
               the <a class='dfnref' href='#dfn-exception-interface-prototype-object'>exception interface prototype object</a>,
               whose characteristics are as follows:
@@ -8604,8 +8698,8 @@ interface
             as the <a class='dfnref' href='#dfn-initial-object'>initial objects</a> are.
             When an exception object is created by calling an <a class='dfnref' href='#dfn-exception-interface-object'>exception interface object</a>,
             either normally or as part of a <code>new</code> expression, then the global environment
-            the newly created object is associated with is the same one that the exception
-            interface object itself is associated with.
+            of the newly created object is associated with <span class='rfc2119'>MUST</span> be the same as for the
+            interface object itself.
           </p>
           <p>
             The value of the internal <span class='prop'>[[Prototype]]</span>
@@ -8650,7 +8744,7 @@ interface
             <li>
               Otherwise, if <var>F</var> corresponds to an indexed or named property, then return
               the global environment associated with the interface that
-              the index or name getter, setter, creator or deleter was defined on.
+              the index or named property getter, setter, creator or deleter was defined on.
             </li>
             <li>
               Otherwise, if <var>F</var> is a named constructor for an interface, or is
@@ -8786,7 +8880,7 @@ interface ExceptionThrower {
 var et = getExceptionThrower();  <span class='comment'>// Obtain an instance of ExceptionThrower.</span>
 
 try {
-  d.type = { toString: function() { throw "abc" } };
+  d.type = { toString: function() { throw "abc"; } };
 } catch (e) {
   <span class='comment'>// The string "abc" is caught here, since as part of the conversion</span>
   <span class='comment'>// from the native object to a string, the anonymous function</span>
@@ -9024,7 +9118,7 @@ d.type = et;
               How to <a class='dfnref' href='#dfn-convert-idl-to-java-value'>convert</a>
               an IDL <span class='idltype'>any</span> value to a Java
               <span class='javatype'>java.lang.Object</span> value depends on the
-              actual type of the IDL value:
+              <a class='dfnref' href='#dfn-particular-type'>particular type</a> of the IDL value:
             </p>
             <dl class='switch'>
               <dt>A value of a <a class='dfnref' href='#dfn-primitive-type'>primitive type</a></dt>
@@ -9088,9 +9182,9 @@ d.type = et;
               </dd>
               <dt>An IDL value of any other type</dt>
               <dd>
-                The Java value is the result of
-                <a class='dfnref' href='#dfn-convert-idl-to-java-value'>converting</a>
-                the IDL value to a Java value.
+                To obtain a Java value, the rules for converting the <a class='dfnref' href='#dfn-particular-type'>particular type</a>
+                of the IDL <a class='idltype' href='#idl-any'>any</a> value as described
+                in the remainder of this section are performed.
               </dd>
             </dl>
           </div>
@@ -10070,7 +10164,7 @@ public interface ObjectArray&lt;E&gt; {
             Every IDL <a class='dfnref' href='#dfn-module'>module</a> corresponds to a Java package,
             whose name is the result of taking the module’s
             <a class='dfnref' href='#dfn-prefixed-name'>prefixed name</a>, replacing every
-            occurrence of the string “::” with “.”, and then removing the leading “.”.
+            <a class='dfnref' href='#dfn-double-colon'>double colon</a> with “.”, and then removing the leading “.”.
           </p>
           <p>
             Definitions inside an IDL <a class='dfnref' href='#dfn-module'>module</a>
@@ -10152,13 +10246,18 @@ module foo {
           <p>
             If the IDL interface has one or more <a class='dfnref' href='#dfn-static-operation'>static operations</a>
             declared on it, then there <span class='rfc2119'>MUST</span> also exist
-            a public, abstract Java class, whose name is the concatenation
-            of the <a class='dfnref' href='#dfn-identifier'>identifier</a> of the IDL interface
-            and the string <code>"Utils"</code>, and which also resides in the Java
+            a public, abstract Java class, which also resides in the Java
             package corresponding to the interface’s enclosing module
             (or the default package, if there is no enclosing module).
             This class is known as the <dfn id='dfn-utility-class'>utility class</dfn>
-            for the IDL interface.
+            for the IDL interface, and provides access to the static operations.
+            The name of the Java class is the concatenation
+            of the <a class='dfnref' href='#dfn-identifier'>identifier</a> of the IDL interface
+            and the string “Utils”.  If this name is already
+            the name of a Java class or interface, due to IDL definitions, then
+            the name of the Java class is prefixed with a single
+            <span class='char'>U+005F LOW LINE ("_")</span> character
+            so as not to conflict.
           </p>
 
           <div id='java-constants' class='section'>
@@ -10227,14 +10326,15 @@ module foo {
                         <a href='#java-type-mapping'>section <?sref java-type-mapping?></a> <?sdir java-type-mapping?>.
                       </li>
                       <li>
-                        The tenative name of the method is the <a class='dfnref' href='#dfn-java-escaped'>Java escaped</a>
-                        <a class='dfnref' href='#dfn-identifier'>identifier</a> of the operation.
-                        The name of the method is the tenative name of the method prefixed with the smallest number
-                        of <span class='char'>U+005F LOW LINE ("_")</span> characters required to make the
-                        name not equal to the name of a constant declared on the Java interface (if the operation
-                        is a <a class='dfnref' href='#dfn-regular-operation'>regular operation</a>)
-                        and not equal to the name of one of the methods on the
-                        <span class='javatype'>java.lang.Object</span> class.
+                        The name of the method is determined as follows:
+                        <ol class='algorithm'>
+                          <li>Let <var>identifier</var> be the <a class='dfnref' href='#dfn-identifier'>identifier</a> of the <a class='dfnref' href='#dfn-operation'>operation</a>.</li>
+                          <li>Initialize <var>name</var> be <var>identifier</var> <a class='dfnref' href='#dfn-java-escaped'>Java escaped</a>.</li>
+                          <li>If  <var>name</var> is the same as the name of
+                            one of the methods defined on <span class='javatype'>java.lang.Object</span>,
+                            then prepend a single <span class='char'>U+005F LOW LINE ("_")</span> character to <var>name</var>.</li>
+                          <li>The name of the method is <var>name</var>.</li>
+                        </ol>
                       </li>
                       <li>
                         The method has an argument for each type, in order, that is in <var>types</var>.  The type of
@@ -10310,19 +10410,23 @@ module foo {
                 <?sdir java-type-mapping?>.
               </li>
               <li>
-                The tentative name of the method is a
-                <span class='char'>U+0067 LATIN SMALL G ("g")</span> character, followed by a
-                <span class='char'>U+0065 LATIN SMALL E ("e")</span> character, followed by a
-                <span class='char'>U+0074 LATIN SMALL T ("t")</span> character, followed by
-                the first character of the
-                <a class='dfnref' href='#dfn-identifier'>identifier</a> of the attribute
-                uppercased (as if passed to the <code>java.lang.Character.toUpperCase()</code>
-                method), followed by the remaining characters from the identifier of the attribute.
-                The name of the method is the <a class='dfnref' href='#dfn-java-escaped'>Java escaped</a>
-                tenative name of the method prefixed with the smallest number
-                of <span class='char'>U+005F LOW LINE ("_")</span> characters required to make the
-                name not equal to the name of a constant or method declared on the Java interface or one of the
-                methods on the <span class='javatype'>java.lang.Object</span> class.
+                The name of the method is determined as follows:
+                <ol class='algorithm'>
+                  <li>Let <var>identifier</var> be the <a class='dfnref' href='#dfn-identifier'>identifier</a> of the <a class='dfnref' href='#dfn-attribute'>attribute</a>.</li>
+                  <li>Initialize <var>name</var> to be the string “get”.</li>
+                  <li>Let <var>ucIdentifier</var> be <var>identifier</var> with first character uppercased,
+                      as if passed to the <code>java.lang.Character.toUpperCase()</code> method.</li>
+                  <li>If there exists another attribute on the <a class='dfnref' href='#dfn-interface'>interface</a>
+                    with identifier <var>ucIdentifier</var>, then append a single <span class='char'>U+005F LOW LINE ("_")</span>
+                    character to <var>name</var>.</li>
+                  <li>Append <var>ucIdentifier</var> to <var>name</var>.</li>
+                  <li>If there exists a <a class='dfnref' href='#dfn-constant'>constant</a> or
+                    <a class='dfnref' href='#dfn-operation'>operation</a> on the interface with
+                    identifier <var>name</var>, or if <var>name</var> is the same as the name of
+                    one of the methods defined on <span class='javatype'>java.lang.Object</span>,
+                    then prepend a single <span class='char'>U+005F LOW LINE ("_")</span> character to <var>name</var>.</li>
+                  <li>The name of the method is <var>name</var>.</li>
+                </ol>
               </li>
               <li>
                 The method has no arguments.
@@ -10365,18 +10469,23 @@ module foo {
                 The return type of the method is <span class='javatype'>void</span>.
               </li>
               <li>
-                The tentative name of the method is a
-                <span class='char'>U+0073 LATIN SMALL S ("s")</span> character, followed by a
-                <span class='char'>U+0065 LATIN SMALL E ("e")</span> character, followed by a
-                <span class='char'>U+0074 LATIN SMALL T ("t")</span> character, followed by
-                the first character of the
-                identifier of the attribute uppercased (as if passed to the <code>java.lang.Character.toUpperCase()</code>
-                method), followed by the remaining characters from the identifier of the attribute.
-                The name of the method is the Java escaped
-                tenative name of the method prefixed with the smallest number
-                of <span class='char'>U+005F LOW LINE ("_")</span> characters required to make the
-                name not equal to the name of a constant or method declared on the Java interface or one of the
-                methods on the <span class='javatype'>java.lang.Object</span> class.
+                The name of the method is determined as follows:
+                <ol class='algorithm'>
+                  <li>Let <var>identifier</var> be the <a class='dfnref' href='#dfn-identifier'>identifier</a> of the <a class='dfnref' href='#dfn-attribute'>attribute</a>.</li>
+                  <li>Initialize <var>name</var> to be the string “set”.</li>
+                  <li>Let <var>ucIdentifier</var> be <var>identifier</var> with first character uppercased,
+                      as if passed to the <code>java.lang.Character.toUpperCase()</code> method.</li>
+                  <li>If there exists another attribute on the <a class='dfnref' href='#dfn-interface'>interface</a>
+                    with identifier <var>ucIdentifier</var>, then append a single <span class='char'>U+005F LOW LINE ("_")</span>
+                    character to <var>name</var>.</li>
+                  <li>Append <var>ucIdentifier</var> to <var>name</var>.</li>
+                  <li>If there exists a <a class='dfnref' href='#dfn-constant'>constant</a> or
+                    <a class='dfnref' href='#dfn-operation'>operation</a> on the interface with
+                    identifier <var>name</var>, or if <var>name</var> is the same as the name of
+                    one of the methods defined on <span class='javatype'>java.lang.Object</span>,
+                    then prepend a single <span class='char'>U+005F LOW LINE ("_")</span> character to <var>name</var>.</li>
+                  <li>The name of the method is <var>name</var>.</li>
+                </ol>
               </li>
               <li>
                 The method has a single argument whose type is the Java type that corresponds
@@ -10547,8 +10656,39 @@ module foo {
           <p>
             A Java <a class='dfnref' href='#dfn-user-object'>user object</a> that implements an IDL <a class='dfnref' href='#dfn-interface'>interface</a>
             <span class='rfc2119'>MUST</span> be of a Java class that implements the Java interface
-            that corresponds to the IDL interface.
+            that corresponds to the IDL interface, either by implementing the interface directly
+            on that class or by inheriting from another class that implements the interface.
           </p>
+          <div class='note'>
+            <p>For example, with the following IDL:</p>
+            <x:codeblock language='idl'>[Callback]
+interface Base {
+  void f();
+};
+
+[Callback]
+interface Derived : Base {
+  void g();
+};</x:codeblock>
+            <p>the Java implementation would provide the following interfaces:</p>
+            <x:codeblock language='java'>public interface Base {
+  void f();
+}
+
+public interface Derived extends Base {
+  void g();
+}</x:codeblock>
+            <p>and <a class='dfnref' href='#dfn-user-object'>user objects</a> implementing <span class='idltype'>Derived</span>
+              could be defined like the following:</p>
+            <x:codeblock language='java'><span class='comment'>// Directly implementing the interface</span>
+class DerivedImpl1 implements Derived {
+  public void f() { ... }
+  public void g() { ... }
+}
+
+<span class='comment'>// Inheriting from a class that implements the interface</span>
+class DerivedImpl2 extends DerivedImpl1 { }</x:codeblock>
+          </div>
         </div>
 
         <div id='java-exceptions' class='section'>
@@ -10564,7 +10704,7 @@ module foo {
           </p>
           <p>
             The Java class <span class='rfc2119'>MUST</span> have only the <code>public</code> modifier.
-            If the IDL exception<a class='dfnref' href='#dfn-inherit-exception'>inherit</a> from another
+            If the IDL exception <a class='dfnref' href='#dfn-inherit-exception'>inherits</a> from another
             exception, then the Java class <span class='rfc2119'>MUST</span> be declared to extend
             the Java class corresponding to that inherited exception.  Otherwise, the Java class <span class='rfc2119'>MUST</span>
             be declared to extend <span class='javatype'>java.lang.RuntimeException</span>.
@@ -10786,10 +10926,11 @@ public <var>ExceptionName</var>(Throwable cause) {
           Jonas Sicking,
           Garrett Smith,
           Geoffrey Sneddon,
+          Josh Soref,
           Maciej Stachowiak,
           Jeff Walden,
           Allen Wirfs-Brock,
-          Collin Xu,
+          Collin Xu and
           Boris Zbarsky.
         </p>
         <p>
@@ -10914,9 +11055,9 @@ public <var>ExceptionName</var>(Throwable cause) {
           <prod nt='StringifierAttributeOrOperation'>Attribute | OperationRest | ";"</prod>
           <prod nt='Attribute'>ReadOnly "attribute" AttributeType identifier Get SetRaises ";"</prod>
           <prod nt='ReadOnly'>"readonly" | ε</prod>
-          <prod nt='Get'>InheritsGetter | GetRaises | ε</prod>
+          <prod nt='Get'>InheritsGetter | GetRaises</prod>
           <prod nt='InheritsGetter'>"inherits" "getter"</prod>
-          <prod nt='GetRaises'>"getraises" ExceptionList</prod>
+          <prod nt='GetRaises'>"getraises" ExceptionList | ε</prod>
           <prod nt='SetRaises'>"setraises" ExceptionList | ε</prod>
           <prod nt='Operation'>Qualifiers OperationRest</prod>
           <prod nt='Qualifiers'>"static" | "omittable" Specials | Specials</prod>
@@ -10962,7 +11103,8 @@ public <var>ExceptionName</var>(Throwable cause) {
           </prod>
           <prod nt='OtherOrComma'>Other | ","</prod>
 
-          <prod nt='Type'>AttributeType | "sequence" "&lt;" Type ">" Null</prod>
+          <prod nt='Type'>AttributeType | SequenceType</prod>
+          <prod nt='SequenceType'>"sequence" "&lt;" Type ">" Null</prod>
           <prod nt='AttributeType'>PrimitiveOrStringType TypeSuffix | ScopedName TypeSuffix | "object" TypeSuffix | "Date" TypeSuffix | "any" TypeSuffixStartingWithArray</prod>
           <prod nt='ConstType'>PrimitiveOrStringType Null</prod>
           <prod nt='PrimitiveOrStringType'>UnsignedIntegerType | "boolean" | "byte" | "octet" | "float" | "double" | "DOMString"</prod>
@@ -10986,7 +11128,7 @@ public <var>ExceptionName</var>(Throwable cause) {
           <!-- These five productions aren't referenced from any of the
                other productions; they're just mentioned from the
                #idl-extended-attributes section. -->
-          <prod nt='ExtendedAttributeNoArg'>identifier</prod>
+          <prod nt='ExtendedAttributeNoArgs'>identifier</prod>
           <prod nt='ExtendedAttributeArgList'>identifier "(" ArgumentList ")"</prod>
           <prod nt='ExtendedAttributeIdent'>identifier "=" identifier</prod>
           <prod nt='ExtendedAttributeScopedName'>identifier "=" ScopedName</prod>
@@ -11137,6 +11279,37 @@ public <var>ExceptionName</var>(Throwable cause) {
           <dt>Current editor’s draft</dt>
           <dd>
             <ul>
+              <li>
+                <p>
+                  Tweaked the names of Java getter and setter methods to avoid
+                  conflicts with other interface members.
+                </p>
+              </li>
+              <li>
+                <p>
+                  Disallowed definitions with special ECMAScript property names
+                  and if they begin with a leading underscore.
+                </p>
+              </li>
+              <li>
+                <p>
+                  Modified the overload resolution algorithm so that it works
+                  with sequence types.
+                </p>
+              </li>
+              <li>
+                <p>
+                  Disallows consequential interfaces from defining interface members whose
+                  identifiers are the same as any of those on the original interface.
+                </p>
+              </li>
+              <li>
+                <p>
+                  Renamed “name getter”, “index getter” and friends to “named property getter”,
+                  “indexed property getter” and so on, since that’s a more accurate description
+                  of what they are.
+                </p>
+              </li>
               <li>
                 <p>
                   Removed the optional <code>in</code> keyword from arguments, since it serves no
