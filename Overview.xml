@@ -15,7 +15,7 @@
   <head>
     <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'/>
     <title>Web IDL</title>
-    <meta name='revision' content='$Id: Overview.xml,v 1.349 2011-08-19 04:59:18 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: Overview.xml,v 1.350 2011-08-21 23:14:52 cmccorma Exp $'/>
     <link rel='stylesheet' href='WebIDL.css' type='text/css'/>
     <script src='section-links.js' type='application/ecmascript'/>
     <script src='dfn.js' type='application/ecmascript'/>
@@ -876,6 +876,7 @@ partial interface <em>SomeInterface</em> {
             <a class='xattr' href='#Callback'>[Callback]</a>,
             <a class='xattr' href='#CopyInheritedPrototype'>[CopyInheritedPrototype]</a>,
             <a class='xattr' href='#Constructor'>[Constructor]</a>,
+            <a class='xattr' href='#ImplicitThis'>[ImplicitThis]</a>,
             <a class='xattr' href='#NamedConstructor'>[NamedConstructor]</a>,
             <a class='xattr' href='#NoInterfaceObject'>[NoInterfaceObject]</a>,
             <a class='xattr' href='#OverrideBuiltins'>[OverrideBuiltins]</a>,
@@ -3858,7 +3859,7 @@ interface Person {
                 <a class='sym' href='#prod-ExtendedAttributeNoArgs'>ExtendedAttributeNoArgs</a>
               </td>
               <td>
-                <dfn id='dfn-xattr-no-arguments'>takes no argument</dfn>
+                <dfn id='dfn-xattr-no-arguments'>takes no arguments</dfn>
               </td>
               <td>
                 <code>[Replaceable]</code>
@@ -4227,7 +4228,7 @@ node.appendChild(newNode);  <span class='comment'>// This will throw a TypeError
         </p>
         <p>
           Objects defined in this section have internal properties as described in
-          ECMA-262 section 8.12 unless otherwise specified, in which case one or
+          ECMA-262 sections 8.12 and 13.2 unless otherwise specified, in which case one or
           more of the following are redefined in accordance with the rules for host objects:
           <span class="prop">[[Call]]</span>,
           <span class="prop">[[DefineOwnProperty]]</span>,
@@ -5773,7 +5774,7 @@ results.numbers.length;       <span class='comment'>// So this still evaluates t
             </p>
             <p>
               The <a class='xattr' href='#AllowAny'>[AllowAny]</a> extended attribute
-              <span class='rfc2119'>MUST</span> <a class='dfnref' href='#dfn-xattr-no-arguments'>takes no argument</a>.
+              <span class='rfc2119'>MUST</span> <a class='dfnref' href='#dfn-xattr-no-arguments'>take no arguments</a>.
             </p>
             <div class='example'>
               <p>
@@ -5915,7 +5916,7 @@ t.addListener({ eventOccurred: function() { } });</x:codeblock>
             <p>
               The <a class='xattr' href='#Clamp'>[Clamp]</a>
               extended attribute <span class='rfc2119'>MUST</span>
-              <a class='dfnref' href='#dfn-xattr-no-arguments'>takes no argument</a>.
+              <a class='dfnref' href='#dfn-xattr-no-arguments'>take no arguments</a>.
             </p>
             <p>
               The <a class='xattr' href='#Clamp'>[Clamp]</a> extended attribute
@@ -5975,7 +5976,7 @@ context.setColorClamped(-1, 255, 257);</x:codeblock>
             <p>
               The <a class='xattr' href='#CopyInheritedPrototype'>[CopyInheritedPrototype]</a>
               extended attribute <span class='rfc2119'>MUST</span>
-              <a class='dfnref' href='#dfn-xattr-no-arguments'>takes no argument</a>.
+              <a class='dfnref' href='#dfn-xattr-no-arguments'>take no arguments</a>.
               It <span class='rfc2119'>MUST NOT</span> appear on an interface that
               is not defined to inherit from another interface, or one that is
               defined to inherit from another interface which itself has an interface
@@ -6005,7 +6006,7 @@ context.setColorClamped(-1, 255, 257);</x:codeblock>
             <p>
               The <a class='xattr' href='#Constructor'>[Constructor]</a>
               extended attribute <span class='rfc2119'>MUST</span> either
-              <a class='dfnref' href='#dfn-xattr-no-arguments'>takes no argument</a> or
+              <a class='dfnref' href='#dfn-xattr-no-arguments'>take no arguments</a> or
               <a class='dfnref' href='#dfn-xattr-argument-list'>take an argument list</a>.
               The bare form, <code>[Constructor]</code>, has the same meaning as
               using an empty argument list, <code>[Constructor()]</code>.  For each
@@ -6061,6 +6062,57 @@ var y = new Circle(1.25);  <span class='comment'>// This also creates a Circle o
 
 var z = new NodeList();    <span class='comment'>// This would throw a TypeError, since no</span>
                            <span class='comment'>// [Constructor] is declared.</span></x:codeblock>
+            </div>
+          </div>
+
+          <div id='ImplicitThis' class='section'>
+            <h4>[ImplicitThis]</h4>
+            <p>
+              If the <a class='xattr' href='#ImplicitThis'>[ImplicitThis]</a>
+              <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
+              appears on an <a class='dfnref' href='#dfn-interface'>interface</a>,
+              it indicates that when a <span class='estype'>Function</span> corresponding
+              to one of the interface’s <a class='dfnref' href='#dfn-operation'>operations</a>
+              is invoked with the <span class='esvalue'>null</span> or <span class='esvalue'>undefined</span>
+              value as the <span class='esvalue'>this</span> value, that the ECMAScript global
+              object will be used as the <span class='esvalue'>this</span> value instead.
+              This is regardless of whether the calling code is in strict mode.
+            </p>
+            <p>
+              The <a class='xattr' href='#ImplicitThis'>[ImplicitThis]</a>
+              extended attribute <span class='rfc2119'>MUST</span>
+              <a class='dfnref' href='#dfn-xattr-no-args'>take no arguments</a>.
+            </p>
+            <div class='note'>
+              <p>The <a class='xattr' href='#ImplicitThis'>[ImplicitThis]</a>
+              <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
+              is intended for use on the <span class='idltype'>Window</span>
+              <a class='dfnref' href='#dfn-interface'>interface</a> as defined
+              in HTML5.</p>
+            </div>
+            <div class='example'>
+              <p>In the following example, the <span class='idltype'>Window</span>
+              <a class='dfnref' href='#dfn-interface'>interface</a> is defined
+              with the <a class='xattr' href='#ImplicitThis'>[ImplicitThis]</a>
+              <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>.</p>
+              <x:codeblock language='idl'>[ImplicitThis]
+interface Window {
+  ...
+  attribute DOMString name;
+  void alert(DOMString message);
+};</x:codeblock>
+              <p>Since the <span class='idltype'>Window</span> object is used as
+              the ECMAScript global object, calls to its functions can be made
+              without an explicit object, even in strict mode:</p>
+            <x:codeblock language='es'>"use strict";
+
+window.alert("hello");      <span class='comment'>// Calling alert with an explicit window object works.</span>
+alert("hello");             <span class='comment'>// This also works, even though we are in strict mode.</span>
+alert.call(null, "hello");  <span class='comment'>// As does passing null explicitly as the this value.</span>
+
+<span class='comment'>// This does not apply to getters for attributes on the interface, though.</span>
+<span class='comment'>// The following will throw a TypeError.</span>
+Object.getOwnPropertyDescriptor(Window.prototype, "name").get.call(null);</x:codeblock>
             </div>
           </div>
 
@@ -6151,7 +6203,7 @@ var a2 = new Audio('a.flac');   <span class='comment'>// Creates an HTMLAudioEle
             <p>
               The <a class='xattr' href='#NamespaceObject'>[NamespaceObject]</a>
               extended attribute <span class='rfc2119'>MUST</span>
-              <a class='dfnref' href='#dfn-xattr-no-arguments'>takes no argument</a>.
+              <a class='dfnref' href='#dfn-xattr-no-arguments'>take no arguments</a>.
             </p>
             <p>
               The <a class='xattr' href='#NamespaceObject'>[NamespaceObject]</a>
@@ -6222,7 +6274,7 @@ new acme.pim.RecurringEvent(10);  <span class='comment'>// Creates an object imp
             </p>
             <p>
               The <a class='xattr' href='#NoInterfaceObject'>[NoInterfaceObject]</a> extended attribute
-              <span class='rfc2119'>MUST</span> <a class='dfnref' href='#dfn-xattr-no-arguments'>takes no argument</a>.
+              <span class='rfc2119'>MUST</span> <a class='dfnref' href='#dfn-xattr-no-arguments'>take no arguments</a>.
             </p>
             <p>
               If the <a class='xattr' href='#NoInterfaceObject'>[NoInterfaceObject]</a> extended attribute
@@ -6286,7 +6338,7 @@ var fn = Query.prototype.lookupEntry;  <span class='comment'>// exception, Query
             <p>
               The <a class='xattr' href='#OverrideBuiltins'>[OverrideBuiltins]</a>
               extended attribute <span class='rfc2119'>MUST</span>
-              <a class='dfnref' href='#dfn-xattr-no-arguments'>takes no argument</a>
+              <a class='dfnref' href='#dfn-xattr-no-arguments'>take no arguments</a>
               and <span class='rfc2119'>MUST NOT</span> appear on an interface
               that does not define a <a class='dfnref' href='#dfn-named-property-getter'>named property getter</a>
               or that also is declared with the <a class='xattr' href='#ReplaceableNamedProperties'>[ReplaceableNamedProperties]</a>
@@ -6372,7 +6424,7 @@ map2.toString;</x:codeblock>
             </p>
             <p>
               The <a class='xattr' href='#PrototypeRoot'>[PrototypeRoot]</a>
-              extended attribute <span class='rfc2119'>MUST</span> <a class='dfnref' href='#dfn-xattr-no-arguments'>takes no argument</a>,
+              extended attribute <span class='rfc2119'>MUST</span> <a class='dfnref' href='#dfn-xattr-no-arguments'>take no arguments</a>,
               and <span class='rfc2119'>MUST NOT</span> appear on an
               <a class='dfnref' href='#dfn-interface'>interface</a> that
               <a class='dfnref' href='#dfn-inherit'>inherits</a> from another
@@ -6548,7 +6600,7 @@ p.name.full = 'John Citizen';  <span class='comment'>// ...has the same behavior
             <p>
               The <a class='xattr' href='#Replaceable'>[Replaceable]</a>
               extended attribute <span class='rfc2119'>MUST</span>
-              <a class='dfnref' href='#dfn-xattr-no-arguments'>takes no argument</a>.
+              <a class='dfnref' href='#dfn-xattr-no-arguments'>take no arguments</a>.
             </p>
             <p>
               An attribute with the <a class='xattr' href='#Replaceable'>[Replaceable]</a>
@@ -6619,7 +6671,7 @@ counter.value;                                           <span class='comment'>/
             <p>
               The <a class='xattr' href='#ReplaceableNamedProperties'>[ReplaceableNamedProperties]</a>
               extended attribute <span class='rfc2119'>MUST</span>
-              <a class='dfnref' href='#dfn-xattr-no-arguments'>takes no argument</a>.
+              <a class='dfnref' href='#dfn-xattr-no-arguments'>take no arguments</a>.
             </p>
             <p>
               The <a class='xattr' href='#ReplaceableNamedProperties'>[ReplaceableNamedProperties]</a> extended attribute
@@ -6833,7 +6885,7 @@ c.isMemberOfBreed(undefined);  <span class='comment'>// This passes the string "
             <p>
               The <a class='xattr' href='#Unforgeable'>[Unforgeable]</a>
               extended attribute <span class='rfc2119'>MUST</span>
-              <a class='dfnref' href='#dfn-xattr-no-arguments'>takes no argument</a>.
+              <a class='dfnref' href='#dfn-xattr-no-arguments'>take no arguments</a>.
             </p>
             <p>
               The <a class='xattr' href='#Unforgeable'>[Unforgeable]</a>
@@ -7728,6 +7780,31 @@ interface
                     Return the maximum argument list length of the functions in the entries of <var>S</var>.
                   </li>
                 </ol>
+              </li>
+              <li>
+                If the <a class='dfnref' href='#dfn-interface'>interface</a> on which the
+                <a class='dfnref' href='#dfn-operation'>operation</a> appears has
+                an <a class='xattr' href='#ImplicitThis'>[ImplicitThis]</a>
+                extended attribute, then the internal <span class='prop'>[[Call]]</span> method of the
+                <span class='estype'>Function</span> object behaves as follows,
+                when called with <span class='estype'>Function</span> object <var>F</var>,
+                <span class='esvalue'>this</span> value <var>thisArg</var>,
+                and argument list <var>argumentsList</var>:
+                <ol class='algorithm'>
+                  <li>If <var>thisArg</var> is <span class='esvalue'>null</span> or <span class='esvalue'>undefined</span>,
+                    then set <var>thisArg</var> to the ECMAScript global object associated with
+                    <var>F</var>.</li>
+                  <li>Return the result of invoking the default <span class='prop'>[[Call]]</span> method
+                    for <span class='estype'>Function</span> objects (<a href='#ref-ECMA-262'>[ECMA-262]</a>, section 13.2.1),
+                    passing <var>F</var>, <var>thisArg</var> and <var>argumentsList</var>.</li>
+                </ol>
+                Otherwise, the <a class='dfnref' href='#dfn-interface'>interface</a> on which the
+                <a class='dfnref' href='#dfn-operation'>operation</a> appears does not have an
+                <a class='xattr' href='#ImplicitThis'>[ImplicitThis]</a> extended attribute.
+                The internal <span class='prop'>[[Call]]</span> method of the
+                <span class='estype'>Function</span> object is the default
+                <span class='prop'>[[Call]]</span> method for <span class='estype'>Function</span>
+                objects (<a href='#ref-ECMA-262'>[ECMA-262]</a>, section 13.2.1).
               </li>
             </ul>
 
@@ -11282,6 +11359,13 @@ public <var>ExceptionName</var>(Throwable cause) {
           <dt>Current editor’s draft</dt>
           <dd>
             <ul>
+              <li>
+                <p>
+                  Specify <span class='prop'>[[Call]]</span> for operations and add
+                  an <span class='xattr'>[ImplicitThis]</span> extended attribute
+                  for use on <span class='idltype'>Window</span>.
+                </p>
+              </li>
               <li>
                 <p>
                   Tweaked the names of Java getter and setter methods to avoid
