@@ -15,7 +15,7 @@
   <head>
     <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'/>
     <title>Web IDL</title>
-    <meta name='revision' content='$Id: Overview.xml,v 1.355 2011-08-24 04:32:41 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: Overview.xml,v 1.356 2011-08-24 04:59:28 cmccorma Exp $'/>
     <link rel='stylesheet' href='WebIDL.css' type='text/css'/>
     <script src='section-links.js' type='application/ecmascript'/>
     <script src='dfn.js' type='application/ecmascript'/>
@@ -4353,8 +4353,8 @@ node.appendChild(newNode);  <span class='comment'>// This will throw a TypeError
           Algorithms in this section use the conventions described in ECMA-262
           section 5.2, such as the use of steps and substeps, the use of mathematical
           operations, and so on.  The ToBoolean, ToNumber, ToUint16, ToInt32, ToUint32, ToString,
-          ToObject, IsAccessorDescriptor and IsDataDescriptor abstract operations referenced in this section
-          are defined in ECMA-262 sections 8 and 9.
+          ToObject, IsAccessorDescriptor and IsDataDescriptor abstract operations and the
+          Type(<var>x</var>) notation referenced in this section are defined in ECMA-262 sections 8 and 9.
         </p>
 
         <div id='es-environment' class='section'>
@@ -5106,10 +5106,10 @@ iframe.appendChild instanceof w.Function;  <span class='comment'>// Evaluates to
               by running the following algorithm (where <var>D</var> is the <a class='dfnref' href='#dfn-dictionary'>dictionary</a>):
             </p>
             <ol class='algorithm'>
+              <li>If Type(<var>V</var>) is not Object, then throw a <span class='estype'>TypeError</span>.</li>
               <li>Let <var>dict</var> be an empty dictionary value of type <var>D</var>;
               every <a class='dfnref' href='#dfn-dictionary-member'>dictionary member</a>
               is initially considered to be <a class='dfnref' href='#dfn-present'>not present</a>.</li>
-              <li>Let <var>object</var> be the result of calling ToObject(<var>V</var>).</li>
               <li>Let <var>dictionaries</var> be a list consisting of <var>D</var> and all of <var>D</var>’s <a class='dfnref' href='#dfn-inherited-dictionaries'>inherited dictionaries</a>,
                 in order from least to most derived.</li>
               <li>For each dictionary <var>dictionary</var> in <var>dictionaries</var>, in order:
@@ -5117,10 +5117,10 @@ iframe.appendChild instanceof w.Function;  <span class='comment'>// Evaluates to
                   <li>For each dictionary member <var>member</var> declared on <var>D</var>, in order:
                     <ol>
                       <li>Let <var>key</var> be the <a class='dfnref' href='#dfn-identifier'>identifier</a> of <var>member</var>.</li>
-                      <li>Let <var>present</var> be the result of calling the <span class='prop'>[[HasProperty]]</span> internal method on <var>object</var> with property name <var>key</var>.</li>
+                      <li>Let <var>present</var> be the result of calling the <span class='prop'>[[HasProperty]]</span> internal method on <var>V</var> with property name <var>key</var>.</li>
                       <li>If <var>present</var> is true, then:
                         <ol>
-                          <li>Let <var>value</var> be the result of calling the <span class='prop'>[[Get]]</span> internal method on <var>object</var> with property name <var>key</var>.</li>
+                          <li>Let <var>value</var> be the result of calling the <span class='prop'>[[Get]]</span> internal method on <var>V</var> with property name <var>key</var>.</li>
                           <li>Let <var>idlValue</var> be the result of <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a> <var>value</var> to an IDL value whose type is the type <var>member</var> is declared to be of.</li>
                           <li>Set the dictionary member on <var>dict</var> with key name <var>key</var> to the value <var>idlValue</var>.  This dictionary member is considered to be <a class='dfnref' href='#dfn-present'>present</a>.</li>
                         </ol>
@@ -11530,6 +11530,12 @@ public <var>ExceptionName</var>(Throwable cause) {
           <dt>Current editor’s draft</dt>
           <dd>
             <ul>
+              <li>
+                <p>
+                  Made type conversion from an ECMAScript non-object value to an IDL dictionary value
+                  throw an exception.
+                </p>
+              </li>
               <li>
                 <p>
                   Specified that the “prototype” property of a named constructor
