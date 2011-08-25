@@ -15,7 +15,7 @@
   <head>
     <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'/>
     <title>Web IDL</title>
-    <meta name='revision' content='$Id: Overview.xml,v 1.357 2011-08-24 05:31:47 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: Overview.xml,v 1.358 2011-08-25 04:43:52 cmccorma Exp $'/>
     <link rel='stylesheet' href='WebIDL.css' type='text/css'/>
     <script src='section-links.js' type='application/ecmascript'/>
     <script src='dfn.js' type='application/ecmascript'/>
@@ -1175,6 +1175,7 @@ attribute <i>type</i> <i>identifier</i> inherits getter setraises(<i>scoped-name
               <a class='xattr' href='#Clamp'>[Clamp]</a>,
               <a class='xattr' href='#PutForwards'>[PutForwards]</a>,
               <a class='xattr' href='#Replaceable'>[Replaceable]</a>,
+              <a class='xattr' href='#TreatNonCallableAsNull'>[TreatNonCallableAsNull]</a>,
               <a class='xattr' href='#TreatNullAs'>[TreatNullAs]</a>,
               <a class='xattr' href='#TreatUndefinedAs'>[TreatUndefinedAs]</a>,
               <a class='xattr' href='#Unforgeable'>[Unforgeable]</a>.
@@ -1435,6 +1436,7 @@ s.union(1, 4, 7);         <span class='comment'>// Passing three arguments corre
               The following extended attributes are applicable to operation arguments:
               <a class='xattr' href='#AllowAny'>[AllowAny]</a>,
               <a class='xattr' href='#Clamp'>[Clamp]</a>,
+              <a class='xattr' href='#TreatNonCallableAsNull'>[TreatNonCallableAsNull]</a>,
               <a class='xattr' href='#TreatNullAs'>[TreatNullAs]</a>,
               <a class='xattr' href='#TreatUndefinedAs'>[TreatUndefinedAs]</a>.
             </p>
@@ -5220,6 +5222,28 @@ iframe.appendChild instanceof w.Function;  <span class='comment'>// Evaluates to
                 </ol>
               </li>
               <li>
+                Otherwise, if the result of calling IsCallable(<var>V</var>) is <span class='esvalue'>true</span>, then:
+                <ol>
+                  <li>
+                    If the conversion to an IDL value is being performed due
+                    to any of the following:
+                    <ul>
+                      <li>
+                        <var>V</var> is being passed as an <a class='dfnref' href='#dfn-operation'>operation</a>
+                        argument that is annotated with the <a class='xattr' href='#TreatNonCallableAsNull'>[TreatNonCallableAsNull]</a>,
+                      </li>
+                      <li>
+                        <var>V</var> is being assigned to an <a class='dfnref' href='#dfn-attribute'>attribute</a>
+                        annotated with <a class='xattr' href='#TreatNonCallableAsNull'>[TreatNonCallableAsNull]</a>,
+                      </li>
+                    </ul>
+                    then return the IDL 
+                    <a class='dfnref' href='#dfn-nullable-type'>nullable type</a> <span class='idltype'><var>T</var>?</span>
+                    value <span class='idlvalue'>null</span>.
+                  </li>
+                </ol>
+              </li>
+              <li>
                 Otherwise, if <var>V</var> is <span class='esvalue'>null</span> or <span class='esvalue'>undefined</span>, then return the IDL
                 <a class='dfnref' href='#dfn-nullable-type'>nullable type</a> <span class='idltype'><var>T</var>?</span>
                 value <span class='idlvalue'>null</span>.
@@ -6849,6 +6873,82 @@ window.abc;    <span class='comment'>// Evaluates to the iframe's Window object.
 abc = 1;       <span class='comment'>// Replaces the named property.</span>
 window.abc;    <span class='comment'>// Evaluates to 1.</span>
 &lt;/script></x:codeblock>
+            </div>
+          </div>
+
+          <div id='TreatNonCallableAsNull' class='section'>
+            <h4>[TreatNonCallableAsNull]</h4>
+
+            <p>
+              If the <a class='xattr' href='#TreatNonCallableAsNull'>[TreatNonCallableAsNull]</a>
+              <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
+              appears on an <a class='dfnref' href='#dfn-attribute'>attribute</a>
+              or <a class='dfnref' href='#dfn-operation'>operation</a> argument whose type is
+              a <a class='dfnref' href='#dfn-nullable-type'>nullable</a>
+              <a class='xattr' href='#Callback'>[Callback]</a>-annotated
+              <a href='idl-interface'>interface type</a>, it indicates that any value
+              assigned to the attribute or passed as the operation argument
+              that is not a callable object will be converted to
+              the <span class='idlvalue'>null</span> value.
+            </p>
+            <p>
+              The <a class='xattr' href='#TreatNonCallableAsNull'>[TreatNonCallableAsNull]</a>
+              extended attribute <span class='rfc2119'>MUST NOT</span> be specified
+              on an attribute or operation argument whose type is not an
+              interface that is annotated with <code>[Callback]</code> or
+              <code>[Callback=FunctionOnly]</code>.
+            </p>
+            <p>
+              Specifications <span class='rfc2119'>SHOULD NOT</span> use <a href='#TreatNonCallableAsNull' class='xattr'>[TreatNonCallableAsNull]</a>
+              unless required to specify the behavior of legacy APIs.
+            </p>
+            <div class='note'>
+              <p>The <a class='xattr' href='#TreatNonCallableAsNull'>[TreatNonCallableAsNull]</a>
+              <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
+              is intended for use on <a href='http://www.w3.org/TR/2011/WD-html5-20110525/webappapis.html#event-handler-attributes'>event handler IDL attributes</a>
+              defined in HTML5 (<a href='#ref-HTML5'>[HTML5]</a>, section 6.1.6.1).</p>
+            </div>
+            <p>
+              See <a href='#es-nullable-type'>section <?sref es-nullable-type?></a>
+              for the specific requirements that the use of
+              <a class='xattr' href='#TreatNonCallableAsNull'>[TreatNonCallableAsNull]</a> entails.
+            </p>
+            <div class='example'>
+              <p>
+                The following <a class='dfnref' href='#dfn-idl-fragment'>IDL fragment</a> defines an interface that has one
+                attribute with the <a class='xattr' href='#TreatNonCallableAsNull'>[TreatNonCallableAsNull]</a>
+                extended attribute and one without:
+              </p>
+              <x:codeblock language='idl'>[Callback=FunctionOnly]
+interface EventHandler {
+  void eventOccurred(DOMString details);
+};
+
+interface Manager {
+  attribute EventHandler? handler1;
+  [TreatNonCallableAsNull] attribute EventHandler? handler2;
+};</x:codeblock>
+              <p>
+                In an ECMAScript implementation, assigning a value that is not
+                callable (such as a <span class='estype'>Number</span> value)
+                to handler1 will have different behavior from that when assigning
+                to handler2:
+              </p>
+              <x:codeblock language='es'>var manager = getManager();  <span class='comment'>// Get an instance of Manager.</span>
+
+manager.handler1 = function() { };
+manager.handler1;            <span class='comment'>// Evaluates to the function.</span>
+
+try {
+  manager.handler1 = 123;    <span class='comment'>// Throws a TypeError.</span>
+} catch (e) {
+}
+
+manager.handler2 = function() { };
+manager.handler2;            <span class='comment'>// Evaluates to the function.</span>
+
+manager.handler2 = 123;
+manager.handler2;            <span class='comment'>// Evaluates to null.</span></x:codeblock>
             </div>
           </div>
 
@@ -11535,6 +11635,11 @@ public <var>ExceptionName</var>(Throwable cause) {
           <dt>Current editor’s draft</dt>
           <dd>
             <ul>
+              <li>
+                <p>
+                  Added the <span class='xattr'>[TreatNonCallableAsNull]</span> extended attribute.
+                </p>
+              </li>
               <li>
                 <p>
                   Made type conversion from an ECMAScript non-object value to an IDL dictionary value
