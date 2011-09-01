@@ -11,7 +11,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <title>Web IDL</title>
-    <meta name="revision" content="$Id: Overview.html,v 1.369 2011-09-01 04:39:45 cmccorma Exp $" />
+    <meta name="revision" content="$Id: Overview.html,v 1.370 2011-09-01 05:37:46 cmccorma Exp $" />
     <link rel="stylesheet" href="WebIDL.css" type="text/css" />
     <script src="section-links.js" type="application/ecmascript"></script>
     <script src="dfn.js" type="application/ecmascript"></script>
@@ -49,7 +49,7 @@
             http://www.w3.org/mid/op.vr2r6waf64w2qv@anne-van-kesterens-macbook-pro.local
         -->
           
-      <div class="ednote"><div class="ednoteHeader">Editorial note</div><p>This version of the document is built from source revision &#36;Id: Overview.xml,v 1.370 2011/09/01 04:08:25 cmccorma Exp $.</p><p>
+      <div class="ednote"><div class="ednoteHeader">Editorial note</div><p>This version of the document is built from source revision &#36;Id: Overview.xml,v 1.371 2011/09/01 04:39:45 cmccorma Exp $.</p><p>
             There are 3 further editorial notes in the document.
             
               In addition, there is a list of <a href="http://www.w3.org/Bugs/Public/buglist.cgi?query_format=advanced&amp;amp;short_desc_type=allwordssubstr&amp;amp;short_desc=&amp;amp;product=WebAppsWG&amp;amp;component=WebIDL&amp;amp;longdesc_type=allwordssubstr&amp;amp;longdesc=&amp;amp;bug_file_loc_type=allwordssubstr&amp;amp;bug_file_loc=&amp;amp;status_whiteboard_type=allwordssubstr&amp;amp;status_whiteboard=&amp;amp;keywords_type=allwords&amp;amp;keywords=&amp;amp;bug_status=NEW&amp;amp;bug_status=ASSIGNED&amp;amp;bug_status=REOPENED&amp;amp;emailtype1=substring&amp;amp;email1=&amp;amp;emailtype2=substring&amp;amp;email2=&amp;amp;bug_id_type=anyexact&amp;amp;bug_id=&amp;amp;votes=&amp;amp;chfieldfrom=&amp;amp;chfieldto=Now&amp;amp;chfieldvalue=&amp;amp;cmdtype=doit&amp;amp;order=Importance&amp;amp;field0-0-0=noop&amp;amp;type0-0-0=noop&amp;amp;value0-0-0=">open bugs</a> on the document, some of which may be covered by editorial notes.
@@ -4457,6 +4457,46 @@ Person* p2 = PersonFactory_createPersonWithAge(f, 26);  <span class='comment'>//
               does not meet the criteria for an interface that can implemented by
               user objects, as described in <a href="#idl-objects">section 3.8 above</a>.
             </p>
+            <div class="note"><div class="noteHeader">Note</div>
+              <p>
+                Specification authors wanting to APIs that take ECMAScript objects
+                as “property bag” like function arguments are suggested to use
+                <a href="#idl-dictionaries">dictionary types</a> rather than
+                <a class="dfnref" href="#dfn-interface">interfaces</a> annotated
+                with <code>[Callback,NoInterfaceObject]</code>.
+              </p>
+              <p>
+                For example, instead of this:
+              </p>
+              <div class="block"><div class="blockTitleDiv"><span class="blockTitle">IDL</span></div><div class="blockContent"><pre class="code"><code class="idl-code">[Callback,NoInterfaceObject]
+interface Options {
+  attribute DOMString? option1;
+  attribute DOMString? option2;
+  attribute long? option3;
+};
+
+interface A {
+  void doTask(DOMString type, Options options);
+};</code></pre></div></div>
+              <p>
+                to be used like this:
+              </p>
+              <div class="block"><div class="blockTitleDiv"><span class="blockTitle">ECMAScript</span></div><div class="blockContent"><pre class="code"><code class="es-code">var a = getA();  <span class="comment">// Get an instance of A.</span>
+
+a.doTask("something", { option1: "banana", option3: 100 });</code></pre></div></div>
+              <p>
+                instead write the following:
+              </p>
+              <div class="block"><div class="blockTitleDiv"><span class="blockTitle">IDL</span></div><div class="blockContent"><pre class="code"><code class="idl-code">dictionary Options {
+  DOMString? option1;
+  DOMString? option2;
+  long? option3;
+};
+
+interface A {
+  void doTask(DOMString type, Options options);
+};</code></pre></div></div>
+            </div>
             <div class="example"><div class="exampleHeader">Example</div>
               <p>
                 The following <a class="dfnref" href="#dfn-idl-fragment">IDL fragment</a> defines

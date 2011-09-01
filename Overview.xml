@@ -15,7 +15,7 @@
   <head>
     <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'/>
     <title>Web IDL</title>
-    <meta name='revision' content='$Id: Overview.xml,v 1.371 2011-09-01 04:39:45 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: Overview.xml,v 1.372 2011-09-01 05:37:45 cmccorma Exp $'/>
     <link rel='stylesheet' href='WebIDL.css' type='text/css'/>
     <script src='section-links.js' type='application/ecmascript'/>
     <script src='dfn.js' type='application/ecmascript'/>
@@ -4310,6 +4310,46 @@ Person* p2 = PersonFactory_createPersonWithAge(f, 26);  <span class='comment'>//
               does not meet the criteria for an interface that can implemented by
               user objects, as described in <a href="#idl-objects">section <?sref idl-objects?> <?sdir idl-objects?></a>.
             </p>
+            <div class='note'>
+              <p>
+                Specification authors wanting to APIs that take ECMAScript objects
+                as “property bag” like function arguments are suggested to use
+                <a href='#idl-dictionaries'>dictionary types</a> rather than
+                <a class='dfnref' href='#dfn-interface'>interfaces</a> annotated
+                with <code>[Callback,NoInterfaceObject]</code>.
+              </p>
+              <p>
+                For example, instead of this:
+              </p>
+              <x:codeblock language='idl'>[Callback,NoInterfaceObject]
+interface Options {
+  attribute DOMString? option1;
+  attribute DOMString? option2;
+  attribute long? option3;
+};
+
+interface A {
+  void doTask(DOMString type, Options options);
+};</x:codeblock>
+              <p>
+                to be used like this:
+              </p>
+              <x:codeblock language='es'>var a = getA();  <span class='comment'>// Get an instance of A.</span>
+
+a.doTask("something", { option1: "banana", option3: 100 });</x:codeblock>
+              <p>
+                instead write the following:
+              </p>
+              <x:codeblock language='idl'>dictionary Options {
+  DOMString? option1;
+  DOMString? option2;
+  long? option3;
+};
+
+interface A {
+  void doTask(DOMString type, Options options);
+};</x:codeblock>
+            </div>
             <div class='example'>
               <p>
                 The following <a class='dfnref' href='#dfn-idl-fragment'>IDL fragment</a> defines
