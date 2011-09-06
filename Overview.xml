@@ -15,7 +15,7 @@
   <head>
     <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'/>
     <title>Web IDL</title>
-    <meta name='revision' content='$Id: Overview.xml,v 1.381 2011-09-06 05:44:27 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: Overview.xml,v 1.382 2011-09-06 06:17:30 cmccorma Exp $'/>
     <link rel='stylesheet' href='WebIDL.css' type='text/css'/>
     <script src='section-links.js' type='application/ecmascript'/>
     <script src='dfn.js' type='application/ecmascript'/>
@@ -1018,7 +1018,7 @@ interface Dog : Animal {
               defined on the same exception.
             </p>
             <p>
-              The <a class='sym' href='#prod-ConstExpr'>ConstExpr</a> part of a
+              The <a class='sym' href='#prod-ConstValue'>ConstValue</a> part of a
               constant declaration (or <a class='dfnref' href='#dfn-dictionary-member'>dictionary member</a>
               declaration) gives the value of the constant (or the default value of the dictionary member), which can be
               one of the two boolean literal tokens (<code>true</code>
@@ -1034,11 +1034,11 @@ interface Dog : Animal {
               <span class='idlvalue'>true</span> and <span class='idlvalue'>false</span>.
             </p>
             <p>
-              The value of an <a class='sym' href='#prod-integer'>integer</a> token is an integer,
-              parsed in a manner common to many programming languages, as follows:
+              The value of an <a class='sym' href='#prod-integer'>integer</a> token is an integer
+              whose value is determined as follows:
             </p>
             <ol class='algorithm'>
-              <li>Let <var>S</var> be the string value of the <a class='sym' href='#prod-integer'>integer</a> token.</li>
+              <li>Let <var>S</var> be the sequence of characters matched by the <a class='sym' href='#prod-integer'>integer</a> token.</li>
               <li>Let <var>sign</var> be −1 if <var>S</var> begins with <span class='char'>U+002D HYPHEN-MINUS ("-")</span>, and 1 otherwise.</li>
               <li>Let <var>base</var> be the base of the number based on the characters that follow the optional leading <span class='char'>U+002D HYPHEN-MINUS ("-")</span> character:
                 <dl class='switch'>
@@ -1069,7 +1069,7 @@ interface Dog : Animal {
               constant or dictionary member it is being used as the value for, determined as follows:
             </p>
             <ol class='algorithm'>
-              <li>Let <var>S</var> be the string value of the <a class='sym' href='#prod-float'>float</a> token.</li>
+              <li>Let <var>S</var> be the sequence of characters matched by the <a class='sym' href='#prod-float'>float</a> token.</li>
               <li>Let <var>value</var> be the Mathematical Value that would be obtained if <var>S</var> were
                 parsed as an ECMAScript <em>NumericLiteral</em> (<a href='#ref-ECMA-262'>[ECMA-262]</a>, section 7.8.3).</li>
               <li>
@@ -1101,7 +1101,7 @@ interface Dog : Animal {
               is a <span class='idltype'>DOMString</span>, determined as follows:
             </p>
             <ol class="algorithm">
-              <li>Let <var>S</var> be the string value of the <a class='sym' href='#prod-string'>string</a>
+              <li>Let <var>S</var> be the sequest of characters matched by the <a class='sym' href='#prod-string'>string</a>
               token with its leading and trailing <span class='char'>U+0022 QUOTATION MARK ('"')</span>
               characters removed.</li>
               <li>The value of the <a class='sym' href='#prod-string'>string</a> token is the
@@ -1124,11 +1124,33 @@ interface Dog : Animal {
               whose <a class='dfnref' href='#dfn-inner-type'>inner type</a> is <var>VT</var>.
             </p>
             <p>
+              <a class='dfnref' href='#dfn-constant'>Constants</a> are not associated with
+              particular instances of the <a class='dfnref' href='#dfn-interface'>interface</a>
+              on which they appear.  It is language binding specific whether
+              <a class='dfnref' href='#dfn-constant'>constants</a> are exposed on instances.
+            </p>
+            <div class='note'>
+              <p>
+                Both the ECMAScript and the Java language binding do however
+                allow <a class='dfnref' href='#dfn-constant'>constants</a> to be accessed
+                through objects implementing the IDL <a class='dfnref' href='#dfn-interface'>interfaces</a>
+                on which the <a class='dfnref' href='#dfn-constant'>constants</a> are declared.
+                For example, with the following IDL:
+              </p>
+              <x:codeblock language='idl'>interface A {
+  const DOMString greeting = "hi";
+};</x:codeblock>
+              <p>
+                the constant value can be accessed in ECMAScript and in Java either as
+                <code>A.greeting</code> or <code>instanceOfA.greeting</code>.
+              </p>
+            </div>
+            <p>
               No <a class='dfnref' href='#dfn-extended-attribute'>extended attributes</a>
               defined in this specification are applicable to constants.
             </p>
 
-            <?productions grammar Const ConstExpr BooleanLiteral?>
+            <?productions grammar Const ConstValue BooleanLiteral?>
             <div class='example'>
               <p>
                 The following <a class='dfnref' href='#dfn-idl-fragment'>IDL fragment</a>
@@ -2856,7 +2878,7 @@ dictionary <i>Derived</i> : <em>Base</em> {
 };</pre>
           <p>
             If the identifier is followed by a <span class='char'>U+003D EQUALS SIGN ("=")</span>
-            and a value (matching <a class='sym' href='#prod-ConstExpr'>ConstExpr</a>),
+            and a value (matching <a class='sym' href='#prod-ConstValue'>ConstValue</a>),
             then that gives the dictionary member its <a class='dfnref' href='#dfn-default-value'>default value</a>,
             in the same way that a <a class='dfnref' href='#dfn-constant'>constant</a> is
             given its value.
@@ -11700,13 +11722,13 @@ public <var>ExceptionName</var>(Throwable cause) {
           <prod nt='Dictionary'>"dictionary" identifier Inheritance "{" DictionaryMembers "}" ";"</prod>
           <prod nt='DictionaryMembers'>ExtendedAttributeList DictionaryMember DictionaryMembers | ε</prod>
           <prod nt='DictionaryMember'>Type identifier DefaultValue ";"</prod>
-          <prod nt='DefaultValue'>"=" ConstExpr | ε</prod>
+          <prod nt='DefaultValue'>"=" ConstValue | ε</prod>
           <prod nt='Exception'>"exception" identifier Inheritance "{" ExceptionMembers "}" ";"</prod>
           <prod nt='ExceptionMembers'>ExtendedAttributeList ExceptionMember ExceptionMembers | ε</prod>
           <prod nt='Typedef'>"typedef" Type identifier ";"</prod>
           <prod nt='ImplementsStatement'>ScopedName "implements" ScopedName ";"</prod>
-          <prod nt='Const'>"const" ConstType identifier "=" ConstExpr ";"</prod>
-          <prod nt='ConstExpr'>BooleanLiteral | integer | float | string | "null"</prod>
+          <prod nt='Const'>"const" ConstType identifier "=" ConstValue ";"</prod>
+          <prod nt='ConstValue'>BooleanLiteral | integer | float | string | "null"</prod>
           <prod nt='BooleanLiteral'>"true" | "false"</prod>
           <prod nt='AttributeOrOperation'>"stringifier" StringifierAttributeOrOperation | Attribute | Operation</prod>
           <prod nt='StringifierAttributeOrOperation'>Attribute | OperationRest | ";"</prod>
@@ -11954,6 +11976,14 @@ public <var>ExceptionName</var>(Throwable cause) {
           <dt>Current editor’s draft</dt>
           <dd>
             <ul>
+              <li>
+                <p>
+                  Removed <code>omittable</code>, since nobody is using it (and probably won’t,
+                  unless considering non-ECMAScript language bindings).  Instead, identifierless
+                  special operations will map to methods with special names in the Java
+                  language binding, rather than being left out altogether.
+                </p>
+              </li>
               <li>
                 <p>
                   Removed <code>omittable</code>, since nobody is using it (and probably won’t,
