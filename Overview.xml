@@ -15,7 +15,7 @@
   <head>
     <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'/>
     <title>Web IDL</title>
-    <meta name='revision' content='$Id: Overview.xml,v 1.383 2011-09-07 02:08:38 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: Overview.xml,v 1.384 2011-09-07 03:42:06 cmccorma Exp $'/>
     <link rel='stylesheet' href='WebIDL.css' type='text/css'/>
     <script src='section-links.js' type='application/ecmascript'/>
     <script src='dfn.js' type='application/ecmascript'/>
@@ -2912,6 +2912,33 @@ dictionary C : B {
               the order of the <a class="dfnref" href="#dfn-dictionary-member">dictionary members</a>
               of a dictionary value of type <span class="idltype">C</span> is
               c, d, a, b, e, f.
+            </p>
+            <p>
+              Dictionaries are required to have their members ordered because
+              in some language bindings the behavior observed when passing
+              a dictionary value to a platform object depends on the order
+              the dictionary members are fetched.  For example, consider the
+              following additional interface:
+            </p>
+            <x:codeblock language='idl'>interface Something {
+  void f(A a);
+};</x:codeblock>
+            <p>
+              and this ECMAScript code:
+            </p>
+            <x:codeblock language='es'>var something = getSomething();  <span class='comment'>// Get an instance of Something.</span>
+var x = 0;
+
+var dict = { };
+Object.defineProperty(dict, "d", { get: function() { return ++x; } });
+Object.defineProperty(dict, "c", { get: function() { return ++x; } });
+
+something.f(dict);</x:codeblock>
+            <p>
+              The order that the dictionary members are fetched in determines
+              what values they will be taken to have.  Since the order for
+              <span class='idltype'>A</span> is defined to be c then d, 
+              the value for c will be 1 and the value for d will be 2.
             </p>
           </div>
           <p>
