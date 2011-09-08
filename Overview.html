@@ -11,7 +11,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <title>Web IDL</title>
-    <meta name="revision" content="$Id: Overview.html,v 1.388 2011-09-08 07:31:07 cmccorma Exp $" />
+    <meta name="revision" content="$Id: Overview.html,v 1.389 2011-09-08 08:30:06 cmccorma Exp $" />
     <link rel="stylesheet" href="WebIDL.css" type="text/css" />
     <script src="section-links.js" type="application/ecmascript"></script>
     <script src="dfn.js" type="application/ecmascript"></script>
@@ -49,7 +49,7 @@
             http://www.w3.org/mid/op.vr2r6waf64w2qv@anne-van-kesterens-macbook-pro.local
         -->
           
-      <div class="ednote"><div class="ednoteHeader">Editorial note</div><p>This version of the document is built from source revision &#36;Id: Overview.xml,v 1.389 2011/09/08 06:21:41 cmccorma Exp $.</p><p>
+      <div class="ednote"><div class="ednoteHeader">Editorial note</div><p>This version of the document is built from source revision &#36;Id: Overview.xml,v 1.391 2011/09/08 08:08:06 cmccorma Exp $.</p><p>
             There are 3 further editorial notes in the document.
             
               In addition, there is a list of <a href="http://www.w3.org/Bugs/Public/buglist.cgi?query_format=advanced&amp;amp;short_desc_type=allwordssubstr&amp;amp;short_desc=&amp;amp;product=WebAppsWG&amp;amp;component=WebIDL&amp;amp;longdesc_type=allwordssubstr&amp;amp;longdesc=&amp;amp;bug_file_loc_type=allwordssubstr&amp;amp;bug_file_loc=&amp;amp;status_whiteboard_type=allwordssubstr&amp;amp;status_whiteboard=&amp;amp;keywords_type=allwords&amp;amp;keywords=&amp;amp;bug_status=NEW&amp;amp;bug_status=ASSIGNED&amp;amp;bug_status=REOPENED&amp;amp;emailtype1=substring&amp;amp;email1=&amp;amp;emailtype2=substring&amp;amp;email2=&amp;amp;bug_id_type=anyexact&amp;amp;bug_id=&amp;amp;votes=&amp;amp;chfieldfrom=&amp;amp;chfieldto=Now&amp;amp;chfieldvalue=&amp;amp;cmdtype=doit&amp;amp;order=Importance&amp;amp;field0-0-0=noop&amp;amp;type0-0-0=noop&amp;amp;value0-0-0=">open bugs</a> on the document, some of which may be covered by editorial notes.
@@ -851,9 +851,12 @@ module gui {
           <h3>3.3. Interfaces</h3>
 
           <p>
+            <a class="dfnref" href="#dfn-idl-fragment">IDL fragments</a> are used to
+            describe object oriented systems.  In such systems, objects are entities
+            that have identity and which are encapsulations of state and behavior.
             An <dfn id="dfn-interface">interface</dfn> is a definition (matching
-            <a class="sym" href="#prod-Interface">Interface</a>) that defines
-            an interface that objects can implement.
+            <a class="sym" href="#prod-Interface">Interface</a>) that declares some
+            state and behavior that an object implementing that interface will expose.
           </p>
           <pre class="syntax">interface <i>identifier</i> {
   <i>interface-members…</i>
@@ -866,9 +869,26 @@ module gui {
             <a class="dfnref" href="#dfn-attribute">attributes</a> and
             <a class="dfnref" href="#dfn-operation">operations</a>
             that appear between the braces in the interface declaration.
-            Objects implementing the interface will have members that correspond
-            to each of the interface’s members.
+            Attributes describe the state that an object
+            implementing the interface will expose, and operations describe the
+            behaviors that can be invoked on the object.  Constants declare
+            named constant values that are exposed as a convenience to users
+            of objects in the system.
           </p>
+          <p>
+            Interfaces in Web IDL describe how objects that implement the
+            interface behave.  In bindings for object oriented languages, it is
+            expected that an object that implements a particular IDL interface
+            provides ways to inspect and modify the object's state and to
+            invoke the behavior described by the interface.
+          </p>
+          <div class="note"><div class="noteHeader">Note</div>
+            <p>
+              In the Java language binding, for example, this is achieved by having the
+              object implement a Java interface that has methods for reading and
+              writing attribute values and to invoke an operation.
+            </p>
+          </div>
           <p>
             An interface can be defined to <dfn id="dfn-inherit">inherit</dfn> from another interface.
             If the identifier of the interface is followed by a
@@ -883,6 +903,72 @@ module gui {
           <pre class="syntax">interface <i>identifier</i> : <em>scoped-name-of-inherited-interface</em> {
   <i>interface-members…</i>
 };</pre>
+          <p>
+            Interfaces may specify an interface member that has the same name as
+            one from an inherited interface.  Objects that implement the derived
+            interface will expose the member on the derived interface.  It is
+            language binding specific whether the overridden member can be
+            accessed on the object.
+          </p>
+          <div class="example"><div class="exampleHeader">Example</div>
+            <p>
+              Consider the following two interfaces.
+            </p>
+            <div class="block"><div class="blockTitleDiv"><span class="blockTitle">IDL</span></div><div class="blockContent"><pre class="code"><code class="idl-code">interface A {
+  void f();
+  void g();
+};
+
+interface B : A {
+  void f();
+  void g(DOMString x);
+};</code></pre></div></div>
+            <p>
+              In the ECMAScript language binding, an instance of <span class="idltype">B</span>
+              will have a prototype chain that looks like the following:
+            </p>
+            <pre>  [Object.prototype: the Object prototype object]
+       ↑
+  [A.prototype: interface prototype object for A]
+       ↑
+  [B.prototype: interface prototype object for B]
+       ↑
+  [instanceOfB]</pre>
+            <p>
+              Calling <code>instanceOfB.f()</code> in ECMAScript will invoke the f defined
+              on <span class="idltype">B</span>.  However, the f from <span class="idltype">A</span>
+              can still be invoked on an object that implements <span class="idltype">B</span> by
+              calling <code>A.prototype.f.call(instanceOfB)</code>.
+            </p>
+            <p>
+              In the Java language binding, the two IDL interfaces will correspond to
+              the following Java interfaces:
+            </p>
+            <div class="block"><div class="blockTitleDiv"><span class="blockTitle">Java</span></div><div class="blockContent"><pre class="code"><code class="java-code">public interface A {
+  void f();
+  void g();
+}
+
+public interface B extends A {
+  void f();
+  void g(String x);
+}</code></pre></div></div>
+            <p>
+              Calling <code>instanceOfB.f()</code> in Java will invoke
+              the f defined on <span class="idltype">B</span>.  Due to
+              the way method overriding is defined in Java, there is no
+              way to call the f defined on <span class="idltype">A</span>
+              on an object that implements <span class="idltype">B</span>.
+              Since the signature of g is different in <span class="idltype">A</span>
+              and <span class="idltype">B</span>, however, both can be called
+              with, for example, <code>instanceOfB.g()</code> and
+              <code>instanceOfB.g("")</code>.
+            </p>
+            <p>
+              In both languages, the f and g from the derived interface
+              <span class="idltype">B</span> are always accessible.
+            </p>
+          </div>
           <p>
             The <dfn id="dfn-inherited-interfaces">inherited interfaces</dfn> of
             a given interface <var>A</var> is the set of all interfaces that <var>A</var>
@@ -6063,7 +6149,7 @@ results.numbers.length;       <span class="comment">// So this still evaluates t
                     <li>Set <var>desc</var>.<span class="prop">[[Writable]]</span> to <span class="esvalue">false</span> if <var>A</var> represents a
                       <a class="dfnref" href="#dfn-read-only-array">read only</a> or <a class="dfnref" href="#dfn-fixed-length">fixed length</a> array, and <span class="esvalue">true</span> otherwise.</li>
                     <li>Set <var>desc</var>.<span class="prop">[[Enumerable]]</span> to <span class="esvalue">false</span>.</li>
-                    <li>Set <var>desc</var>.<span class="prop">[[Configurable]]</span> to <span class="esvalue">true</span>.</li>
+                    <li>Set <var>desc</var>.<span class="prop">[[Configurable]]</span> to <span class="esvalue">false</span>.</li>
                     <li>Return <var>desc</var>.</li>
                   </ol>
                 </li>
@@ -6205,7 +6291,7 @@ results.numbers.length;       <span class="comment">// So this still evaluates t
               <li>Let <var>D</var> be the result of calling ToObject(<var>V</var>).</li>
               <li>If <var>D</var> is not an ECMAScript <span class="estype">Date</span> object, then throw a <span class="estype">TypeError</span>.</li>
               <li>If the time value of <var>D</var> is <span class="esvalue">NaN</span>, then return the <span class="idlvalue">undefined</span> IDL <a class="idltype" href="#idl-Date">Date</a> value.</li>
-              <li>Return the IDL <a class="idltype" href="#idl-Date">Date</a> value that represents the same millisecond as <var>D</var>.</li>
+              <li>Return the IDL <a class="idltype" href="#idl-Date">Date</a> value that represents the same time value as <var>D</var>.</li>
             </ol>
             <p>
               An IDL <a class="idltype" href="#idl-Date">Date</a> value <var>V</var> is <a class="dfnref" href="#dfn-convert-idl-to-ecmascript-value">converted</a>
@@ -12093,6 +12179,11 @@ public <var>ExceptionName</var>(Throwable cause) {
           <dt>Current editor’s draft</dt>
           <dd>
             <ul>
+              <li>
+                <p>
+                  Made the length property on platform array objects non-configurable.
+                </p>
+              </li>
               <li>
                 <p>
                   Removed <code>omittable</code>, since nobody is using it (and probably won’t,
