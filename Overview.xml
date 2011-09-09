@@ -15,7 +15,7 @@
   <head>
     <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'/>
     <title>Web IDL</title>
-    <meta name='revision' content='$Id: Overview.xml,v 1.397 2011-09-09 08:31:18 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: Overview.xml,v 1.398 2011-09-09 08:49:21 cmccorma Exp $'/>
     <link rel='stylesheet' href='WebIDL.css' type='text/css'/>
     <script src='section-links.js' type='application/ecmascript'/>
     <script src='dfn.js' type='application/ecmascript'/>
@@ -1696,8 +1696,8 @@ s.union(1, 4, 7);         <span class='comment'>// Passing three arguments corre
                 <td>Defines behavior for when an object is indexed for property deletion.</td>
               </tr>
               <tr>
-                <td><dfn id='dfn-caller'>Callers</dfn></td>
-                <td><code>caller</code></td>
+                <td><dfn id='dfn-legacy-caller'>Legacy callers</dfn></td>
+                <td><code>legacycaller</code></td>
                 <td>Defines behavior for when an object is called as if it were a function.</td>
               </tr>
               <tr>
@@ -1835,7 +1835,7 @@ dictionary.x = 1;                  <span class='comment'>// Invokes the property
               On a given <a class='dfnref' href='#dfn-interface'>interface</a>,
               there <span class='rfc2119'>MUST</span> exist at most one
               stringifier and at most one of each variety of getter, setter,
-              creator and deleter.  Multiple callers can exist on an interface
+              creator and deleter.  Multiple legacy callers can exist on an interface
               to specify overloaded calling behavior.
             </p>
             <p>
@@ -1849,26 +1849,26 @@ dictionary.x = 1;                  <span class='comment'>// Invokes the property
               special operation is invoked for that operation.
             </p>
 
-            <div id='idl-callers' class='section'>
-              <h5>Callers</h5>
+            <div id='idl-legacy-callers' class='section'>
+              <h5>Legacy callers</h5>
 
               <p>
                 When an <a class='dfnref' href='#dfn-interface'>interface</a> has one or more
-                <a class='dfnref' href='#dfn-caller'>callers</a>, it indicates that objects that implement
+                <a class='dfnref' href='#dfn-legacy-caller'>legacy callers</a>, it indicates that objects that implement
                 the interface can be called as if they were functions.  As mentioned above,
-                callers can be specified using an <a class='dfnref' href='#dfn-operation'>operation</a>
-                declared with the <code>caller</code> keyword.
+                legacy callers can be specified using an <a class='dfnref' href='#dfn-operation'>operation</a>
+                declared with the <code>legacycaller</code> keyword.
               </p>
-              <pre class='syntax'>caller <i>return-type</i> <i>identifier</i>(<i>arguments…</i>);
-caller <i>return-type</i> (<i>arguments…</i>);<!--
-omittable caller <i>return-type</i> <i>identifier</i>(<i>arguments…</i>);--></pre>
+              <pre class='syntax'>legacycaller <i>return-type</i> <i>identifier</i>(<i>arguments…</i>);
+legacycaller <i>return-type</i> (<i>arguments…</i>);<!--
+omittable legacycaller <i>return-type</i> <i>identifier</i>(<i>arguments…</i>);--></pre>
               <p>
-                If multiple callers are specified on an interface, overload resolution
-                is used to determine which caller is invoked when the object is called
+                If multiple legacy callers are specified on an interface, overload resolution
+                is used to determine which legacy caller is invoked when the object is called
                 as if it were a function.
               </p>
               <p>
-                Specifications <span class='rfc2119'>SHOULD NOT</span> use callers unless
+                Specifications <span class='rfc2119'>SHOULD NOT</span> use legacy callers unless
                 required to specify the behavior of legacy APIs.
               </p>
 
@@ -1876,11 +1876,11 @@ omittable caller <i>return-type</i> <i>identifier</i>(<i>arguments…</i>);--></
                 <p>
                   The following <a class='dfnref' href='#dfn-idl-fragment'>IDL fragment</a>
                   defines an <a class='dfnref' href='#dfn-interface'>interface</a>
-                  with a <a class='dfnref' href='#dfn-caller'>caller</a>.
+                  with a <a class='dfnref' href='#dfn-legacy-caller'>legacy caller</a>.
                 </p>
                 <x:codeblock language='idl'>interface NumberQuadrupler {
   <span class='comment'>// This operation simply returns four times the given number x.</span>
-  caller float compute(float x);
+  legacycaller float compute(float x);
 };</x:codeblock>
                 <p>
                   An ECMAScript implementation supporting this interface would
@@ -2345,11 +2345,11 @@ Point triangulationPoint = CircleUtils.triangulate(circles[0], circles[1], circl
               number and types of the arguments passed to the operation
               determine which of the overloaded operations is actually
               invoked.  If an interface has multiple
-              <a class='dfnref' href='#dfn-caller'>callers</a> defined on it,
-              then those callers are also said to be overloaded.
+              <a class='dfnref' href='#dfn-legacy-caller'>legacy callers</a> defined on it,
+              then those legacy callers are also said to be overloaded.
               In the ECMAScript language binding, <a href='#Constructor'>constructors</a>
               can be overloaded too.  There are some restrictions on the arguments
-              that overloaded operations, callers and constructors can be
+              that overloaded operations, legacy callers and constructors can be
               specified to take, and in order to describe these restrictions,
               the notion of an <em>effective overload set</em> is used.
             </p>
@@ -2368,20 +2368,20 @@ Point triangulationPoint = CircleUtils.triangulate(circles[0], circles[1], circl
               set is used to determine whether there are ambiguities in the 
               overloaded operations or constructors specified on the interface.
               The effective overload set is stated to be
-              “for regular operations”, “for static operations”, “for constructors” or “for callers”,
+              “for regular operations”, “for static operations”, “for constructors” or “for legacy callers”,
               to distinguish between these four uses.  Effective overload sets for
-              callers do not use an identifier; only an argument count,
+              legacy callers do not use an identifier; only an argument count,
               interface and target language binding are needed.
             </p>
             <p>
               The elements of an effective overload set are triples of the form
               &lt;<var>f</var>, <var>types</var>, <var>any</var>>.  If the effective overload
-              set is for regular operations, static operations or callers, then <var>f</var> is an operation,
+              set is for regular operations, static operations or legacy callers, then <var>f</var> is an operation,
               and if it is for constructors, then <var>f</var> is an
               extended attribute.  In either case, <var>types</var> is a list
               of IDL types and <var>any</var> is a list of boolean values.
               Each triple represents an allowable invocation of the operation,
-              constructor or caller with an argument value list of the given types.
+              constructor or legacy caller with an argument value list of the given types.
               <var>any</var> specifies whether a particular argument has been
               annotated with the <a class='xattr' href='#AllowAny'>[AllowAny]</a>
               <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>.
@@ -2424,9 +2424,9 @@ Point triangulationPoint = CircleUtils.triangulate(circles[0], circles[1], circl
                     <a class='sym' href='#Constructor'>[Constructor]</a> extended
                     attributes on <var>I</var>.
                   </dd>
-                  <dt>For callers</dt>
+                  <dt>For legacy callers</dt>
                   <dd>
-                    The elements of <var>F</var> are the <a class='dfnref' href='#dfn-caller'>callers</a>
+                    The elements of <var>F</var> are the <a class='dfnref' href='#dfn-legacy-caller'>callers</a>
                     defined on interface <var>I</var>.
                   </dd>
                 </dl>
@@ -2446,7 +2446,7 @@ Point triangulationPoint = CircleUtils.triangulate(circles[0], circles[1], circl
                   <li>
                     If the target language binding supports object calling,
                     then remove from <var>F</var> any operation that is declared
-                    to be an omittable <a class='dfnref' href='#dfn-caller'>caller</a>.
+                    to be an omittable <a class='dfnref' href='#dfn-legacy-caller'>caller</a>.
                   </li>
                   <li>
                     If the target language binding supports object stringification,
@@ -9299,14 +9299,14 @@ interface
             <p>
               The internal <span class='prop'>[[Call]]</span> method of every
               <a class='dfnref' href='#dfn-platform-object'>platform object</a> <var>O</var> that implements an <a class='dfnref' href='#dfn-interface'>interface</a>
-              <var>I</var> with at least one <a class='dfnref' href='#dfn-caller'>caller</a>
+              <var>I</var> with at least one <a class='dfnref' href='#dfn-legacy-caller'>legacy caller</a>
               <span class='rfc2119'>MUST</span> behave as follows, assuming
               <var>arg</var><sub>0..<var>n</var>−1</sub> is the list of argument
               values passed to <span class='prop'>[[Call]]</span>:
             </p>
             <ol class='algorithm'>
               <li>Initialize <var>S</var> to the <a class='dfnref' href='#dfn-effective-overload-set'>effective overload</a>
-                for callers on <var>I</var> and with argument count <var>n</var> (for the
+                for legacy callers on <var>I</var> and with argument count <var>n</var> (for the
                 ECMAScript language binding).</li>
               <li>Set <var>S</var> to be the result of passing <var>S</var> and
                 <var>arg</var><sub>0..<var>n</var>−1</sub> to the
@@ -9322,7 +9322,7 @@ interface
                 where <var>idlarg</var><sub><var>i</var></sub> is the result of
                 <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a>
                 <var>arg</var><sub><var>i</var></sub> to an IDL value.</li>
-              <li>Perform the actions listed in the description of caller <var>op</var> with
+              <li>Perform the actions listed in the description of legacy caller <var>op</var> with
                 <var>idlarg</var><sub>0..<var>m</var>−1</sub> as the argument values.  These conversions
                 <span class='rfc2119'>MUST</span> be done in order from
                 <var>arg</var><sub><var>0</var></sub> to <var>arg</var><sub><var>m</var>−1</sub>.</li>
@@ -11343,7 +11343,7 @@ module foo {
               <li><a href='#dfn-named-property-setter'>named property setter</a></li>
               <li><a href='#dfn-named-property-creator'>named property creator</a></li>
               <li><a href='#dfn-named-property-deleter'>named property deleter</a></li>
-              <li><a href='#dfn-caller'>caller</a></li>
+              <li><a href='#dfn-legacy-caller'>legacy caller</a></li>
             </ul>
             <p>
               there <span class='rfc2119'>MUST</span> exist a method on the Java interface whose
@@ -12105,7 +12105,7 @@ public <var>ExceptionName</var>(Throwable cause) {
           <prod nt='Operation'>Qualifiers OperationRest</prod>
           <prod nt='Qualifiers'>"static" | <!--"omittable" Specials | -->Specials</prod>
           <prod nt='Specials'>Special Specials | ε</prod>
-          <prod nt='Special'>"getter" | "setter" | "creator" | "deleter" | "caller"</prod>
+          <prod nt='Special'>"getter" | "setter" | "creator" | "deleter" | "legacycaller"</prod>
           <!--
           <prod nt='OperationRest'>ReturnType OptionalIdentifier "(" ArgumentList ")" Raises ";"</prod>
           -->
@@ -12142,7 +12142,7 @@ public <var>ExceptionName</var>(Throwable cause) {
               integer | float | identifier | string <!--| whitespace--> | other
             | "..." | ":" | "::" | ";" | "&lt;" | "=" | ">" | "?"
             | "Date" | "DOMString" | "any" | "attribute" | "boolean" | "byte"
-            | "caller" | "const" | "creator" | "deleter" | "double"
+            | "legacycaller" | "const" | "creator" | "deleter" | "double"
             | "exception" | "false" | "float" | "getter" | "implements"
             | "inherits" | "interface" | "long" | "module" | "null" | "object" | "octet"
             <!--| "omittable" -->| "optional" | "sequence"
@@ -12332,6 +12332,11 @@ public <var>ExceptionName</var>(Throwable cause) {
           <dt>Current editor’s draft</dt>
           <dd>
             <ul>
+              <li>
+                <p>
+                  Renamed “callers” as “legacy callers” to discourage their use.
+                </p>
+              </li>
               <li>
                 <p>
                   Added <span class='xattr'>[EnforceRange]</span> which will cause an
