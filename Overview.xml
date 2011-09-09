@@ -15,7 +15,7 @@
   <head>
     <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'/>
     <title>Web IDL</title>
-    <meta name='revision' content='$Id: Overview.xml,v 1.396 2011-09-09 04:20:38 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: Overview.xml,v 1.397 2011-09-09 08:31:18 cmccorma Exp $'/>
     <link rel='stylesheet' href='WebIDL.css' type='text/css'/>
     <script src='section-links.js' type='application/ecmascript'/>
     <script src='dfn.js' type='application/ecmascript'/>
@@ -1361,6 +1361,7 @@ attribute <i>type</i> <i>identifier</i> inherits getter setraises(<i>scoped-name
               The following <a class='dfnref' href='#dfn-extended-attribute'>extended attributes</a>
               are applicable to attributes:
               <a class='xattr' href='#Clamp'>[Clamp]</a>,
+              <a class='xattr' href='#EnforceRange'>[EnforceRange]</a>,
               <a class='xattr' href='#PutForwards'>[PutForwards]</a>,
               <a class='xattr' href='#Replaceable'>[Replaceable]</a>,
               <a class='xattr' href='#TreatNonCallableAsNull'>[TreatNonCallableAsNull]</a>,
@@ -1640,6 +1641,7 @@ s.union(1, 4, 7);         <span class='comment'>// Passing three arguments corre
               The following extended attributes are applicable to operation arguments:
               <a class='xattr' href='#AllowAny'>[AllowAny]</a>,
               <a class='xattr' href='#Clamp'>[Clamp]</a>,
+              <a class='xattr' href='#EnforceRange'>[EnforceRange]</a>,
               <a class='xattr' href='#TreatNonCallableAsNull'>[TreatNonCallableAsNull]</a>,
               <a class='xattr' href='#TreatNullAs'>[TreatNullAs]</a>,
               <a class='xattr' href='#TreatUndefinedAs'>[TreatUndefinedAs]</a>.
@@ -3047,7 +3049,8 @@ something.f(dict);</x:codeblock>
           </p>
           <p>
             The following extended attributes are applicable to dictionary members:
-            <a class='xattr' href='#Clamp'>[Clamp]</a>.
+            <a class='xattr' href='#Clamp'>[Clamp]</a>,
+            <a class='xattr' href='#EnforceRange'>[EnforceRange]</a>.
           </p>
           <?productions grammar Dictionary DictionaryMembers DictionaryMember DefaultValue?>
           <div class='example'>
@@ -4891,13 +4894,32 @@ iframe.appendChild instanceof w.Function;  <span class='comment'>// Evaluates to
             </p>
             <ol class='algorithm'>
               <li>Initialize <var>x</var> to ToNumber(<var>V</var>).</li>
+              <li>If the conversion to an IDL value is being performed due to any of the following:
+                <ul>
+                  <li><var>V</var> is being assigned to an <a class='dfnref' href='#dfn-attribute'>attribute</a> annotated with the <a class='xattr' href='#EnforceRange'>[EnforceRange]</a> <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>,</li>
+                  <li><var>V</var> is being passed as an <a class='dfnref' href='#dfn-operation'>operation</a> argument annotated with the <a class='xattr' href='#EnforceRange'>[EnforceRange]</a> extended attribute, or</li>
+                  <li><var>V</var> is being used as the value of <a class='dfnref' href='#dfn-dictionary-member'>dictionary member</a> annotated with the <a class='xattr' href='#EnforceRange'>[EnforceRange]</a> extended attribute,</li>
+                </ul>
+                then:
+                <ol>
+                  <li>If <var>x</var> is <span class='esvalue'>NaN</span>, +∞, or −∞, then throw a <span class='estype'>TypeError</span>.</li>
+                  <li>Set <var>x</var> to sign(<var>x</var>) * floor(abs(<var>x</var>)).</li>
+                  <li>If <var>x</var> &lt; −2<sup>7</sup> or <var>x</var> &gt; 2<sup>7</sup> − 1, then throw a <span class='estype'>TypeError</span>.</li>
+                  <li>Return the IDL <span class='idltype'>byte</span> value that represents the same numeric value as <var>x</var>.</li>
+                </ol>
+              </li>
               <li>If <var>x</var> is not <span class='esvalue'>NaN</span> and the conversion to an IDL value is being performed due to any of the following:
                 <ul>
                   <li><var>V</var> is being assigned to an <a class='dfnref' href='#dfn-attribute'>attribute</a> annotated with the <a class='xattr' href='#Clamp'>[Clamp]</a> <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>,</li>
                   <li><var>V</var> is being passed as an <a class='dfnref' href='#dfn-operation'>operation</a> argument annotated with the <a class='xattr' href='#Clamp'>[Clamp]</a> extended attribute, or</li>
                   <li><var>V</var> is being used as the value of <a class='dfnref' href='#dfn-dictionary-member'>dictionary member</a> annotated with the <a class='xattr' href='#Clamp'>[Clamp]</a> extended attribute,</li>
                 </ul>
-                then set <var>x</var> to min(max(<var>x</var>, −2<sup>7</sup>), 2<sup>7</sup> − 1).
+                then:
+                <ol>
+                  <li>Round <var>x</var> to the nearest integer, choosing the even integer if it lies halfway between two.</li>
+                  <li>Set <var>x</var> to  min(max(<var>x</var>, −2<sup>7</sup>), 2<sup>7</sup> − 1).</li>
+                  <li>Return the IDL <span class='idltype'>byte</span> value that represents the same numeric value as <var>x</var>.</li>
+                </ol>
               </li>
               <li>If <var>x</var> is <span class='esvalue'>NaN</span>, +0, −0, +∞, or −∞, then return the IDL <span class='idltype'>byte</span> value that represents 0.</li>
               <li>Set <var>x</var> to sign(<var>x</var>) * floor(abs(<var>x</var>)).</li>
@@ -4925,13 +4947,32 @@ iframe.appendChild instanceof w.Function;  <span class='comment'>// Evaluates to
             </p>
             <ol class='algorithm'>
               <li>Initialize <var>x</var> to ToNumber(<var>V</var>).</li>
+              <li>If the conversion to an IDL value is being performed due to any of the following:
+                <ul>
+                  <li><var>V</var> is being assigned to an <a class='dfnref' href='#dfn-attribute'>attribute</a> annotated with the <a class='xattr' href='#EnforceRange'>[EnforceRange]</a> <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>,</li>
+                  <li><var>V</var> is being passed as an <a class='dfnref' href='#dfn-operation'>operation</a> argument annotated with the <a class='xattr' href='#EnforceRange'>[EnforceRange]</a> extended attribute, or</li>
+                  <li><var>V</var> is being used as the value of <a class='dfnref' href='#dfn-dictionary-member'>dictionary member</a> annotated with the <a class='xattr' href='#EnforceRange'>[EnforceRange]</a> extended attribute,</li>
+                </ul>
+                then:
+                <ol>
+                  <li>If <var>x</var> is <span class='esvalue'>NaN</span>, +∞, or −∞, then throw a <span class='estype'>TypeError</span>.</li>
+                  <li>Set <var>x</var> to sign(<var>x</var>) * floor(abs(<var>x</var>)).</li>
+                  <li>If <var>x</var> &lt; 0 or <var>x</var> &gt; 2<sup>8</sup> − 1, then throw a <span class='estype'>TypeError</span>.</li>
+                  <li>Return the IDL <span class='idltype'>octet</span> value that represents the same numeric value as <var>x</var>.</li>
+                </ol>
+              </li>
               <li>If <var>x</var> is not <span class='esvalue'>NaN</span> and the conversion to an IDL value is being performed due to any of the following:
                 <ul>
                   <li><var>V</var> is being assigned to an <a class='dfnref' href='#dfn-attribute'>attribute</a> annotated with the <a class='xattr' href='#Clamp'>[Clamp]</a> <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>,</li>
                   <li><var>V</var> is being passed as an <a class='dfnref' href='#dfn-operation'>operation</a> argument annotated with the <a class='xattr' href='#Clamp'>[Clamp]</a> extended attribute, or</li>
                   <li><var>V</var> is being used as the value of <a class='dfnref' href='#dfn-dictionary-member'>dictionary member</a> annotated with the <a class='xattr' href='#Clamp'>[Clamp]</a> extended attribute,</li>
                 </ul>
-                then set <var>x</var> to min(max(<var>x</var>, 0), 2<sup>8</sup> − 1).
+                then:
+                <ol>
+                  <li>Round <var>x</var> to the nearest integer, choosing the even integer if it lies halfway between two.</li>
+                  <li>Set <var>x</var> to min(max(<var>x</var>, 0), 2<sup>8</sup> − 1).</li>
+                  <li>Return the IDL <span class='idltype'>octet</span> value that represents the same numeric value as <var>x</var>.</li>
+                </ol>
               </li>
               <li>If <var>x</var> is <span class='esvalue'>NaN</span>, +0, −0, +∞, or −∞, then return the IDL <span class='idltype'>octet</span> value that represents 0.</li>
               <li>Set <var>x</var> to sign(<var>x</var>) * floor(abs(<var>x</var>)).</li>
@@ -4959,13 +5000,32 @@ iframe.appendChild instanceof w.Function;  <span class='comment'>// Evaluates to
             </p>
             <ol class='algorithm'>
               <li>Initialize <var>x</var> to ToNumber(<var>V</var>).</li>
+              <li>If the conversion to an IDL value is being performed due to any of the following:
+                <ul>
+                  <li><var>V</var> is being assigned to an <a class='dfnref' href='#dfn-attribute'>attribute</a> annotated with the <a class='xattr' href='#EnforceRange'>[EnforceRange]</a> <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>,</li>
+                  <li><var>V</var> is being passed as an <a class='dfnref' href='#dfn-operation'>operation</a> argument annotated with the <a class='xattr' href='#EnforceRange'>[EnforceRange]</a> extended attribute, or</li>
+                  <li><var>V</var> is being used as the value of <a class='dfnref' href='#dfn-dictionary-member'>dictionary member</a> annotated with the <a class='xattr' href='#EnforceRange'>[EnforceRange]</a> extended attribute,</li>
+                </ul>
+                then:
+                <ol>
+                  <li>If <var>x</var> is <span class='esvalue'>NaN</span>, +∞, or −∞, then throw a <span class='estype'>TypeError</span>.</li>
+                  <li>Set <var>x</var> to sign(<var>x</var>) * floor(abs(<var>x</var>)).</li>
+                  <li>If <var>x</var> &lt; −2<sup>15</sup> or <var>x</var> &gt; 2<sup>15</sup> − 1, then throw a <span class='estype'>TypeError</span>.</li>
+                  <li>Return the IDL <span class='idltype'>short</span> value that represents the same numeric value as <var>x</var>.</li>
+                </ol>
+              </li>
               <li>If <var>x</var> is not <span class='esvalue'>NaN</span> and the conversion to an IDL value is being performed due to any of the following:
                 <ul>
                   <li><var>V</var> is being assigned to an <a class='dfnref' href='#dfn-attribute'>attribute</a> annotated with the <a class='xattr' href='#Clamp'>[Clamp]</a> <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>,</li>
                   <li><var>V</var> is being passed as an <a class='dfnref' href='#dfn-operation'>operation</a> argument annotated with the <a class='xattr' href='#Clamp'>[Clamp]</a> extended attribute, or</li>
                   <li><var>V</var> is being used as the value of <a class='dfnref' href='#dfn-dictionary-member'>dictionary member</a> annotated with the <a class='xattr' href='#Clamp'>[Clamp]</a> extended attribute,</li>
                 </ul>
-                then set <var>x</var> to min(max(<var>x</var>, −2<sup>15</sup>), 2<sup>15</sup> − 1).
+                then:
+                <ol>
+                  <li>Round <var>x</var> to the nearest integer, choosing the even integer if it lies halfway between two.</li>
+                  <li>Set <var>x</var> to min(max(<var>x</var>, −2<sup>15</sup>), 2<sup>15</sup> − 1).</li>
+                  <li>Return the IDL <span class='idltype'>short</span> value that represents the same numeric value as <var>x</var>.</li>
+                </ol>
               </li>
               <li>If <var>x</var> is <span class='esvalue'>NaN</span>, +0, −0, +∞, or −∞, then return the IDL <span class='idltype'>short</span> value that represents 0.</li>
               <li>Set <var>x</var> to sign(<var>x</var>) * floor(abs(<var>x</var>)).</li>
@@ -4994,13 +5054,32 @@ iframe.appendChild instanceof w.Function;  <span class='comment'>// Evaluates to
             </p>
             <ol class='algorithm'>
               <li>Initialize <var>x</var> to ToNumber(<var>V</var>).</li>
+              <li>If the conversion to an IDL value is being performed due to any of the following:
+                <ul>
+                  <li><var>V</var> is being assigned to an <a class='dfnref' href='#dfn-attribute'>attribute</a> annotated with the <a class='xattr' href='#EnforceRange'>[EnforceRange]</a> <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>,</li>
+                  <li><var>V</var> is being passed as an <a class='dfnref' href='#dfn-operation'>operation</a> argument annotated with the <a class='xattr' href='#EnforceRange'>[EnforceRange]</a> extended attribute, or</li>
+                  <li><var>V</var> is being used as the value of <a class='dfnref' href='#dfn-dictionary-member'>dictionary member</a> annotated with the <a class='xattr' href='#EnforceRange'>[EnforceRange]</a> extended attribute,</li>
+                </ul>
+                then:
+                <ol>
+                  <li>If <var>x</var> is <span class='esvalue'>NaN</span>, +∞, or −∞, then throw a <span class='estype'>TypeError</span>.</li>
+                  <li>Set <var>x</var> to sign(<var>x</var>) * floor(abs(<var>x</var>)).</li>
+                  <li>If <var>x</var> &lt; 0 or <var>x</var> &gt; 2<sup>16</sup> − 1, then throw a <span class='estype'>TypeError</span>.</li>
+                  <li>Return the IDL <span class='idltype'>unsigned short</span> value that represents the same numeric value as <var>x</var>.</li>
+                </ol>
+              </li>
               <li>If <var>x</var> is not <span class='esvalue'>NaN</span> and the conversion to an IDL value is being performed due to any of the following:
                 <ul>
                   <li><var>V</var> is being assigned to an <a class='dfnref' href='#dfn-attribute'>attribute</a> annotated with the <a class='xattr' href='#Clamp'>[Clamp]</a> <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>,</li>
                   <li><var>V</var> is being passed as an <a class='dfnref' href='#dfn-operation'>operation</a> argument annotated with the <a class='xattr' href='#Clamp'>[Clamp]</a> extended attribute, or</li>
                   <li><var>V</var> is being used as the value of <a class='dfnref' href='#dfn-dictionary-member'>dictionary member</a> annotated with the <a class='xattr' href='#Clamp'>[Clamp]</a> extended attribute,</li>
                 </ul>
-                then set <var>x</var> to min(max(<var>x</var>, 0), 2<sup>16</sup> − 1).
+                then:
+                <ol>
+                  <li>Round <var>x</var> to the nearest integer, choosing the even integer if it lies halfway between two.</li>
+                  <li>Set <var>x</var> to min(max(<var>x</var>, 0), 2<sup>16</sup> − 1).</li>
+                  <li>Return the IDL <span class='idltype'>unsigned short</span> value that represents the same numeric value as <var>x</var>.</li>
+                </ol>
               </li>
               <li>Set <var>x</var> to ToUint16(<var>x</var>).</li>
               <li>Return the IDL <span class='idltype'>unsigned short</span> value that represents the same numeric value as <var>x</var>.</li>
@@ -5026,13 +5105,32 @@ iframe.appendChild instanceof w.Function;  <span class='comment'>// Evaluates to
             </p>
             <ol class='algorithm'>
               <li>Initialize <var>x</var> to ToNumber(<var>V</var>).</li>
+              <li>If the conversion to an IDL value is being performed due to any of the following:
+                <ul>
+                  <li><var>V</var> is being assigned to an <a class='dfnref' href='#dfn-attribute'>attribute</a> annotated with the <a class='xattr' href='#EnforceRange'>[EnforceRange]</a> <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>,</li>
+                  <li><var>V</var> is being passed as an <a class='dfnref' href='#dfn-operation'>operation</a> argument annotated with the <a class='xattr' href='#EnforceRange'>[EnforceRange]</a> extended attribute, or</li>
+                  <li><var>V</var> is being used as the value of <a class='dfnref' href='#dfn-dictionary-member'>dictionary member</a> annotated with the <a class='xattr' href='#EnforceRange'>[EnforceRange]</a> extended attribute,</li>
+                </ul>
+                then:
+                <ol>
+                  <li>If <var>x</var> is <span class='esvalue'>NaN</span>, +∞, or −∞, then throw a <span class='estype'>TypeError</span>.</li>
+                  <li>Set <var>x</var> to sign(<var>x</var>) * floor(abs(<var>x</var>)).</li>
+                  <li>If <var>x</var> &lt; −2<sup>31</sup> or <var>x</var> &gt; 2<sup>31</sup> − 1, then throw a <span class='estype'>TypeError</span>.</li>
+                  <li>Return the IDL <span class='idltype'>long</span> value that represents the same numeric value as <var>x</var>.</li>
+                </ol>
+              </li>
               <li>If <var>x</var> is not <span class='esvalue'>NaN</span> and the conversion to an IDL value is being performed due to any of the following:
                 <ul>
                   <li><var>V</var> is being assigned to an <a class='dfnref' href='#dfn-attribute'>attribute</a> annotated with the <a class='xattr' href='#Clamp'>[Clamp]</a> <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>,</li>
                   <li><var>V</var> is being passed as an <a class='dfnref' href='#dfn-operation'>operation</a> argument annotated with the <a class='xattr' href='#Clamp'>[Clamp]</a> extended attribute, or</li>
                   <li><var>V</var> is being used as the value of <a class='dfnref' href='#dfn-dictionary-member'>dictionary member</a> annotated with the <a class='xattr' href='#Clamp'>[Clamp]</a> extended attribute,</li>
                 </ul>
-                then set <var>x</var> to min(max(<var>x</var>, −2<sup>31</sup>), 2<sup>31</sup> − 1).
+                then:
+                <ol>
+                  <li>Round <var>x</var> to the nearest integer, choosing the even integer if it lies halfway between two.</li>
+                  <li>Set <var>x</var> to min(max(<var>x</var>, −2<sup>31</sup>), 2<sup>31</sup> − 1).</li>
+                  <li>Return the IDL <span class='idltype'>long</span> value that represents the same numeric value as <var>x</var>.</li>
+                </ol>
               </li>
               <li>Set <var>x</var> to ToInt32(<var>x</var>).</li>
               <li>Return the IDL <span class='idltype'>long</span> value that represents the same numeric value as <var>x</var>.</li>
@@ -5058,13 +5156,32 @@ iframe.appendChild instanceof w.Function;  <span class='comment'>// Evaluates to
             </p>
             <ol class='algorithm'>
               <li>Initialize <var>x</var> to ToNumber(<var>V</var>).</li>
+              <li>If the conversion to an IDL value is being performed due to any of the following:
+                <ul>
+                  <li><var>V</var> is being assigned to an <a class='dfnref' href='#dfn-attribute'>attribute</a> annotated with the <a class='xattr' href='#EnforceRange'>[EnforceRange]</a> <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>,</li>
+                  <li><var>V</var> is being passed as an <a class='dfnref' href='#dfn-operation'>operation</a> argument annotated with the <a class='xattr' href='#EnforceRange'>[EnforceRange]</a> extended attribute, or</li>
+                  <li><var>V</var> is being used as the value of <a class='dfnref' href='#dfn-dictionary-member'>dictionary member</a> annotated with the <a class='xattr' href='#EnforceRange'>[EnforceRange]</a> extended attribute,</li>
+                </ul>
+                then:
+                <ol>
+                  <li>If <var>x</var> is <span class='esvalue'>NaN</span>, +∞, or −∞, then throw a <span class='estype'>TypeError</span>.</li>
+                  <li>Set <var>x</var> to sign(<var>x</var>) * floor(abs(<var>x</var>)).</li>
+                  <li>If <var>x</var> &lt; 0 or <var>x</var> &gt; 2<sup>32</sup> − 1, then throw a <span class='estype'>TypeError</span>.</li>
+                  <li>Return the IDL <span class='idltype'>unsigned long</span> value that represents the same numeric value as <var>x</var>.</li>
+                </ol>
+              </li>
               <li>If <var>x</var> is not <span class='esvalue'>NaN</span> and the conversion to an IDL value is being performed due to any of the following:
                 <ul>
                   <li><var>V</var> is being assigned to an <a class='dfnref' href='#dfn-attribute'>attribute</a> annotated with the <a class='xattr' href='#Clamp'>[Clamp]</a> <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>,</li>
                   <li><var>V</var> is being passed as an <a class='dfnref' href='#dfn-operation'>operation</a> argument annotated with the <a class='xattr' href='#Clamp'>[Clamp]</a> extended attribute, or</li>
                   <li><var>V</var> is being used as the value of <a class='dfnref' href='#dfn-dictionary-member'>dictionary member</a> annotated with the <a class='xattr' href='#Clamp'>[Clamp]</a> extended attribute,</li>
                 </ul>
-                then set <var>x</var> to min(max(<var>x</var>, 0), 2<sup>32</sup> − 1).
+                then:
+                <ol>
+                  <li>Round <var>x</var> to the nearest integer, choosing the even integer if it lies halfway between two.</li>
+                  <li>Set <var>x</var> to min(max(<var>x</var>, 0), 2<sup>32</sup> − 1).</li>
+                  <li>Return the IDL <span class='idltype'>unsigned long</span> value that represents the same numeric value as <var>x</var>.</li>
+                </ol>
               </li>
               <li>Set <var>x</var> to ToUint32(<var>x</var>).</li>
               <li>Return the IDL <span class='idltype'>unsigned long</span> value that represents the same numeric value as <var>x</var>.</li>
@@ -5090,13 +5207,32 @@ iframe.appendChild instanceof w.Function;  <span class='comment'>// Evaluates to
             </p>
             <ol class='algorithm'>
               <li>Initialize <var>x</var> to ToNumber(<var>V</var>).</li>
+              <li>If the conversion to an IDL value is being performed due to any of the following:
+                <ul>
+                  <li><var>V</var> is being assigned to an <a class='dfnref' href='#dfn-attribute'>attribute</a> annotated with the <a class='xattr' href='#EnforceRange'>[EnforceRange]</a> <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>,</li>
+                  <li><var>V</var> is being passed as an <a class='dfnref' href='#dfn-operation'>operation</a> argument annotated with the <a class='xattr' href='#EnforceRange'>[EnforceRange]</a> extended attribute, or</li>
+                  <li><var>V</var> is being used as the value of <a class='dfnref' href='#dfn-dictionary-member'>dictionary member</a> annotated with the <a class='xattr' href='#EnforceRange'>[EnforceRange]</a> extended attribute,</li>
+                </ul>
+                then:
+                <ol>
+                  <li>If <var>x</var> is <span class='esvalue'>NaN</span>, +∞, or −∞, then throw a <span class='estype'>TypeError</span>.</li>
+                  <li>Set <var>x</var> to sign(<var>x</var>) * floor(abs(<var>x</var>)).</li>
+                  <li>If <var>x</var> &lt; −2<sup>63</sup> or <var>x</var> &gt; 2<sup>63</sup> − 1, then throw a <span class='estype'>TypeError</span>.</li>
+                  <li>Return the IDL <span class='idltype'>long long</span> value that represents the same numeric value as <var>x</var>.</li>
+                </ol>
+              </li>
               <li>If <var>x</var> is not <span class='esvalue'>NaN</span> and the conversion to an IDL value is being performed due to any of the following:
                 <ul>
                   <li><var>V</var> is being assigned to an <a class='dfnref' href='#dfn-attribute'>attribute</a> annotated with the <a class='xattr' href='#Clamp'>[Clamp]</a> <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>,</li>
                   <li><var>V</var> is being passed as an <a class='dfnref' href='#dfn-operation'>operation</a> argument annotated with the <a class='xattr' href='#Clamp'>[Clamp]</a> extended attribute, or</li>
                   <li><var>V</var> is being used as the value of <a class='dfnref' href='#dfn-dictionary-member'>dictionary member</a> annotated with the <a class='xattr' href='#Clamp'>[Clamp]</a> extended attribute,</li>
                 </ul>
-                then set <var>x</var> to min(max(<var>x</var>, −2<sup>63</sup>), 2<sup>63</sup> − 1).
+                then:
+                <ol>
+                  <li>Round <var>x</var> to the nearest integer, choosing the even integer if it lies halfway between two.</li>
+                  <li>Set <var>x</var> to min(max(<var>x</var>, −2<sup>63</sup>), 2<sup>63</sup> − 1).</li>
+                  <li>Return the IDL <span class='idltype'>long long</span> value that represents the same numeric value as <var>x</var>.</li>
+                </ol>
               </li>
               <li>If <var>x</var> is <span class='esvalue'>NaN</span>, +0, −0, +∞, or −∞, then return the IDL <span class='idltype'>long long</span> value that represents 0.</li>
               <li>Set <var>x</var> to sign(<var>x</var>) * floor(abs(<var>x</var>)).</li>
@@ -5129,13 +5265,32 @@ iframe.appendChild instanceof w.Function;  <span class='comment'>// Evaluates to
             </p>
             <ol class='algorithm'>
               <li>Initialize <var>x</var> to ToNumber(<var>V</var>).</li>
+              <li>If the conversion to an IDL value is being performed due to any of the following:
+                <ul>
+                  <li><var>V</var> is being assigned to an <a class='dfnref' href='#dfn-attribute'>attribute</a> annotated with the <a class='xattr' href='#EnforceRange'>[EnforceRange]</a> <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>,</li>
+                  <li><var>V</var> is being passed as an <a class='dfnref' href='#dfn-operation'>operation</a> argument annotated with the <a class='xattr' href='#EnforceRange'>[EnforceRange]</a> extended attribute, or</li>
+                  <li><var>V</var> is being used as the value of <a class='dfnref' href='#dfn-dictionary-member'>dictionary member</a> annotated with the <a class='xattr' href='#EnforceRange'>[EnforceRange]</a> extended attribute,</li>
+                </ul>
+                then:
+                <ol>
+                  <li>If <var>x</var> is <span class='esvalue'>NaN</span>, +∞, or −∞, then throw a <span class='estype'>TypeError</span>.</li>
+                  <li>Set <var>x</var> to sign(<var>x</var>) * floor(abs(<var>x</var>)).</li>
+                  <li>If <var>x</var> &lt; 0 or <var>x</var> &gt; 2<sup>64</sup> − 1, then throw a <span class='estype'>TypeError</span>.</li>
+                  <li>Return the IDL <span class='idltype'>unsigned long long</span> value that represents the same numeric value as <var>x</var>.</li>
+                </ol>
+              </li>
               <li>If <var>x</var> is not <span class='esvalue'>NaN</span> and the conversion to an IDL value is being performed due to any of the following:
                 <ul>
                   <li><var>V</var> is being assigned to an <a class='dfnref' href='#dfn-attribute'>attribute</a> annotated with the <a class='xattr' href='#Clamp'>[Clamp]</a> <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>,</li>
                   <li><var>V</var> is being passed as an <a class='dfnref' href='#dfn-operation'>operation</a> argument annotated with the <a class='xattr' href='#Clamp'>[Clamp]</a> extended attribute, or</li>
                   <li><var>V</var> is being used as the value of <a class='dfnref' href='#dfn-dictionary-member'>dictionary member</a> annotated with the <a class='xattr' href='#Clamp'>[Clamp]</a> extended attribute,</li>
                 </ul>
-                then set <var>x</var> to min(max(<var>x</var>, 0), 2<sup>64</sup> − 1).
+                then:
+                <ol>
+                  <li>Round <var>x</var> to the nearest integer, choosing the even integer if it lies halfway between two.</li>
+                  <li>Set <var>x</var> to min(max(<var>x</var>, 0), 2<sup>64</sup> − 1).</li>
+                  <li>Return the IDL <span class='idltype'>unsigned long long</span> value that represents the same numeric value as <var>x</var>.</li>
+                </ol>
               </li>
               <li>If <var>x</var> is <span class='esvalue'>NaN</span>, +0, −0, +∞, or −∞, then return the IDL <span class='idltype'>unsigned long long</span> value that represents 0.</li>
               <li>Set <var>x</var> to sign(<var>x</var>) * floor(abs(<var>x</var>)).</li>
@@ -6437,7 +6592,9 @@ t.addListener({ eventOccurred: function() { } });</x:codeblock>
               The <a class='xattr' href='#Clamp'>[Clamp]</a> extended attribute
               <span class='rfc2119'>MUST NOT</span> appear on a <a class='dfnref' href='#dfn-read-only'>read only</a>
               attribute, or an attribute, operation argument or dictionary member
-              that is not of an integer type.
+              that is not of an integer type.  It also <span class='rfc2119'>MUST NOT</span>
+              be used in conjunction with the <a class='xattr' href='#EnforceRange'>[EnforceRange]</a>
+              extended attribute.
             </p>
             <p>
               See the rules for converting ECMAScript values to the various IDL integer
@@ -6548,6 +6705,77 @@ var y = new Circle(1.25);  <span class='comment'>// This also creates a Circle o
 
 var z = new NodeList();    <span class='comment'>// This would throw a TypeError, since no</span>
                            <span class='comment'>// [Constructor] is declared.</span></x:codeblock>
+            </div>
+          </div>
+
+          <div id='EnforceRange' class='section'>
+            <h4>[EnforceRange]</h4>
+
+            <p>
+              If the <a class='xattr' href='#EnforceRange'>[EnforceRange]</a>
+              <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
+              appears on an <a class='dfnref' href='#dfn-operation'>operation</a> argument,
+              writable <a class='dfnref' href='#dfn-attribute'>attribute</a> or
+              <a class='dfnref' href='#dfn-dictionary-member'>dictionary member</a>
+              whose type is one of the <a class='dfnref' href='#dfn-integer-type'>integer types</a>,
+              it indicates that when an ECMAScript <span class='estype'>Number</span> is
+              converted to the IDL type, out of range values will cause an exception to
+              be thrown, rather than converted to being a valid value using the operators that use a modulo operation
+              (ToInt16, ToInt32, ToUint32, etc.).  The <span class='estype'>Number</span>
+              will be rounded towards zero before being checked against its range.
+            </p>
+            <p>
+              The <a class='xattr' href='#EnforceRange'>[EnforceRange]</a>
+              extended attribute <span class='rfc2119'>MUST</span>
+              <a class='dfnref' href='#dfn-xattr-no-arguments'>take no arguments</a>.
+            </p>
+            <p>
+              The <a class='xattr' href='#EnforceRange'>[EnforceRange]</a> extended attribute
+              <span class='rfc2119'>MUST NOT</span> appear on a <a class='dfnref' href='#dfn-read-only'>read only</a>
+              attribute, or an attribute, operation argument or dictionary member
+              that is not of an integer type.  It also <span class='rfc2119'>MUST NOT</span>
+              be used in conjunction with the <a class='xattr' href='#Clamp'>[Clamp]</a>
+              extended attribute.
+            </p>
+            <p>
+              See the rules for converting ECMAScript values to the various IDL integer
+              types in <a href='#es-type-mapping'>section <?sref es-type-mapping?></a>
+              for the specific requirements that the use of
+              <a class='xattr' href='#EnforceRange'>[EnforceRange]</a> entails.
+            </p>
+
+            <div class='example'>
+              <p>
+                In the following <a class='dfnref' href='#dfn-idl-fragment'>IDL fragment</a>,
+                two <a class='dfnref' href='#dfn-operation'>operations</a> are declared that
+                take three <span class='idltype'>octet</span> arguments; one uses
+                the <a class='xattr' href='#EnforceRange'>[EnforceRange]</a> <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
+                on all three arguments, while the other does not:
+              </p>
+              <x:codeblock language='idl'>interface GraphicsContext {
+  void setColor(octet red, octet green, octet blue);
+  void setColorEnforcedRange([EnforceRange] octet red, [EnforceRange] octet green, [EnforceRange] octet blue);
+};</x:codeblock>
+              <p>
+                In an ECMAScript implementation of the IDL, a call to setColorEnforcedRange with
+                <span class='estype'>Number</span> values that are out of range for an
+                <span class='idltype'>octet</span> will result in an exception being
+                thrown.
+              </p>
+              <x:codeblock language='es'>// Get an instance of GraphicsContext.
+var context = getGraphicsContext();
+
+// Calling the non-[EnforceRange] version uses ToUint8 to coerce the Numbers to octets.
+// This is equivalent to calling setColor(255, 255, 1).
+context.setColor(-1, 255, 257);
+
+// When setColorEnforcedRange is called, Numbers are rounded towards zero.
+// This is equivalent to calling setColor(0, 255, 255).
+context.setColorEnforcedRange(-0.9, 255, 255.2);
+
+// The following will cause a TypeError to be thrown, since even after
+// rounding the first and third argument values are out of range.
+context.setColorEnforcedRange(-1, 255, 256);</x:codeblock>
             </div>
           </div>
 
@@ -12104,6 +12332,19 @@ public <var>ExceptionName</var>(Throwable cause) {
           <dt>Current editor’s draft</dt>
           <dd>
             <ul>
+              <li>
+                <p>
+                  Added <span class='xattr'>[EnforceRange]</span> which will cause an
+                  exception to be thrown if an ECMAScript <span class='estype'>Number</span>
+                  is out of range (after rounding).
+                </p>
+              </li>
+              <li>
+                <p>
+                  Tweaked <span class='xattr'>[Clamp]</span> so that it rounds to nearest
+                  rather than floors.
+                </p>
+              </li>
               <li>
                 <p>
                   Recommend against using <span class='xattr'>[NoInterfaceObject]</span>
