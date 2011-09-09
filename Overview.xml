@@ -15,7 +15,7 @@
   <head>
     <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'/>
     <title>Web IDL</title>
-    <meta name='revision' content='$Id: Overview.xml,v 1.400 2011-09-09 11:25:20 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: Overview.xml,v 1.401 2011-09-09 12:25:38 cmccorma Exp $'/>
     <link rel='stylesheet' href='WebIDL.css' type='text/css'/>
     <script src='section-links.js' type='application/ecmascript'/>
     <script src='dfn.js' type='application/ecmascript'/>
@@ -3099,7 +3099,7 @@ ctx.drawRectangle(300, 200, { fillPattern: "red", position: new Point(10, 10) })
           <p>
             An <dfn id='dfn-exception'>exception</dfn> is a definition (matching
             <a class='sym' href='#prod-Exception'>Exception</a>) used
-            to declare a type of exception that can be thrown by implementations.
+            to declare a class of exceptions that can be thrown by implementations.
           </p>
           <pre class='syntax'>exception <i>identifier</i> {
   <i>exception-members…</i>
@@ -3141,8 +3141,20 @@ exception <i>Derived</i> : <em>Base</em> {
           <p>
             Exceptions have an associated <dfn id='dfn-exception-message'>message</dfn>, a
             <a class='idltype' href='#idl-DOMString'>DOMString</a>, which is
-            exposed on an exception object in a language binding-specific manner.  Exceptions
-            can be <dfn id='dfn-throw'>thrown</dfn>, optionally with a specific message,
+            exposed on an exception object in a language binding-specific manner.
+          </p>
+          <p>
+            Exceptions also have an associated <dfn id='dfn-exception-type'>type</dfn>, also
+            a <a class='idltype' href='#idl-DOMString'>DOMString</a>, which is
+            exposed on an exception object in a language binding-specific manner.
+            The <a class='dfnref' href='#dfn-exception-type'>type</a> of an exception
+            is intended to be used to distinguish between the different kinds of
+            exceptions that can be represented by the given IDL exception.
+          </p>
+          <p>
+            Exceptions can be <dfn id='dfn-throw'>thrown</dfn>, optionally with a specific
+            <a class='dfnref' href='#dfn-exception-message'>message</a> and
+            <a class='dfnref' href='#dfn-exception-type'>type</a>,
             the behavior of which again is language binding-specific.
           </p>
           <p>
@@ -3165,7 +3177,8 @@ exception <i>Derived</i> : <em>Base</em> {
 };</pre>
           <p>
             The identifier of an exception field <span class='rfc2119'>MUST NOT</span> be
-            the same as that of another <a class='dfnref' href='#dfn-exception-member'>exception member</a>.
+            the same as that of another <a class='dfnref' href='#dfn-exception-member'>exception member</a>,
+            and it <span class='rfc2119'>MUST NOT</span> be “name” or “message”.
           </p>
           <p>
             Each exception member can be preceded by a list of <a class='dfnref' href='#dfn-extended-attribute'>extended attributes</a> (matching
@@ -3180,6 +3193,33 @@ exception <i>Derived</i> : <em>Base</em> {
   [<em>extended-attributes</em>]
   <i>type</i> <i>identifier</i>;
 };</pre>
+          <div class='note'>
+            <p>
+              It is recommended that future Web platform specifications not
+              mint new IDL <a class='dfnref' href='#dfn-exception'>exceptions</a> but instead just use <span class='estype'>DOMException</span>
+              and distinguish different kinds of exceptions by their
+              <a class='dfnref' href='#dfn-exception-type'>type</a> and
+              not by an integer code.  The type will be exposed in ECMAScript using a “name” property on the
+              exception object.  (It may however be useful to mint new IDL exceptions
+              if additional <a class='dfnref' href='#dfn-exception-field'>exception fields</a>
+              are required.)
+            </p>
+            <p>
+              It is recommended that exception names be chosen that use a similar
+              naming scheme as the built-in ECMAScript error objects.  For example,
+              “HierarchyRequestError” or “NotFoundError”, if names are being given
+              to the DOM Core exceptions.  Any new IDL exceptions should also be named similarly.
+            </p>
+            <p>
+              There is no IDL syntax for declaring exception types.  In prose, an
+              exception of a particular type can be thrown by using wording like the
+              following:
+            </p>
+            <blockquote>Throw a <span class='estype'>DOMException</span> of type
+              <a class='dfnref' href='#dfn-exception-type'>type</a>
+              HierarchyRequestError with <a class='dfnref' href='#dfn-exception-message'>message</a>
+              “Cannot append that Node here”.</blockquote>
+          </div>
           <p>
             The following extended attributes are applicable to exceptions:
             <a class='xattr' href='#NoInterfaceObject'>[NoInterfaceObject]</a>.
@@ -3191,26 +3231,35 @@ exception <i>Derived</i> : <em>Base</em> {
           <?productions grammar Exception ExceptionMembers ExceptionMember ExceptionField?>
           <div class='example'>
             <p>
-              The following example demonstrates how a hierarchy of exceptions might
-              be defined for some of the kinds of <span class='idltype'>DOMException</span>s
-              that are given in <a href='http://www.w3.org/TR/2000/REC-DOM-Level-2-Core-20001113/core.html'><cite>DOM Level 2 Core</cite></a>,
-              which were historically distinguished only by an integer code.
+              The following example demonstrates how a reduced version of DOM Core’s 
+              <span class='idltype'>DOMException</span> might be defined for three
+              of the existing exception types and one new type.  Exception types
+              have historically been distinguished only by an integer code.  The new
+              exception type here is not.
             </p>
             <x:codeblock language='idl'>exception DOMException {
   const unsigned short INDEX_SIZE_ERR = 1;
   const unsigned short DOMSTRING_SIZE_ERR = 2;
   const unsigned short HIERARCHY_REQUEST_ERR = 3;
-  ...
 
   unsigned short code;
-};
-
-exception IndexSizeError : DOMException { };
-exception DOMStringSizeError : DOMException { };
-exception HierarchyRequestError : DOMException { };</x:codeblock>
+};</x:codeblock>
             <p>
-              In an ECMAScript implementation, the different types of <span class='idltype'>DOMException</span>s
-              could be distinguished in a couple of different ways:
+              Assume that the specification defines that throwing a <span class='estype'>DOMException</span>
+              of a particular type uses a corresponding value for the
+              code field, as follows:
+            </p>
+            <table>
+              <tr><th>Type</th><th>Value of code</th></tr>
+              <tr><td>IndexSizeError</td><td>INDEX_SIZE_ERR</td></tr>
+              <tr><td>DOMStringSizeError</td><td>DOMSTRING_SIZE_ERR</td></tr>
+              <tr><td>HierarchyRequestError</td><td>HIERARCHY_REQUEST_ERR</td></tr>
+              <tr><td>InsufficientBlingError</td><td>0</td></tr>
+            </table>
+            <p>
+              In an ECMAScript implementation, the types of <span class='idltype'>DOMException</span>s
+              could be distinguished by code, and the existing ones and the new ones could
+              be distinguished by type:
             </p>
             <x:codeblock language='es'>try {
   document.appendChild(document);
@@ -3224,7 +3273,12 @@ exception HierarchyRequestError : DOMException { };</x:codeblock>
   if (e.name == "HierarchyRequestError") {
     ...
   }
+  if (e.name == "InsufficientBlingError") {
+    e.code;  <span class='comment'>// This would evaluate to 0.</span>
+    ...
+  }
 }</x:codeblock>
+<!--
             <p>
               The advantage of looking at the name rather than code is that exception
               names are much less likely to conflict across specifications.  Exception
@@ -3234,11 +3288,12 @@ exception HierarchyRequestError : DOMException { };</x:codeblock>
               need to check both the code and the interface of the exception object
               to be sure of what kind of exception was thrown.
             </p>
+-->
             <p>
-              Note that using <code>e instanceof <var>ExceptionType</var></code>
+              Note that using <code>e instanceof <var>ExceptionClass</var></code>
               can return <code>false</code> if the exception object comes from a
               different document than the global scope of the running script, even if
-              the exception is an instance of the <var>ExceptionType</var> in
+              the exception is an instance of the <var>ExceptionClass</var> in
               its own document.  For this reason, authors are suggested not to use
               <code>instanceof</code> to perform exception type testing.
             </p>
@@ -9589,6 +9644,12 @@ interface
               and whose value is the <a class='dfnref' href='#dfn-identifier'>identifier</a> of
               the exception.
             </p>
+            <div class='note'>
+              <p>If an exception is thrown with a specific <a class='dfnref' href='#dfn-exception-type'>type</a>,
+                then the rules in <a href='#es-throwing-exceptions'>section <?sref es-throwing-exceptions?></a>
+                <?sdir es-throwing-exceptions?> will create a shadowing “name” property on the
+                exception object itself.</p>
+            </div>
             <p>
               If the <a class='xattr' href='#NoInterfaceObject'>[NoInterfaceObject]</a>
               extended attribute was not specified on the exception, then
@@ -9745,9 +9806,9 @@ interface
             </li>
           </ol>
           <p>
-            When an <a class='dfnref' href='#dfn-exception'>exception</a> of type
+            When an IDL <a class='dfnref' href='#dfn-exception'>exception</a> <var>E</var>
             <var>E</var> is to be <a class='dfnref' href='#dfn-throw'>thrown</a>,
-            with an optional message <var>M</var>, the following steps
+            with optional type <var>T</var> and optional message <var>M</var>, the following steps
             <span class='rfc2119'>MUST</span> be followed:
           </p>
           <ol class='algorithm'>
@@ -9767,6 +9828,13 @@ interface
             <a href="#es-exception-call">section <?sref es-exception-call?></a>
             <?sdir es-exception-call?> with <var>X</var> as the exception and
             <var>args</var> as the argument list.</li>
+
+            <li>If the optional type <var>T</var> was specified, then
+            call the <span class='prop'>[[DefineOwnProperty]]</span> internal method of <var>O</var> passing
+            “name”, Property Descriptor <span class='descriptor'>{ [[Value]]: <var>T</var>,
+            [[Writable]]: <span class='esvalue'>true</span>, [[Enumerable]]: <span class='esvalue'>true</span>,
+            [[Configurable]]: <span class='esvalue'>true</span> }</span>, and <span class='esvalue'>false</span>
+            as arguments.</li>
 
             <li>Throw <var>O</var>.</li>
           </ol>
@@ -11732,7 +11800,7 @@ class DerivedImpl2 extends DerivedImpl1 { }</x:codeblock>
             be declared to extend <span class='javatype'>java.lang.RuntimeException</span>.
           </p>
           <p>
-            The class <span class='rfc2119'>MUST</span> also have constructors with definitions as follows,
+            The class <span class='rfc2119'>MUST</span> also have constructors and methods with definitions as follows,
             where <var>ExceptionName</var> is the name of the class:
           </p>
           <x:codeblock language='java'>public <var>ExceptionName</var>() {
@@ -12321,6 +12389,12 @@ public <var>ExceptionName</var>(Throwable cause) {
           <dt>Current editor’s draft</dt>
           <dd>
             <ul>
+              <li>
+                <p>
+                  Changed exceptions to have an intrinsic type, and added recommendations
+                  to specification authors on how to name exception types.
+                </p>
+              </li>
               <li>
                 <p>
                   Changed <code>inherits getter</code> to <code>inherit</code>.
