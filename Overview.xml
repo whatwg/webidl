@@ -15,7 +15,7 @@
   <head>
     <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'/>
     <title>Web IDL</title>
-    <meta name='revision' content='$Id: Overview.xml,v 1.398 2011-09-09 08:49:21 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: Overview.xml,v 1.399 2011-09-09 11:11:22 cmccorma Exp $'/>
     <link rel='stylesheet' href='WebIDL.css' type='text/css'/>
     <script src='section-links.js' type='application/ecmascript'/>
     <script src='dfn.js' type='application/ecmascript'/>
@@ -264,7 +264,8 @@ window.onload = function() { window.alert("loaded"); };</x:codeblock></li>
           This section describes a language, <em>Web IDL</em>, which can be used to define
           interfaces for APIs in the Web platform.  A specification that defines Web APIs
           can include one or more <dfn id='dfn-idl-fragment'>IDL fragments</dfn> that
-          describe the interfaces (in the object-oriented sense) for the APIs defined by that specification.
+          describe the interfaces (the state and behavior that objects can exhibit)
+          for the APIs defined by that specification.
           An <a class='dfnref' href='#dfn-idl-fragment'>IDL fragment</a> is
           a sequence of definitions that matches the <a class='sym' href='#prod-Definitions'>Definitions</a> grammar symbol.
           The set of <a class='dfnref' href='#dfn-idl-fragment'>IDL fragments</a> that
@@ -1303,13 +1304,12 @@ exception Error {
               from an ancestor interface.  This can be used to make a read only attribute
               in an ancestor interface be writable on a derived interface.  An attribute
               <a class='dfnref' href='#dfn-inherit-getter'>inherits its getter</a> if
-              its declaration includes <code>inherits getter</code> after the
-              attribute’s <a class='dfnref' href='#dfn-identifier'>identifier</a>.
+              its declaration includes <code>inherit</code> in the declaration.
               The read only attribute from which the attribute inherits its getter
               is the attribute with the same identifier on the closest ancestor interface
               of the one on which the inheriting attribute is defined.  The attribute
               whose getter is being inherited <span class='rfc2119'>MUST</span> be
-              of the same type as the inheriting attribute, and <code>inherits getter</code>
+              of the same type as the inheriting attribute, and <code>inherit</code>
               <span class='rfc2119'>MUST NOT</span> appear on a read only attribute.
             </p>
             <pre class='syntax'>interface <i>Ancestor</i> {
@@ -1317,7 +1317,7 @@ exception Error {
 };
 
 interface <i>Derived</i> : <i>Ancestor</i> {
-  attribute <i>TheType</i> <i>theIdentifier</i> inherits getter;
+  inherit attribute <i>TheType</i> <i>theIdentifier</i>;
 };</pre>
             <!--
             <p>
@@ -1371,9 +1371,9 @@ attribute <i>type</i> <i>identifier</i> inherits getter setraises(<i>scoped-name
             </p>
 
             <!--
-            <?productions grammar AttributeOrOperation StringifierAttributeOrOperation Attribute ReadOnly Get InheritsGetter GetRaises SetRaises ExceptionList?>
+            <?productions grammar AttributeOrOperation StringifierAttributeOrOperation Attribute ReadOnly Get GetRaises SetRaises ExceptionList?>
             -->
-            <?productions grammar AttributeOrOperation StringifierAttributeOrOperation Attribute ReadOnly Get InheritsGetter?>
+            <?productions grammar AttributeOrOperation StringifierAttributeOrOperation Attribute ReadOnly Get?>
 
             <div class='example'>
               <p>
@@ -1399,7 +1399,7 @@ interface Person : Animal {
 
   <span class='comment'>// An attribute whose getter behavior is inherited from Animal, and need not be</span>
   <span class='comment'>// specified in the description of Person.</span>
-  attribute DOMString name inherits getter<!-- setraises (InvalidName)-->;
+  inherit attribute DOMString name<!-- setraises (InvalidName)-->;
 <!--
   <span class='comment'>// An attribute whose value cannot be assigned to, and which can raise an</span>
   <span class='comment'>// exception in some circumstances.</span>
@@ -12091,13 +12091,13 @@ public <var>ExceptionName</var>(Throwable cause) {
           <!--
           <prod nt='Attribute'>ReadOnly "attribute" AttributeType identifier Get SetRaises ";"</prod>
           -->
-          <prod nt='Attribute'>ReadOnly "attribute" AttributeType identifier InheritsGetter ";"</prod>
+          <prod nt='Attribute'>Inherit ReadOnly "attribute" AttributeType identifier ";"</prod>
           <prod nt='ReadOnly'>"readonly" | ε</prod>
           <!--
           <prod nt='Get'>InheritsGetter | GetRaises</prod>
           <prod nt='InheritsGetter'>"inherits" "getter"</prod>
           -->
-          <prod nt='InheritsGetter'>"inherits" "getter" | ε</prod>
+          <prod nt='Inherit'>"inherit" | ε</prod>
           <!--
           <prod nt='GetRaises'>"getraises" ExceptionList | ε</prod>
           <prod nt='SetRaises'>"setraises" ExceptionList | ε</prod>
@@ -12144,7 +12144,7 @@ public <var>ExceptionName</var>(Throwable cause) {
             | "Date" | "DOMString" | "any" | "attribute" | "boolean" | "byte"
             | "legacycaller" | "const" | "creator" | "deleter" | "double"
             | "exception" | "false" | "float" | "getter" | "implements"
-            | "inherits" | "interface" | "long" | "module" | "null" | "object" | "octet"
+            | "inherit" | "interface" | "long" | "module" | "null" | "object" | "octet"
             <!--| "omittable" -->| "optional" | "sequence"
             | "setter" | "short" | "static" | "stringifier" | "true" | "typedef"
             | "unsigned" | "void"
@@ -12332,6 +12332,11 @@ public <var>ExceptionName</var>(Throwable cause) {
           <dt>Current editor’s draft</dt>
           <dd>
             <ul>
+              <li>
+                <p>
+                  Changed <code>inherits getter</code> to <code>inherit</code>.
+                </p>
+              </li>
               <li>
                 <p>
                   Renamed “callers” as “legacy callers” to discourage their use.
