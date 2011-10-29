@@ -15,7 +15,7 @@
   <head>
     <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'/>
     <title>Web IDL</title>
-    <meta name='revision' content='$Id: Overview.xml,v 1.407 2011-10-24 21:06:07 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: Overview.xml,v 1.408 2011-10-29 22:15:06 cmccorma Exp $'/>
     <link rel='stylesheet' href='WebIDL.css' type='text/css'/>
     <script src='section-links.js' type='application/ecmascript'/>
     <script src='dfn.js' type='application/ecmascript'/>
@@ -1372,6 +1372,7 @@ attribute <i>type</i> <i>identifier</i> inherits getter setraises(<i>scoped-name
               are applicable to attributes:
               <a class='xattr' href='#Clamp'>[Clamp]</a>,
               <a class='xattr' href='#EnforceRange'>[EnforceRange]</a>,
+              <a class='xattr' href='#LenientThis'>[LenientThis]</a>,
               <a class='xattr' href='#PutForwards'>[PutForwards]</a>,
               <a class='xattr' href='#Replaceable'>[Replaceable]</a>,
               <a class='xattr' href='#TreatNonCallableAsNull'>[TreatNonCallableAsNull]</a>,
@@ -6928,6 +6929,64 @@ Object.getOwnPropertyDescriptor(Window.prototype, "name").get.call(null);</x:cod
             </div>
           </div>
 
+          <div id='LenientThis' class='section'>
+            <h4>[LenientThis]</h4>
+            <p>
+              If the <a class='xattr' href='#LenientThis'>[LenientThis]</a>
+              <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
+              appears on an <a class='dfnref' href='#dfn-attribute'>attribute</a>,
+              it indicates that invocations of the attribute’s getter or setter
+              with a <span class='esvalue'>this</span> value that is not an
+              object that implements the <a class='dfnref' href='#dfn-interface'>interface</a>
+              on which the attribute appears will be ignored.
+            </p>
+            <p>
+              The <a class='xattr' href='#LenientThis'>[LenientThis]</a> extended attribute
+              <span class='rfc2119'>MUST</span>
+              <a class='dfnref' href='#dfn-xattr-no-arguments'>take no arguments</a>.
+            </p>
+            <p>
+              Specifications <span class='rfc2119'>SHOULD NOT</span> use <a href='#LenientThis' class='xattr'>[LenientThis]</a>
+              unless required for compatibility reasons.
+            </p>
+            <p>
+              See the <a href='#es-attributes'>Attributes</a> section <?sdir es-attributes?> for how
+              <a class='xattr' href='#LenientThis'>[LenientThis]</a>
+              is to be implemented.
+            </p>
+            <div class='example'>
+              <p>
+                The following IDL fragment defines an interface that uses the
+                <a class='xattr' href='#LenientThis'>[LenientThis]</a> extended
+                attribute.
+              </p>
+              <x:codeblock language='idl'>interface Example {
+  [LenientThis] attribute DOMString x;
+  attribute DOMString y;
+};</x:codeblock>
+              <p>
+                An ECMAScript implementation that supports this interface will
+                allow the getter and setter of the accessor property that corresponds
+                to x to be invoked with something other than an <span class='idltype'>Example</span>
+                object.
+              </p>
+              <x:codeblock language='es'>var example = getExample();  <span class='comment'>// Get an instance of Example.</span>
+var obj = { };
+
+<span class='comment'>// Fine.</span>
+example.x;
+
+<span class='comment'>// Ignored, since the this value is not an Example object and [LenientThis] is used.</span>
+Object.getOwnPropertyDescriptor(Example.prototype, "x").get.call(obj);
+
+<span class='comment'>// Also ignored, since Example.prototype is not an Example object and [LenientThis] is used.</span>
+Example.prototype.x;
+
+<span class='comment'>// Throws a TypeError, since Example.prototype is not an Example object.</span>
+Example.prototype.y;</x:codeblock>
+            </div>
+          </div>
+
           <div id='NamedConstructor' class='section'>
             <h4>[NamedConstructor]</h4>
             <p>
@@ -8572,7 +8631,13 @@ interface
                 <ol class='algorithm'>
                   <li>Let <var>O</var> be the result of calling ToObject on the <span class='esvalue'>this</span> value.</li>
                   <li>If <var>O</var> is not a <a class='dfnref' href='#dfn-platform-object'>platform object</a> that implements the <a class='dfnref' href='#dfn-interface'>interface</a>
-                    on which the attribute was declared, then throw a <span class='estype'>TypeError</span>.</li>
+                    on which the attribute was declared, then:
+                    <ol>
+                      <li>If the <a class='dfnref' href='#dfn-attribute'>attribute</a> was specified with the
+                        <a class='xattr' href='#LenientThis'>[LenientThis]</a> <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>,
+                        then return <span class='esvalue'>undefined</span>.</li>
+                      <li>Otherwise, throw a <span class='estype'>TypeError</span>.</li>
+                    </ol></li>
                   <li>
                     Let <var>idlValue</var> be the result of performing the actions listed in the description of the attribute that occur when getting
                     (or those listed in the description of the inherited attribute, if this attribute is declared to
@@ -8598,10 +8663,28 @@ interface
                 Otherwise, it is a <span class='estype'>Function</span> object whose behavior when invoked is as follows:
                 <ol class='algorithm'>
                   <li>Let <var>O</var> be the result of calling ToObject on the <span class='esvalue'>this</span> value.</li>
-                  <li>If <var>O</var> is not a <a class='dfnref' href='#dfn-platform-object'>platform object</a> that implements the <a class='dfnref' href='#dfn-interface'>interface</a>
-                    on which the attribute was declared, then throw a <span class='estype'>TypeError</span>.</li>
+                  <li>Let <var>validThis</var> be <span class='esvalue'>true</span> if <var>O</var> is a
+                    <a class='dfnref' href='#dfn-platform-object'>platform object</a> that implements the
+                    <a class='dfnref' href='#dfn-interface'>interface</a> on which the attribute was declared, or
+                    <span class='esvalue'>false</span> otherwise.</li>
+                  <li>If <var>validThis</var> is <span class='esvalue'>false</span> and the
+                    <a class='dfnref' href='#dfn-attribute'>attribute</a> was not specified with the
+                    <a class='xattr' href='#LenientThis'>[LenientThis]</a> <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>,
+                    then throw a <span class='estype'>TypeError</span>.</li>
                   <li>Let <var>V</var> be the value of the first argument passed to the <span class='estype'>Function</span>,
-                    or <span class='esvalue'>undefined</span> is no arguments were passed.</li>
+                    or <span class='esvalue'>undefined</span> if no arguments were passed.</li>
+                  <li>If the attribute is declared with a <a class='xattr' href='#Replaceable'>[Replaceable]</a>
+                    extended attribute, then:
+                    <ol>
+                      <li>Let <var>P</var> be the identifier of the attribute.</li>
+                      <li>Call the <span class='prop'>[[DefineOwnProperty]]</span> method of <var>O</var>
+                        passing property name <var>P</var>, Property Descriptor
+                        <span class='desc'>{ [[Value]]: <var>V</var>, [[Writable]]: <span class='esvalue'>true</span>, [[Enumerable]]: <span class='esvalue'>true</span>, [[Configurable]]: <span class='esvalue'>true</span> }</span>,
+                        and <b>false</b>.</li>
+                      <li>Return <span class='esvalue'>undefined</span>.</li>
+                    </ol>
+                  </li>
+                  <li>If <var>validThis</var> is <span class='esvalue'>false</span>, then return.</li>
                   <li>If the attribute is declared with a <a class='xattr' href='#PutForwards'>[PutForwards]</a>
                     extended attribute, then:
                     <ol>
@@ -8612,20 +8695,6 @@ interface
                       <li>Call the <span class='prop'>[[Put]]</span> method on <var>Q</var>
                         using the identifier of <var>A</var> as the property name and <var>V</var> as the value.</li>
                       <li>Return.</li>
-                    </ol>
-                  </li>
-                  <li>If the attribute is declared with a <a class='xattr' href='#Replaceable'>[Replaceable]</a>
-                    extended attribute, then:
-                    <ol>
-                      <li>Let <var>O</var> be the result of calling ToObject on the <span class='esvalue'>this</span> value.</li>
-                      <li>If <var>O</var> is not an instance of the interface on which the attribute was declared,
-                        then throw a <span class='estype'>TypeError</span>.</li>
-                      <li>Let <var>P</var> be the identifier of the attribute.</li>
-                      <li>Call the <span class='prop'>[[DefineOwnProperty]]</span> method of <var>O</var>
-                        passing property name <var>P</var>, Property Descriptor
-                        <span class='desc'>{ [[Value]]: <var>V</var>, [[Writable]]: <span class='esvalue'>true</span>, [[Enumerable]]: <span class='esvalue'>true</span>, [[Configurable]]: <span class='esvalue'>true</span> }</span>,
-                        and <b>false</b>.</li>
-                      <li>Return <span class='esvalue'>undefined</span>.</li>
                     </ol>
                   </li>
                   <li>Let <var>idlValue</var> be the result of <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a>
@@ -12422,6 +12491,11 @@ public <var>ExceptionName</var>(Throwable cause) {
           <dt>Current editor’s draft</dt>
           <dd>
             <ul>
+              <li>
+                <p>
+                  Added <span class='xattr'>[LenientThis]</span>.
+                </p>
+              </li>
               <li>
                 <p>
                   Disallowed overloading that distinguishes between two interface types
