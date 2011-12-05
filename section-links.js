@@ -18,4 +18,5 @@ document.addEventListener('DOMContentLoaded', function(event) {
     }
   }
   f(document.getElementById('sections'));
+  f(document.getElementById('appendices'));
 }, false);
