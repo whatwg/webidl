@@ -15,7 +15,7 @@
   <head>
     <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'/>
     <title>Web IDL</title>
-    <meta name='revision' content='$Id: Overview.xml,v 1.410 2011-12-05 23:30:56 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: Overview.xml,v 1.411 2011-12-06 01:10:51 cmccorma Exp $'/>
     <link rel='stylesheet' href='WebIDL.css' type='text/css'/>
     <script src='section-links.js' type='application/ecmascript'/>
     <script src='dfn.js' type='application/ecmascript'/>
@@ -5318,7 +5318,7 @@ iframe.appendChild instanceof w.Function;  <span class='comment'>// Evaluates to
                 <ol>
                   <li>If <var>x</var> is <span class='esvalue'>NaN</span>, +∞, or −∞, then throw a <span class='estype'>TypeError</span>.</li>
                   <li>Set <var>x</var> to sign(<var>x</var>) * floor(abs(<var>x</var>)).</li>
-                  <li>If <var>x</var> &lt; −2<sup>63</sup> or <var>x</var> &gt; 2<sup>63</sup> − 1, then throw a <span class='estype'>TypeError</span>.</li>
+                  <li>If <var>x</var> &lt; −(2<sup>53</sup> − 1) or <var>x</var> &gt; 2<sup>53</sup> − 1, then throw a <span class='estype'>TypeError</span>.</li>
                   <li>Return the IDL <span class='idltype'>long long</span> value that represents the same numeric value as <var>x</var>.</li>
                 </ol>
               </li>
@@ -5331,15 +5331,16 @@ iframe.appendChild instanceof w.Function;  <span class='comment'>// Evaluates to
                 then:
                 <ol>
                   <li>Round <var>x</var> to the nearest integer, choosing the even integer if it lies halfway between two.</li>
-                  <li>Set <var>x</var> to min(max(<var>x</var>, −2<sup>63</sup>), 2<sup>63</sup> − 1).</li>
+                  <li>Set <var>x</var> to min(max(<var>x</var>, −(2<sup>53</sup> − 1)), 2<sup>53</sup> − 1).</li>
                   <li>Return the IDL <span class='idltype'>long long</span> value that represents the same numeric value as <var>x</var>.</li>
                 </ol>
               </li>
               <li>If <var>x</var> is <span class='esvalue'>NaN</span>, +0, −0, +∞, or −∞, then return the IDL <span class='idltype'>long long</span> value that represents 0.</li>
               <li>Set <var>x</var> to sign(<var>x</var>) * floor(abs(<var>x</var>)).</li>
               <li>Set <var>x</var> to <var>x</var> modulo 2<sup>64</sup>.</li>
-              <li>If <var>x</var> is greater than or equal to 2<sup>63</sup>, return the IDL <span class='idltype'>long long</span> value that represents the same numeric value as <var>x</var> − 2<sup>64</sup>.
-                Otherwise, return the IDL <span class='idltype'>long long</span> value that represents the same numeric value as <var>x</var>.</li>
+              <li>If <var>x</var> is greater than or equal to 2<sup>63</sup>, then set <var>x</var> to <var>x</var> − 2<sup>64</sup>.</li>
+              <li>If <var>x</var> &lt; −(2<sup>53</sup> − 1) or <var>x</var> &gt; 2<sup>53</sup> − 1, then throw a <span class='estype'>TypeError</span>.</li>
+              <li>Return the IDL <span class='idltype'>long long</span> value that represents the same numeric value as <var>x</var>.</li>
             </ol>
             <p>
               The result of <a class='dfnref' href='#dfn-convert-idl-to-ecmascript-value'>converting</a>
@@ -5376,7 +5377,7 @@ iframe.appendChild instanceof w.Function;  <span class='comment'>// Evaluates to
                 <ol>
                   <li>If <var>x</var> is <span class='esvalue'>NaN</span>, +∞, or −∞, then throw a <span class='estype'>TypeError</span>.</li>
                   <li>Set <var>x</var> to sign(<var>x</var>) * floor(abs(<var>x</var>)).</li>
-                  <li>If <var>x</var> &lt; 0 or <var>x</var> &gt; 2<sup>64</sup> − 1, then throw a <span class='estype'>TypeError</span>.</li>
+                  <li>If <var>x</var> &lt; 0 or <var>x</var> &gt; 2<sup>53</sup> − 1, then throw a <span class='estype'>TypeError</span>.</li>
                   <li>Return the IDL <span class='idltype'>unsigned long long</span> value that represents the same numeric value as <var>x</var>.</li>
                 </ol>
               </li>
@@ -5389,13 +5390,14 @@ iframe.appendChild instanceof w.Function;  <span class='comment'>// Evaluates to
                 then:
                 <ol>
                   <li>Round <var>x</var> to the nearest integer, choosing the even integer if it lies halfway between two.</li>
-                  <li>Set <var>x</var> to min(max(<var>x</var>, 0), 2<sup>64</sup> − 1).</li>
+                  <li>Set <var>x</var> to min(max(<var>x</var>, 0), 2<sup>53</sup> − 1).</li>
                   <li>Return the IDL <span class='idltype'>unsigned long long</span> value that represents the same numeric value as <var>x</var>.</li>
                 </ol>
               </li>
               <li>If <var>x</var> is <span class='esvalue'>NaN</span>, +0, −0, +∞, or −∞, then return the IDL <span class='idltype'>unsigned long long</span> value that represents 0.</li>
               <li>Set <var>x</var> to sign(<var>x</var>) * floor(abs(<var>x</var>)).</li>
               <li>Set <var>x</var> to <var>x</var> modulo 2<sup>64</sup>.</li>
+              <li>If <var>x</var> &gt; 2<sup>53</sup> − 1, then throw a <span class='estype'>TypeError</span>.</li>
               <li>Return the IDL <span class='idltype'>unsigned long long</span> value that represents the same numeric value as <var>x</var>.</li>
             </ol>
             <p>
@@ -12498,6 +12500,14 @@ public <var>ExceptionName</var>(Throwable cause) {
           <dt>Current editor’s draft</dt>
           <dd>
             <ul>
+              <li>
+                <p>
+                  An exception is now thrown if an ECMAScript <span class='estype'>Number</span> is
+                  passed to a platform object expecting a <span class='idltype'>long long</span>
+                  or <span class='idltype'>unsigned long long</span> and the <span class='estype'>Number</span>
+                  is outside the range of contiguous exactly-representable integers.
+                </p>
+              </li>
               <li>
                 <p>
                   Added <span class='xattr'>[LenientThis]</span>.
