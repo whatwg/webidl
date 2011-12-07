@@ -490,6 +490,14 @@
     </div>
   </xsl:template>
 
+  <xsl:template match='h:div[@class="warning"]'>
+    <div>
+      <xsl:copy-of select='@*[namespace-uri()="" or namespace-uri="http://www.w3.org/XML/1998/namespace"]'/>
+      <div class='warningHeader'>Warning</div>
+      <xsl:apply-templates select='node()'/>
+    </div>
+  </xsl:template>
+
   <xsl:template match='h:div[@class="example"]'>
     <div>
       <xsl:copy-of select='@*[namespace-uri()="" or namespace-uri="http://www.w3.org/XML/1998/namespace"]'/>
