@@ -15,7 +15,7 @@
   <head>
     <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'/>
     <title>Web IDL</title>
-    <meta name='revision' content='$Id: Overview.xml,v 1.416 2011-12-12 00:54:07 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: Overview.xml,v 1.417 2011-12-12 04:15:05 cmccorma Exp $'/>
     <link rel='stylesheet' href='WebIDL.css' type='text/css'/>
     <script src='section-links.js' type='application/ecmascript'/>
     <script src='dfn.js' type='application/ecmascript'/>
@@ -286,7 +286,6 @@ window.onload = function() { window.alert("loaded"); };</x:codeblock></li>
         <p>
           The different kinds of <dfn id='dfn-definition'>definitions</dfn> that can appear in an
           <a class='dfnref' href='#dfn-idl-fragment'>IDL fragment</a> are:
-          <a class='dfnref' href='#dfn-module'>modules</a>,
           <a class='dfnref' href='#dfn-interface'>interfaces</a>,
           <a class='dfnref' href='#dfn-partial-interface'>partial interface declarations</a>,
           <a class='dfnref' href='#dfn-dictionary'>dictionaries</a>,
@@ -313,50 +312,40 @@ interface <i>identifier</i> {
   <i>interface-members…</i>
 };</pre>
 
-        <p>
-          <a class='dfnref' href='#dfn-module'>Modules</a>, described further in
-          <a href='#idl-modules'>section <?sref idl-modules?></a> <?sdir idl-modules?>,
-          are used to group related <a class='dfnref' href='#dfn-definition'>definitions</a>
-          together in a single namespace.  Definitions need not be placed in a module;
-          those that are not are said to be <dfn id='dfn-outermost-scope'>declared at the outermost scope</dfn>.
-        </p>
-
         <?productions grammar Definitions Definition NormalDefinition?>
 
         <div class='example'>
           <p>
             The following is an example of an <a class='dfnref' href='#dfn-idl-fragment'>IDL fragment</a>.
           </p>
-          <x:codeblock language='idl'>module gfx {
-  exception GraphicsException {
-    DOMString reason;
-  };
+          <x:codeblock language='idl'>exception GraphicsException {
+  DOMString reason;
+};
 
-  interface Paint { };
+interface Paint { };
 
-  interface SolidColor : Paint {
-    attribute float red;
-    attribute float green;
-    attribute float blue;
-  };
+interface SolidColor : Paint {
+  attribute float red;
+  attribute float green;
+  attribute float blue;
+};
 
-  interface Pattern : Paint {
-    attribute DOMString imageURL;
-  };
+interface Pattern : Paint {
+  attribute DOMString imageURL;
+};
 
-  [Constructor]
-  interface GraphicalWindow {
-    readonly attribute unsigned long width;
-    readonly attribute unsigned long height;
+[Constructor]
+interface GraphicalWindow {
+  readonly attribute unsigned long width;
+  readonly attribute unsigned long height;
 
-    attribute Paint currentPaint;
+  attribute Paint currentPaint;
 
-    void drawRectangle(float x, float y, float width, float height)<!--
-      raises(GraphicsException)-->;
+  void drawRectangle(float x, float y, float width, float height)<!--
+    raises(GraphicsException)-->;
 
-    void drawText(float x, float y, DOMString text)<!--
-      raises(GraphicsException)-->;
-  };
+  void drawText(float x, float y, DOMString text)<!--
+    raises(GraphicsException)-->;
 };</x:codeblock>
           <p>
             Here, four <a class='dfnref' href='#dfn-interface'>interfaces</a> and one
@@ -367,11 +356,6 @@ interface <i>identifier</i> {
             defined on it.  Objects that implement the <span class='idltype'>GraphicalWindow</span> interface
             will expose these attributes and operations in a manner appropriate to the
             particular language being used.
-          </p>
-          <p>
-            Since the interfaces and the exception all appear inside a <a class='dfnref' href='#dfn-module'>module</a>,
-            they are not <a class='dfnref' href='#dfn-outermost-scope'>declared at the outermost scope</a>.
-            The module itself, however, is.
           </p>
           <p>
             In ECMAScript, the attributes on the IDL interfaces will be exposed as accessor
@@ -402,8 +386,7 @@ interface <i>identifier</i> {
           <h3>Names</h3>
 
           <p>
-            Every <a class='dfnref' href='#dfn-module'>module</a>,
-            <a class='dfnref' href='#dfn-interface'>interface</a>,
+            Every <a class='dfnref' href='#dfn-interface'>interface</a>,
             <a class='dfnref' href='#dfn-partial-interface'>partial interface definition</a>,
             <a class='dfnref' href='#dfn-dictionary'>dictionary</a>,
             <a class='dfnref' href='#dfn-exception'>exception</a> and
@@ -422,11 +405,10 @@ interface <i>identifier</i> {
             <li>
               For <a class='dfnref' href='#dfn-named-definition'>named definitions</a>,
               the <a class='sym' href='#prod-identifier'>identifier</a> token that appears
-              directly after the <code>module</code>, <code>interface</code>,
+              directly after the <code>interface</code>,
               <code>dictionary</code> or <code>exception</code> keyword
               determines the identifier of that definition.
-              <pre class='syntax'>module <em>module-identifier</em> { <i>definitions…</i> };
-interface <em>interface-identifier</em> { <i>interface-members…</i> };
+              <pre class='syntax'>interface <em>interface-identifier</em> { <i>interface-members…</i> };
 partial interface <em>interface-identifier</em> { <i>interface-members…</i> };
 exception <em>exception-identifier</em> { <i>exception-members…</i> };
 dictionary <em>dictionary-identifier</em> { <i>dictionary-members…</i> };</pre>
@@ -489,123 +471,19 @@ dictionary <i>identifier</i> {
             are known as <dfn id='dfn-reserved-identifier'>reserved identifiers</dfn>.
           </p>
           <p>
-            Every <a class='dfnref' href='#dfn-named-definition'>named definition</a>
-            also has a <dfn id='dfn-qualified-name'>qualified name</dfn>, determined as follows:
-          </p>
-          <ul>
-            <li>
-              If the definition is
-              <a class='dfnref' href='#dfn-outermost-scope'>declared at the outermost scope</a>,
-              then the qualified name
-              of the definition is two consecutive <span class='char'>U+003A COLON (":")</span>
-              characters followed by the <a class='dfnref' href='#dfn-identifier'>identifier</a>
-              of the definition.  (Hereafter, two consecutive <span class='char'>U+003A COLON (":")</span>
-              characters are referred to as a <dfn id='dfn-double-colon'>double colon</dfn>.)
-            </li>
-            <li>
-              Otherwise, the definition is not declared at the outermost scope.  The qualified name
-              of the definition is the qualified name
-              of the definition’s <a class='dfnref' href='#dfn-enclosing-module'>enclosing module</a>
-              followed by a <a class='dfnref' href='#dfn-double-colon'>double colon</a>
-              followed by the identifier of the definition.
-            </li>
-          </ul>
-          <p>
             Within the set of <a class='dfnref' href='#dfn-idl-fragment'>IDL fragments</a>
             that a given implementation supports,
-            the <a class='dfnref' href='#dfn-qualified-name'>qualified name</a> of every
-            <a class='dfnref' href='#dfn-module'>module</a>,
+            the <a class='dfnref' href='#dfn-identifier'>identifier</a> of every
             <a class='dfnref' href='#dfn-interface'>interface</a>,
             <a class='dfnref' href='#dfn-dictionary'>dictionary</a>,
             <a class='dfnref' href='#dfn-exception'>exception</a> and
             <a class='dfnref' href='#dfn-typedef'>typedef</a>
             <span class='rfc2119'>MUST NOT</span>
-            be the same as the qualified name of any other
+            be the same as the identifier of any other
             <a class='dfnref' href='#dfn-interface'>interface</a>,
             <a class='dfnref' href='#dfn-dictionary'>dictionary</a>,
             <a class='dfnref' href='#dfn-exception'>exception</a> or
             <a class='dfnref' href='#dfn-typedef'>typedef</a>.
-          </p>
-          <div class='note'>
-            <p>
-              Multiple <a class='dfnref' href='#dfn-module'>module</a> declarations can
-              have the same <a class='dfnref' href='#dfn-qualified-name'>qualified name</a>.
-              When a subsequent module declaration for the same qualified name
-              is encountered, this effectively re-opens the module for definitions.
-              See <a href='#idl-modules'>section <?sref idl-modules?></a> <?sdir idl-modules?>
-              for details.
-            </p>
-          </div>
-          <p>
-            A <dfn id='dfn-scoped-name'>scoped name</dfn> (matching <a class='sym' href='#prod-ScopedName'>ScopedName</a>)
-            is a string formed by concatenating a sequence of one or more identifiers with a
-            <a class='dfnref' href='#dfn-double-colon'>double colon</a> between each pair of
-            adjacent identifiers, and is used in IDL to refer to definitions in other scopes.
-            A scoped name is an <dfn id='dfn-absolute-scoped-name'>absolute scoped name</dfn>
-            if it begins with a <a class='dfnref' href='#dfn-double-colon'>double colon</a>,
-            or a <dfn id='dfn-relative-scoped-name'>relative scoped name</dfn> if it does not.
-          </p>
-          <p>
-            A scoped name can be <dfn id='dfn-resolve'>resolved</dfn> (relative to a <a class='dfnref' href='#dfn-module'>module</a>
-            or to the outermost scope) to a <a class='dfnref' href='#dfn-named-definition'>named definition</a> as follows:
-          </p>
-          <ul>
-            <li>
-              If the scoped name is a
-              <a class='dfnref' href='#dfn-relative-scoped-name'>relative scoped name</a>, then
-              the following steps gives the definition it resolves to:
-              <ol class='algorithm'>
-                <li>
-                  Let <var>name</var> be the <a class='dfnref' href='#dfn-qualified-name'>qualified name</a>
-                  of the <a class='dfnref' href='#dfn-module'>module</a>, or the empty string if resolving
-                  relative to the outermost scope.
-                </li>
-                <li>
-                  Loop:
-                  <ol>
-                    <li>
-                      If there is a <a class='dfnref' href='#dfn-definition'>definition</a> whose
-                      <a class='dfnref' href='#dfn-qualified-name'>qualified name</a> is
-                      equal to the concatenation of <var>name</var>, a 
-                      <a class='dfnref' href='#dfn-double-colon'>double colon</a> and
-                      the scoped name, then the scoped name resolves to that definition;
-                      end these steps.
-                    </li>
-                    <li>
-                      Remove the last name component from <var>name</var> (that is, from
-                      the last <a class='dfnref' href='#dfn-double-colon'>double colon</a>
-                      to the end of the string, inclusive).
-                    </li>
-                  </ol>
-                  until <var>name</var> is the empty string.
-                </li>
-                <li>
-                  The scoped name does not resolve to a definition.
-                </li>
-              </ol>
-            </li>
-            <li>
-              Otherwise, the scoped name is an
-              <a href='#dfn-absolute-scoped-name'>absolute scoped name</a>:
-              <ul>
-                <li>
-                  If there exists a definition whose qualified name is
-                  equal to the scoped name, then the scoped name resolves to that definition.
-                </li>
-                <li>
-                  Otherwise, the scoped name does not resolve to a definition.
-                </li>
-              </ul>
-            </li>
-          </ul>
-          <p>
-            Unless otherwise stated, the <a class='dfnref' href='#dfn-module'>module</a>
-            being used to <a class='dfnref' href='#dfn-resolve'>resolve</a> a
-            <a class='dfnref' href='#dfn-scoped-name'>scoped name</a> is the
-            <a class='dfnref' href='#dfn-enclosing-module'>enclosing module</a>
-            of the <a class='dfnref' href='#dfn-definition'>definition</a>
-            on which the scoped name appears, or the outermost scope if it appears
-            on a definition <a class='dfnref' href='#dfn-outermost-scope'>declared at the outermost scope</a>.
           </p>
           <p>
             Within an <a class='dfnref' href='#dfn-idl-fragment'>IDL fragment</a>, a reference
@@ -625,63 +503,45 @@ interface A {
 typedef long[] ArrayOfLongs;</x:codeblock>
           </div>
 
-          <?productions grammar ScopedName AbsoluteScopedName RelativeScopedName ScopedNameParts?>
-
           <div class='example'>
             <p>
               The following <a class='dfnref' href='#dfn-idl-fragment'>IDL fragment</a>
               demonstrates how <a class='dfnref' href='#dfn-identifier'>identifiers</a>
-              and <a class='dfnref' href='#dfn-qualified-name'>qualified names</a> are given
-              to definitions, <a class='dfnref' href='#dfn-interface-member'>interface members</a>
+              are given to definitions, <a class='dfnref' href='#dfn-interface-member'>interface members</a>
               and <a class='dfnref' href='#dfn-exception-member'>exception members</a>.
             </p>
-            <x:codeblock language='idl'><span class='comment'>// Module identifier: "framework"</span>
-<span class='comment'>// Qualified name:    "::framework"</span>
-module framework {
+            <x:codeblock language='idl'><span class='comment'>// Typedef identifier: "number"</span>
+typedef float number;
 
-  <span class='comment'>// Typedef identifier: "number"</span>
-  <span class='comment'>// Qualified name:    "::framework::number"</span>
-  typedef float number;
+<span class='comment'>// Exception identifier: "FrameworkException"</span>
+exception FrameworkException {
 
-  <span class='comment'>// Exception identifier: "FrameworkException"</span>
-  <span class='comment'>// Qualified name:       "::framework::FrameworkException"</span>
-  exception FrameworkException {
+  <span class='comment'>// Constant identifier: "ERR_NOT_FOUND"</span>
+  const long ERR_NOT_FOUND = 1;
 
-    <span class='comment'>// Constant identifier: "ERR_NOT_FOUND"</span>
-    <span class='comment'>// Qualified name:      "::framework::FrameworkException::ERR_NOT_FOUND"</span>
-    const long ERR_NOT_FOUND = 1;
+  <span class='comment'>// Exception field identifier: "code"</span>
+  long code;
+};
 
-    <span class='comment'>// Exception field identifier: "code"</span>
-    long code;
-  };
+<span class='comment'>// Interface identifier: "System"</span>
+interface System {
 
-  <span class='comment'>// Interface identifier: "System"</span>
-  <span class='comment'>// Qualified name:       "::framework::System"</span>
-  interface System {
+  <span class='comment'>// Operation identifier:          "createObject"</span>
+  <span class='comment'>// Operation argument identifier: "interface"</span>
+  object createObject(DOMString _interface);
 
-    <span class='comment'>// Operation identifier:          "createObject"</span>
-    <span class='comment'>// Operation argument identifier: "interface"</span>
-    object createObject(DOMString _interface);
+  <span class='comment'>// Operation has no identifier; it declares a getter.</span>
+  getter DOMString (DOMString keyName);
+};
 
-    <span class='comment'>// Operation has no identifier; it declares a getter.</span>
-    getter DOMString (DOMString keyName);
-  };
+<span class='comment'>// Interface identifier: "TextField"</span>
+interface TextField {
 
-  <span class='comment'>// Module identifier: "gui"</span>
-  <span class='comment'>// Qualified name:    "::framework::gui"</span>
-  module gui {
-    
-    <span class='comment'>// Interface identifier: "TextField"</span>
-    <span class='comment'>// Qualified name:       "::framework::gui::TextField"</span>
-    interface TextField {
+  <span class='comment'>// Attribute identifier: "const"</span>
+  attribute boolean _const;
 
-      <span class='comment'>// Attribute identifier: "const"</span>
-      attribute boolean _const;
-
-      <span class='comment'>// Attribute identifier: "value"</span>
-      attribute DOMString? _value;
-    };
-  };
+  <span class='comment'>// Attribute identifier: "value"</span>
+  attribute DOMString? _value;
 };</x:codeblock>
             <p>
               Note that while the second <a class='dfnref' href='#dfn-attribute'>attribute</a>
@@ -690,152 +550,6 @@ module framework {
               not a keyword in the IDL grammar), it is still unescaped
               to obtain the attribute’s <a class='dfnref' href='#dfn-identifier'>identifier</a>.
             </p>
-            <p>
-              Also note that the <a class='dfnref' href='#dfn-exception-field'>exception fields</a>,
-              <a class='dfnref' href='#dfn-operation'>operations</a> and
-              <a class='dfnref' href='#dfn-attribute'>attributes</a> above do not have
-              <a class='dfnref' href='#dfn-qualified-name'>qualified names</a>, simply because
-              there is no need to be able to reference them from other scopes.
-            </p>
-          </div>
-        </div>
-
-        <div id='idl-modules' class='section'>
-          <h3>Modules</h3>
-
-          <div class='ednote'>
-            <p>Should W3C specs use modules at all?  And if not, should we just remove them?
-              <a href='http://lists.w3.org/Archives/Public/public-webapps/2009JulSep/0282.html'>(Mail.)</a></p>
-          </div>
-          <p>
-            A <dfn id='dfn-module'>module</dfn> is a <a class='dfnref' href='#dfn-definition'>definition</a>
-            (matching <a class='sym' href='#prod-Module'>Module</a>) that serves
-            as a container for grouping together related definitions in a single namespace.
-          </p>
-          <pre class='syntax'>module <i>identifier</i> {
-  <i>definitions…</i>
-};</pre>
-          <p>
-            Definitions have as their <dfn id='dfn-enclosing-module'>enclosing module</dfn>
-            the module inside which they appear in the IDL.
-            If <a class='dfnref' href='#dfn-outermost-scope'>declared at the outermost scope</a>,
-            a definition has no enclosing module.
-          </p>
-          <p>
-            The relevant language binding determines how modules affect the naming
-            of constructs that correspond to definitions in the language.  If the language
-            supports some form of namespacing mechanism, then a module will correspond
-            to a namespace.  The name of that namespace can be based on the module’s
-            <dfn id='dfn-prefixed-name'>prefixed name</dfn>, which is defined as
-            follows:
-          </p>
-          <ul>
-            <li>
-              If the <a class='dfnref' href='#dfn-module'>module</a> has a
-              <a class='xattr' href='#Prefix'>[Prefix]</a> <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
-              whose argument starts with a <a class='dfnref' href='#dfn-double-colon'>double colon</a>, then the
-              <a class='dfnref' href='#dfn-prefixed-name'>prefixed name</a> of
-              the module is a <a class='dfnref' href='#dfn-scoped-name'>scoped name</a>
-              constructed by concatenating the <a class='xattr' href='#Prefix'>[Prefix]</a>
-              argument, a <a class='dfnref' href='#dfn-double-colon'>double colon</a>
-              and the module’s <a class='dfnref' href='#dfn-identifier'>identifier</a>.
-            </li>
-            <li>
-              Otherwise, if the <a class='dfnref' href='#dfn-module'>module</a> has a
-              <a class='xattr' href='#Prefix'>[Prefix]</a> <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
-              whose argument does not start with a <a class='dfnref' href='#dfn-double-colon'>double colon</a>, then the
-              <a class='dfnref' href='#dfn-prefixed-name'>prefixed name</a> of
-              the module is a <a class='dfnref' href='#dfn-scoped-name'>scoped name</a>
-              constructed by concatenating:
-              <ol>
-                <li>the <a class='dfnref' href='#dfn-prefixed-name'>prefixed name</a>
-                of the module’s <a class='dfnref' href='#dfn-enclosing-module'>enclosing module</a>
-                followed by a <a class='dfnref' href='#dfn-double-colon'>double colon</a>, or
-                simply a <a class='dfnref' href='#dfn-double-colon'>double colon</a> if there
-                is no enclosing module,</li>
-                <li>the <a class='xattr' href='#Prefix'>[Prefix]</a> argument,</li>
-                <li>a <a class='dfnref' href='#dfn-double-colon'>double colon</a>,</li>
-                <li>and the module’s <a class='dfnref' href='#dfn-identifier'>identifier</a>.</li>
-              </ol>
-            </li>
-            <li>
-              Otherwise, if the <a class='dfnref' href='#dfn-qualified-name'>qualified name</a>
-              of the <a class='dfnref' href='#dfn-module'>module</a> is “::dom”, then
-              the <a class='dfnref' href='#dfn-prefixed-name'>prefixed name</a> of the
-              module is the <a class='dfnref' href='#dfn-scoped-name'>scoped name</a>
-              “::org::w3c::dom”.
-            </li>
-            <li>
-              Otherwise, if the <a class='dfnref' href='#dfn-module'>module</a> has
-              no <a class='dfnref' href='#dfn-enclosing-module'>enclosing module</a>,
-              then the <a class='dfnref' href='#dfn-prefixed-name'>prefixed name</a> of the
-              module is a <a class='dfnref' href='#dfn-scoped-name'>scoped name</a>
-              constructed by concatenating the string “::org::w3c::dom::” and the
-              module’s <a class='dfnref' href='#dfn-identifier'>identifier</a>.
-            </li>
-            <li>
-              Otherwise, the <a class='dfnref' href='#dfn-prefixed-name'>prefixed name</a>
-              of the module is a <a class='dfnref' href='#dfn-scoped-name'>scoped name</a>
-              constructed by concatenating the prefixed name of the module’s
-              <a class='dfnref' href='#dfn-enclosing-module'>enclosing module</a>,
-              a <a class='dfnref' href='#dfn-double-colon'>double colon</a>
-              and the module’s <a class='dfnref' href='#dfn-identifier'>identifier</a>.
-            </li>
-          </ul>
-          <p>
-            In the Java language binding, the name of the Java package is
-            derived by taking the <a class='dfnref' href='#dfn-prefixed-name'>prefixed name</a>
-            and replacing all <a class='dfnref' href='#dfn-double-colon'>double colons</a>
-            with “.” (see <a href='#java-modules'>section <?sref java-modules?></a>).
-            It is expected that bindings for other languages that typically
-            use reversed domain names for namespacing will also use the prefixed
-            name of a module to determine namespace names.
-          </p>
-          <p>
-            The ECMAScript language binding allows a namespacing mechanism based
-            on the <a class='dfnref' href='#dfn-scoped-name'>scoped name</a>
-            of a module by using the <a class='xattr' href='#NamespaceObject'>[NamespaceObject]</a>
-            <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>.
-          </p>
-          <p>
-            The following <a class='dfnref' href='#dfn-extended-attribute'>extended attributes</a>
-            are applicable to <a class='dfnref' href='#dfn-module'>modules</a>:
-            <a class='xattr' href='#NamespaceObject'>[NamespaceObject]</a>,
-            <a class='xattr' href='#Prefix'>[Prefix]</a>.
-          </p>
-
-          <?productions grammar Module?>
-
-          <div class='example'>
-            <p>
-              The following <a class='dfnref' href='#dfn-idl-fragment'>IDL fragment</a>
-              illustrates how related <a class='dfnref' href='#dfn-interface'>interfaces</a>
-              can be grouped together in <a class='dfnref' href='#dfn-module'>modules</a>:
-            </p>
-            <x:codeblock language='idl'>module gfx {
-
-  module geom {
-    interface Shape { <span class='comment'>/* ... */</span> };
-    interface Rectangle : Shape { <span class='comment'>/* ... */</span> };
-    interface Path : Shape { <span class='comment'>/* ... */</span> };
-  };
-
-  interface GraphicsContext {
-    void fillShape(geom::Shape s);
-    void strokeShape(geom::Shape s);
-  };
-};
-
-module gui {
-
-  interface Widget { <span class='comment'>/* ... */</span> };
-
-  interface Window : Widget {
-    gfx::GraphicsContext getGraphicsContext();
-  };
-
-  interface Button : Widget { <span class='comment'>/* ... */</span> };
-};</x:codeblock>
           </div>
         </div>
 
@@ -885,14 +599,15 @@ module gui {
             An interface can be defined to <dfn id='dfn-inherit'>inherit</dfn> from another interface.
             If the identifier of the interface is followed by a
             <span class='char'>U+003A COLON (":")</span> character
-            and a <a class='dfnref' href='#dfn-scoped-name'>scoped name</a>,
-            then that scoped name identifies the inherited interface.  The scoped name
-            <span class='rfc2119'>MUST</span> <a class='dfnref' href='#dfn-resolve'>resolve</a> to
-            a different interface.  An object that implements an interface that inherits from another
+            and an <a class='dfnref' href='#dfn-identifier'>identifier</a>,
+            then that identifier identifies the inherited interface.  That
+            identifier <span class='rfc2119'>MUST NOT</span> be the same as the
+            identifier of the inheriting interface.
+            An object that implements an interface that inherits from another
             also implements that inherited interface.  The object therefore will also
             have members that correspond to the interface members from the inherited interface.
           </p>
-          <pre class='syntax'>interface <i>identifier</i> : <em>scoped-name-of-inherited-interface</em> {
+          <pre class='syntax'>interface <i>identifier</i> : <em>identifier-of-inherited-interface</em> {
   <i>interface-members…</i>
 };</pre>
           <p>
@@ -1012,7 +727,7 @@ public interface B extends A {
             (matching <a class='sym' href='#prod-PartialInterface'>PartialInterface</a>).
             The <a class='dfnref' href='#dfn-identifier'>identifier</a> of a partial
             interface definition <span class='rfc2119'>MUST</span> be the same
-            as the identifier of an interface definition in the same module.  All of
+            as the identifier of an interface definition.  All of
             the members that appear on each of the partial interfaces are considered to be
             members of the interface itself.
           </p>
@@ -1061,15 +776,13 @@ partial interface <em>SomeInterface</em> {
             <a class='xattr' href='#Callback'>[Callback]</a>,
             <a class='xattr' href='#Constructor'>[Constructor]</a>,
             <a class='xattr' href='#ImplicitThis'>[ImplicitThis]</a>,
+            <a class='xattr' href='#JavaPackage'>[JavaPackage]</a>,
             <a class='xattr' href='#NamedConstructor'>[NamedConstructor]</a>,
             <a class='xattr' href='#NoInterfaceObject'>[NoInterfaceObject]</a>,
             <a class='xattr' href='#OverrideBuiltins'>[OverrideBuiltins]</a>,
             <a class='xattr' href='#ReplaceableNamedProperties'>[ReplaceableNamedProperties]</a>.
           </p>
 
-          <!--
-          <?productions grammar Interface PartialInterface Inheritance InterfaceMembers InterfaceMember ScopedNameList ScopedNames?>
-          -->
           <?productions grammar Interface PartialInterface Inheritance InterfaceMembers InterfaceMember?>
 
           <div class='example'>
@@ -1311,9 +1024,9 @@ exception Problem {
               The type of the attribute is given by the type (matching <a class='sym' href='#prod-AttributeType'>AttributeType</a>)
               that appears after the <code>attribute</code> keyword.  This allows for
               any type except <a href='#idl-sequence'>sequence types</a>.
-              If the <a class='sym' href='#prod-AttributeType'>AttributeType</a> is a
-              <a class='dfnref' href='#dfn-scoped-name'>scoped name</a>, then it <span class='rfc2119'>MUST</span>
-              <a class='dfnref' href='#dfn-resolve'>resolve</a> to an interface or <a class='dfnref' href='#dfn-typedef'>typedef</a>.
+              If the <a class='sym' href='#prod-AttributeType'>AttributeType</a> is an
+              <a class='dfnref' href='#dfn-identifier'>identifier</a>, then it <span class='rfc2119'>MUST</span>
+              identify an interface or <a class='dfnref' href='#dfn-typedef'>typedef</a>.
             </p>
             <p>
               The attribute is <dfn id='dfn-read-only'>read only</dfn> if the
@@ -1499,17 +1212,17 @@ interface Person : Animal {
               by the type (matching <a class='sym' href='#prod-ReturnType'>ReturnType</a>)
               that appears before the operation’s optional <a class='dfnref' href='#dfn-identifier'>identifier</a>.
               A return type of <code id='idl-void'>void</code> indicates that the operation returns no value.
-              If the return type is a
-              <a class='dfnref' href='#dfn-scoped-name'>scoped name</a>, then it <span class='rfc2119'>MUST</span>
-              <a class='dfnref' href='#dfn-resolve'>resolve</a> to an interface, dictionary or <a class='dfnref' href='#dfn-typedef'>typedef</a>.
+              If the return type is an
+              <a class='dfnref' href='#dfn-identifier'>identifier</a>, then it <span class='rfc2119'>MUST</span>
+              identify an interface, dictionary or <a class='dfnref' href='#dfn-typedef'>typedef</a>.
             </p>
             <p>
               An operation’s arguments (matching <a class='sym' href='#prod-ArgumentList'>ArgumentList</a>)
               are given between the parentheses in the declaration.  Each individual argument is specified
               as a type (matching <a class='sym' href='#prod-Type'>Type</a>) followed by an <a class='dfnref' href='#dfn-identifier'>identifier</a>
               (given by an <a class='sym' href='#prod-identifier'>identifier</a> token).
-              If the <a class='sym' href='#prod-Type'>Type</a> is a scoped name,
-              then it <span class='rfc2119'>MUST</span> resolve to an interface, <a class='dfnref' href='#dfn-dictionary'>dictionary</a>
+              If the <a class='sym' href='#prod-Type'>Type</a> is an identifier,
+              then it <span class='rfc2119'>MUST</span> identify an interface, <a class='dfnref' href='#dfn-dictionary'>dictionary</a>
               or <a class='dfnref' href='#dfn-typedef'>typedef</a>.
             </p>
             <pre class='syntax'><i>return-type</i> <i>identifier</i>(<i>type</i> <i>identifier</i>, <i>type</i> <i>identifier</i>, …);</pre>
@@ -2984,10 +2697,9 @@ interface C {
 };</pre>
           <p>
             A dictionary can be defined to <dfn id='dfn-inherit-dictionary'>inherit</dfn> from another dictionary.
-            If the identifier of the dictionary is followed by a colon and a <a class='dfnref' href='#dfn-scoped-name'>scoped name</a>,
-            then that scoped name identifies the inherited dictionary.  The scoped name
-            <span class='rfc2119'>MUST</span> <a class='dfnref' href='#dfn-resolve'>resolve</a> to
-            a dictionary.
+            If the identifier of the dictionary is followed by a colon and a <a class='dfnref' href='#dfn-identifier'>identifier</a>,
+            then that identifier identifies the inherited dictionary.  The identifier
+            <span class='rfc2119'>MUST</span> identify a dictionary.
           </p>
           <p>
             A dictionary <span class='rfc2119'>MUST NOT</span> be declared such that
@@ -3028,8 +2740,8 @@ dictionary <i>Derived</i> : <em>Base</em> {
             (given by an <a class='sym' href='#prod-identifier'>identifier</a> token following
             the type).  The identifier is the key name of the key–value pair.
             If the <a class='sym' href='#prod-Type'>Type</a>
-            is a <a class='dfnref' href='#dfn-scoped-name'>scoped name</a>, then it
-            <span class='rfc2119'>MUST</span> <a class='dfnref' href='#dfn-resolve'>resolve</a> to an
+            is an <a class='dfnref' href='#dfn-identifier'>identifier</a>, then it
+            <span class='rfc2119'>MUST</span> identify an
             interface, dictionary or <a class='dfnref' href='#dfn-typedef'>typedef</a>.
           </p>
           <pre class='syntax'>dictionary <i>identifier</i> {
@@ -3182,10 +2894,9 @@ ctx.drawRectangle(300, 200, { fillPattern: "red", position: new Point(10, 10) })
           <p>
             An exception can be defined to <dfn id='dfn-inherit-exception'>inherit</dfn> from another exception.
             If the identifier of the exception is followed by a <span class='char'>U+003A COLON (":")</span>
-            character and a <a class='dfnref' href='#dfn-scoped-name'>scoped name</a>,
-            then that scoped name identifies the inherited exception.  The scoped name
-            <span class='rfc2119'>MUST</span> <a class='dfnref' href='#dfn-resolve'>resolve</a> to
-            an exception.
+            character and a <a class='dfnref' href='#dfn-identifier'>identifier</a>,
+            then that identifier identifies the inherited exception.  The identifier
+            <span class='rfc2119'>MUST</span> identify an exception.
           </p>
           <p>
             An exception <span class='rfc2119'>MUST NOT</span> be declared such that
@@ -3226,8 +2937,8 @@ exception <i>Derived</i> : <em>Base</em> {
             <a class='dfnref' href='#dfn-identifier'>identifier</a>
             (given by an <a class='sym' href='#prod-identifier'>identifier</a> token following
             the type).  If the <a class='sym' href='#prod-Type'>Type</a>
-            is a <a class='dfnref' href='#dfn-scoped-name'>scoped name</a>, then it
-            <span class='rfc2119'>MUST</span> <a class='dfnref' href='#dfn-resolve'>resolve</a> to an
+            is an <a class='dfnref' href='#dfn-identifier'>identifier</a>, then it
+            <span class='rfc2119'>MUST</span> identify an
             interface or <a class='dfnref' href='#dfn-typedef'>typedef</a>.
             Exception fields are
             similar to <a class='dfnref' href='#dfn-attribute'>attributes</a> in that they
@@ -3314,6 +3025,7 @@ exception <i>Derived</i> : <em>Base</em> {
           </div>
           <p>
             The following extended attributes are applicable to exceptions:
+            <a class='xattr' href='#JavaPackage'>[JavaPackage]</a>,
             <a class='xattr' href='#NoInterfaceObject'>[NoInterfaceObject]</a>.
           </p>
           <p>
@@ -3411,9 +3123,7 @@ exception <i>Derived</i> : <em>Base</em> {
           </p>
           <p>
             The <a class='sym' href='#prod-Type'>Type</a> <span class='rfc2119'>MUST NOT</span>
-            be a <a class='dfnref' href='#dfn-scoped-name'>scoped name</a> that
-            <a class='dfnref' href='#dfn-resolve'>resolves</a> to another
-            <a class='dfnref' href='#dfn-typedef'>typedef</a>.
+            be identify another <a class='dfnref' href='#dfn-typedef'>typedef</a>.
           </p>
           <p>
             <a class='dfnref' href='#dfn-extended-attribute'>Extended attributes</a> can be
@@ -3479,41 +3189,18 @@ interface A {
               demonstrates the use of <a class='dfnref' href='#dfn-typedef'>typedefs</a>
               to allow the use of a short
               <a class='dfnref' href='#dfn-identifier'>identifier</a> instead of a long
-              <a class='dfnref' href='#dfn-scoped-name'>scoped name</a> or
               <a href='#idl-sequence'>sequence type</a>.
             </p>
-            <x:codeblock language='idl'><![CDATA[module gfx {
-  module geom {
-    module geom2d {
-
-      interface Point {
-        attribute float x;
-        attribute float y;
-      };
-
-      typedef sequence<Point> PointSequence;
-
-      interface Rect {
-        attribute Point topleft;
-        attribute Point bottomright;
-      };
-    };
-  };
+            <x:codeblock language='idl'><![CDATA[interface Point {
+  attribute float x;
+  attribute float y;
 };
 
-module gui {
+typedef sequence<Point> Points;
 
-  typedef gfx::geom::geom2d::Point Point;
-  typedef gfx::geom::geom2d::PointSequence PointSequence;
-  typedef gfx::geom::geom2d::Rect Rect;
-
-  interface Widget {
-
-    readonly attribute Rect bounds;
-
-    boolean pointWithinBounds(Point p);
-    boolean allPointsWithinBounds(PointSequence ps);
-  };
+interface Widget {
+  boolean pointWithinBounds(Point p);
+  boolean allPointsWithinBounds(Points ps);
 };]]></x:codeblock>
           </div>
         </div>
@@ -3525,12 +3212,12 @@ module gui {
             An <dfn id='dfn-implements-statement'>implements statement</dfn> is a definition
             (matching <a class='sym' href='#prod-ImplementsStatement'>ImplementsStatement</a>)
             used to declare that all objects implementing an interface <var>A</var>
-            (identified by the first <a class='dfnref' href='#dfn-scoped-name'>scoped name</a>)
+            (identified by the first <a class='dfnref' href='#dfn-identifier'>identifier</a>)
             <span class='rfc2119'>MUST</span> additionally implement interface <var>B</var>
-            (identified by the second scoped name), including all other interfaces that
+            (identified by the second identifier), including all other interfaces that
             <var>B</var> inherits from.
           </p>
-          <pre class='syntax'><i>scoped-name-A</i> implements <i>scoped-name-B</i>;</pre>
+          <pre class='syntax'><i>identifier-A</i> implements <i>identifier-B</i>;</pre>
           <p>
             Transitively, if objects implementing <var>B</var>
             are declared with an <a class='dfnref' href='#dfn-implements-statement'>implements statement</a>
@@ -3538,13 +3225,8 @@ module gui {
             <var>A</var> do additionally implement interface <var>C</var>.
           </p>
           <p>
-            <a class='dfnref' href='#dfn-implements-statement'>Implements statements</a>
-            can appear in a <a class='dfnref' href='#dfn-module'>module</a>
-            or at the <a class='dfnref' href='#dfn-outermost-scope'>outermost scope</a>.
-          </p>
-          <p>
-            The two <a class='dfnref' href='#dfn-scoped-name'>scoped names</a> <span class='rfc2119'>MUST</span>
-            <a class='dfnref' href='#dfn-resolve'>resolve</a> to two different interfaces.
+            The two <a class='dfnref' href='#dfn-identifier'>identifiers</a> <span class='rfc2119'>MUST</span>
+            identify two different interfaces.
           </p>
           <p>
             The interface identified on the left-hand side of an implements statement
@@ -3649,23 +3331,16 @@ F implements I;  <span class='comment'>// H::z and I::z would clash when mixed i
               defines two <a class='dfnref' href='#dfn-interface'>interfaces</a>, stating
               that one interface is always implemented on objects implementing the other.
             </p>
-            <x:codeblock language='idl'>module dom {
-  interface Node {
-    readonly attribute unsigned short nodeType;
-    <span class='comment'>// ...</span>
-  };
+            <x:codeblock language='idl'>interface Node {
+  readonly attribute unsigned short nodeType;
+  <span class='comment'>// ...</span>
 };
 
-module events {
-
-  interface EventTarget {
-    void addEventListener(DOMString type,
-                          EventListener listener,
-                          boolean useCapture);
-    <span class='comment'>// ...</span>
-  };
-
-  dom::Node implements EventTarget;
+interface EventTarget {
+  void addEventListener(DOMString type,
+                        EventListener listener,
+                        boolean useCapture);
+  <span class='comment'>// ...</span>
 };</x:codeblock>
             <p>
               An ECMAScript implementation would thus have an “addEventListener”
@@ -4217,9 +3892,8 @@ interface Person {
             <h4>Interface types</h4>
 
             <p>
-              A <a class='dfnref' href='#dfn-scoped-name'>scoped name</a> that
-              <a class='dfnref' href='#dfn-resolve'>resolves</a> to an
-              <a class='dfnref' href='#dfn-interface'>interface</a> is used to refer to
+              An <a class='dfnref' href='#dfn-identifier'>identifier</a> that
+              identifies an <a class='dfnref' href='#dfn-interface'>interface</a> is used to refer to
               a type that corresponds to the set of all possible non-null references to objects that
               implement that interface.
             </p>
@@ -4242,9 +3916,8 @@ interface Person {
             <h4>Dictionary types</h4>
 
             <p>
-              A <a class='dfnref' href='#dfn-scoped-name'>scoped name</a> that
-              <a class='dfnref' href='#dfn-resolve'>resolves</a> to a
-              <a class='dfnref' href='#dfn-dictionary'>dictionary</a> is used to refer to
+              An <a class='dfnref' href='#dfn-identifier'>identifier</a> that
+              identifies a <a class='dfnref' href='#dfn-dictionary'>dictionary</a> is used to refer to
               a type that corresponds to the set of all dictionaries that adhere to
               the dictionary definition.
             </p>
@@ -4494,13 +4167,13 @@ interface Person {
             </tr>
             <tr>
               <td>
-                <a class='sym' href='#prod-ExtendedAttributeScopedName'>ExtendedAttributeScopedName</a>
+                <a class='sym' href='#prod-ExtendedAttributeDottedName'>ExtendedAttributeDottedName</a>
               </td>
               <td>
-                <dfn id='dfn-xattr-scoped-name'>takes a scoped name</dfn>
+                <dfn id='dfn-xattr-dotted-name'>takes a dotted name</dfn>
               </td>
               <td>
-                <code>[Prefix=org::example]</code>
+                <code>[JavaPackage=org.example]</code>
               </td>
             </tr>
           </table>
@@ -4512,14 +4185,12 @@ interface Person {
             specific extended attributes are defined in
             <a href='#es-extended-attributes'>section <?sref es-extended-attributes?></a>.
             Each extended attribute definition will state which of the above
-            five forms are allowed.  Although
-            <a class='sym' href='#prod-ExtendedAttributeIdent'>ExtendedAttributeIdent</a> and
-            <a class='sym' href='#prod-ExtendedAttributeScopedName'>ExtendedAttributeScopedName</a>
-            are ambiguous, no extended attribute defined in this document
-            takes both of those forms.
+            five forms are allowed.  Although <a class='sym' href='#prod-ExtendedAttributeIdent'>ExtendedAttributeIdent</a>
+            and <a class='sym' href='#prod-ExtendedAttributeDottedName'>ExtendedAttributeDottedName</a>
+            are ambiguous, no extended attribute defined in this document takes both of those forms.
           </p>
 
-          <?productions grammar ExtendedAttributeList ExtendedAttribute ExtendedAttributes ExtendedAttributeRest ExtendedAttributeInner Other OtherOrComma ExtendedAttributeNoArgs ExtendedAttributeArgList ExtendedAttributeIdent ExtendedAttributeScopedName ExtendedAttributeNamedArgList?>
+          <?productions grammar ExtendedAttributeList ExtendedAttribute ExtendedAttributes ExtendedAttributeRest ExtendedAttributeInner Other OtherOrComma ExtendedAttributeNoArgs ExtendedAttributeArgList ExtendedAttributeIdent ExtendedAttributeNamedArgList ExtendedAttributeDottedName?>
 
           <!--
           <div id='ExceptionConsts' class='section'>
@@ -4817,32 +4488,6 @@ var newNode = {
 node.appendChild(newNode);  <span class='comment'>// This will throw a TypeError exception.</span></x:codeblock>
             </div>
           </div>
-
-          <div id='Prefix' class='section'>
-            <h4>[Prefix]</h4>
-
-            <p>
-              If the <a class='xattr' href='#Prefix'>[Prefix]</a>
-              <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
-              appears on a <a class='dfnref' href='#dfn-module'>module</a>,
-              it affects the name of the language binding specific namespacing
-              construct the module will correspond to.  See the definition of a module’s
-              <a class='dfnref' href='#dfn-prefixed-name'>prefixed name</a> for
-              details.
-            </p>
-            <p>
-              The <a class='xattr' href='#Prefix'>[Prefix]</a>
-              <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
-              <span class='rfc2119'>MUST</span> <a class='dfnref' href='#dfn-xattr-scoped-name'>take a scoped name</a>.
-            </p>
-
-            <div class='example'>
-              <p>
-                See <a href='#java-modules'>section <?sref java-modules?></a> for an
-                example of the use of <a class='xattr' href='#Prefix'>[Prefix]</a>.
-              </p>
-            </div>
-          </div>
         </div>
       </div>
 
@@ -4908,7 +4553,6 @@ node.appendChild(newNode);  <span class='comment'>// This will throw a TypeError
             and comprise the following:
           </p>
           <ul>
-            <li><a class='dfnref' href='#dfn-namespace-object'>namespace objects</a></li>
             <li><a class='dfnref' href='#dfn-interface-object'>interface objects</a></li>
             <li><a class='dfnref' href='#dfn-named-constructor'>named constructors</a></li>
             <li><a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype objects</a></li>
@@ -4953,6 +4597,22 @@ iframe instanceof w.Object;                <span class='comment'>// Evaluates to
 iframe.appendChild instanceof Function;    <span class='comment'>// Evaluates to true</span>
 iframe.appendChild instanceof w.Function;  <span class='comment'>// Evaluates to false</span>
 &lt;/script></x:codeblock>
+          </div>
+          <p>
+            Unless otherwise specified, each ECMAScript global environment <dfn id='dfn-expose'>exposes</dfn>
+            all <a class='dfnref' href='#dfn-interface'>interfaces</a> and <a class='dfnref' href='#dfn-exception'>exceptions</a>
+            that the implementation supports.  If a given ECMAScript global environment does not
+            expose an interface or exception, then the requirements given in
+            <a href='#es-interfaces'>section <?sref es-interfaces?></a> and
+            <a href='#es-exceptions'>section <?sref es-exceptions?></a> are
+            not followed for that interface or exception.
+          </p>
+          <div class='note'>
+            <p>
+              This allows, for example, ECMAScript global environments for Web Workers to <a class='dfnref' href='#dfn-expose'>expose</a>
+              different sets of supported interfaces from those exposed in environments
+              for Web pages.
+            </p>
           </div>
         </div>
 
@@ -7104,8 +6764,7 @@ Example.prototype.y;</x:codeblock>
               If the <a class='xattr' href='#NamedConstructor'>[NamedConstructor]</a>
               <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
               appears on an <a class='dfnref' href='#dfn-interface'>interface</a>,
-              it indicates that the <a class='dfnref' href='#dfn-relevant-namespace-object'>relevant namespace object</a>
-              for the interface (often, the ECMAScript global object) will have a property with the
+              it indicates that the ECMAScript global object will have a property with the
               specified name whose value is a constructor function that can
               create objects that implement the interface.
               Multiple <a class='xattr' href='#NamedConstructor'>[NamedConstructor]</a> extended
@@ -7163,84 +6822,6 @@ var a1 = new Audio();           <span class='comment'>// Creates a new object th
 
 var a2 = new Audio('a.flac');   <span class='comment'>// Creates an HTMLAudioElement using the</span>
                                 <span class='comment'>// one-argument constructor.</span></x:codeblock>
-            </div>
-          </div>
-
-          <div id='NamespaceObject' class='section'>
-            <h4>[NamespaceObject]</h4>
-            <p>
-              If the <a class='xattr' href='#NamespaceObject'>[NamespaceObject]</a>
-              <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
-              appears on a <a class='dfnref' href='#dfn-module'>module</a>,
-              it indicates that the hierarchy of that module and its descendant
-              modules will be reflected as <a class='dfnref' href='#dfn-namespace-object'>namespace objects</a>.
-              <a class='dfnref' href='#dfn-interface-object'>Interface objects</a> and
-              <a class='dfnref' href='#dfn-exception-interface-object'>exception interface objects</a>
-              for <a class='dfnref' href='#dfn-interface'>interfaces</a> and
-              <a class='dfnref' href='#dfn-exception'>exceptions</a> defined in
-              a module annotated with <a class='xattr' href='#NamespaceObject'>[NamespaceObject]</a>
-              (or in a descendant of such a module) will be placed on
-              a namespace object instead of the ECMAScript global object.
-            </p>
-            <p>
-              The <a class='xattr' href='#NamespaceObject'>[NamespaceObject]</a>
-              extended attribute <span class='rfc2119'>MUST</span>
-              <a class='dfnref' href='#dfn-xattr-no-arguments'>take no arguments</a>.
-            </p>
-            <p>
-              The <a class='xattr' href='#NamespaceObject'>[NamespaceObject]</a>
-              extended attribute <span class='rfc2119'>MUST NOT</span> be
-              specified on a module if is specified on one of its ancestor modules.
-            </p>
-            <p>
-              See <a href='#es-modules'>section <?sref es-modules?></a>
-              for the specific requirements that the use of
-              <a class='xattr' href='#NamespaceObject'>[NamespaceObject]</a> entails.
-            </p>
-            <div class='example'>
-              <p>
-                The following <a class='dfnref' href='#dfn-idl-fragment'>IDL fragment</a>
-                defines a <a class='dfnref' href='#dfn-module'>module</a> hierarchy
-                where one of the modules is declared with the
-                <a class='xattr' href='#NamespaceObject'>[NamespaceObject]</a>
-                <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>.
-              </p>
-              <x:codeblock language='idl'>[NamespaceObject]
-module acme {
-  
-  exception DeviceException { };
-
-  module pim {
-
-    [Constructor]
-    interface Contact { };
-
-    [Constructor,
-     NamedConstructor=RecurringEvent(long freq)]
-    interface CalendarEvent { };
-  };
-};</x:codeblock>
-              <p>
-                In an ECMAScript implementation, there would exist
-                <a class='dfnref' href='#dfn-namespace-object'>namespace objects</a>
-                for the <span class='idltype'>acme</span> and <span class='idltype'>pim</span>
-                <a class='dfnref' href='#dfn-module'>modules</a>.  The property
-                for the <span class='idltype'>Device</span>
-                <a class='dfnref' href='#dfn-exception-interface-object'>exception interface object</a>
-                would be on the <span class='idltype'>acme</span> namespace object
-                and the properties for the <span class='idltype'>Contact</span>
-                and <span class='idltype'>CalendarEvent</span>
-                <a class='dfnref' href='#dfn-interface-object'>interface objects</a>
-                would be on the <span class='idltype'>pim</span> namespace object.
-              </p>
-              <x:codeblock language='es'>acme;                             <span class='comment'>// A namespace object.</span>
-acme.pim;                         <span class='comment'>// Another namespace object.</span>
-
-acme.DeviceException;             <span class='comment'>// An exception interface object.</span>
-acme.pim.Contact;                 <span class='comment'>// An interface object.</span>
-
-new acme.pim.Contact();           <span class='comment'>// Creates an object implementing acme::pim::Contact.</span>
-new acme.pim.RecurringEvent(10);  <span class='comment'>// Creates an object implementing acme::pim::CalendarEvent.</span></x:codeblock>
             </div>
           </div>
 
@@ -8055,55 +7636,6 @@ system.loginTime;  <span class='comment'>// So this now evaluates to forgedLogin
           </div>
         </div>
 
-        <div id='es-modules' class='section'>
-          <h3>Modules</h3>
-
-          <p>
-            The hierarchy of <a class='dfnref' href='#dfn-module'>modules</a> in
-            an <a class='dfnref' href='#dfn-idl-fragment'>IDL fragment</a> can,
-            but need not be, reflected in an ECMAScript implementation.  Whether
-            a module hierarchy is reflected or not depends on the use of the
-            <a class='xattr' href='#NamespaceObject'>[NamespaceObject]</a>
-            <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>.
-          </p>
-          <p>
-            For every module that is declared with the
-            <a class='xattr' href='#NamespaceObject'>[NamespaceObject]</a> extended attribute,
-            and for every module that has an ancestor module declared with the
-            <a class='xattr' href='#NamespaceObject'>[NamespaceObject]</a> extended attribute,
-            there exists a unique <dfn id='dfn-namespace-object'>namespace object</dfn>, which
-            provides access to the <a class='dfnref' href='#dfn-interface-object'>interface objects</a>
-            and <a class='dfnref' href='#dfn-exception-interface-object'>exception interface objects</a>
-            for the <a class='dfnref' href='#dfn-interface'>interfaces</a> and
-            <a class='dfnref' href='#dfn-exception'>exceptions</a> declared in
-            the module.
-          </p>
-          <p>
-            The <dfn id='dfn-relevant-namespace-object'>relevant namespace object</dfn>
-            for a module, interface or exception <var>A</var> is determined as follows:
-          </p>
-          <ul>
-            <li>
-              If <var>A</var> has an <a class='dfnref' href='#dfn-enclosing-module'>enclosing module</a>
-              and that module has a <a class='dfnref' href='#dfn-namespace-object'>namespace object</a>,
-              than that namespace object is <var>A</var>’s
-              <a class='dfnref' href='#dfn-relevant-namespace-object'>relevant namespace object</a>.
-            </li>
-            <li>
-              Otherwise, <var>A</var>’s relevant namespace object is the ECMAScript global object.
-            </li>
-          </ul>
-          <p>
-            For every <a class='dfnref' href='#dfn-module'>module</a> that has a
-            <a class='dfnref' href='#dfn-namespace-object'>namespace object</a>,
-            a corresponding property <span class='rfc2119'>MUST</span> exist on
-            the <a class='dfnref' href='#dfn-relevant-namespace-object'>relevant namespace object</a> for
-            the module.  The name of the property is the <a class='dfnref' href='#dfn-identifier'>identifier</a>
-            of the module, its value is the <a class='dfnref' href='#dfn-namespace-object'>namespace object</a> for the module,
-            and the property has the attributes <span class='descriptor'>{ [[Writable]]: <span class='esvalue'>true</span>, [[Enumerable]]: <span class='esvalue'>true</span>, [[Configurable]]: <span class='esvalue'>true</span> }</span>.
-          </p>
-        </div>
-
         <div id='es-interfaces' class='section'>
           <h3>Interfaces</h3>
 
@@ -8112,7 +7644,7 @@ system.loginTime;  <span class='comment'>// So this now evaluates to forgedLogin
             <a class='xattr' href='#NoInterfaceObject'>[NoInterfaceObject]</a>
             <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>,
             a corresponding property <span class='rfc2119'>MUST</span> exist on the
-            interface’s <a class='dfnref' href='#dfn-relevant-namespace-object'>relevant namespace object</a>.
+            ECMAScript global object.
             The name of the property is the <a class='dfnref' href='#dfn-identifier'>identifier</a> of the interface,
             and its value is an object called the
             <dfn id='dfn-interface-object'>interface object</dfn>.
@@ -8124,8 +7656,7 @@ system.loginTime;  <span class='comment'>// So this now evaluates to forgedLogin
           <p>
             In addition, for every <a class='xattr' href='#NamedConstructor'>[NamedConstructor]</a>
             extended attribute on an interface, a corresponding property <span class='rfc2119'>MUST</span>
-            exist on the interface’s <a class='dfnref' href='#dfn-relevant-namespace-object'>relevant namespace object</a>.
-            The name of the property is the
+            exist on the ECMAScript global object.  The name of the property is the
             <a class='sym' href='#prod-identifier'>identifier</a> that occurs directly after the
             “<span class='sym'>=</span>”, and its value is an object called a
             <dfn id='dfn-named-constructor'>named constructor</dfn>, which allows
@@ -9741,7 +9272,7 @@ interface
             <a class='xattr' href='#NoInterfaceObject'>[NoInterfaceObject]</a>
             <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>,
             a corresponding property <span class='rfc2119'>MUST</span> exist on the 
-            exception’s <a class='dfnref' href='#dfn-relevant-namespace-object'>relevant namespace object</a>.
+            ECMAScript global object.
             The name of the property is the <a class='dfnref' href='#dfn-identifier'>identifier</a> of the exception,
             and its value is an object called the
             <dfn id='dfn-exception-interface-object'>exception interface object</dfn>,
@@ -10205,62 +9736,62 @@ d.type = et;
               is simply the name.
             </li>
           </ul>
-        </div>
 
-        <div class='note'>
-          <p>
-            At the time of publication, the list of Java reserved words is the following:
-            <code>abstract</code>,
-            <code>assert</code>,
-            <code>boolean</code>,
-            <code>break</code>,
-            <code>byte</code>,
-            <code>case</code>,
-            <code>catch</code>,
-            <code>char</code>,
-            <code>class</code>,
-            <code>const</code>,
-            <code>continue</code>,
-            <code>default</code>,
-            <code>do</code>,
-            <code>double</code>,
-            <code>else</code>,
-            <code>enum</code>,
-            <code>extends</code>,
-            <code>final</code>,
-            <code>finally</code>,
-            <code>float</code>,
-            <code>for</code>,
-            <code>goto</code>,
-            <code>if</code>,
-            <code>implements</code>,
-            <code>import</code>,
-            <code>instanceof</code>,
-            <code>int</code>,
-            <code>interface</code>,
-            <code>long</code>,
-            <code>native</code>,
-            <code>new</code>,
-            <code>package</code>,
-            <code>private</code>,
-            <code>protected</code>,
-            <code>public</code>,
-            <code>return</code>,
-            <code>short</code>,
-            <code>static</code>,
-            <code>strictfp</code>,
-            <code>super</code>,
-            <code>switch</code>,
-            <code>synchronized</code>,
-            <code>this</code>,
-            <code>throw</code>,
-            <code>throws</code>,
-            <code>transient</code>,
-            <code>try</code>,
-            <code>void</code>,
-            <code>volatile</code>,
-            <code>while</code>.
-          </p>
+          <div class='note'>
+            <p>
+              At the time of publication, the list of Java reserved words is the following:
+              <code>abstract</code>,
+              <code>assert</code>,
+              <code>boolean</code>,
+              <code>break</code>,
+              <code>byte</code>,
+              <code>case</code>,
+              <code>catch</code>,
+              <code>char</code>,
+              <code>class</code>,
+              <code>const</code>,
+              <code>continue</code>,
+              <code>default</code>,
+              <code>do</code>,
+              <code>double</code>,
+              <code>else</code>,
+              <code>enum</code>,
+              <code>extends</code>,
+              <code>final</code>,
+              <code>finally</code>,
+              <code>float</code>,
+              <code>for</code>,
+              <code>goto</code>,
+              <code>if</code>,
+              <code>implements</code>,
+              <code>import</code>,
+              <code>instanceof</code>,
+              <code>int</code>,
+              <code>interface</code>,
+              <code>long</code>,
+              <code>native</code>,
+              <code>new</code>,
+              <code>package</code>,
+              <code>private</code>,
+              <code>protected</code>,
+              <code>public</code>,
+              <code>return</code>,
+              <code>short</code>,
+              <code>static</code>,
+              <code>strictfp</code>,
+              <code>super</code>,
+              <code>switch</code>,
+              <code>synchronized</code>,
+              <code>this</code>,
+              <code>throw</code>,
+              <code>throws</code>,
+              <code>transient</code>,
+              <code>try</code>,
+              <code>void</code>,
+              <code>volatile</code>,
+              <code>while</code>.
+            </p>
+          </div>
         </div>
 
         <div id='java-type-mapping' class='section'>
@@ -11396,7 +10927,7 @@ public interface ObjectArray&lt;E&gt; {
           </div>
 
           <div id='java-Date' class='section'>
-            <h3>Date</h3>
+            <h4>Date</h4>
 
             <p>
               IDL <a class='idltype' href='#idl-Date'>Date</a> values are
@@ -11428,67 +10959,52 @@ public interface ObjectArray&lt;E&gt; {
           </div>
         </div>
 
-        <div id='java-modules' class='section'>
-          <h3>Modules</h3>
-
-          <p>
-            Every IDL <a class='dfnref' href='#dfn-module'>module</a> corresponds to a Java package,
-            whose name is the result of taking the module’s
-            <a class='dfnref' href='#dfn-prefixed-name'>prefixed name</a>, replacing every
-            <a class='dfnref' href='#dfn-double-colon'>double colon</a> with “.”, and then removing the leading “.”.
-          </p>
-          <p>
-            Definitions inside an IDL <a class='dfnref' href='#dfn-module'>module</a>
-            correspond to Java constructs declared to be in the package for
-            that module.
-          </p>
-          <div class='example'>
-            <p>
-              The following <a class='dfnref' href='#dfn-idl-fragment'>IDL fragment</a>
-              will result in four Java interfaces existing:
-              <span class='javatype'>org.w3c.dom.Document</span>,
-              <span class='javatype'>org.w3c.dom.html.HTMLDocument</span>,
-              <span class='javatype'>org.foo.FooDocument</span> and
-              <span class='javatype'>org.foo.ext.ExtendedFooDocument</span>.
-            </p>
-            <x:codeblock language='idl'>module dom {
-  interface Document {
-    <span class='comment'>// ...</span>
-  };
-};
-
-module html {
-  interface HTMLDocument {
-    <span class='comment'>// ...</span>
-  };
-};
-
-[Prefix=org]
-module foo {
-  interface FooDocument {
-    <span class='comment'>// ...</span>
-  };
-
-  module ext {
-    interface ExtendedFooDocument {
-      <span class='comment'>// ...</span>
-    };
-  };
-};</x:codeblock>
-          </div>
-        </div>
-
-        <!--
         <div id='java-extended-attributes' class='section'>
           <h3>Java-specific extended attributes</h3>
 
-          <p>
-            This section defines a single
-            <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
-            whose presence affects only the Java binding.
-          </p>
+          <div id='JavaPackage' class='section'>
+            <h4>[JavaPackage]</h4>
+
+            <p>
+              This section defines a number of
+              <a class='dfnref' href='#dfn-extended-attribute'>extended attributes</a>
+              whose presence affects only the ECMAScript binding.
+            </p>
+
+            <p>
+              If the <a class='xattr' href='#JavaPackage'>[JavaPackage]</a>
+              <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
+              appears on an <a class='dfnref' href='#dfn-interface'>interface</a> or
+              <a class='dfnref' href='#dfn-exception'>exception</a>,
+              it specifies that the corresponding Java interface or class <span class='rfc2119'>MUST</span>
+              be placed in the package identified.  When <a class='xattr' href='#JavaPackage'>[JavaPackage]</a>
+              is not used, the Java interface or class <span class='rfc2119'>MUST</span> be placed
+              in the <code>org.w3c.dom</code> package.
+            </p>
+            <p>
+              The <a class='xattr' href='#JavaPackage'>[JavaPackage]</a>
+              <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
+              <span class='rfc2119'>MUST</span> <a class='dfnref' href='#dfn-xattr-dotted-name'>take a dotted name</a>,
+              which is the identified Java package.
+            </p>
+            <p>
+              Interfaces defined for the Web platform <span class='rfc2119'>SHOULD NOT</span>
+              use <a class='xattr' href='#JavaPackage'>[JavaPackage]</a> unless required for
+              compatibility.
+            </p>
+
+            <div class='example'>
+              <p>
+                The following <a class='dfnref' href='#dfn-idl-fragment'>IDL fragment</a> defines
+                an IDL <a class='dfnref' href='#dfn-interface'>interface</a> whose corresponding
+                Java interface will not be in the <code>org.w3c.dom</code> package.
+              </p>
+              <x:codeblock language='idl'>[JavaPackage=org.example]
+interface Something {
+};</x:codeblock>
+            </div>
+          </div>
         </div>
-        -->
 
         <div id='java-interfaces' class='section'>
           <h3>Interfaces</h3>
@@ -11497,10 +11013,7 @@ module foo {
             For every supported IDL <a class='dfnref' href='#dfn-interface'>interface</a>,
             there <span class='rfc2119'>MUST</span> exist a corresponding public Java interface
             whose name is the <a class='dfnref' href='#dfn-java-escaped'>Java escaped</a>
-            <a class='dfnref' href='#dfn-identifier'>identifier</a> of the IDL interface
-            and which resides in the Java package corresponding to the interface’s
-            <a class='dfnref' href='#dfn-enclosing-module'>enclosing module</a>
-            (or the default package, if there is no enclosing module).
+            <a class='dfnref' href='#dfn-identifier'>identifier</a> of the IDL interface.
           </p>
           <p>
             The Java interface for an interface <var>A</var> <span class='rfc2119'>MUST</span> be declared to extend the following
@@ -11516,9 +11029,8 @@ module foo {
           <p>
             If the IDL interface has one or more <a class='dfnref' href='#dfn-static-operation'>static operations</a>
             declared on it, then there <span class='rfc2119'>MUST</span> also exist
-            a public, abstract Java class, which also resides in the Java
-            package corresponding to the interface’s enclosing module
-            (or the default package, if there is no enclosing module).
+            a public, abstract Java class, which resides in the same Java
+            package as the interface.
             This class is known as the <dfn id='dfn-utility-class'>utility class</dfn>
             for the IDL interface, and provides access to the static operations.
             The name of the Java class is the concatenation
@@ -12009,9 +11521,7 @@ class DerivedImpl2 extends DerivedImpl1 { }</x:codeblock>
             For every IDL <a class='dfnref' href='#dfn-exception'>exception</a>, there
             <span class='rfc2119'>MUST</span> exist a corresponding Java class
             whose name is the <a class='dfnref' href='#dfn-java-escaped'>Java escaped</a>
-            <a class='dfnref' href='#dfn-identifier'>identifier</a> of the IDL exception and which
-            resides in the Java package corresponding to the exception’s
-            <a class='dfnref' href='#dfn-enclosing-module'>enclosing module</a>.
+            <a class='dfnref' href='#dfn-identifier'>identifier</a> of the IDL exception.
           </p>
           <p>
             The Java class <span class='rfc2119'>MUST</span> have only the <code>public</code> modifier.
@@ -12383,11 +11893,10 @@ public <var>ExceptionName</var>(Throwable cause) {
         <grammar id='grammar' xmlns='http://mcc.id.au/ns/local'>
           <prod nt='Definitions'>Definition Definitions | ε</prod>
           <prod nt='Definition'>ExtendedAttributeList NormalDefinition | PartialInterface</prod>
-          <prod nt='NormalDefinition'>Module | Interface | Dictionary | Exception | Typedef | ImplementsStatement</prod>
-          <prod nt='Module'>"module" identifier "{" Definitions "}" ";"</prod>
+          <prod nt='NormalDefinition'>Interface | Dictionary | Exception | Typedef | ImplementsStatement</prod>
           <prod nt='Interface'>"interface" identifier Inheritance "{" InterfaceMembers "}" ";"</prod>
           <prod nt='PartialInterface'>"partial" "interface" identifier "{" InterfaceMembers "}" ";"</prod>
-          <prod nt='Inheritance'>":" ScopedName | ε</prod>
+          <prod nt='Inheritance'>":" identifier | ε</prod>
           <prod nt='InterfaceMembers'>ExtendedAttributeList InterfaceMember InterfaceMembers | ε</prod>
           <prod nt='InterfaceMember'>Const | AttributeOrOperation</prod>
           <prod nt='Dictionary'>"dictionary" identifier Inheritance "{" DictionaryMembers "}" ";"</prod>
@@ -12397,7 +11906,7 @@ public <var>ExceptionName</var>(Throwable cause) {
           <prod nt='Exception'>"exception" identifier Inheritance "{" ExceptionMembers "}" ";"</prod>
           <prod nt='ExceptionMembers'>ExtendedAttributeList ExceptionMember ExceptionMembers | ε</prod>
           <prod nt='Typedef'>"typedef" ExtendedAttributeList Type identifier ";"</prod>
-          <prod nt='ImplementsStatement'>ScopedName "implements" ScopedName ";"</prod>
+          <prod nt='ImplementsStatement'>identifier "implements" identifier ";"</prod>
           <prod nt='Const'>"const" ConstType identifier "=" ConstValue ";"</prod>
           <prod nt='ConstValue'>BooleanLiteral | integer | float | string | "null"</prod>
           <prod nt='BooleanLiteral'>"true" | "false"</prod>
@@ -12455,11 +11964,11 @@ public <var>ExceptionName</var>(Throwable cause) {
           </prod>
           <prod nt='Other'>
               integer | float | identifier | string <!--| whitespace--> | other
-            | "..." | ":" | "::" | ";" | "&lt;" | "=" | ">" | "?"
+            | "." | "..." | ":" | ";" | "&lt;" | "=" | ">" | "?"
             | "Date" | "DOMString" | "any" | "attribute" | "boolean" | "byte"
             | "legacycaller" | "const" | "creator" | "deleter" | "double"
             | "exception" | "false" | "float" | "getter" | "implements"
-            | "inherit" | "interface" | "long" | "module" | "null" | "object" | "octet"
+            | "inherit" | "interface" | "long" | "null" | "object" | "octet"
             <!--| "omittable" -->| "optional" | "sequence"
             | "setter" | "short" | "static" | "stringifier" | "true" | "typedef"
             | "unsigned" | "void"
@@ -12468,7 +11977,7 @@ public <var>ExceptionName</var>(Throwable cause) {
 
           <prod nt='Type'>AttributeType | SequenceType</prod>
           <prod nt='SequenceType'>"sequence" "&lt;" Type ">" Null</prod>
-          <prod nt='AttributeType'>PrimitiveOrStringType TypeSuffix | ScopedName TypeSuffix | "object" TypeSuffix | "Date" TypeSuffix | "any" TypeSuffixStartingWithArray</prod>
+          <prod nt='AttributeType'>PrimitiveOrStringType TypeSuffix | identifier TypeSuffix | "object" TypeSuffix | "Date" TypeSuffix | "any" TypeSuffixStartingWithArray</prod>
           <prod nt='ConstType'>PrimitiveOrStringType Null</prod>
           <prod nt='PrimitiveOrStringType'>UnsignedIntegerType | "boolean" | "byte" | "octet" | "float" | "double" | "DOMString"</prod>
           <prod nt='UnsignedIntegerType'>"unsigned" IntegerType | IntegerType</prod>
@@ -12478,28 +11987,21 @@ public <var>ExceptionName</var>(Throwable cause) {
           <prod nt='TypeSuffixStartingWithArray'>"[" "]" TypeSuffix | ε</prod>
           <prod nt='Null'>"?" | ε</prod>
           <prod nt='ReturnType'>Type | "void"</prod>
-          <!--
-          <prod nt='ScopedNameList'>ScopedName ScopedNames</prod>
-          <prod nt='ScopedNames'>"," ScopedName ScopedNames | ε</prod>
-          -->
-          <prod nt='ScopedName'>AbsoluteScopedName | RelativeScopedName</prod>
-          <prod nt='AbsoluteScopedName'>"::" identifier ScopedNameParts</prod>
-          <prod nt='RelativeScopedName'>identifier ScopedNameParts</prod>
-          <prod nt='ScopedNameParts'>"::" identifier ScopedNameParts | ε</prod>
 
           <!--prod nt='IdentifierList'>identifier Identifiers</prod>
           <prod nt='Identifiers'>"," identifier Identifiers | ε</prod-->
 
-          <!-- These five productions aren't referenced from any of the
+          <!-- These six productions aren't referenced from any of the
                other productions; they're just mentioned from the
                #idl-extended-attributes section. -->
           <prod nt='ExtendedAttributeNoArgs'>identifier</prod>
           <prod nt='ExtendedAttributeArgList'>identifier "(" ArgumentList ")"</prod>
           <prod nt='ExtendedAttributeIdent'>identifier "=" identifier</prod>
-          <prod nt='ExtendedAttributeScopedName'>identifier "=" ScopedName</prod>
           <prod nt='ExtendedAttributeNamedArgList'>identifier "=" identifier "(" ArgumentList ")"</prod>
+          <prod nt='ExtendedAttributeDottedName'>identifier DottedNameParts</prod>
+          <prod nt='DottedNameParts'>"." identifier DottedNameParts | ε</prod>
 
-          <!--prod nt='Keyword'>"any" | "attribute" | "boolean" | "byte" | "const" | "double" | "exception" | "float" | "getraises" | "in" | "interface" | "long" | "module" | "Object" | "octet" | "raises" | "readonly" | "sequence" | "setraises" | "short" | "typedef" | "unsigned | "void"</prod-->
+          <!--prod nt='Keyword'>"any" | "attribute" | "boolean" | "byte" | "const" | "double" | "exception" | "float" | "getraises" | "in" | "interface" | "long" | "Object" | "octet" | "raises" | "readonly" | "sequence" | "setraises" | "short" | "typedef" | "unsigned | "void"</prod-->
           <!-- the following are the remaining OMG IDL 3 keywords:
           "abstract" |
           "case" |
@@ -12647,6 +12149,24 @@ public <var>ExceptionName</var>(Throwable cause) {
           <dt>Current editor’s draft</dt>
           <dd>
             <ul>
+              <li>
+                <p>
+                  Allowed specifications to state that certain interfaces or exceptions
+                  are not to be exposed by particular ECMAScript global environments.
+                </p>
+              </li>
+              <li>
+                <p>
+                  Changed the <span class='xattr'>[Prefix]</span> extended attribute to
+                  <span class='xattr'>[JavaPrefix]</span> and moved it to be in the Java
+                  language binding.  It now takes a dotted name instead of a scoped name.
+                </p>
+              </li>
+              <li>
+                <p>
+                  Removed modules and <span class='xattr'>[NamespaceObject]</span>.
+                </p>
+              </li>
               <li>
                 <p>
                   Allowed extended attributes to be specified as part of a typedef, so that
