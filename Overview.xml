@@ -15,7 +15,7 @@
   <head>
     <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'/>
     <title>Web IDL</title>
-    <meta name='revision' content='$Id: Overview.xml,v 1.415 2011-12-09 04:55:48 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: Overview.xml,v 1.416 2011-12-12 00:54:07 cmccorma Exp $'/>
     <link rel='stylesheet' href='WebIDL.css' type='text/css'/>
     <script src='section-links.js' type='application/ecmascript'/>
     <script src='dfn.js' type='application/ecmascript'/>
@@ -3412,16 +3412,66 @@ exception <i>Derived</i> : <em>Base</em> {
           <p>
             The <a class='sym' href='#prod-Type'>Type</a> <span class='rfc2119'>MUST NOT</span>
             be a <a class='dfnref' href='#dfn-scoped-name'>scoped name</a> that
-            <a class='dfnref' href='#dfn-resolve'>resolves</a> to an
-            <a class='dfnref' href='#dfn-interface'>interface</a> or
-            <a class='dfnref' href='#dfn-dictionary'>dictionary</a>.
+            <a class='dfnref' href='#dfn-resolve'>resolves</a> to another
+            <a class='dfnref' href='#dfn-typedef'>typedef</a>.
+          </p>
+          <p>
+            <a class='dfnref' href='#dfn-extended-attribute'>Extended attributes</a> can be
+            given directly after the <code>typedef</code> keyword, and any such
+            extended attributes will be taken to apply to constructs that
+            use the typedef.
+          </p>
+          <pre class='syntax'>typedef [<em>extended-attributes</em>] <i>type</i> <i>identifier</i>;</pre>
+          <p>
+            A <a class='dfnref' href='#dfn-typedef'>typedef</a> <span class='rfc2119'>MUST NOT</span>
+            be used as the type of a construct if an <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
+            that appears after the <code>typedef</code> keyword would be disallowed from appearing
+            directly on that construct.
+          </p>
+          <div class='note'>
+            <p>
+              That means you can write:
+            </p>
+            <x:codeblock language='idl'>typedef [Clamp] octet Value;
+
+interface A {
+  void setColor(Value r, Value g, Value b);
+};</x:codeblock>
+            <p>
+              as a shorthand for:
+            </p>
+            <x:codeblock language='idl'>interface A {
+  void setColor([Clamp] octet r, [Clamp] octet g, [Clamp] octet b);
+};</x:codeblock>
+            <p>
+              but it would be invalid to write either of the following
+              two <a class='dfnref' href='#dfn-operation'>operations</a>:
+            </p>
+            <x:codeblock language='idl'>interface A {
+  Value getRedComponent();
+  void setRedComponent([EnforceRange] Value r);
+};</x:codeblock>
+            <p>
+              since <a class='xattr' href='#Clamp'>[Clamp]</a> cannot be used on
+              an <a class='dfnref' href='#dfn-return-type'>operation return value</a>
+              and it also cannot be used in conjunction with <a class='xattr' href='#EnforceRange'>[EnforceRange]</a>.
+            </p>
+          </div>
+          <p>
+            Any <a class='dfnref' href='#dfn-extended-attribute'>extended attributes</a> that apply
+            to a construct due to their appearing on a referenced <a class='dfnref' href='#dfn-typedef'>typedef</a>
+            are considered to appear after those that are specified explicitly on the construct, although note that
+            none of the <a class='dfnref' href='#dfn-extended-attribute'>extended attributes</a> defined in
+            this specification that can validly be used in a <a class='dfnref' href='#dfn-typedef'>typedef</a>
+            are sensitive to order.
           </p>
           <p>
             No <a class='dfnref' href='#dfn-extended-attribute'>extended attributes</a>
-            defined in this specification are applicable to <a class='dfnref' href='#dfn-typedef'>typedefs</a>.
+            defined in this specification are applicable to <a class='dfnref' href='#dfn-typedef'>typedefs</a>
+            themselves.
           </p>
 
-          <?productions grammar Typedef TypedefRest?>
+          <?productions grammar Typedef?>
 
           <div class='example'>
             <p>
@@ -12346,7 +12396,7 @@ public <var>ExceptionName</var>(Throwable cause) {
           <prod nt='DefaultValue'>"=" ConstValue | ε</prod>
           <prod nt='Exception'>"exception" identifier Inheritance "{" ExceptionMembers "}" ";"</prod>
           <prod nt='ExceptionMembers'>ExtendedAttributeList ExceptionMember ExceptionMembers | ε</prod>
-          <prod nt='Typedef'>"typedef" Type identifier ";"</prod>
+          <prod nt='Typedef'>"typedef" ExtendedAttributeList Type identifier ";"</prod>
           <prod nt='ImplementsStatement'>ScopedName "implements" ScopedName ";"</prod>
           <prod nt='Const'>"const" ConstType identifier "=" ConstValue ";"</prod>
           <prod nt='ConstValue'>BooleanLiteral | integer | float | string | "null"</prod>
@@ -12597,6 +12647,12 @@ public <var>ExceptionName</var>(Throwable cause) {
           <dt>Current editor’s draft</dt>
           <dd>
             <ul>
+              <li>
+                <p>
+                  Allowed extended attributes to be specified as part of a typedef, so that
+                  those extended attributes will apply to any construct that uses the typedef.
+                </p>
+              </li>
               <li>
                 <p>
                   Added predefined exception types corresponding to the ECMAScript error types.
