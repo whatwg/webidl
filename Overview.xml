@@ -15,7 +15,7 @@
   <head>
     <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'/>
     <title>Web IDL</title>
-    <meta name='revision' content='$Id: Overview.xml,v 1.419 2011-12-12 06:35:28 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: Overview.xml,v 1.420 2011-12-13 00:49:15 cmccorma Exp $'/>
     <link rel='stylesheet' href='WebIDL.css' type='text/css'/>
     <script src='section-links.js' type='application/ecmascript'/>
     <script src='dfn.js' type='application/ecmascript'/>
@@ -1796,7 +1796,7 @@ omittable deleter <i>type</i> <i>identifier</i>(unsigned long <i>identifier</i>)
                 <li>
                   If an <a class='dfnref' href='#dfn-indexed-property-getter'>indexed property getter</a> was specified using an <a class='dfnref' href='#dfn-operation'>operation</a>
                   with an <a class='dfnref' href='#dfn-identifier'>identifier</a>,
-                  then the value returned when indexing the object with a given index
+                  then the value returned when indexing the object with a given <a class='dfnref' href='#dfn-supported-property-indices'>supported property index</a>
                   is the value that would be returned by invoking the operation, passing
                   the index as its only argument.  If the operation used to declare the indexed property getter
                   did not have an identifier, then the interface definition must be accompanied
@@ -1806,7 +1806,7 @@ omittable deleter <i>type</i> <i>identifier</i>(unsigned long <i>identifier</i>)
                 <li>
                   If an <a class='dfnref' href='#dfn-indexed-property-setter'>indexed property setter</a> was specified using an operation
                   with an identifier,
-                  then the behavior that occurs when indexing the object for property assignment with a given property index and value
+                  then the behavior that occurs when indexing the object for property assignment with a given supported property index and value
                   is the same as if the operation is invoked, passing
                   the index as the first argument and the value as the second argument.  If the operation used to declare the indexed property setter
                   did not have an identifier, then the interface definition must be accompanied
@@ -1826,7 +1826,7 @@ omittable deleter <i>type</i> <i>identifier</i>(unsigned long <i>identifier</i>)
                 <li>
                   If an <a class='dfnref' href='#dfn-indexed-property-deleter'>indexed property deleter</a> was specified using an operation
                   with an identifier,
-                  then the behavior that occurs when indexing the object for property deletion with a given property index
+                  then the behavior that occurs when indexing the object for property deletion with a given supported property index
                   is the same as if the operation is invoked, passing
                   the index as the only argument.  If the operation used to declare the indexed property deleter
                   did not have an identifier, then the interface definition must be accompanied
@@ -1834,6 +1834,38 @@ omittable deleter <i>type</i> <i>identifier</i>(unsigned long <i>identifier</i>)
                   for a given property index.
                 </li>
               </ul>
+
+              <div class='note'>
+                <p>
+                  Note that if an <a class='dfnref' href='#dfn-indexed-property-getter'>indexed property getter</a>,
+                  <a class='dfnref' href='#dfn-indexed-property-setter'>setter</a> or
+                  <a class='dfnref' href='#dfn-indexed-property-deleter'>deleter</a>
+                  is specified using an <a class='dfnref' href='#dfn-operation'>operation</a> with an <a class='dfnref' href='#dfn-identifier'>identifier</a>,
+                  then indexing an object with an integer that is not a <a class='dfnref' href='#dfn-supported-property-indices'>supported property index</a>
+                  does not necessarily elicit the same behavior as invoking the operation with that index.  The actual behavior in this
+                  case is language binding specific.
+                </p>
+                <p>
+                  In the ECMAScript langauge binding, a regular property lookup is done.  For example, take the following IDL:
+                </p>
+                <x:codeblock language='idl'>interface A {
+  getter DOMString toWord(unsigned long index);
+};</x:codeblock>
+                <p>
+                  Assume that an object implementing <span class='idltype'>A</span> has <a class='dfnref' href='#dfn-supported-property-indices'>supported property indices</a>
+                  in the range 0 ≤ <var>index</var> &lt; 2.  Also assume that toWord is defined to return
+                  its argument converted into an English word.  The behavior when invoking the
+                  <a class='dfnref' href='#dfn-operation'>operation</a> with an out of range index
+                  is different from indexing the object directly:
+                </p>
+                <x:codeblock language='es'>var a = getA();
+
+a.toWord(0);  <span class='comment'>// Evalutes to "zero".</span>
+a[0];         <span class='comment'>// Also evaluates to "zero".</span>
+
+a.toWord(5);  <span class='comment'>// Evaluates to "five".</span>
+a[5];         <span class='comment'>// Evaluates to undefined, since there is no property "5".</span></x:codeblock>
+              </div>
 
               <div class='example'>
                 <p>
@@ -1972,7 +2004,7 @@ omittable deleter <i>type</i> <i>identifier</i>(DOMString <i>identifier</i>);-->
                 <li>
                   If a <a class='dfnref' href='#dfn-named-property-getter'>named property getter</a> was specified using an <a class='dfnref' href='#dfn-operation'>operation</a>
                   with an <a class='dfnref' href='#dfn-identifier'>identifier</a>,
-                  then the value returned when indexing the object with a given name
+                  then the value returned when indexing the object with a given <a class='dfnref' href='#dfn-supported-property-name'>supported property name</a>
                   is the value that would be returned by invoking the operation, passing
                   the name as its only argument.  If the operation used to declare the named property getter
                   did not have an identifier, then the interface definition must be accompanied
@@ -1982,7 +2014,7 @@ omittable deleter <i>type</i> <i>identifier</i>(DOMString <i>identifier</i>);-->
                 <li>
                   If a <a class='dfnref' href='#dfn-named-property-setter'>named property setter</a> was specified using an operation
                   with an identifier,
-                  then the behavior that occurs when indexing the object for property assignment with a given property name and value
+                  then the behavior that occurs when indexing the object for property assignment with a given supported property name and value
                   is the same as if the operation is invoked, passing
                   the name as the first argument and the value as the second argument.  If the operation used to declare the named property setter
                   did not have an identifier, then the interface definition must be accompanied
@@ -2002,7 +2034,7 @@ omittable deleter <i>type</i> <i>identifier</i>(DOMString <i>identifier</i>);-->
                 <li>
                   If a <a class='dfnref' href='#dfn-named-property-deleter'>named property deleter</a> was specified using an operation
                   with an identifier,
-                  then the behavior that occurs when indexing the object for property deletion with a given property name
+                  then the behavior that occurs when indexing the object for property deletion with a given supported property name
                   is the same as if the operation is invoked, passing
                   the name as the only argument.  If the operation used to declare the named property deleter
                   did not have an identifier, then the interface definition must be accompanied
@@ -2010,6 +2042,19 @@ omittable deleter <i>type</i> <i>identifier</i>(DOMString <i>identifier</i>);-->
                   for a given property name.
                 </li>
               </ul>
+
+              <div class='note'>
+                <p>
+                  As with <a href='#idl-indexed-properties'>indexed properties</a>,
+                  if an <a class='dfnref' href='#dfn-named-property-getter'>named property getter</a>,
+                  <a class='dfnref' href='#dfn-named-property-setter'>setter</a> or
+                  <a class='dfnref' href='#dfn-named-property-deleter'>deleter</a>
+                  is specified using an <a class='dfnref' href='#dfn-operation'>operation</a> with an <a class='dfnref' href='#dfn-identifier'>identifier</a>,
+                  then indexing an object with a name that is not a <a class='dfnref' href='#dfn-supported-property-names'>supported property name</a>
+                  does not necessarily elicit the same behavior as invoking the operation with that name; the behavior
+                  is language binding specific.
+                </p>
+              </div>
             </div>
           </div>
 
