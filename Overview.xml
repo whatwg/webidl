@@ -15,7 +15,7 @@
   <head>
     <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'/>
     <title>Web IDL</title>
-    <meta name='revision' content='$Id: Overview.xml,v 1.420 2011-12-13 00:49:15 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: Overview.xml,v 1.421 2011-12-14 00:07:45 cmccorma Exp $'/>
     <link rel='stylesheet' href='WebIDL.css' type='text/css'/>
     <script src='section-links.js' type='application/ecmascript'/>
     <script src='dfn.js' type='application/ecmascript'/>
@@ -848,14 +848,22 @@ interface Dog : Animal {
             </p>
             <p>
               The <a class='sym' href='#prod-ConstValue'>ConstValue</a> part of a
-              constant declaration (or <a class='dfnref' href='#dfn-dictionary-member'>dictionary member</a>
-              declaration) gives the value of the constant (or the default value of the dictionary member), which can be
-              one of the two boolean literal tokens (<code>true</code>
+              constant declaration gives the value of the constant, which can be
+              one of the two boolean literal token (<code>true</code>
               and <code>false</code>),
               the <code>null</code> token, an
               <a class='sym' href='#prod-integer'>integer</a> token or a
               <a class='sym' href='#prod-float'>float</a> token.
             </p>
+            <div class='note'>
+              <p>
+                <a class='dfnref' href='#dfn-dictionary-member'>Dictionary member</a>
+                declarations can also use these values – in addition to strings –
+                to specify <a class='dfnref' href='#dfn-default-value'>default values</a>.
+                Note that strings cannot be used as the value of a
+                <a class='dfnref' href='#dfn-constant'>constant</a>.
+              </p>
+            </div>
             <p>
               The value of the boolean literal tokens <code>true</code> and
               <code>false</code> are the IDL <a class='idltype' href='#idl-boolean'>boolean</a> values
@@ -2789,14 +2797,26 @@ dictionary <i>Derived</i> : <em>Base</em> {
 };</pre>
           <p>
             If the identifier is followed by a <span class='char'>U+003D EQUALS SIGN ("=")</span>
-            and a value (matching <a class='sym' href='#prod-ConstValue'>ConstValue</a>),
-            then that gives the dictionary member its <a class='dfnref' href='#dfn-default-value'>default value</a>,
-            in the same way that a <a class='dfnref' href='#dfn-constant'>constant</a> is
-            given its value.
+            and a value (matching <a class='sym' href='#prod-DefaultValue'>DefaultValue</a>),
+            then that gives the dictionary member its <a class='dfnref' href='#dfn-default-value'>default value</a>.
           </p>
           <pre class='syntax'>dictionary <i>identifier</i> {
   <i>type</i> <i>identifier</i> = <i>value</i>;
 };</pre>
+          <p>
+            When a boolean literal tokens (<code>true</code> or <code>false</code>),
+            the <code>null</code> token,
+            an <a class='sym' href='#prod-integer'>integer</a> token or a
+            <a class='sym' href='#prod-float'>float</a> token is used as the
+            <a class='dfnref' href='#dfn-default-value'>default value</a>,
+            it is interpreted in the same way as for a <a class='dfnref' href='#dfn-constant'>constant</a>.
+            Dictionary member default values can also be specified using a <a class='sym' href='#prod-string'>string</a>
+            token, whose value is a <span class='idltype'>DOMString</span> determined as follows:
+          </p>
+          <ol class='algorithm'>
+            <li>Let <var>S</var> be the sequence of characters matched by the <a class='sym' href='#prod-string'>string</a> token with its leading and trailing <span class='char'>U+0022 QUOTATION MARK ('"')</span> characters removed.</li>
+            <li>The value of the <a class='sym' href='#prod-string'>string</a> token is the sequence of 16 bit unsigned integer code units (hereafter referred to just as <dfn id='dfn-code-unit'>code units</dfn>) corresponding to the UTF-16 encoding of <var>S</var>.</li>
+          </ol>
           <p>
             The order of the <a class="dfnref" href="#dfn-dictionary-member">dictionary members</a>
             on a given dictionary is the order in which they appear in the dictionary
@@ -2872,7 +2892,7 @@ something.f(dict);</x:codeblock>
             <a class='xattr' href='#Clamp'>[Clamp]</a>,
             <a class='xattr' href='#EnforceRange'>[EnforceRange]</a>.
           </p>
-          <?productions grammar Dictionary DictionaryMembers DictionaryMember DefaultValue?>
+          <?productions grammar Dictionary DictionaryMembers DictionaryMember Default DefaultValue?>
           <div class='example'>
             <p>
               One use of dictionary types is to allow a number of optional arguments to
@@ -10002,8 +10022,9 @@ d.type = et;
           <prod nt='InterfaceMember'>Const | AttributeOrOperation</prod>
           <prod nt='Dictionary'>"dictionary" identifier Inheritance "{" DictionaryMembers "}" ";"</prod>
           <prod nt='DictionaryMembers'>ExtendedAttributeList DictionaryMember DictionaryMembers | ε</prod>
-          <prod nt='DictionaryMember'>Type identifier DefaultValue ";"</prod>
-          <prod nt='DefaultValue'>"=" ConstValue | ε</prod>
+          <prod nt='DictionaryMember'>Type identifier Default ";"</prod>
+          <prod nt='Default'>"=" DefaultValue | ε</prod>
+          <prod nt='DefaultValue'>ConstValue | string | ε</prod>
           <prod nt='Exception'>"exception" identifier Inheritance "{" ExceptionMembers "}" ";"</prod>
           <prod nt='ExceptionMembers'>ExtendedAttributeList ExceptionMember ExceptionMembers | ε</prod>
           <prod nt='Typedef'>"typedef" ExtendedAttributeList Type identifier ";"</prod>
