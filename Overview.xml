@@ -15,7 +15,7 @@
   <head>
     <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'/>
     <title>Web IDL</title>
-    <meta name='revision' content='$Id: Overview.xml,v 1.421 2011-12-14 00:07:45 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: Overview.xml,v 1.422 2011-12-15 03:18:09 cmccorma Exp $'/>
     <link rel='stylesheet' href='WebIDL.css' type='text/css'/>
     <script src='section-links.js' type='application/ecmascript'/>
     <script src='dfn.js' type='application/ecmascript'/>
@@ -279,7 +279,7 @@ window.onload = function() { window.alert("loaded"); };</x:codeblock></li>
           The different kinds of <dfn id='dfn-definition'>definitions</dfn> that can appear in an
           <a class='dfnref' href='#dfn-idl-fragment'>IDL fragment</a> are:
           <a class='dfnref' href='#dfn-interface'>interfaces</a>,
-          <a class='dfnref' href='#dfn-partial-interface'>partial interface declarations</a>,
+          <a class='dfnref' href='#dfn-partial-interface'>partial interface definitions</a>,
           <a class='dfnref' href='#dfn-dictionary'>dictionaries</a>,
           <a class='dfnref' href='#dfn-exception'>exceptions</a>,
           <a class='dfnref' href='#dfn-typedef'>typedefs</a> and
@@ -736,6 +736,11 @@ public interface B extends A {
 partial interface <em>SomeInterface</em> {
   <i>interface-members…</i>
 };</pre>
+          <div class='note'>
+            <p>Partial interface definitions are intended for use as a specification
+              editorial aide, allowing the definition of an interface to be separated
+              over more than one section of the document, and sometimes multiple documents.</p>
+          </div>
           <p>
             The order of appearance of an <a class='dfnref' href='#dfn-interface'>interface</a>
             definition and any of its <a class='dfnref' href='#dfn-partial-interface'>partial interface</a>
@@ -743,14 +748,33 @@ partial interface <em>SomeInterface</em> {
             does not matter.
           </p>
           <p>
-            <a class='dfnref' href='#dfn-extended-attribute'>Extended attributes</a> <span class='rfc2119'>MUST NOT</span>
-            be specified on <a class='dfnref' href='#dfn-partial-interface'>partial interface</a> definitions.
+            <a class='dfnref' href='#dfn-extended-attribute'>Extended attributes</a> can be specified on
+            <a class='dfnref' href='#dfn-partial-interface'>partial interface</a> definitions, with some
+            limitations.  The following extended attributes <span class='rfc2119'>MUST NOT</span>
+            be specified on partial interface definitions:
+            <a class='xattr' href='#ArrayClass'>[ArrayClass]</a>,
+            <a class='xattr' href='#Callback'>[Callback]</a>,
+            <a class='xattr' href='#Constructor'>[Constructor]</a>,
+            <a class='xattr' href='#ImplicitThis'>[ImplicitThis]</a>,
+            <!--JAVA
+            <a class='xattr' href='#JavaPackage'>[JavaPackage]</a>,
+            -->
+            <a class='xattr' href='#NamedConstructor'>[NamedConstructor]</a>,
+            <a class='xattr' href='#NoInterfaceObject'>[NoInterfaceObject]</a>.
           </p>
           <div class='note'>
-            <p>Partial interface definitions are intended for use as a specification
-              editorial aide, allowing the definition of an interface to be separated
-              over more than one section of the document, and sometimes multiple documents.</p>
+            <p>The above list of <a class='dfnref' href='#dfn-extended-attribute'>extended attributes</a>
+              is all of those defined in this document that are applicable to
+              <a class='dfnref' href='#dfn-interface'>interfaces</a> except for
+              <a class='xattr' href='#OverrideBuiltins'>[OverrideBuiltins]</a> and
+              <a class='xattr' href='#ReplaceableNamedProperties'>[ReplaceableNamedProperties]</a>.</p>
           </div>
+          <p>
+            Any <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a> specified
+            on a <a class='dfnref' href='#dfn-partial-interface'>partial interface</a> definition
+            is considered to appear on the <a class='dfnref' href='#dfn-interface'>interface</a>
+            itself.
+          </p>
           <p>
             The relevant language binding determines how interfaces correspond to constructs
             in the language.
@@ -2169,7 +2193,9 @@ partial interface A {
 partial interface A {
   void g(DOMString x);
 };</x:codeblock>
-              <p>Note that <a class='dfnref' href='#dfn-extended-attribute'>extended attributes</a> are disallowed from appearing
+              <p>Note that the <a class='xattr' href='#Constructor'>[Constructor]</a> and
+                <a class='xattr' href='#NamedConstructor'>[NamedConstructor]</a>
+                <a class='dfnref' href='#dfn-extended-attribute'>extended attributes</a> are disallowed from appearing
                 on <a class='dfnref' href='#dfn-partial-interface'>partial interface</a> definitions,
                 so there is no need to also disallow overloading for constructors.</p>
             </div>
@@ -6998,7 +7024,11 @@ var fn = Query.prototype.lookupEntry;  <span class='comment'>// exception, Query
               and <span class='rfc2119'>MUST NOT</span> appear on an interface
               that does not define a <a class='dfnref' href='#dfn-named-property-getter'>named property getter</a>
               or that also is declared with the <a class='xattr' href='#ReplaceableNamedProperties'>[ReplaceableNamedProperties]</a>
-              extended attribute.
+              extended attribute.  If the extended attribute is specified on
+              a <a class='dfnref' href='#dfn-partial-interface'>partial interface</a>
+              definition, then that partial interface definition <span class='rfc2119'>MUST</span>
+              be the part of the interface definition that defines
+              the <a class='dfnref' href='#dfn-named-property-getter'>named property getter</a>.
             </p>
             <p>
               See <a href='#indexed-and-named-properties'>section <?sref indexed-and-named-properties?></a>
@@ -7346,7 +7376,11 @@ counter.value;                                           <span class='comment'>/
               that does not define a <a class='dfnref' href='#dfn-named-property-getter'>named property getter</a>,
               that does define a <a class='dfnref' href='#dfn-named-property-setter'>named property setter</a> or
               that also is declared with the <a class='xattr' href='#OverrideBuiltins'>[OverrideBuiltins]</a>
-              extended attribute.
+              extended attribute.  If the extended attribute is specified on
+              a <a class='dfnref' href='#dfn-partial-interface'>partial interface</a>
+              definition, then that partial interface definition <span class='rfc2119'>MUST</span>
+              be the part of the interface definition that defines
+              the <a class='dfnref' href='#dfn-named-property-setter'>named property setter</a>.
             </p>
             <p>
               See <a href='#getownproperty'>section <?sref getownproperty?></a>
@@ -10268,6 +10302,12 @@ d.type = et;
           <dt>Current editor’s draft</dt>
           <dd>
             <ul>
+              <li>
+                <p>
+                  Allowed <span class='xattr'>[OverrideBuiltins]</span> and <span class='xattr'>[ReplaceableNamedProperties]</span>
+                  to be placed on partial interface definitions.
+                </p>
+              </li>
               <li>
                 <p>
                   Split out the Java language binding into its own document.
