@@ -15,7 +15,7 @@
   <head>
     <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'/>
     <title>Web IDL</title>
-    <meta name='revision' content='$Id: Overview.xml,v 1.423 2011-12-15 03:39:37 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: Overview.xml,v 1.424 2011-12-19 01:45:11 cmccorma Exp $'/>
     <link rel='stylesheet' href='WebIDL.css' type='text/css'/>
     <script src='section-links.js' type='application/ecmascript'/>
     <script src='dfn.js' type='application/ecmascript'/>
@@ -4607,10 +4607,19 @@ node.appendChild(newNode);  <span class='comment'>// This will throw a TypeError
           <span class="prop">[[HasInstance]]</span>-->.
         </p>
         <p>
-          If a value for the internal property
-          <span class='prop'>[[Class]]</span> is not given for a particular
-          object, its value is implementation specific.
+          No ECMAScript objects described in this section are required to have a non-standard
+          <span class='prop'>[[Class]]</span> internal property value.  However, to influence
+          the result of calling Object.prototype.toString on an object, a
+          <dfn id='dfn-class-string'>class string</dfn> for some objects.
         </p>
+        <div class='note'>
+          <p>
+            <a href='#es-environment'>Section <?sref es-environment?></a>
+            <?sdir es-environment?> describes how Object.prototype.toString takes
+            an object’s <a class='dfnref' href='#dfn-class-string'>class string</a>
+            into account.
+          </p>
+        </div>
         <p>
           Unless otherwise specified, the <span class='prop'>[[Extensible]]</span> internal property
           of objects defined in this section has the value <span class='esvalue'>true</span>.
@@ -4628,7 +4637,7 @@ node.appendChild(newNode);  <span class='comment'>// This will throw a TypeError
           <li>Its <span class='prop'>[[Get]]</span> internal property is set as described in ECMA-262 section 15.3.5.4.</li>
           <li>Its <span class='prop'>[[Construct]]</span> internal property is set as described in ECMA-262 section 13.2.2.</li>
           <li>Its <span class='prop'>[[HasInstance]]</span> internal property is set as described in ECMA-262 section 15.3.5.3, unless otherwise specified.</li>
-          <li>Its <span class='prop'>[[Class]]</span> internal property is “Function”, unless otherwise specified.</li>
+          <li>Its <span class='prop'>[[Class]]</span> internal property is “Function”.</li>
         </ul>
         <p>
           Algorithms in this section use the conventions described in ECMA-262
@@ -4710,6 +4719,31 @@ iframe.appendChild instanceof w.Function;  <span class='comment'>// Evaluates to
               for Web pages.
             </p>
           </div>
+          <p>
+            As soon as any ECMAScript global environment is created, the following steps <span class='rfc2119'>MUST</span>
+            be performed:
+          </p>
+          <ol class='algorithm'>
+            <li>
+              Let <var>F</var> be a <a class='dfnref' href='#dfn-function-object'>function object</a> whose
+              behavior when invoked is as follows:
+              <ol>
+                <li>If the <span class='esvalue'>this</span> value is <span class='esvalue'>undefined</span>, return <code>"[object Undefined]"</code>.</li>
+                <li>If the <span class='esvalue'>this</span> value is <span class='esvalue'>null</span>, return <code>"[object Null]"</code>.</li>
+                <li>Let <var>O</var> be the result of calling ToObject passing the <span class='esvalue'>this</span> value as the argument.</li>
+                <li>Let <var>class</var> be a string whose value is determined as follows:
+                  <ul>
+                    <li>If <var>O</var> is a <a class='dfnref' href='#dfn-platform-object'>platform object</a>,
+                      <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype object</a> or
+                      <a class='dfnref' href='#dfn-exception-interface-prototype-object'>exception interface prototype object</a>,
+                      then <var>class</var> is <var>O</var>’s <a class='dfnref' href='#dfn-class-string'>class string</a>.</li>
+                    <li>Otherwise, <var>class</var> is the value of the <span class='prop'>[[Class]]</span> internal property of <var>O</var>.</li>
+                  </ul>
+                </li>
+                <li>Return the String value that is the result of concatenating the three Strings <code>"[object "</code>, <var>class</var>, and <code>"]"</code>.</li>
+              </ol>
+            </li>
+          </ol>
         </div>
 
         <div id='es-type-mapping' class='section'>
@@ -5522,10 +5556,9 @@ iframe.appendChild instanceof w.Function;  <span class='comment'>// Evaluates to
                   <li>For each dictionary member <var>member</var> declared on <var>D</var>, in order:
                     <ol>
                       <li>Let <var>key</var> be the <a class='dfnref' href='#dfn-identifier'>identifier</a> of <var>member</var>.</li>
-                      <li>Let <var>present</var> be the result of calling the <span class='prop'>[[HasProperty]]</span> internal method on <var>V</var> with property name <var>key</var>.</li>
-                      <li>If <var>present</var> is true, then:
+                      <li>Let <var>value</var> be the result of calling the <span class='prop'>[[Get]]</span> internal method on <var>V</var> with property name <var>key</var>.</li>
+                      <li>If <var>value</var> is not <span class='esvalue'>undefined</span>, then:
                         <ol>
-                          <li>Let <var>value</var> be the result of calling the <span class='prop'>[[Get]]</span> internal method on <var>V</var> with property name <var>key</var>.</li>
                           <li>Let <var>idlValue</var> be the result of <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a> <var>value</var> to an IDL value whose type is the type <var>member</var> is declared to be of.</li>
                           <li>Set the dictionary member on <var>dict</var> with key name <var>key</var> to the value <var>idlValue</var>.  This dictionary member is considered to be <a class='dfnref' href='#dfn-present'>present</a>.</li>
                         </ol>
@@ -10302,6 +10335,12 @@ d.type = et;
           <dt>Current editor’s draft</dt>
           <dd>
             <ul>
+              <li>
+                <p>
+                  Made <span class='esvalue'>undefined</span> values on ECMAScript objects acting
+                  as dictionaries mean the same as omitting the property.
+                </p>
+              </li>
               <li>
                 <p>
                   Allowed <span class='xattr'>[OverrideBuiltins]</span> and <span class='xattr'>[ReplaceableNamedProperties]</span>
