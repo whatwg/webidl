@@ -15,7 +15,7 @@
   <head>
     <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'/>
     <title>Web IDL</title>
-    <meta name='revision' content='$Id: Overview.xml,v 1.426 2011-12-19 01:52:35 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: Overview.xml,v 1.427 2011-12-19 04:26:53 cmccorma Exp $'/>
     <link rel='stylesheet' href='WebIDL.css' type='text/css'/>
     <script src='section-links.js' type='application/ecmascript'/>
     <script src='dfn.js' type='application/ecmascript'/>
@@ -4607,10 +4607,19 @@ node.appendChild(newNode);  <span class='comment'>// This will throw a TypeError
           <span class="prop">[[HasInstance]]</span>-->.
         </p>
         <p>
-          If a value for the internal property
-          <span class='prop'>[[Class]]</span> is not given for a particular
-          object, its value is implementation specific.
+          No ECMAScript objects described in this section are required to have a non-standard
+          <span class='prop'>[[Class]]</span> internal property value.  However, to influence
+          the result of calling Object.prototype.toString on an object, a
+          <dfn id='dfn-class-string'>class string</dfn> is defined for some objects.
         </p>
+        <div class='note'>
+          <p>
+            <a href='#es-environment'>Section <?sref es-environment?></a>
+            <?sdir es-environment?> describes how Object.prototype.toString takes
+            an object’s <a class='dfnref' href='#dfn-class-string'>class string</a>
+            into account.
+          </p>
+        </div>
         <p>
           Unless otherwise specified, the <span class='prop'>[[Extensible]]</span> internal property
           of objects defined in this section has the value <span class='esvalue'>true</span>.
@@ -4628,7 +4637,7 @@ node.appendChild(newNode);  <span class='comment'>// This will throw a TypeError
           <li>Its <span class='prop'>[[Get]]</span> internal property is set as described in ECMA-262 section 15.3.5.4.</li>
           <li>Its <span class='prop'>[[Construct]]</span> internal property is set as described in ECMA-262 section 13.2.2.</li>
           <li>Its <span class='prop'>[[HasInstance]]</span> internal property is set as described in ECMA-262 section 15.3.5.3, unless otherwise specified.</li>
-          <li>Its <span class='prop'>[[Class]]</span> internal property is “Function”, unless otherwise specified.</li>
+          <li>Its <span class='prop'>[[Class]]</span> internal property is “Function”.</li>
         </ul>
         <p>
           Algorithms in this section use the conventions described in ECMA-262
@@ -4708,6 +4717,48 @@ iframe.appendChild instanceof w.Function;  <span class='comment'>// Evaluates to
               This allows, for example, ECMAScript global environments for Web Workers to <a class='dfnref' href='#dfn-expose'>expose</a>
               different sets of supported interfaces from those exposed in environments
               for Web pages.
+            </p>
+          </div>
+          <p>
+            As soon as any ECMAScript global environment is created, the following steps <span class='rfc2119'>MUST</span>
+            be performed:
+          </p>
+          <ol class='algorithm'>
+            <li>
+              Let <var>F</var> be a <a class='dfnref' href='#dfn-function-object'>function object</a> whose
+              behavior when invoked is as follows:
+              <ol>
+                <li>If the <span class='esvalue'>this</span> value is <span class='esvalue'>undefined</span>, return <code>"[object Undefined]"</code>.</li>
+                <li>If the <span class='esvalue'>this</span> value is <span class='esvalue'>null</span>, return <code>"[object Null]"</code>.</li>
+                <li>Let <var>O</var> be the result of calling ToObject passing the <span class='esvalue'>this</span> value as the argument.</li>
+                <li>Let <var>class</var> be a string whose value is determined as follows:
+                  <ul>
+                    <li>If <var>O</var> is a <a class='dfnref' href='#dfn-platform-object'>platform object</a>,
+                      <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype object</a> or
+                      <a class='dfnref' href='#dfn-exception-interface-prototype-object'>exception interface prototype object</a>,
+                      then <var>class</var> is <var>O</var>’s <a class='dfnref' href='#dfn-class-string'>class string</a>.</li>
+                    <li>Otherwise, <var>class</var> is the value of the <span class='prop'>[[Class]]</span> internal property of <var>O</var>.</li>
+                  </ul>
+                </li>
+                <li>Return the String value that is the result of concatenating the three Strings <code>"[object "</code>, <var>class</var>, and <code>"]"</code>.</li>
+              </ol>
+            </li>
+          </ol>
+          <div class='note'>
+            <p>
+              Requiring particular behavior from Object.prototype.toString rather than
+              requiring non-standard <span class='prop'>[[Class]]</span> internal property
+              values is done to avoid making it impossible to implement APIs described
+              with Web IDL natively in ECMAScript with Proxies.
+            </p>
+            <p>
+              There is one built-in ECMAScript function that behaves differently for
+              platform objects with this custom Object.prototype.toString behavior instead
+              of custom <span class='prop'>[[Class]]</span> values: Function.prototype.bind
+              will return a new <span class='estype'>Function</span> object with a 
+              <span class='prop'>length</span> property with a non-zero value if the
+              object has a <a class='dfnref' href='#dfn-legacy-caller'>legacy caller</a>
+              that takes at least one argument.
             </p>
           </div>
         </div>
@@ -5522,9 +5573,10 @@ iframe.appendChild instanceof w.Function;  <span class='comment'>// Evaluates to
                   <li>For each dictionary member <var>member</var> declared on <var>D</var>, in order:
                     <ol>
                       <li>Let <var>key</var> be the <a class='dfnref' href='#dfn-identifier'>identifier</a> of <var>member</var>.</li>
-                      <li>Let <var>value</var> be the result of calling the <span class='prop'>[[Get]]</span> internal method on <var>V</var> with property name <var>key</var>.</li>
-                      <li>If <var>value</var> is not <span class='esvalue'>undefined</span>, then:
+                      <li>Let <var>present</var> be the result of calling the <span class='prop'>[[HasProperty]]</span> internal method on <var>V</var> with property name <var>key</var>.</li>
+                      <li>If <var>present</var> is true, then:
                         <ol>
+                          <li>Let <var>value</var> be the result of calling the <span class='prop'>[[Get]]</span> internal method on <var>V</var> with property name <var>key</var>.</li>
                           <li>Let <var>idlValue</var> be the result of <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a> <var>value</var> to an IDL value whose type is the type <var>member</var> is declared to be of.</li>
                           <li>Set the dictionary member on <var>dict</var> with key name <var>key</var> to the value <var>idlValue</var>.  This dictionary member is considered to be <a class='dfnref' href='#dfn-present'>present</a>.</li>
                         </ol>
@@ -5900,7 +5952,7 @@ alert(b[4]);    <span class='comment'>// This would alert "50".</span></x:codebl
                 <li>they are never sparse</li>
                 <li>their elements are always data properties</li>
                 <li>an ECMAScript-to-IDL value conversion is always performed when storing an element</li>
-                <li>their internal <span class='prop'>[[Class]]</span> property value is different</li>
+                <li>they stringify with Object.prototype.toString differently</li>
                 <li>their internal <span class='prop'>[[Extensible]]</span> property value is always <span class='esvalue'>true</span></li>
               </ul>
             </div>
@@ -5924,7 +5976,7 @@ alert(b[4]);    <span class='comment'>// This would alert "50".</span></x:codebl
               </p>
             </div>
             <p>
-              The value of the internal <span class='prop'>[[Class]]</span> property of a
+              The <a class='dfnref' href='#dfn-class-string'>class string</a> of a
               platform array object <span class='rfc2119'>MUST</span> be
               the <a class='dfnref' href='#dfn-type-name'>type name</a> of the
               <a href='#idl-array'>array type</a>.
@@ -7780,10 +7832,6 @@ system.loginTime;  <span class='comment'>// So this now evaluates to forgedLogin
               are always <a class='dfnref' href='#dfn-function-object'>function objects</a>.
             </p>
             <p>
-              The <span class='prop'>[[Class]]</span> property of the interface object <span class='rfc2119'>MUST</span>
-              be the <a class='dfnref' href='#dfn-identifier'>identifier</a> of the interface.
-            </p>
-            <p>
               The interface object also has properties that correspond to
               the <a class='dfnref' href='#dfn-constant'>constants</a> and
               <a class='dfnref' href='#dfn-static-operation'>static operations</a>
@@ -8261,6 +8309,14 @@ partial interface Window {
                 it is an acceptable optimization for this object not to exist.
               </p>
             </div>
+
+            <p>
+              The <a class='dfnref' href='#dfn-class-string'>class string</a> of an
+              <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype object</a>
+              is the concatenation of the <a class='dfnref' href='#dfn-interface'>interface</a>’s
+              <a class='dfnref' href='#dfn-identifier'>identifier</a> and the string
+              “Prototype”.
+            </p>
           </div>
 
           <!--
@@ -8719,8 +8775,8 @@ interface
           </ul>
           -->
           <p>
-            The value of the internal <span class='prop'>[[Class]]</span>
-            property of a platform object that implements one or more interfaces
+            The <a class='dfnref' href='#dfn-class-name'>class name</a> of 
+            a platform object that implements one or more interfaces
             <span class='rfc2119'>MUST</span> be the <a class='dfnref' href='#dfn-identifier'>identifier</a> of
             the <a class='dfnref' href='#dfn-primary-interface'>primary interface</a>
             of the platform object.
@@ -9422,8 +9478,8 @@ interface
               <ol class='algorithm'>
                 <li>Let <var>O</var> be a new object whose <span class='prop'>[[Prototype]]</span>
                 internal property is set to the <a class='dfnref' href='#dfn-exception-interface-object'>exception interface object</a>
-                and whose <span class='prop'>[[Class]]</span> internal property
-                is set to the <a class='dfnref' href='#dfn-identifier'>identifier</a>
+                and whose <a class='dfnref' href='#dfn-class-string'>class string</a>
+                is the <a class='dfnref' href='#dfn-identifier'>identifier</a>
                 of <var>E</var>.</li>
                 <li>If <var>n</var> > 0, then:
                   <ol>
@@ -9481,6 +9537,13 @@ interface
                 of an exception object.
               </p>
             </div>
+            <p>
+              The <a class='dfnref' href='#dfn-class-string'>class string</a> of an
+              <a class='dfnref' href='#dfn-exception-interface-prototype-object'>exception interface prototype object</a>
+              is the concatenation of the <a class='dfnref' href='#dfn-exception'>exception</a>’s
+              <a class='dfnref' href='#dfn-identifier'>identifier</a> and the string
+              “Prototype”.
+            </p>
             <p>
               There <span class='rfc2119'>MUST</span> be a property named “name”
               on the exception interface prototype object with attributes
@@ -9594,8 +9657,8 @@ interface
             from the global environment the exception object is associated with.
           </p>
           <p>
-            The value of the internal <span class='prop'>[[Class]]</span>
-            property of the exception object <span class='rfc2119'>MUST</span>
+            The <a class='dfnref' href='#dfn-class-string'>class string</a>
+            of the exception object <span class='rfc2119'>MUST</span>
             be the <a class='dfnref' href='#dfn-identifier'>identifier</a>
             of the <a class='dfnref' href='#dfn-exception'>exception</a>.
           </p>
@@ -10303,8 +10366,15 @@ d.type = et;
             <ul>
               <li>
                 <p>
-                  Made <span class='esvalue'>undefined</span> values on ECMAScript objects acting
-                  as dictionaries mean the same as omitting the property.
+                  Specified class strings for interface prototype objects and exception interface
+                  prototype objects and removed them from interface objects and exception interface
+                  objects.
+                </p>
+              </li>
+              <li>
+                <p>
+                  Removed requirements for particular <span class='prop'>[[Class]]</span> internal property
+                  values and instead required custom behavior from Object.prototype.toString.
                 </p>
               </li>
               <li>
