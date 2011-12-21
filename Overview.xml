@@ -15,7 +15,7 @@
   <head>
     <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'/>
     <title>Web IDL</title>
-    <meta name='revision' content='$Id: Overview.xml,v 1.428 2011-12-20 23:47:33 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: Overview.xml,v 1.429 2011-12-21 01:40:29 cmccorma Exp $'/>
     <link rel='stylesheet' href='WebIDL.css' type='text/css'/>
     <script src='section-links.js' type='application/ecmascript'/>
     <script src='dfn.js' type='application/ecmascript'/>
@@ -383,7 +383,8 @@ interface GraphicalWindow {
             Every <a class='dfnref' href='#dfn-interface'>interface</a>,
             <a class='dfnref' href='#dfn-partial-interface'>partial interface definition</a>,
             <a class='dfnref' href='#dfn-dictionary'>dictionary</a>,
-            <a class='dfnref' href='#dfn-exception'>exception</a> and
+            <a class='dfnref' href='#dfn-exception'>exception</a>,
+            <a class='dfnref' href='#dfn-enumeration'>enumeration</a> and
             <a class='dfnref' href='#dfn-typedef'>typedef</a> (together called <dfn id='dfn-named-definition'>named definitions</dfn>)
             and every <a class='dfnref' href='#dfn-constant'>constant</a>,
             <a class='dfnref' href='#dfn-attribute'>attribute</a>,
@@ -400,12 +401,13 @@ interface GraphicalWindow {
               For <a class='dfnref' href='#dfn-named-definition'>named definitions</a>,
               the <a class='sym' href='#prod-identifier'>identifier</a> token that appears
               directly after the <code>interface</code>,
-              <code>dictionary</code> or <code>exception</code> keyword
+              <code>dictionary</code>, <code>exception</code> or <code>enum</code> keyword
               determines the identifier of that definition.
               <pre class='syntax'>interface <em>interface-identifier</em> { <i>interface-members…</i> };
 partial interface <em>interface-identifier</em> { <i>interface-members…</i> };
 exception <em>exception-identifier</em> { <i>exception-members…</i> };
-dictionary <em>dictionary-identifier</em> { <i>dictionary-members…</i> };</pre>
+dictionary <em>dictionary-identifier</em> { <i>dictionary-members…</i> };
+enum <em>enumeration-identifier</em> { <i>enumeration-values…</i> };</pre>
             </li>
             <li>
               For <a class='dfnref' href='#dfn-constant'>constants</a>, <a class='dfnref' href='#dfn-attribute'>attributes</a>,
@@ -2836,12 +2838,19 @@ dictionary <i>Derived</i> : <em>Base</em> {
             <a class='dfnref' href='#dfn-default-value'>default value</a>,
             it is interpreted in the same way as for a <a class='dfnref' href='#dfn-constant'>constant</a>.
             Dictionary member default values can also be specified using a <a class='sym' href='#prod-string'>string</a>
-            token, whose value is a <span class='idltype'>DOMString</span> determined as follows:
+            token, whose value is a <span class='idltype'>DOMString</span> or
+            <a class='dfnref' href='#dfn-enumeration'>enumeration</a> determined as follows:
           </p>
           <ol class='algorithm'>
             <li>Let <var>S</var> be the sequence of characters matched by the <a class='sym' href='#prod-string'>string</a> token with its leading and trailing <span class='char'>U+0022 QUOTATION MARK ('"')</span> characters removed.</li>
             <li>The value of the <a class='sym' href='#prod-string'>string</a> token is the sequence of 16 bit unsigned integer code units (hereafter referred to just as <dfn id='dfn-code-unit'>code units</dfn>) corresponding to the UTF-16 encoding of <var>S</var>.</li>
           </ol>
+          <p>
+            If the type of the <a class='dfnref' href='#dfn-dictionary-member'>dictionary member</a>
+            is an <a class='dfnref' href='#dfn-enumeration'>enumeration</a>, then its
+            <a class='dfnref' href='#dfn-default-value'>default value</a> if specified <span class='rfc2119'>MUST</span>
+            be one of the <a class='dfnref' href='#dfn-enumeration-value'>enumeration’s values</a>.
+          </p>
           <p>
             The order of the <a class="dfnref" href="#dfn-dictionary-member">dictionary members</a>
             on a given dictionary is the order in which they appear in the dictionary
@@ -3189,6 +3198,81 @@ exception <i>Derived</i> : <em>Base</em> {
               its own document.  For this reason, authors are suggested not to use
               <code>instanceof</code> to perform exception type testing.
             </p>
+          </div>
+        </div>
+
+        <div id='idl-enums' class='section'>
+          <h3>Enumerations</h3>
+
+          <p>
+            An <dfn id='dfn-enumeration'>enumeration</dfn> is a definition (matching
+            <a class='sym' href='#prod-Enum'>Enum</a>) used to declare a type
+            whose valid values are a set of predefined strings.  Enumerations
+            can be used to restrict the possible
+            <span class='idltype'>DOMString</span> values that can be assigned to an
+            <a class='dfnref' href='#dfn-attribute'>attribute</a> or passed to an
+            <a class='dfnref' href='#dfn-operation'>operation</a>.
+          </p>
+          <pre class='syntax'>enum <i>identifier</i> { <i>enumeration-values…</i> };</pre>
+          <p>
+            The <dfn id='dfn-enumeration-value'>enumeration values</dfn> are specified
+            as a comma-separated list of <a class='sym' href='#prod-string'>string</a> literals.
+            The list of <a class='dfnref' href='#dfn-enumeration-value'>enumeration values</a>
+            <span class='rfc2119'>MUST NOT</span> include duplicates.
+          </p>
+          <p>
+            The behavior when a string value that is not one a valid enumeration value
+            is used when assigning to an <a class='dfnref' href='#dfn-attribute'>attribute</a>,
+            or passed as an <a class='dfnref' href='#dfn-operation'>operation</a> argument,
+            whose type is the enumeration, is language binding specific.
+          </p>
+          <div class='note'>
+            <p>
+              In the ECMAScript binding, assignment of an invalid string value to an
+              <a class='dfnref' href='#dfn-attribute'>attribute</a> is ignored, while
+              passing such a value as an <a class='dfnref' href='#dfn-operation'>operation</a> argument
+              results in an exception being thrown.
+            </p>
+          </div>
+          <p>
+            No <a class='dfnref' href='#dfn-extended-attribute'>extended attributes</a>
+            defined in this specification are applicable to <a class='dnfref' href='#dfn-enumeration'>enumerations</a>.
+          </p>
+
+          <?productions grammar Enum EnumValueList EnumValues?>
+
+          <div class='example'>
+            <p>
+              The following <a class='dfnref' href='#dfn-idl-fragment'>IDL fragment</a>
+              defines an <a class='dfnref' href='#dfn-enumeration'>enumeration</a>
+              that is used as the type of an <a class='dfnref' href='#dfn-attribute'>attribute</a>
+              and an <a class='dfnref' href='#dfn-operation'>operation</a> argument:
+            </p>
+            <x:codeblock language='idl'>enum MealType { "rice", "noodles", "other" };
+
+interface Meal {
+  attribute MealType type;
+  attribute float size;     <span class='comment'>// in grams</span>
+
+  void initialize(MealType type, float size);
+};</x:codeblock>
+            <p>
+              An ECMAScript implementation would restrict the strings that can be
+              assigned to the type property or passed to the initializeMeal function
+              to those identified in the <a class='dfnref' href='#dfn-enumeration'>enumeration</a>.
+            </p>
+            <x:codeblock language='es'>var meal = getMeal();                <span class='comment'>// Get an instance of Meal.</span>
+
+meal.initialize("rice", 200);        <span class='comment'>// Operation invoked as normal.</span>
+
+try {
+  meal.initialize("sandwich", 100);  <span class='comment'>// Throws a TypeError.</span>
+} catch (e) {
+}
+
+meal.type = "noodles";               <span class='comment'>// Attribute assigned as normal.</span>
+meal.type = "dumplings";             <span class='comment'>// Attribute assignment ignored.</span>
+meal.type == "noodles";              <span class='comment'>// Evaluates to true.</span></x:codeblock>
           </div>
         </div>
 
@@ -3874,8 +3958,7 @@ interface Person {
 
             <p>
               The <a class='idltype' href='#idl-DOMString'>DOMString</a> type
-              corresponds to the set of all possible sequences of
-              16 bit unsigned integer <a class='dfnref' href='#dfn-code-unit'>code units</a>.
+              corresponds to the set of all possible sequences of <a class='dfnref' href='#dfn-code-unit'>code units</a>.
               Such sequences are commonly interpreted as UTF-16 encoded strings <a href='#ref-RFC2781'>[RFC2781]</a>
               although this is not required.
               While <span class='idltype'>DOMString</span> is defined to be an OMG IDL boxed
@@ -3951,6 +4034,12 @@ interface Person {
               <li>Return <var>U</var>.</li>
             </ol>
             <p>
+              There is no way to represent a constant <a class='idltype' href='#idl-DOMString'>DOMString</a>
+              value in IDL, although <span class='idltype'>DOMString</span> <a class='dfnref' href='#dfn-dictionary-member'>dictionary member</a>
+              <a class='dfnref' href='#dfn-default-value'>default values</a> can be specified using a
+              <a class='sym' href='#prod-string'>string</a> literal.
+            </p>
+            <p>
               The <a class='dfnref' href='#dfn-type-name'>type name</a> of the
               <span class='idltype'>DOMString</span> type is “String”.
             </p>
@@ -4020,6 +4109,29 @@ interface Person {
             </p>
           </div>
 
+          <div id='idl-enumeration' class='section'>
+            <h4>Enumeration types</h4>
+
+            <p>
+              An <a class='dfnref' href='#dfn-identifier'>identifier</a> that
+              identifies an <a class='dfnref' href='#dfn-enumeration'>enumeration</a> is used to
+              refer to a type whose values are the set of strings (sequences of
+              <a class='dfnref' href='#dfn-code-unit'>code units</a>, as with
+              <span class='idltype'>DOMString</span>) that are the
+              <a class='dfnref' href='#dfn-enumeration-value'>enumeration’s values</a>.
+            </p>
+            <p>
+              Like <a class='idltype'>DOMString</a>, there is no way to represent a constant <a class='dfnref' href='#dfn-enumeration'>enumeration</a>
+              value in IDL, although enumeration-typed <a class='dfnref' href='#dfn-dictionary-member'>dictionary member</a>
+              <a class='dfnref' href='#dfn-default-value'>default values</a> can be specified using a
+              <a class='sym' href='#prod-string'>string</a> literal.
+            </p>
+            <p>
+              The <a class='dfnref' href='#dfn-type-name'>type name</a> of an enumeration type
+              is the <a class='dfnref' href='#dfn-identifier'>identifier</a> of the enumeration.
+            </p>
+          </div>
+
           <div id='idl-nullable-type' class='section'>
             <h4>Nullable types — <var>T</var>?</h4>
 
@@ -4055,7 +4167,7 @@ interface Person {
               <p>
                 The following <a class='dfnref' href='#dfn-interface'>interface</a> has two
                 <a class='dfnref' href='#dfn-attribute'>attributes</a>: one whose value can
-                be a <span class='idltype'>DOMString</span> or the <span class='idlvalue'>null</span>
+                be a <a class='idltype' href='#idl-DOMString'>DOMString</a> or the <span class='idlvalue'>null</span>
                 value, and another whose value can be a reference to a <span class='idltype'>Node</span>
                 object or the <span class='idlvalue'>null</span> value:
               </p>
@@ -5622,6 +5734,33 @@ iframe.appendChild instanceof w.Function;  <span class='comment'>// Evaluates to
               </li>
               <li>Return <var>O</var>.</li>
             </ol>
+          </div>
+
+          <div id='es-enumeration' class='section'>
+            <h4>Enumeration types</h4>
+
+            <p>
+              IDL <a href='#idl-enumeration'>enumeration types</a> are represented by ECMAScript <span class='estype'>String</span>
+              values.
+            </p>
+            <p>
+              An ECMAScript value <var>V</var> is
+              <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converted</a>
+              to an IDL <a class='dfnref' href='#dfn-enumeration'>enumeration type</a>
+              value as follows (where <var>E</var> is the <a class='dfnref' href='#dfn-enumeration'>enumeration</a>):
+            </p>
+            <ol class='algorithm'>
+              <li>Let <var>S</var> be the result of calling ToString(<var>V</var>).</li>
+              <li>If <var>S</var> is not one of <var>E</var>’s <a class='dfnref' href='#dfn-enumeration-value'>enumeration values</a>, then throw a <span class='estype'>TypeError</span>.</li>
+              <li>Return the enumeration value of type <var>E</var> that is equal to <var>S</var>.</li>
+            </ol>
+            <p>
+              The result of <a class='dfnref' href='#dfn-convert-idl-to-ecmascript-value'>converting</a>
+              an IDL <a class='dfnref' href='#dfn-enumeration'>enumeration type</a> value to an ECMAScript
+              value is the <span class='estype'>String</span>
+              value that represents the same sequence of <a class='dfnref' href='#dfn-code-unit'>code units</a> as
+              the <a class='dfnref' href='#dfn-enumeration-value'>enumeration value</a>.
+            </p>
           </div>
 
           <div id='es-nullable-type' class='section'>
@@ -8497,8 +8636,19 @@ interface
                       <li>Return.</li>
                     </ol>
                   </li>
-                  <li>Let <var>idlValue</var> be the result of <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a>
-                    <var>V</var> to an IDL value.</li>
+                  <li>Let <var>idlValue</var> be an IDL value determined as follows:
+                    <ul>
+                      <li>If the type of the attribute is an <a class='dfnref' href='#dfn-enumeration'>enumeration</a>, then:
+                        <ol>
+                          <li>Let <var>S</var> be the result of calling ToString(<var>V</var>).</li>
+                          <li>If <var>S</var> is not of the <a class='dfnref' href='#dfn-enumeration-value'>enumeration’s values</a>, then return <span class='esvalue'>undefined</span>.</li>
+                          <li>The value of <var>idlValue</var> is the enumeration value equal to <var>S</var>.</li>
+                        </ol>
+                      </li>
+                      <li>Otherwise, the type of the attribute is not an <a class='dfnref' href='#dfn-enumeration'>enumeration</a>.
+                        The value of <var>idlValue</var> is the result of <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a>
+                        <var>V</var> to an IDL value.</li>
+                    </ul></li>
                   <li>Perform the actions listed in the description of the attribute that occur when setting,
                     with <var>O</var> as the object and <var>idlValue</var> as the value.</li>
                   <li>Return <span class='esvalue'>undefined</span>.</li>
@@ -10121,6 +10271,9 @@ d.type = et;
           <prod nt='DefaultValue'>ConstValue | string | ε</prod>
           <prod nt='Exception'>"exception" identifier Inheritance "{" ExceptionMembers "}" ";"</prod>
           <prod nt='ExceptionMembers'>ExtendedAttributeList ExceptionMember ExceptionMembers | ε</prod>
+          <prod nt='Enum'>"enum" identifier "{" EnumValueList "}" ";"</prod>
+          <prod nt='EnumValueList'>string EnumValues</prod>
+          <prod nt='EnumValues'>"," string EnumValues | ε</prod>
           <prod nt='Typedef'>"typedef" ExtendedAttributeList Type identifier ";"</prod>
           <prod nt='ImplementsStatement'>identifier "implements" identifier ";"</prod>
           <prod nt='Const'>"const" ConstType identifier "=" ConstValue ";"</prod>
@@ -10362,6 +10515,11 @@ d.type = et;
           <dt>Current editor’s draft</dt>
           <dd>
             <ul>
+              <li>
+                <p>
+                  Added string enumerations.
+                </p>
+              </li>
               <li>
                 <p>
                   Specified class strings for interface prototype objects and exception interface
