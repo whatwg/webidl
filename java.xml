@@ -15,7 +15,7 @@
   <head>
     <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'/>
     <title>Java language binding for Web IDL</title>
-    <meta name='revision' content='$Id: java.xml,v 1.5 2011-12-22 05:48:38 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: java.xml,v 1.6 2011-12-22 06:28:46 cmccorma Exp $'/>
     <link rel='stylesheet' href='WebIDL.css' type='text/css'/>
     <script src='section-links.js' type='application/ecmascript'/>
     <script src='dfn.js' type='application/ecmascript'/>
@@ -825,7 +825,7 @@ Document doc = element.getOwnerDocument();</x:codeblock></li>
 
             <p>
               IDL <a class='idltype' href='#idl-object'>object</a> values are
-              represented by Java <span class='estype'>java.lang.Object</span> reference
+              represented by Java <span class='javatype'>java.lang.Object</span> reference
               values.
             </p>
             <p>
@@ -1090,6 +1090,11 @@ Document doc = element.getOwnerDocument();</x:codeblock></li>
                 <td>The <a class='dfnref' href='#dfn-java-array-interface'>Java array interface</a> for IDL type <var>T</var></td>
                 <td>–</td>
               </tr>
+              <tr>
+                <td>Union type <span class='idltype'><var>T</var>?</span></td>
+                <td><span class='javatype'>java.lang.Object</span></td>
+                <td>–</td>
+              </tr>
             </table>
             <p>
               How to <a class='dfnref' href='#dfn-convert-java-to-idl-value'>convert a Java value</a>
@@ -1220,6 +1225,12 @@ Document doc = element.getOwnerDocument();</x:codeblock></li>
               <dt>If the IDL value is a non-<span class='idlvalue'>null</span> nullable <a href='#idl-interfaces'>interface type</a> or <span class='idltype'>object?</span> value</dt>
               <dd>
                 The Java value is a reference to the same object.
+              </dd>
+              <dt>If the IDL value is a non-<span class='idlvalue'>null</span> nullable <a href='#idl-union'>union type</a> value</dt>
+              <dd>
+                The Java value is the result of <a class='dfnref' href='#dfn-convert-idl-to-java-value'>converting</a>
+                the IDL union type value to a Java <span class='javatype'>java.lang.Object</span> reference,
+                as described in <a href='#java-sequence'>section <?sref java-union?></a> <?sdir java-union?>.
               </dd>
             </dl>
           </div>
@@ -1420,12 +1431,175 @@ public interface ObjectArray&lt;E&gt; {
             </ul>
           </div>
 
+          <div id='java-union' class='section'>
+            <h4>Union types</h4>
+
+            <p>
+              IDL <a href='#idl-union'>union type</a> values are represented
+              by Java <span class='javatype'>java.lang.Object</span> reference values.
+            </p>
+            <p>
+              To <a class='dfnref' href='#dfn-convert-java-to-idl-value'>convert a Java value</a> <var>V</var> to an IDL <a href='#idl-union'>union type</a>
+              value is done as follows:
+            </p>
+            <ol class='algorithm'>
+              <li>If the <a class='dfnref' href='#dfn-union-type'>union type</a>
+                <a class='dfnref' href='#dfn-includes-a-nullable-type'>includes a nullable type</a> and
+                <var>V</var> is <span class='javavalue'>null</span> object reference,
+                then return the IDL value <span class='idlvalue'>null</span>.</li>
+              <li>
+                Let <var>types</var> be the <a class='dfnref' href='#dfn-flattened-union-member-types'>flattened member types</a>
+                of the <a class='dfnref' href='#dfn-union-type'>union type</a>.
+              </li>
+              <li>
+                If <var>V</var> implements a <a class='dfnref' href='#dfn-java-array-interface'>Java array interface</a>, then:
+                <ol>
+                  <li>If <var>types</var> includes an <a href='#idl-array'>array type</a>, then return the result of
+                    <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a>
+                    <var>V</var> to that type.</li>
+                  <li>If <var>types</var> includes <span class='idltype'>object</span>, then return the IDL value
+                    that is a reference to the object <var>V</var>.</li>
+                </ol>
+              </li>
+              <li>
+                If <var>V</var> is an array object, then:
+                <ol>
+                  <li>If <var>types</var> includes an <a href='#idl-sequence'>sequence type</a>, then return the result of
+                    <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a>
+                    <var>V</var> to that type.</li>
+                  <li>If <var>types</var> includes <span class='idltype'>object</span>, then return the IDL value
+                    that is a reference to the object <var>V</var>.</li>
+                </ol>
+              </li>
+              <li>
+                If <var>V</var> is any other <a class='dfnref' href='#dfn-platform-object'>platform object</a>, then:
+                <ol>
+                  <li>If <var>types</var> includes an <a href='#idl-interface'>interface type</a> that <var>V</var>
+                    implements, then return the IDL value that is a reference to the object <var>V</var>.</li>
+                  <li>If <var>types</var> includes <span class='idltype'>object</span>, then return the IDL value
+                    that is a reference to the object <var>V</var>.</li>
+                </ol>
+              </li>
+              <li>
+                If <var>V</var> is a <span class='java'>java.util.Date</span> object, then:
+                <ol>
+                  <li>If <var>types</var> includes <a class='idltype' href='#idl-Date'>Date</a>, then return the
+                    result of <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a>
+                    <var>V</var> to <a class='idltype' href='#idl-Date'>Date</a>.</li>
+                  <li>If <var>types</var> includes <span class='idltype'>object</span>, then return the IDL value
+                    that is a reference to the object <var>V</var>.</li>
+                </ol>
+              </li>
+              <li>
+                If <var>V</var> is a <span class='java'>java.lang.Boolean</span> object, then:
+                <ol>
+                  <li>If <var>types</var> includes <a class='idltype' href='#idl-boolean'>boolean</a>, then return the
+                    result of <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a>
+                    the result of calling the <code>booleanValue()</code> method on <var>V</var> to <a class='idltype' href='#idl-boolean'>boolean</a>.</li>
+                  <li>If <var>types</var> includes <span class='idltype'>object</span>, then return the IDL value
+                    that is a reference to the object <var>V</var>.</li>
+                </ol>
+              </li>
+              <li>
+                If <var>V</var> is a <span class='java'>java.lang.Byte</span> object, then:
+                <ol>
+                  <li>If <var>types</var> includes <a class='idltype' href='#idl-byte'>byte</a>, then return the
+                    result of <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a>
+                    the result of calling the <code>byteValue()</code> method on <var>V</var> to <a class='idltype' href='#idl-byte'>byte</a>.</li>
+                  <li>If <var>types</var> includes <span class='idltype'>object</span>, then return the IDL value
+                    that is a reference to the object <var>V</var>.</li>
+                </ol>
+              </li>
+              <li>
+                If <var>V</var> is a <span class='java'>java.lang.Short</span> object, then:
+                <ol>
+                  <li>If <var>types</var> includes <a class='idltype' href='#idl-short'>short</a>, then return the
+                    result of <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a>
+                    the result of calling the <code>shortValue()</code> method on <var>V</var> to <a class='idltype' href='#idl-short'>short</a>.</li>
+                  <li>If <var>types</var> includes <span class='idltype'>object</span>, then return the IDL value
+                    that is a reference to the object <var>V</var>.</li>
+                </ol>
+              </li>
+              <li>
+                If <var>V</var> is a <span class='java'>java.lang.Integer</span> object, then:
+                <ol>
+                  <li>If <var>types</var> includes <a class='idltype' href='#idl-long'>long</a>, then return the
+                    result of <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a>
+                    the result of calling the <code>intValue()</code> method on <var>V</var> to <a class='idltype' href='#idl-long'>long</a>.</li>
+                  <li>If <var>types</var> includes <span class='idltype'>object</span>, then return the IDL value
+                    that is a reference to the object <var>V</var>.</li>
+                </ol>
+              </li>
+              <li>
+                If <var>V</var> is a <span class='java'>java.lang.Long</span> object, then:
+                <ol>
+                  <li>If <var>types</var> includes <a class='idltype' href='#idl-long-long'>long long</a>, then return the
+                    result of <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a>
+                    the result of calling the <code>longValue()</code> method on <var>V</var> to <a class='idltype' href='#idl-long-long'>long long</a>.</li>
+                  <li>If <var>types</var> includes <span class='idltype'>object</span>, then return the IDL value
+                    that is a reference to the object <var>V</var>.</li>
+                </ol>
+              </li>
+              <li>
+                If <var>V</var> is a <span class='java'>java.lang.Float</span> object, then:
+                <ol>
+                  <li>If <var>types</var> includes <a class='idltype' href='#idl-float'>float</a>, then return the
+                    result of <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a>
+                    the result of calling the <code>floatValue()</code> method on <var>V</var> to <a class='idltype' href='#idl-float'>float</a>.</li>
+                  <li>If <var>types</var> includes <span class='idltype'>object</span>, then return the IDL value
+                    that is a reference to the object <var>V</var>.</li>
+                </ol>
+              </li>
+              <li>
+                If <var>V</var> is a <span class='java'>java.lang.Double</span> object, then:
+                <ol>
+                  <li>If <var>types</var> includes <a class='idltype' href='#idl-double'>double</a>, then return the
+                    result of <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a>
+                    the result of calling the <code>doubleValue()</code> method on <var>V</var> to <a class='idltype' href='#idl-double'>double</a>.</li>
+                  <li>If <var>types</var> includes <span class='idltype'>object</span>, then return the IDL value
+                    that is a reference to the object <var>V</var>.</li>
+                </ol>
+              </li>
+              <li>
+                If <var>V</var> is a <span class='java'>java.lang.String</span> object, then:
+                <ol>
+                  <li>If <var>types</var> includes <a class='idltype' href='#idl-DOMString'>DOMString</a>, then return the
+                    result of <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a>
+                    <var>V</var> to <a class='idltype' href='#idl-DOMString'>DOMString</a>.</li>
+                  <li>If <var>types</var> includes <span class='idltype'>object</span>, then return the IDL value
+                    that is a reference to the object <var>V</var>.</li>
+                </ol>
+              </li>
+              <li>
+                If <var>V</var> is any other type of object, then:
+                <ol>
+                  <li>If <var>types</var> includes a <a class='xattr' href='#Callback'>[Callback]</a>-annotated
+                    <a href='#idl-interface'>interface type</a>, then return the result of
+                    <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a>
+                    <var>V</var> to that interface type.</li>
+                  <li>If <var>types</var> includes a <a href='#idl-dictionary'>dictionary type</a>, then return the
+                    result of <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a>
+                    <var>V</var> to that dictionary type.</li>
+                  <li>If <var>types</var> includes <span class='idltype'>object</span>, then return the IDL value
+                    that is a reference to the object <var>V</var>.</li>
+                </ol>
+              </li>
+              <li>
+                Throw an <span class='estype'>IllegalArgumentException</span>.
+              </li>
+            </ol>
+            <p>
+              An IDL union type is <a class='dfnref' href='#dfn-convert-idl-to-java-value'>converted</a>
+              to a Java value by following the same rules as if the IDL type were <span class='idltype'>any</span>.
+            </p>
+          </div>
+
           <div id='java-Date' class='section'>
             <h4>Date</h4>
 
             <p>
               IDL <a class='idltype' href='#idl-Date'>Date</a> values are
-              represented by Java <span class='estype'>java.util.Date</span> reference
+              represented by Java <span class='javatype'>java.util.Date</span> reference
               values.
             </p>
             <p>
@@ -2281,6 +2455,11 @@ public <var>ExceptionName</var>(Throwable cause) {
           <dt>Current editor’s draft</dt>
           <dd>
             <ul>
+              <li>
+                <p>
+                  Added support for IDL union types.
+                </p>
+              </li>
               <li>
                 <p>
                   Added support for IDL enumerations.

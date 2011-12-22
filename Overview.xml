@@ -15,7 +15,7 @@
   <head>
     <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'/>
     <title>Web IDL</title>
-    <meta name='revision' content='$Id: Overview.xml,v 1.430 2011-12-21 01:42:24 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: Overview.xml,v 1.431 2011-12-22 06:28:46 cmccorma Exp $'/>
     <link rel='stylesheet' href='WebIDL.css' type='text/css'/>
     <script src='section-links.js' type='application/ecmascript'/>
     <script src='dfn.js' type='application/ecmascript'/>
@@ -1044,12 +1044,20 @@ exception Problem {
               defined on the same <a class='dfnref' href='#dfn-interface'>interface</a>.
             </p>
             <p>
-              The type of the attribute is given by the type (matching <a class='sym' href='#prod-AttributeType'>AttributeType</a>)
-              that appears after the <code>attribute</code> keyword.  This allows for
-              any type except <a href='#idl-sequence'>sequence types</a>.
-              If the <a class='sym' href='#prod-AttributeType'>AttributeType</a> is an
+              The type of the attribute is given by the type (matching <a class='sym' href='#prod-Type'>Type</a>)
+              that appears after the <code>attribute</code> keyword.
+              If the <a class='sym' href='#prod-Type'>Type</a> is an
               <a class='dfnref' href='#dfn-identifier'>identifier</a>, then it <span class='rfc2119'>MUST</span>
               identify an interface or <a class='dfnref' href='#dfn-typedef'>typedef</a>.
+              The type of the attribute <span class='rfc2119'>MUST NOT</span> be a
+              <a class='dfnref' href='#dfn-nullable-type'>nullable</a> or
+              non-nullable <a href='#idl-sequence'>sequence type</a>,
+              and it it <span class='rfc2119'>MUST NOT</span> be a
+              <a class='dfnref' href='#dfn-union-type'>union type</a> if
+              one of its <a class='dfnref' href='#dfn-union-member-type'>member types</a>
+              (or one of its member types’s member types, and so on)
+              is a <a class='dfnref' href='#dfn-nullable-type'>nullable</a> or
+              non-nullable <a href='#idl-sequence'>sequence type</a>.
             </p>
             <p>
               The attribute is <dfn id='dfn-read-only'>read only</dfn> if the
@@ -2221,21 +2229,16 @@ partial interface A {
               interface and target language binding are needed.
             </p>
             <p>
-              The elements of an effective overload set are triples of the form
-              &lt;<var>f</var>, <var>types</var>, <var>any</var>>.  If the effective overload
+              The elements of an effective overload set are pairs of the form
+              &lt;<var>f</var>, <var>types</var>>.  If the effective overload
               set is for regular operations, static operations or legacy callers, then <var>f</var> is an operation,
               and if it is for constructors, then <var>f</var> is an
               extended attribute.  In either case, <var>types</var> is a list
-              of IDL types and <var>any</var> is a list of boolean values.
-              Each triple represents an allowable invocation of the operation,
+              of IDL types.  Each pair represents an allowable invocation of the operation,
               constructor or legacy caller with an argument value list of the given types.
-              <var>any</var> specifies whether a particular argument has been
-              annotated with the <a class='xattr' href='#AllowAny'>[AllowAny]</a>
-              <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>.
               Due to the use of <a class='dfnref' href='#dfn-optional-argument'>optional arguments</a>
               and <a class='dfnref' href='#dfn-variadic-operation'>variadic operations</a>
-              and constructors, there may
-              be multiple entries in an effective overload set identifying
+              and constructors, there may be multiple entries in an effective overload set identifying
               the same operation or constructor.
             </p>
             <p>
@@ -2316,26 +2319,24 @@ partial interface A {
                 <ol class='algorithm'>
                   <li>Let <var>n</var> be the number of arguments <var>X</var> is declared to take.</li>
                   <li>Let <var>t</var><sub>0..<var>n</var>−1</sub> be the types of the arguments <var>X</var> is defined to take.</li>
-                  <li>Let <var>a</var><sub>0..<var>n</var>−1</sub> be boolean values indicating whether each argument <var>X</var> is defined to take is declared with the <a class='xattr' href='#AllowAny'>[AllowAny]</a> extended attribute.</li>
-                  <li>Add to <var>S</var> the triple &lt;<var>X</var>, <var>t</var><sub>0..<var>n</var>−1</sub>, <var>a</var><sub>0..<var>n</var>−1</sub>>.</li>
+                  <li>Add to <var>S</var> the pair &lt;<var>X</var>, <var>t</var><sub>0..<var>n</var>−1</sub>>.</li>
                   <li>If <var>n</var> > 0 and <var>X</var> is declared to be <a class='dfnref' href='#dfn-variadic-operation'>variadic</a>, then:
                     <ol class='algorithm'>
-                      <li>Add to <var>S</var> the triple &lt;<var>X</var>, <var>t</var><sub>0..<var>n</var>−2</sub>, <var>a</var><sub>0..<var>n</var>−2</sub>>.</li>
+                      <li>Add to <var>S</var> the pair &lt;<var>X</var>, <var>t</var><sub>0..<var>n</var>−2</sub>>.</li>
                       <li>For every integer <var>i</var>, such that <var>n</var> ≤ <var>i</var> ≤ <var>m</var>−1:
                         <ol class='algorithm'>
                           <li>Let <var>u</var><sub>0..<var>i</var></sub> be a list of types, where <var>u</var><sub>j</sub> = <var>t</var><sub>j</sub> (for <var>j</var> &lt; <var>n</var>) and <var>u</var><sub>j</sub> = <var>t</var><sub><var>n</var>−1</sub> (for <var>j</var> ≥ <var>n</var>).</li>
-                          <li>Let <var>b</var><sub>0..<var>i</var></sub> be a list of booleans, where <var>b</var><sub>j</sub> = <var>a</var><sub>j</sub> (for <var>j</var> &lt; <var>n</var>) and <var>b</var><sub>j</sub> = <var>a</var><sub><var>n</var>−1</sub> (for <var>j</var> ≥ <var>n</var>).</li>
-                          <li>Add to <var>S</var> the triple &lt;<var>X</var>, <var>u</var><sub>0..<var>i</var></sub>, <var>b</var><sub>0..<var>i</var></sub>>.</li>
+                          <li>Add to <var>S</var> the pair &lt;<var>X</var>, <var>u</var><sub>0..<var>i</var></sub>>.</li>
                         </ol>
                       </li>
                     </ol>
                   </li>
                   <li>For every integer <var>i</var>, such that 0 &lt; <var>i</var> &lt; <var>n</var>:
                     <ol class='algorithm'>
-                      <li>If argument <var>i</var> of <var>X</var> is <a class='dfnref' href='#dfn-optional-argument'>optional</a>, then add to <var>S</var> the triple &lt;<var>X</var>, <var>t</var><sub>0..<var>i−1</var></sub>, <var>a</var><sub>0..<var>i−1</var></sub>>.</li>
+                      <li>If argument <var>i</var> of <var>X</var> is <a class='dfnref' href='#dfn-optional-argument'>optional</a>, then add to <var>S</var> the pair &lt;<var>X</var>, <var>t</var><sub>0..<var>i−1</var></sub>>.</li>
                     </ol>
                   </li>
-                  <li>If <var>n</var> > 0 and the first argument of <var>X</var> is optional, then add to <var>S</var> the triple &lt;<var>X</var>, (), ()> (where “()” represents the empty list).</li>
+                  <li>If <var>n</var> > 0 and the first argument of <var>X</var> is optional, then add to <var>S</var> the pair &lt;<var>X</var>, ()> (where “()” represents the empty list).</li>
                 </ol>
               </li>
               <li>
@@ -2343,347 +2344,193 @@ partial interface A {
               </li>
             </ol>
             <p>
-              For each pair of entries in an
-              <a class='dfnref' href='#dfn-effective-overload-set'>effective overload set</a>
-              at least one of the following <span class='rfc2119'>MUST</span> be true:
+              The following types are considered to be the <dfn id='dfn-exactly-matchable-types'>exactly matchable types</dfn>:
             </p>
             <ul>
-              <li>the type list lengths of the two entries are different, or</li>
-              <li>there is an index <var>i</var> such that the types in the two type lists at index <var>i</var> are <a class='dfnref' href='#dfn-distinguishable'>distinguishable</a>.</li>
+              <li><span class='idltype'>object</span></li>
+              <li><a href='#idl-interface'>interface types</a></li>
+              <li><a href='#idl-dictionary'>dictionary types</a></li>
+              <li><a href='#idl-sequence'>sequence types</a></li>
+              <li><a href='#idl-array'>array types</a></li>
+              <li><span class='idltype'>Date</span></li>
+              <li><a class='dfnref' href='#dfn-nullable'>nullable</a> versions of the above types</li>
+              <li>nullable or non-nullable <a href='#idl-union'>union types</a> whose
+                <a class='dfnref' href='#dfn-flattened-union-member-types'>flattened member types</a>
+                include only the above types</li>
             </ul>
             <p>
-              Two types are
-              <dfn id='dfn-distinguishable'>distinguishable</dfn> if there is
-              a “●” mark in the corresponding entry in the following table:
+              Two types are <dfn id='dfn-distinguishable'>distinguishable</dfn> if
+              at most one of the two is a <a class='dfnref' href='#dfn-nullable-type'>nullable type</a>
+              and at least one of the following three conditions is true:
             </p>
-            <table id='distinguishable-table' class='matrix'>
-              <tr>
-                <th class='corner'></th>
-                <th>primitive</th>
-                <th>primitive?</th>
-                <th>DOMString</th>
-                <th>DOMString?</th>
-                <th>interface</th>
-                <th>interface?</th>
-                <th>object</th>
-                <th>object?</th>
-                <th>dictionary</th>
-                <th>dictionary?</th>
-                <th>sequence&lt;<var>T</var>&gt;</th>
-                <th>sequence&lt;<var>T</var>&gt;?</th>
-                <th><var>T</var>[]</th>
-                <th><var>T</var>[]?</th>
-                <th>Date</th>
-                <th>Date?</th>
-              </tr>
-              <tr>
-                <th>primitive</th>
-                <td></td>
-                <td></td>
-                <td>●</td>
-                <td>●</td>
-                <td>●</td>
-                <td>●</td>
-                <td>●</td>
-                <td>●</td>
-                <td>●</td>
-                <td>●</td>
-                <td>●</td>
-                <td>●</td>
-                <td>●</td>
-                <td>●</td>
-                <td>●</td>
-                <td>●</td>
-              </tr>
-              <tr>
-                <th>primitive?</th>
-                <td class='belowdiagonal'></td>
-                <td></td>
-                <td>●</td>
-                <td></td>
-                <td>●</td>
-                <td></td>
-                <td>●</td>
-                <td></td>
-                <td>●</td>
-                <td></td>
-                <td>●</td>
-                <td></td>
-                <td>●</td>
-                <td></td>
-                <td>●</td>
-                <td></td>
-              </tr>
-              <tr>
-                <th>DOMString</th>
-                <td class='belowdiagonal'></td>
-                <td class='belowdiagonal'></td>
-                <td></td>
-                <td></td>
-                <td>●</td>
-                <td>●</td>
-                <td>●</td>
-                <td>●</td>
-                <td>●</td>
-                <td>●</td>
-                <td>●</td>
-                <td>●</td>
-                <td>●</td>
-                <td>●</td>
-                <td>●</td>
-                <td>●</td>
-              </tr>
-              <tr>
-                <th>DOMString?</th>
-                <td class='belowdiagonal'></td>
-                <td class='belowdiagonal'></td>
-                <td class='belowdiagonal'></td>
-                <td></td>
-                <td>●</td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td>●</td>
-                <td></td>
-                <td>●</td>
-                <td></td>
-                <td>●</td>
-                <td></td>
-                <td>●</td>
-                <td></td>
-              </tr>
-              <tr>
-                <th>interface</th>
-                <td class='belowdiagonal'></td>
-                <td class='belowdiagonal'></td>
-                <td class='belowdiagonal'></td>
-                <td class='belowdiagonal'></td>
-                <td>● <a class='note-link' href='#distinguishable-interface-note'>[1]</a></td>
-                <td>● <a class='note-link' href='#distinguishable-interface-note'>[1]</a></td>
-                <td></td>
-                <td></td>
-                <td>●</td>
-                <td>●</td>
-                <td>●</td>
-                <td>●</td>
-                <td>●</td>
-                <td>●</td>
-                <td>●</td>
-                <td>●</td>
-              </tr>
-              <tr>
-                <th>interface?</th>
-                <td class='belowdiagonal'></td>
-                <td class='belowdiagonal'></td>
-                <td class='belowdiagonal'></td>
-                <td class='belowdiagonal'></td>
-                <td class='belowdiagonal'></td>
-                <td>● <a class='note-link' href='#distinguishable-interface-note'>[1]</a></td>
-                <td></td>
-                <td></td>
-                <td>●</td>
-                <td></td>
-                <td>●</td>
-                <td></td>
-                <td>●</td>
-                <td></td>
-                <td>●</td>
-                <td></td>
-              </tr>
-              <tr>
-                <th>object</th>
-                <td class='belowdiagonal'></td>
-                <td class='belowdiagonal'></td>
-                <td class='belowdiagonal'></td>
-                <td class='belowdiagonal'></td>
-                <td class='belowdiagonal'></td>
-                <td class='belowdiagonal'></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-              </tr>
-              <tr>
-                <th>object?</th>
-                <td class='belowdiagonal'></td>
-                <td class='belowdiagonal'></td>
-                <td class='belowdiagonal'></td>
-                <td class='belowdiagonal'></td>
-                <td class='belowdiagonal'></td>
-                <td class='belowdiagonal'></td>
-                <td class='belowdiagonal'></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-              </tr>
-              <tr>
-                <th>dictionary</th>
-                <td class='belowdiagonal'></td>
-                <td class='belowdiagonal'></td>
-                <td class='belowdiagonal'></td>
-                <td class='belowdiagonal'></td>
-                <td class='belowdiagonal'></td>
-                <td class='belowdiagonal'></td>
-                <td class='belowdiagonal'></td>
-                <td class='belowdiagonal'></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-              </tr>
-              <tr>
-                <th>dictionary?</th>
-                <td class='belowdiagonal'></td>
-                <td class='belowdiagonal'></td>
-                <td class='belowdiagonal'></td>
-                <td class='belowdiagonal'></td>
-                <td class='belowdiagonal'></td>
-                <td class='belowdiagonal'></td>
-                <td class='belowdiagonal'></td>
-                <td class='belowdiagonal'></td>
-                <td class='belowdiagonal'></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-              </tr>
-              <tr>
-                <th>sequence&lt;<var>T</var>></th>
-                <td class='belowdiagonal'></td>
-                <td class='belowdiagonal'></td>
-                <td class='belowdiagonal'></td>
-                <td class='belowdiagonal'></td>
-                <td class='belowdiagonal'></td>
-                <td class='belowdiagonal'></td>
-                <td class='belowdiagonal'></td>
-                <td class='belowdiagonal'></td>
-                <td class='belowdiagonal'></td>
-                <td class='belowdiagonal'></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-              </tr>
-              <tr>
-                <th>sequence&lt;<var>T</var>>?</th>
-                <td class='belowdiagonal'></td>
-                <td class='belowdiagonal'></td>
-                <td class='belowdiagonal'></td>
-                <td class='belowdiagonal'></td>
-                <td class='belowdiagonal'></td>
-                <td class='belowdiagonal'></td>
-                <td class='belowdiagonal'></td>
-                <td class='belowdiagonal'></td>
-                <td class='belowdiagonal'></td>
-                <td class='belowdiagonal'></td>
-                <td class='belowdiagonal'></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-              </tr>
-              <tr>
-                <th><var>T</var>[]</th>
-                <td class='belowdiagonal'></td>
-                <td class='belowdiagonal'></td>
-                <td class='belowdiagonal'></td>
-                <td class='belowdiagonal'></td>
-                <td class='belowdiagonal'></td>
-                <td class='belowdiagonal'></td>
-                <td class='belowdiagonal'></td>
-                <td class='belowdiagonal'></td>
-                <td class='belowdiagonal'></td>
-                <td class='belowdiagonal'></td>
-                <td class='belowdiagonal'></td>
-                <td class='belowdiagonal'></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-              </tr>
-              <tr>
-                <th><var>T</var>[]?</th>
-                <td class='belowdiagonal'></td>
-                <td class='belowdiagonal'></td>
-                <td class='belowdiagonal'></td>
-                <td class='belowdiagonal'></td>
-                <td class='belowdiagonal'></td>
-                <td class='belowdiagonal'></td>
-                <td class='belowdiagonal'></td>
-                <td class='belowdiagonal'></td>
-                <td class='belowdiagonal'></td>
-                <td class='belowdiagonal'></td>
-                <td class='belowdiagonal'></td>
-                <td class='belowdiagonal'></td>
-                <td class='belowdiagonal'></td>
-                <td></td>
-                <td></td>
-                <td></td>
-              </tr>
-              <tr>
-                <th>Date</th>
-                <td class='belowdiagonal'></td>
-                <td class='belowdiagonal'></td>
-                <td class='belowdiagonal'></td>
-                <td class='belowdiagonal'></td>
-                <td class='belowdiagonal'></td>
-                <td class='belowdiagonal'></td>
-                <td class='belowdiagonal'></td>
-                <td class='belowdiagonal'></td>
-                <td class='belowdiagonal'></td>
-                <td class='belowdiagonal'></td>
-                <td class='belowdiagonal'></td>
-                <td class='belowdiagonal'></td>
-                <td class='belowdiagonal'></td>
-                <td class='belowdiagonal'></td>
-                <td></td>
-                <td></td>
-              </tr>
-              <tr>
-                <th>Date?</th>
-                <td class='belowdiagonal'></td>
-                <td class='belowdiagonal'></td>
-                <td class='belowdiagonal'></td>
-                <td class='belowdiagonal'></td>
-                <td class='belowdiagonal'></td>
-                <td class='belowdiagonal'></td>
-                <td class='belowdiagonal'></td>
-                <td class='belowdiagonal'></td>
-                <td class='belowdiagonal'></td>
-                <td class='belowdiagonal'></td>
-                <td class='belowdiagonal'></td>
-                <td class='belowdiagonal'></td>
-                <td class='belowdiagonal'></td>
-                <td class='belowdiagonal'></td>
-                <td class='belowdiagonal'></td>
-                <td></td>
-              </tr>
-            </table>
-            <ul class='notes'>
-              <li id='distinguishable-interface-note'><a class='note-link'>[1]</a> Two <a href='#idl-interface'>interface types</a> are distinguishable only if two different <a class='dfnref' href='#dfn-interface'>interfaces</a> are identified and if one is not an <a class='dfnref' href='#dfn-inherited-interfaces'>inherited interface</a> of the other.</li>
-            </ul>
+            <ol>
+              <li>
+                <p>
+                  The two types (taking their <a class='dfnref' href='#dfn-inner-type'>inner types</a>
+                  if they are <a class='dfnref' href='#dfn-nullable-type'>nullable types</a>) appear
+                  in the following table and there is a “●” mark in the corresponding entry
+                  or there is a letter in the corresponding entry and the designated additional
+                  requirement below the table is satisfied:</p>
+                <table id='distinguishable-table' class='matrix'>
+                  <tr>
+                    <th class='corner'></th>
+                    <th>primitive</th>
+                    <th>DOMString</th>
+                    <th>enumeration</th>
+                    <th>interface</th>
+                    <th>object</th>
+                    <th>dictionary</th>
+                    <th>sequence&lt;<var>T</var>&gt;</th>
+                    <th><var>T</var>[]</th>
+                    <th>Date</th>
+                  </tr>
+                  <tr>
+                    <th>primitive</th>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td>●</td>
+                    <td>●</td>
+                    <td>●</td>
+                    <td>●</td>
+                    <td>●</td>
+                    <td>●</td>
+                  </tr>
+                  <tr>
+                    <th>DOMString</th>
+                    <td class='belowdiagonal'></td>
+                    <td></td>
+                    <td></td>
+                    <td>●</td>
+                    <td>●</td>
+                    <td>●</td>
+                    <td>●</td>
+                    <td>●</td>
+                    <td>●</td>
+                  </tr>
+                  <tr>
+                    <th>enumeration</th>
+                    <td class='belowdiagonal'></td>
+                    <td class='belowdiagonal'></td>
+                    <td></td>
+                    <td>●</td>
+                    <td>●</td>
+                    <td>●</td>
+                    <td>●</td>
+                    <td>●</td>
+                    <td>●</td>
+                  </tr>
+                  <tr>
+                    <th>interface</th>
+                    <td class='belowdiagonal'></td>
+                    <td class='belowdiagonal'></td>
+                    <td class='belowdiagonal'></td>
+                    <td>(a)</td>
+                    <td></td>
+                    <td>(b)</td>
+                    <td>(c)</td>
+                    <td>(c)</td>
+                    <td>●</td>
+                  </tr>
+                  <tr>
+                    <th>object</th>
+                    <td class='belowdiagonal'></td>
+                    <td class='belowdiagonal'></td>
+                    <td class='belowdiagonal'></td>
+                    <td class='belowdiagonal'></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                  </tr>
+                  <tr>
+                    <th>dictionary</th>
+                    <td class='belowdiagonal'></td>
+                    <td class='belowdiagonal'></td>
+                    <td class='belowdiagonal'></td>
+                    <td class='belowdiagonal'></td>
+                    <td class='belowdiagonal'></td>
+                    <td></td>
+                    <td>●</td>
+                    <td>●</td>
+                    <td>●</td>
+                  </tr>
+                  <tr>
+                    <th>sequence&lt;<var>T</var>></th>
+                    <td class='belowdiagonal'></td>
+                    <td class='belowdiagonal'></td>
+                    <td class='belowdiagonal'></td>
+                    <td class='belowdiagonal'></td>
+                    <td class='belowdiagonal'></td>
+                    <td class='belowdiagonal'></td>
+                    <td></td>
+                    <td></td>
+                    <td>●</td>
+                  </tr>
+                  <tr>
+                    <th><var>T</var>[]</th>
+                    <td class='belowdiagonal'></td>
+                    <td class='belowdiagonal'></td>
+                    <td class='belowdiagonal'></td>
+                    <td class='belowdiagonal'></td>
+                    <td class='belowdiagonal'></td>
+                    <td class='belowdiagonal'></td>
+                    <td class='belowdiagonal'></td>
+                    <td></td>
+                    <td>●</td>
+                  </tr>
+                  <tr>
+                    <th>Date</th>
+                    <td class='belowdiagonal'></td>
+                    <td class='belowdiagonal'></td>
+                    <td class='belowdiagonal'></td>
+                    <td class='belowdiagonal'></td>
+                    <td class='belowdiagonal'></td>
+                    <td class='belowdiagonal'></td>
+                    <td class='belowdiagonal'></td>
+                    <td class='belowdiagonal'></td>
+                    <td></td>
+                  </tr>
+                </table>
+                <ol type='a'>
+                  <li>The two identified <a class='dfnref' href='#dfn-interface'>interfaces</a> are
+                    not the same, it is not possible for a single <a class='dfnref' href='#dfn-platform-object'>platform object</a>
+                    to implement both <a class='dfnref' href='#dfn-interface'>interfaces</a>,
+                    and it is not the case that both have the <a class='xattr' href='#Callback'>[Callback]</a>
+                    <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>.</li>
+                  <li>The interface type does not have the <a class='xattr' href='#Callback'>[Callback]</a>
+                    <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>.</li>
+                  <li>The interface type does not have the <a class='xattr' href='#Callback'>[Callback]</a>
+                    <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>, and also
+                    does not <a class='dfnref' href='#dfn-support-indexed-properties'>support indexed properties</a>
+                    or <a class='dfnref' href='#dfn-inherit'>inherit</a> from or have as a
+                    <a class='dfnref' href='#dfn-consequential-interface'>consequential interface</a> one
+                    that does.</li>
+                </ol>
+              </li>
+              <li>
+                One type is a <a href='#idl-nullable-type'>nullable</a> or
+                non-nullable <a class='dfnref' href='#dfn-union-type'>union type</a>
+                and the other is a non-union type, and each <a class='dfnref' href='#dfn-union-member-type'>member type</a>
+                of the (nullable or non-nullable) union type is distinguishable with the non-union type.
+              </li>
+              <li>
+                Each type is a nullable or non-nullable union type, and each member type of one (nullable or non-nullable)
+                union type is distinguishable with the other (nullable or non-nullable) union type.
+              </li>
+            </ol>
+            <p>
+              If there is more than one entry in an <a class='dfnref' href='#dfn-effective-overload-set'>effective overload set</a>
+              that has a given type list length, then for those entries there
+              <span class='rfc2119'>MUST</span> be an index <var>i</var> such
+              that for each pair of entries the types at index <var>i</var> are
+              <a class='dfnref' href='#dfn-distinguishable'>distinguishable</a>, and either:
+            </p>
+            <ol type='a'>
+              <li>all of the types at index <var>i</var> are <a class='dfnref' href='#dfn-exactly-matchable-types'>exactly matchable types</a>, or</li>
+              <li>there is only one such index <var>i</var>.</li>
+            </ol>
             <!--
             <div class='note'>
               <p>
@@ -2730,24 +2577,26 @@ interface C {
               </p>
               <x:codeblock language='idl'>interface A {
   /* f1 */ void f(DOMString a);
-  /* f2 */ void f([AllowAny] DOMString a, DOMString b, float... c);
+  /* f2 */ void f(Node a, DOMString b, float... c);
   /* f3 */ void f();
-  /* f4 */ void f(long a, DOMString b, optional DOMString c, float... d);
+  /* f4 */ void f(Event a, DOMString b, optional DOMString c, float... d);
 };</x:codeblock>
               <p>
+                assuming <span class='idltype'>Node</span> and <span class='idltype'>Event</span>
+                are two other interfaces of which no object can implement both,
                 the <a class='dfnref' href='#dfn-effective-overload-set'>effective overload set</a>
                 for identifier <code>f</code> with argument count 4 (for the
                 ECMAScript language binding) is:
               </p>
               <div class='set'>
-                { &lt;f1, (DOMString), (false)>,<br/>
-                  &lt;f2, (DOMString, DOMString), (true, false)>,<br/>
-                  &lt;f2, (DOMString, DOMString, float), (true, false, false)>,<br/>
-                  &lt;f2, (DOMString, DOMString, float, float), (true, false, false, false)>,<br/>
-                  &lt;f3, (), ()>,<br/>
-                  &lt;f4, (long, DOMString), (false, false)>,<br/>
-                  &lt;f4, (long, DOMString, DOMString), (false, false)>,<br/>
-                  &lt;f4, (long, DOMString, DOMString, float), (false, false, false, false)> }
+                { &lt;f1, (DOMString)>,<br/>
+                  &lt;f2, (Node, DOMString)>,<br/>
+                  &lt;f2, (Node, DOMString, float)>,<br/>
+                  &lt;f2, (Node, DOMString, float, float)>,<br/>
+                  &lt;f3, ()>,<br/>
+                  &lt;f4, (Event, DOMString)>,<br/>
+                  &lt;f4, (Event, DOMString, DOMString)>,<br/>
+                  &lt;f4, (Event, DOMString, DOMString, float)> }
               </div>
               <p>
                 There are thus no overloaded operation resolution ambiguities
@@ -3034,8 +2883,18 @@ exception <i>Derived</i> : <em>Base</em> {
             is an <a class='dfnref' href='#dfn-identifier'>identifier</a>, then it
             <span class='rfc2119'>MUST</span> identify an
             interface or <a class='dfnref' href='#dfn-typedef'>typedef</a>.
-            Exception fields are
-            similar to <a class='dfnref' href='#dfn-attribute'>attributes</a> in that they
+            The type of the exception field <span class='rfc2119'>MUST NOT</span> be a
+            <a class='dfnref' href='#dfn-nullable-type'>nullable</a> or
+            non-nullable <a href='#idl-sequence'>sequence type</a>,
+            and it it <span class='rfc2119'>MUST NOT</span> be a
+            <a class='dfnref' href='#dfn-union-type'>union type</a> if
+            one of its <a class='dfnref' href='#dfn-union-member-type'>member types</a>
+            (or one of its member types’s member types, and so on)
+            is a <a class='dfnref' href='#dfn-nullable-type'>nullable</a> or
+            non-nullable <a href='#idl-sequence'>sequence type</a>.
+          </p>
+          <p>
+            Exception fields are similar to <a class='dfnref' href='#dfn-attribute'>attributes</a> in that they
             will correspond to attributes of the same name and type on exception objects
             that are thrown by implementations.
           </p>
@@ -3728,13 +3587,14 @@ interface Person {
             assign to the attribute.
           </p>
 
-          <?productions grammar Type AttributeType SequenceType ConstType Null PrimitiveType UnsignedIntegerType IntegerType OptionalLong TypeSuffix TypeSuffixStartingWithArray?>
+          <?productions grammar Type SingleType OptionalUnionTypeParts UnionTypeParts ConstType Null PrimitiveType UnsignedIntegerType IntegerType OptionalLong TypeSuffix TypeSuffixStartingWithArray?>
 
           <div id='idl-any' class='section'>
             <h4>any</h4>
 
             <p>
-              The <a class='idltype' href='#idl-any'>any</a> type is the union of all other possible types.
+              The <a class='idltype' href='#idl-any'>any</a> type is the union of all other possible
+              non-<a href='#idl-union'>union</a> types.
               Its <a class='dfnref' href='#dfn-type-name'>type name</a> is “Any”.
             </p>
             <p>
@@ -3750,6 +3610,8 @@ interface Person {
             <p>
               The particular type of an <a class='idltype' href='#idl-any'>any</a>
               value is known as its <dfn id='dfn-specific-type'>specific type</dfn>.
+              (Values of <a href='#idl-union'>union types</a> also have
+              <a class='dfnref' href='#dfn-specific-type'>specific types</a>.)
             </p>
           </div>
 
@@ -4142,7 +4004,9 @@ interface Person {
               to be a member of its set of values.  <a class='dfnref' href='#dfn-nullable-type'>Nullable types</a>
               are represented in IDL by placing a <span class='char'>U+003F QUESTION MARK ("?")</span>
               character after an existing type.  The inner type <span class='rfc2119'>MUST NOT</span>
-              be <span class='idltype'>any</span> or another nullable type, as they already
+              be <span class='idltype'>any</span> or another nullable type or a
+              <a class='dfnref' href='#dfn-union-type'>union type</a> that itself has a
+              nullable type as a <a class='dfnref' href='#dfn-union-member-type'>member type</a>, as they already
               allow the <span class='idlvalue'>null</span> value.
             </p>
             <p>
@@ -4260,6 +4124,131 @@ interface Person {
             <div class='example'>
               <p>See <a href='#es-array'>section <?sref es-array?></a> for an example using array types.</p>
             </div>
+          </div>
+
+          <div id='idl-union' class='section'>
+            <h4>Union types</h4>
+
+            <p>
+              A <dfn id='dfn-union-type'>union type</dfn> is a type whose set of values
+              is the union of those in two or more other types.  Union types (matching
+              <a class='sym' href='#prod-Union'>Union</a>) are written
+              as a series of types separated by the <code>or</code> keyword,
+              with an optional set of surrounding parentheses.
+              The types which comprise the union type are known as the
+              union’s <dfn id='dfn-union-member-type'>member types</dfn>.
+            </p>
+            <div class='note'>
+              <p>
+                For example, you might write <code>Node or DOMString</code>
+                or <code>float or float[]</code>.  Parentheses are required
+                to apply a <code>[]</code> or <code>?</code> suffix to a
+                <a class='dfnref' href='#dfn-union-type'>union type</a>
+                as a whole, as in <code>(Node or DOMString)?</code>.
+              </p>
+              <p>
+                Note that the <a class='dfnref' href='#dfn-union-member-type'>member types</a>
+                of a union type do not descend into nested union types.  So for
+                <code>float or (Date or Event) or (Node or DOMString)?</code> the member types
+                are <code>float</code>, <code>(Date or Event)</code> and
+                <code>(Node or DOMString)?</code>.
+              </p>
+            </div>
+            <p>
+              Like the <span class='idltype'>any</span> type, values of
+              union types have a <a class='dfnref' href='#dfn-specific-type'>specific type</a>,
+              which is the particular <a class='dfnref' href='#dfn-member-type'>member type</a>
+              that matches the value.
+            </p>
+            <p>
+              The <dfn id='dfn-flattened-union-member-types'>flattened member types</dfn>
+              of a <a class='dfnref' href='#dfn-union-type'>union type</a> is a set of types
+              determined as follows:
+            </p>
+            <ol>
+              <li>Let <var>T</var> be the <a class='dfnref' href='#dfn-union-type'>union type</a>.</li>
+              <li>Initialize <var>S</var> to ∅.</li>
+              <li>For each <a class='dfnref' href='#dfn-union-member-type'>member type</a> <var>U</var> of <var>T</var>:
+                <ol>
+                  <li>If <var>U</var> is a <a class='dfnref' href='#dfn-nullable-type'>nullable type</a>, then
+                    set <var>U</var> to be the <a class='dfnref' href='#dfn-inner-type'>inner type</a> of <var>U</var>.</li>
+                  <li>If <var>U</var> is a <a class='dfnref' href='#dfn-union-type'>union type</a>, then
+                    add to <var>S</var> the <a class='dfnref' href='#dfn-flattened-member-types'>flattened member types</a>
+                    of <var>U</var>.</li>
+                  <li>Otherwise, <var>U</var> is not a <a class='dfnref' href='#dfn-union-type'>union type</a>.
+                    Add <var>U</var> to <var>S</var>.</li>
+                </ol>
+              </li>
+              <li>Return <var>S</var>.</li>
+            </ol>
+            <div class='note'>
+              <p>
+                For example, the <a class='dfnref' href='#dfn-flattened-union-member-types'>flattened member types</a>
+                of the <a class='dfnref' href='#dfn-union-type'>union type</a>
+                <code>Node or (Date or Event) or (XMLHttpRequest or DOMString)? or (float[] or NodeList)[]</code>
+                are the six types <code>Node</code>, <code>Date</code>, <code>Event</code>,
+                <code>XMLHttpRequest</code>, <code>DOMString</code> and
+                <code>(float[] or NodeList)[]</code>.
+              </p>
+            </div>
+            <p>
+              The <dfn id='dfn-number-of-nullable-member-types'>number of nullable member types</dfn>
+              of a <a class='dfnref' href='#dfn-union-type'>union type</a> is an integer
+              determined as follows:
+            </p>
+            <ol>
+              <li>Let <var>T</var> be the <a class='dfnref' href='#dfn-union-type'>union type</a>.</li>
+              <li>Initialize <var>n</var> to 0.</li>
+              <li>For each <a class='dfnref' href='#dfn-union-member-type'>member type</a> <var>U</var> of <var>T</var>:
+                <ol>
+                  <li>If <var>U</var> is a <a class='dfnref' href='#dfn-nullable-type'>nullable type</a>, then:
+                    <ol>
+                      <li>Set <var>n</var> to <var>n</var> + 1.</li>
+                      <li>Set <var>U</var> to be the <a class='dfnref' href='#dfn-inner-type'>inner type</a> of <var>U</var>.</li>
+                    </ol>
+                  </li>
+                  <li>If <var>U</var> is a <a class='dfnref' href='#dfn-union-type'>union type</a>, then:
+                    <ol>
+                      <li>Let <var>m</var> be the <a class='dfnref' href='#dfn-number-of-nullable-member-types'>number
+                          of nullable member types</a> of <var>U</var>.</li>
+                      <li>Set <var>n</var> to <var>n</var> + <var>m</var>.</li>
+                    </ol></li>
+                </ol>
+              </li>
+              <li>Return <var>n</var>.</li>
+            </ol>
+            <p>
+              The <span class='idltype'>any</span> type <span class='rfc2119'>MUST NOT</span>
+              be used as a <a class='dfnref' href='#dfn-union-member-type'>union member type</a>.
+            </p>
+            <p>
+              The <a class='dfnref' href='#dfn-number-of-nullable-member-types'>number of nullable member types</a>
+              of a <a class='dfnref' href='#dfn-union-type'>union type</a> <span class='rfc2119'>MUST</span>
+              be 0 or 1.  A <a class='dfnref' href='#dfn-union-type'>union type</a> <dfn id='dfn-includes-a-nullable-type'>includes
+                a nullable type</dfn> if its <a class='dfnref' href='#dfn-number-of-nullable-member-types'>number of nullable member types</a>
+              is 1.
+            </p>
+            <p>
+              Each pair of <a class='dfnref' href='#dfn-flattened-union-member-type'>flattened member types</a>
+              in a <a class='dfnref' href='#dfn-union-type'>union type</a>, <var>T</var> and <var>U</var>,
+              <span class='rfc2119'>MUST</span> satisify one of the following two conditions:
+            </p>
+            <ol>
+              <li><var>T</var> is a <a class='dfnref' href='#dfn-primitive-type'>primitive type</a>
+                and <var>U</var> is <span class='idltype'>DOMString</span> or an <a href='#idl-enumeration'>enumeration type</a>, or vice versa; or</li>
+              <li><var>T</var> and <var>U</var> are <a class='dfnref' href='#dfn-distinguishable'>distinguishable</a>.</li>
+            </ol>
+            <p>
+              <a class='dfnref' href='#dfn-union-type'>Union type</a> constant values
+              in IDL are represented in the same way that constant values of their
+              <a class='dfnref' href='#dfn-union-member-type'>member types</a> would be
+              represented.
+            </p>
+            <p>
+              The <a class='dfnref' href='#dfn-type-name'>type name</a> of a union
+              type is formed by taking the type names of each member type, in order,
+              and joining them with the string “Or”.
+            </p>
           </div>
 
           <div id='idl-Date' class='section'>
@@ -6432,6 +6421,103 @@ results.numbers.length;       <span class='comment'>// So this still evaluates t
 
           </div>
 
+          <div id='es-union' class='section'>
+            <h4>Union types</h4>
+
+            <p>
+              IDL <a href='#idl-union'>union type</a> values are
+              represented by ECMAScript values that correspond to the union’s
+              <a class='dfnref' href='#dfn-union-member-type'>member types</a>.
+            </p>
+            <p>
+              To <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>convert an ECMAScript value</a> <var>V</var> to an IDL <a href='#idl-union'>union type</a>
+              value is done as follows:
+            </p>
+            <ol class='algorithm'>
+              <li>If the <a class='dfnref' href='#dfn-union-type'>union type</a>
+                <a class='dfnref' href='#dfn-includes-a-nullable-type'>includes a nullable type</a> and
+                <var>V</var> is <span class='esvalue'>null</span> or <span class='esvalue'>undefined</span>,
+                then return the IDL value <span class='idlvalue'>null</span>.</li>
+              <li>
+                Let <var>types</var> be the <a class='dfnref' href='#dfn-flattened-union-member-types'>flattened member types</a>
+                of the <a class='dfnref' href='#dfn-union-type'>union type</a>.
+              </li>
+              <li>
+                If <var>V</var> is a <a class='dfnref' href='#dfn-platform-array-object'>platform array object</a>,
+                a native <span class='estype'>Array</span> object, or
+                a <a class='dfnref' href='#dfn-platform-object'>platform object</a> that
+                <a class='dfnref' href='#dfn-support-indexed-properties'>supports indexed properties</a>, then:
+                <ol>
+                  <li>If <var>types</var> includes an <a href='#idl-array'>array type</a>, then return the result of
+                    <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a>
+                    <var>V</var> to that type.</li>
+                  <li>If <var>types</var> includes a <a href='#idl-sequence'>sequence type</a>, then return the result of
+                    <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a>
+                    <var>V</var> to that type.</li>
+                  <li>If <var>types</var> includes <span class='idltype'>object</span>, then return the IDL value
+                    that is a reference to the object <var>V</var>.</li>
+                </ol>
+              </li>
+              <li>
+                If <var>V</var> is any other <a class='dfnref' href='#dfn-platform-object'>platform object</a>, then:
+                <ol>
+                  <li>If <var>types</var> includes an <a href='#idl-interface'>interface type</a> that <var>V</var>
+                    implements, then return the IDL value that is a reference to the object <var>V</var>.</li>
+                  <li>If <var>types</var> includes <span class='idltype'>object</span>, then return the IDL value
+                    that is a reference to the object <var>V</var>.</li>
+                </ol>
+              </li>
+              <li>
+                If <var>V</var> is a <span class='estype'>Date</span> object, then:
+                <ol>
+                  <li>If <var>types</var> includes <a class='idltype' href='#idl-Date'>Date</a>, then return the
+                    result of <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a>
+                    <var>V</var> to <a class='idltype' href='#idl-Date'>Date</a>.</li>
+                  <li>If <var>types</var> includes <span class='idltype'>object</span>, then return the IDL value
+                    that is a reference to the object <var>V</var>.</li>
+                </ol>
+              </li>
+              <li>
+                If <var>V</var> is any other type of object, then:
+                <ol>
+                  <li>If <var>types</var> includes a <a class='xattr' href='#Callback'>[Callback]</a>-annotated
+                    <a href='#idl-interface'>interface type</a>, then return the result of
+                    <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a>
+                    <var>V</var> to that interface type.</li>
+                  <li>If <var>types</var> includes a <a href='#idl-dictionary'>dictionary type</a>, then return the
+                    result of <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a>
+                    <var>V</var> to that dictionary type.</li>
+                  <li>If <var>types</var> includes <span class='idltype'>object</span>, then return the IDL value
+                    that is a reference to the object <var>V</var>.</li>
+                </ol>
+              </li>
+              <li>
+                If <var>types</var> includes <span class='idltype'>DOMString</span> or an
+                <a href='#idl-enumeration'>enumeration type</a>, then return the result of
+                <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a>
+                <var>V</var> to that type.
+              </li>
+              <li>
+                If <var>types</var> includes a <a class='dfnref' href='#dfn-primitive-type'>primitive type</a>,
+                then return the result of <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a>
+                <var>V</var> to that <a class='dfnref' href='#dfn-primitive-type'>primitive type</a>.
+              </li>
+              <li>
+                Throw a <span class='estype'>TypeError</span>.
+              </li>
+            </ol>
+            <p>
+              An IDL union type value is
+              <a class='dfnref' href='#dfn-convert-idl-to-ecmascript-value'>converted to an ECMAScript value</a>
+              as follows.  If the value is an <a class='idltype' href='#idl-object'>object</a>
+              reference to a special object that represents an ECMAScript <span class='esvalue'>undefined</span>
+              value, then it is converted to the ECMAScript
+              <span class='esvalue'>undefined</span> value.  Otherwise,
+              the rules for converting the <a class='dfnref' href='#dfn-specific-type'>specific type</a>
+              of the IDL union type value as described in this section (<?sref es-type-mapping?>).
+            </p>
+          </div>
+
           <div id='es-Date' class='section'>
             <h4>Date</h4>
 
@@ -6480,73 +6566,6 @@ results.numbers.length;       <span class='comment'>// So this still evaluates t
             <a class='dfnref' href='#dfn-extended-attribute'>extended attributes</a>
             whose presence affects only the ECMAScript binding.
           </p>
-
-          <div id='AllowAny' class='section'>
-            <h4>[AllowAny]</h4>
-
-            <div class='ednote'>
-              <p>We perhaps should drop <span class='xattr'>[AllowAny]</span>, and just make the overload resolution algorithm
-                treat <span class='idltype'>DOMString</span> like “all remaining types”.</p>
-            </div>
-            <p>
-              If the <a class='xattr' href='#AllowAny'>[AllowAny]</a>
-              <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
-              appears on an <a class='dfnref' href='#dfn-operation'>operation argument</a>,
-              it indicates that any ECMAScript value will be accepted as that
-              argument’s value.  Normally, as part of the <a class='dfnref' href='#dfn-overload-resolution-algorithm'>overload resolution algorithm</a>,
-              a non-<span class='idltype'>DOMString</span> value will disqualify
-              a given overloaded operation that is declared to take a
-              <span class='idltype'>DOMString</span> for a given argument.  When
-              the <a class='xattr' href='#AllowAny'>[AllowAny]</a> extended
-              attribute is present on the argument, that disqualification is
-              not performed.
-            </p>
-            <p>
-              The <a class='xattr' href='#AllowAny'>[AllowAny]</a> extended attribute
-              <span class='rfc2119'>MUST</span> <a class='dfnref' href='#dfn-xattr-no-arguments'>take no arguments</a>.
-            </p>
-            <p>
-              See <a href='#idl-overloading'>section <?sref idl-overloading?></a> for the
-              specific requirements that the use of <a class='xattr' href='#AllowAny'>[AllowAny]</a>
-              entails.
-            </p>
-            <div class='example'>
-              <p>
-                The following <a class='dfnref' href='#dfn-idl-fragment'>IDL fragment</a>
-                defines two <a class='dfnref' href='#dfn-interface'>interfaces</a>,
-                each with two overloaded <a class='dfnref' href='#dfn-operation'>operations</a>.
-                One uses <a class='xattr' href='#AllowAny'>[AllowAny]</a> and one does not.
-              </p>
-              <x:codeblock language='idl'>interface A {
-  void f();
-  void f(A a);
-  void f(DOMString s);
-};
-
-interface B {
-  void g();
-  void g(B b);
-  void g([AllowAny] DOMString s);
-};</x:codeblock>
-              <p>
-                In an ECMAScript implementation of the above two interfaces,
-                an <span class='idltype'>A</span> object will not allow a
-                <span class='estype'>float</span> value to be passed in as
-                an argument, while a <span class='idltype'>B</span> object
-                will:
-              </p>
-              <x:codeblock language='es'>var a = getA();  <span class='comment'>// Obtain an instance of A.</span>
-var b = getB();  <span class='comment'>// Obtain an instance of B.</span>
-
-try {
-  a.f(1.23);     <span class='comment'>// Throws a TypeError.</span>
-} catch (e) {
-}
-
-b.g(1.23);       <span class='comment'>// Equivalent to b.g("1.23").</span>
-b.g(a);          <span class='comment'>// Equivalent to calling b.g with ToString(a).</span></x:codeblock>
-            </div>
-          </div>
 
           <div id='ArrayClass' class='section'>
             <h4>[ArrayClass]</h4>
@@ -8023,11 +8042,10 @@ system.loginTime;  <span class='comment'>// So this now evaluates to forgedLogin
                 <dfn id='dfn-overload-resolution-algorithm'>overload resolution algorithm</dfn>
                 is defined.  Its input is an <a class='dfnref' href='#dfn-effective-overload-set'>effective overload set</a>,
                 <var>S</var>, and a list of ECMAScript values, <var>arg</var><sub>0..<var>n</var>−1</sub>.
+                Its output is either one of the entries of <var>S</var> or <span class='idltype'>null</span>.
                 The algorithm behaves as follows:
               </p>
               <ol class='algorithm'>
-                <li>Initialize <var>entries</var> to a set with the same values as <var>S</var>.</li>
-                <li>Initialize <var>candidates</var> also to a set with the same values as <var>S</var>.</li>
                 <li>Let <var>maxarg</var> be the length of the longest type list of the entries in <var>S</var>.</li>
                 <li>Initialize <var>argcount</var> to be min(<var>maxarg</var>, <var>n</var>).</li>
 
@@ -8035,97 +8053,141 @@ system.loginTime;  <span class='comment'>// So this now evaluates to forgedLogin
                 <li>Initialize <var>j</var> to <var>undefcount</var>.</li>
                 <li>While <var>j</var> &gt; 0:
                   <ol>
-                    <li>If <var>candidates</var> has any entries whose type list is of length <var>n</var>−<var>j</var>,
+                    <li>If <var>S</var> has any entries whose type list is of length <var>n</var>−<var>j</var>,
                       then set <var>argcount</var> to <var>j</var> and break this while loop.</li>
                     <li>Set <var>j</var> to <var>j</var>−1.</li>
                   </ol>
                 </li>
 
-                <li>Remove from <var>candidates</var> all entries whose type list is not of length <var>argcount</var>.</li>
-                <li>Initialize <var>i</var> to 0.</li>
-                <li>While <var>i</var> &lt; <var>argcount</var>:
+                <li>Remove from <var>S</var> all entries whose type list is not of length <var>argcount</var>.</li>
+
+                <li>If <var>S</var> is empty, then return <span class='idlvalue'>null</span>.</li>
+
+                <li>Initialize <var>i</var> to be the lowest type list index of the entries in <var>S</var> for which all
+                  types at that index are <a class='dfnref' href='#dfn-exactly-matchable-types'>exactly matchable</a>, or
+                  −1 if there is no such index.</li>
+
+                <li>If <var>i</var> = −1, then:
                   <ol>
-                    <li>If not all entries in <var>entries</var> have identical types at position <var>i</var> in their type lists, then:
-                      <ol>
-                        <li>Initialize <var>types</var> to the set of IDL types { <span class='idltype'>any</span> }.</li>
-                        <li>Depending on the value of <var>arg</var><sub><var>i</var></sub>:
-                          <dl class='switch'>
-                            <dt>An <span class='estype'>Undefined</span>,
-                              <span class='estype'>Boolean</span> or
-                              <span class='estype'>Number</span> value</dt>
-                            <dd>
-                              Add to <var>types</var> the <a class='dfnref' href='#dfn-primitive-type'>primitive types</a> and
-                              <a class='dfnref' href='#dfn-nullable-type'>nullable</a> primitive types.
-                            </dd>
-                            <dt>A <span class='estype'>String</span> value</dt>
-                            <dd>
-                              Add to <var>types</var> the <span class='idltype'>DOMString</span> and <span class='idltype'>DOMString?</span> types.
-                            </dd>
-                            <dt><span class='esvalue'>null</span></dt>
-                            <dd>
-                              Add to <var>types</var> all nullable types.
-                            </dd>
-                            <dt>A <a class='dfnref' href='#dfn-platform-array-object'>platform array object</a></dt>
-                            <dd>
-                              Add to <var>types</var> the <span class='idltype'>object</span> type
-                              and an <a href='#idl-array'>array type</a> that corresponds to
-                              the type of the IDL array that the platform array object represents.
-                            </dd>
-                            <dt>Any other <a class='dfnref' href='#dfn-platform-object'>platform object</a></dt>
-                            <dd>
-                              Add to <var>types</var> the <span class='idltype'>object</span> type
-                              and an <a href='#idl-interface'>interface type</a>
-                              for each <a class='dfnref' href='#dfn-interface'>interface</a>
-                              that is equal to, or is an <a class='dfnref' href='#dfn-inherited-interfaces'>inherited interface</a> of, at least one
-                              of the interfaces that the <a class='dfnref' href='#dfn-platform-object'>platform object</a> implements.
-                            </dd>
-                            <dt>A native <span class='estype'>Array</span> object</dt>
-                            <dd>
-                              (That is, a native object whose <span class='prop'>[[Class]]</span> is “Array”.)
-                              Add to <var>types</var> the <span class='idltype'>object</span> type,
-                              an <a href='#idl-interface'>interface type</a>
-                              for each interface annotated with the <a class='xattr' href='#Callback'>[Callback]</a>
-                              <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
-                              and all <a href='#idl-array'>array</a> and <a href='#idl-sequence'>sequence types</a>.
-                            </dd>
-                            <dt>A native <span class='estype'>Date</span> object</dt>
-                            <dd>
-                              (That is, a native object whose <span class='prop'>[[Class]]</span> is “Date”.)
-                              Add to <var>types</var> the <span class='idltype'>object</span> type,
-                              an <a href='#idl-interface'>interface type</a>
-                              for each interface annotated with the <a class='xattr' href='#Callback'>[Callback]</a>
-                              <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
-                              and the <span class='idltype'>Date</span> type.
-                            </dd>
-                            <dt>Any other object</dt>
-                            <dd>
-                              Add to <var>types</var> the <span class='idltype'>object</span> type
-                              and an <a href='#idl-interface'>interface type</a>
-                              for each interface annotated with the <a class='xattr' href='#Callback'>[Callback]</a>
-                              <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>.
-                            </dd>
-                          </dl>
-                        </li>
-                        <li>
-                          Remove from <var>candidates</var> all entries with type list
-                          <var>t</var> and boolean list <var>a</var> where
-                          <var>a</var><sub><var>i</var></sub> is <span class='idlvalue'>false</span>
-                          and <var>t</var><sub><var>i</var></sub> ∉ <var>types</var>.
-                        </li>
-                        <li>
-                          If there exists an entry in <var>candidates</var>
-                          with type list <var>t</var> where
-                          <var>t</var><sub><var>i</var></sub> ∈ <var>types</var>,
-                          then remove from <var>R</var> all entries with type list
-                          <var>t</var> where
-                          <var>t</var><sub><var>i</var></sub> ∉ <var>types</var>.
-                        </li>
-                      </ol>
-                    </li>
-                    <li>Set <var>i</var> to <var>i</var> + 1.</li>
+                    <li>If there is only one entry in <var>S</var>, then set <var>i</var> to 0.</li>
+                    <li>Otherwise, set <var>i</var> to be the lowest type list index of the entries in <var>S</var>
+                      for which each pair of types at that index is <a class='dfnref' href='#dfn-distinguishable'>distinguishable</a>.</li>
                   </ol>
                 </li>
-                <li>Return <var>candidates</var>.</li>
+
+                <li>Let <var>V</var> be <var>arg</var><sub><var>i</var></sub>.</li>
+
+                <li>If <var>V</var> is <span class='esvalue'>null</span> or <span class='esvalue'>undefined</span>,
+                  and any entry in <var>S</var> has a <a class='dfnref' href='#dfn-nullable-type'>nullable type</a>
+                  or a <a class='dfnref' href='#dfn-union-type'>union type</a> that <a class='dfnref' href='#dfn-includes-a-nullable-type'>includes a nullable type</a>
+                  at position <var>i</var> of its type list, then return that entry.</li>
+
+                <li>
+                  If <var>V</var> is a <a class='dfnref' href='#dfn-platform-array-object'>platform array object</a>,
+                  a native <span class='estype'>Array</span> object, or
+                  a <a class='dfnref' href='#dfn-platform-object'>platform object</a> that
+                  <a class='dfnref' href='#dfn-support-indexed-properties'>supports indexed properties</a>, then:
+                  <ol>
+                    <li>If there is an entry in <var>S</var> that has one of the following types at position <var>i</var> of its type list,
+                      <ul>
+                        <li>an <a href='#idl-array'>array type</a></li>
+                        <li>a <a href='#idl-sequence'>sequence type</a></li>
+                        <li><span class='idltype'>object</span></li>
+                        <li>a <a class='dfnref' href='#dfn-nullable'>nullable</a> version of any of the above types</li>
+                        <li>a <a class='dfnref' href='#dfn-nullable'>nullable</a> or non-nullable
+                          <a class='dfnref' href='#dfn-union-type'>union type</a> that has one of the above types
+                          in its <a class='dfnref' href='#dfn-flattened-union-member-types'>flattened member types</a></li>
+                      </ul>
+                      then return that entry.
+                    </li>
+                  </ol>
+                </li>
+
+                <li>
+                  If <var>V</var> is a <a class='dfnref' href='#dfn-platform-object'>platform object</a>, but not a
+                  <a class='dfnref' href='#dfn-platform-array-object'>platform array object</a>, then:
+                  <ol>
+                    <li>If there is an entry in <var>S</var> that has one of the following types at position <var>i</var> of its type list,
+                      <ul>
+                        <li>an <a href='#idl-interface'>interface type</a> that <var>V</var> implements</li>
+                        <li><span class='idltype'>object</span></li>
+                        <li>a <a class='dfnref' href='#dfn-nullable'>nullable</a> version of any of the above types</li>
+                        <li>a <a class='dfnref' href='#dfn-nullable'>nullable</a> or non-nullable
+                          <a class='dfnref' href='#dfn-union-type'>union type</a> that has one of the above types
+                          in its <a class='dfnref' href='#dfn-flattened-union-member-types'>flattened member types</a></li>
+                      </ul>
+                      then return that entry.
+                    </li>
+                  </ol>
+                </li>
+
+                <li>
+                  If <var>V</var> is a <span class='estype'>Date</span> object, then:
+                  <ol>
+                    <li>If there is an entry in <var>S</var> that has one of the following types at position <var>i</var> of its type list,
+                      <ul>
+                        <li><span class='idltype'>Date</span></li>
+                        <li><span class='idltype'>object</span></li>
+                        <li>a <a class='dfnref' href='#dfn-nullable'>nullable</a> version of either of the above types</li>
+                        <li>a <a class='dfnref' href='#dfn-nullable'>nullable</a> or non-nullable
+                          <a class='dfnref' href='#dfn-union-type'>union type</a> that has one of the above types
+                          in its <a class='dfnref' href='#dfn-flattened-union-member-types'>flattened member types</a></li>
+                      </ul>
+                    </li>
+                  </ol>
+                </li>
+
+                <li>
+                  If <var>V</var> is any other type of object, then:
+                  <ol>
+                    <li>If there is an entry in <var>S</var> that has one of the following types at position <var>i</var> of its type list,
+                      <ul>
+                        <li>a <a class='xattr' href='#Callback'>[Callback]</a>-annotated <a href='#idl-interface'>interface type</a></li>
+                        <li>a <a href='#idl-dictionary'>dictionary type</a></li>
+                        <li><span class='idltype'>object</span></li>
+                        <li>a <a class='dfnref' href='#dfn-nullable'>nullable</a> version of any of the above types</li>
+                        <li>a <a class='dfnref' href='#dfn-nullable'>nullable</a> or non-nullable
+                          <a class='dfnref' href='#dfn-union-type'>union type</a> that has one of the above types
+                          in its <a class='dfnref' href='#dfn-flattened-union-member-types'>flattened member types</a></li>
+                      </ul>
+                      then return that entry.
+                    </li>
+                  </ol>
+                </li>
+
+                <li>
+                  If there is an entry in <var>S</var> that has one of the following types at position <var>i</var> of its type list,
+                  <ul>
+                    <li><span class='idltype'>DOMString</span></li>
+                    <li>an <a href='#idl-enumeration'>enumeration type</a></li>
+                    <li>a <a class='dfnref' href='#dfn-nullable'>nullable</a> version of any of the above types</li>
+                    <li>a <a class='dfnref' href='#dfn-nullable'>nullable</a> or non-nullable
+                      <a class='dfnref' href='#dfn-union-type'>union type</a> that has one of the above types
+                      in its <a class='dfnref' href='#dfn-flattened-union-member-types'>flattened member types</a></li>
+                  </ul>
+                  then return that entry.
+                </li>
+
+                <li>
+                  If there is an entry in <var>S</var> that has one of the following types at position <var>i</var> of its type list,
+                  <ul>
+                    <li>a <a class='dfnref' href='#dfn-primitive'>primitive type</a></li>
+                    <li>a <a class='dfnref' href='#dfn-nullable'>nullable</a> <a class='dfnref' href='#dfn-primitive'>primitive type</a></li>
+                    <li>a <a class='dfnref' href='#dfn-nullable'>nullable</a> or non-nullable
+                      <a class='dfnref' href='#dfn-union-type'>union type</a> that has one of the above types
+                      in its <a class='dfnref' href='#dfn-flattened-union-member-types'>flattened member types</a></li>
+                  </ul>
+                  then return that entry.
+                </li>
+
+                <li>
+                  If there is an entry in <var>S</var> that has <span class='idltype'>any</span> at position <var>i</var>
+                  of its type list, then return that entry.
+                </li>
+
+                <li>
+                  Return <span class='idltype'>null</span>.
+                </li>
               </ol>
               <p>
                 The internal <span class='prop'>[[Call]]</span> method
@@ -8151,23 +8213,17 @@ system.loginTime;  <span class='comment'>// So this now evaluates to forgedLogin
                   <var>I</var> and with argument count <var>n</var> (for the ECMAScript language binding).
                 </li>
                 <li>
-                  Set <var>S</var> to the result of passing <var>S</var> and
+                  Let <var>entry</var> be the result of passing <var>S</var> and
                   <var>arg</var><sub>0..<var>n</var>−1</sub> to the
                   <a class='dfnref' href='#dfn-overload-resolution-algorithm'>overload resolution algorithm</a>.
                 </li>
                 <li>
-                  If <var>S</var> is empty, throw a <span class='estype'>TypeError</span>.
-                </li>
-                <li>
-                  If <var>S</var> contains more than one entry, then remove from
-                  <var>S</var> all entries except the one whose corresponding constructor
-                  <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
-                  appears earliest on the interface.
+                  If <var>entry</var> is <span class='idltype'>null</span>, throw a <span class='estype'>TypeError</span>.
                 </li>
                 <li>
                   Let <var>x</var> be the <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
                   that represents the constructor and <var>t</var><sub>0..<var>m</var>−1</sub> be the type
-                  list of the single entry in <var>S</var>.
+                  list of <var>entry</var>.
                 </li>
                 <li>
                   Let <var>idlarg</var><sub>0..<var>m</var>−1</sub> be a list
@@ -8283,23 +8339,17 @@ system.loginTime;  <span class='comment'>// So this now evaluates to forgedLogin
                 <var>I</var> and with argument count <var>n</var> (for the ECMAScript language binding).
               </li>
               <li>
-                Set <var>S</var> to the result of passing <var>S</var> and
+                Let <var>entry</var> be the result of passing <var>S</var> and
                 <var>arg</var><sub>0..<var>n</var>−1</sub> to the
                 <a class='dfnref' href='#dfn-overload-resolution-algorithm'>overload resolution algorithm</a>.
               </li>
               <li>
-                If <var>S</var> is empty, throw a <span class='estype'>TypeError</span>.
-              </li>
-              <li>
-                If <var>S</var> contains more than one entry, then remove from
-                <var>S</var> all entries except the one whose corresponding constructor
-                <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
-                appears earliest on the interface.
+                If <var>entry</var> is <span class='idltype'>null</span>, throw a <span class='estype'>TypeError</span>.
               </li>
               <li>
                 Let <var>x</var> be the <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
                 that represents the constructor, and <var>t</var><sub>0..<var>m</var>−1</sub> be the type
-                list, of the single entry in <var>S</var>.
+                list, of <var>entry</var>.
               </li>
               <li>
                 Let <var>idlarg</var><sub>0..<var>m</var>−1</sub> be a list
@@ -8735,21 +8785,16 @@ interface
                     <var>I</var> and with argument count <var>n</var> (for the ECMAScript language binding).
                   </li>
                   <li>
-                    Set <var>S</var> to the result of passing <var>S</var> and
+                    Let <var>entry</var> be the result of passing <var>S</var> and
                     <var>arg</var><sub>0..<var>n</var>−1</sub> to the
                     <a class='dfnref' href='#dfn-overload-resolution-algorithm'>overload resolution algorithm</a>.
                   </li>
                   <li>
-                    If <var>S</var> is empty, throw a <span class='estype'>TypeError</span>.
-                  </li>
-                  <li>
-                    If <var>S</var> contains more than one entry, then remove from
-                    <var>S</var> all entries except the one whose corresponding operation
-                    definition appears earliest on the interface.
+                    If <var>entry</var> is <span class='idltype'>null</span>, throw a <span class='estype'>TypeError</span>.
                   </li>
                   <li>
                     Let <var>op</var> be the operation and <var>t</var><sub>0..<var>m</var>−1</sub>
-                    be the type list of the single entry in <var>S</var>.
+                    be the type list of <var>entry</var>.
                   </li>
                   <li>
                     Let <var>idlarg</var><sub>0..<var>m</var>−1</sub> be a list
@@ -9402,15 +9447,12 @@ interface
               <li>Initialize <var>S</var> to the <a class='dfnref' href='#dfn-effective-overload-set'>effective overload</a>
                 for legacy callers on <var>I</var> and with argument count <var>n</var> (for the
                 ECMAScript language binding).</li>
-              <li>Set <var>S</var> to be the result of passing <var>S</var> and
+              <li>Let <var>entry</var> to be the result of passing <var>S</var> and
                 <var>arg</var><sub>0..<var>n</var>−1</sub> to the
                 <a class='dfnref' href='#dfn-overload-resolution-algorithm'>overload resolution algorithm</a>.</li>
-              <li>If <var>S</var> is empty, throw a <span class='estype'>TypeError</span>.</li>
-              <li>If <var>S</var> contains more than one entry, then remove from <var>S</var>
-                all entries except the one whose corresponding legacy caller appears
-                earliest on the interface.</li>
+              <li>If <var>entry</var> is <span class='idltype'>null</span>, throw a <span class='estype'>TypeError</span>.</li>
               <li>Let <var>op</var> be the operation and <var>t</var><sub>0..<var>m</var>−1</sub> be the type list
-                of the single entry in <var>S</var>.</li>
+                of <var>entry</var>.</li>
               <li>Let <var>idlarg</var><sub>0..<var>m</var>−1</sub> be a list of IDL values,
                 where <var>idlarg</var><sub><var>i</var></sub> is the result of
                 <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a>
@@ -10140,13 +10182,14 @@ d.type = et;
           Jim Ley,
           Travis Leithead,
           Kevin Lindsey,
-          Kang-Hao (Kenny) Lu,
+          呂康豪 (Kang-Hao Lu),
           Ms2ger,
           Andrew Oakley,
           岡坂 史紀 (Shiki Okasaka),
           Simon Pieters,
           Andrei Popescu,
           Tim Renouf,
+          Alex Russell,
           Doug Schepers,
           Jonas Sicking,
           Garrett Smith,
@@ -10284,7 +10327,7 @@ d.type = et;
           <!--
           <prod nt='Attribute'>ReadOnly "attribute" AttributeType identifier Get SetRaises ";"</prod>
           -->
-          <prod nt='Attribute'>Inherit ReadOnly "attribute" AttributeType identifier ";"</prod>
+          <prod nt='Attribute'>Inherit ReadOnly "attribute" Type identifier ";"</prod>
           <prod nt='ReadOnly'>"readonly" | ε</prod>
           <!--
           <prod nt='Get'>InheritsGetter | GetRaises</prod>
@@ -10314,7 +10357,7 @@ d.type = et;
           <prod nt='Optional'>"optional" | ε</prod>
           <prod nt='Ellipsis'>"..." | ε</prod>
           <prod nt='ExceptionMember'>Const | ExceptionField</prod>
-          <prod nt='ExceptionField'>AttributeType identifier ";"</prod>
+          <prod nt='ExceptionField'>Type identifier ";"</prod>
           <prod nt='ExtendedAttributeList'>"[" ExtendedAttribute ExtendedAttributes "]" | ε</prod>
           <prod nt='ExtendedAttributes'>"," ExtendedAttribute ExtendedAttributes | ε</prod>
           <prod nt='ExtendedAttribute'>
@@ -10344,9 +10387,10 @@ d.type = et;
           </prod>
           <prod nt='OtherOrComma'>Other | ","</prod>
 
-          <prod nt='Type'>AttributeType | SequenceType</prod>
-          <prod nt='SequenceType'>"sequence" "&lt;" Type ">" Null</prod>
-          <prod nt='AttributeType'>PrimitiveType TypeSuffix | "DOMString" TypeSuffix | identifier TypeSuffix | "object" TypeSuffix | "Date" TypeSuffix | "any" TypeSuffixStartingWithArray</prod>
+          <prod nt='Type'>SingleType OptionalUnionTypeParts | "(" SingleType UnionTypeParts ")" TypeSuffix</prod>
+          <prod nt='SingleType'>PrimitiveType TypeSuffix | "DOMString" TypeSuffix | identifier TypeSuffix | "sequence" "&lt;" Type ">" Null | "object" TypeSuffix | "Date" TypeSuffix | "any" TypeSuffixStartingWithArray</prod>
+          <prod nt='OptionalUnionTypeParts'>UnionTypeParts | ε</prod>
+          <prod nt='UnionTypeParts'>"or" SingleType UnionTypeParts</prod>
           <prod nt='ConstType'>PrimitiveType Null</prod>
           <prod nt='PrimitiveType'>UnsignedIntegerType | "boolean" | "byte" | "octet" | "float" | "double"</prod>
           <prod nt='UnsignedIntegerType'>"unsigned" IntegerType | IntegerType</prod>
@@ -10515,6 +10559,23 @@ d.type = et;
           <dt>Current editor’s draft</dt>
           <dd>
             <ul>
+              <li>
+                <p>
+                  Redesigned overloading to avoid having to pay attention to the order that
+                  overloads appear in the IDL.  <span class='idltype'>DOMString</span> and
+                  primitive types are no longer distinguishable, but non-callback interfaces,
+                  dictionaries, sequence types, array types and <span class='idltype'>Date</span>
+                  are now distinguishable.  Dropped <span class='xattr'>[AllowAny]</span>,
+                  which is no longer needed since <span class='idltype'>DOMString</span> will
+                  be selected automatically when there is not an exact match when invoking
+                  an overloaded operation.
+                </p>
+              </li>
+              <li>
+                <p>
+                  Added union types.
+                </p>
+              </li>
               <li>
                 <p>
                   Added string enumerations.
