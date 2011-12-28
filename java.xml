@@ -15,7 +15,7 @@
   <head>
     <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'/>
     <title>Java language binding for Web IDL</title>
-    <meta name='revision' content='$Id: java.xml,v 1.6 2011-12-22 06:28:46 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: java.xml,v 1.7 2011-12-28 06:14:18 cmccorma Exp $'/>
     <link rel='stylesheet' href='WebIDL.css' type='text/css'/>
     <script src='section-links.js' type='application/ecmascript'/>
     <script src='dfn.js' type='application/ecmascript'/>
@@ -867,12 +867,7 @@ Document doc = element.getOwnerDocument();</x:codeblock></li>
             <ol class='algorithm'>
               <li>If <var>V</var> is a <a class='dfnref' href='#dfn-platform-object'>platform object</a> that implements <var>I</var>,
                 then return the IDL <a href='#idl-interface'>interface type</a> value that represents a reference to that platform object.</li>
-              <li>If <var>V</var> is a <a class='dfnref' href='#dfn-user-object'>user object</a> that is considered to implement <var>I</var>
-                according to the rules in <a href='#java-user-objects'>section <?sref java-user-objects?></a>,
-                then return the IDL <a href='#idl-interface'>interface type</a> value that represents a reference to that user object.</li>
-              <li>Otherwise, <var>V</var> is an object that implements the Java interface for <var>I</var> but <var>I</var> is
-                not annotated with the <a class='xattr' href='#Callback'>[Callback]</a> <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>.
-                Throw a <span class='javatype'>java.lang.IllegalArgumentException</span>.</li>
+              <li>Otherwise, throw a <span class='javatype'>java.lang.IllegalArgumentException</span>.</li>
             </ol>
             <p>
               <a class='dfnref' href='#dfn-convert-idl-to-java-value'>Conversions from</a> IDL
@@ -988,6 +983,35 @@ Document doc = element.getOwnerDocument();</x:codeblock></li>
               <span class='javatype'>java.lang.String</span>
               object that represents the same sequence of <a class='dfnref' href='#dfn-code-unit'>code units</a>
               as the <a class='dfnref' href='#dfn-enumeration-value'>enumeration value</a>.
+            </p>
+          </div>
+
+          <div id='java-callback' class='section'>
+            <h4>Callback types</h4>
+
+            <p>
+              IDL <a href='#idl-callback'>callback type</a> values are
+              represented by Java references of the corresponding Java interface type.
+              (See <a href='#java-callbacks'>section <?sref java-callbacks?></a> <?sdir java-callbacks?>
+              for how IDL <a class='dfnref' href='#dfn-callback'>callbacks</a> have
+              corresponding Java interfaces.)
+            </p>
+            <p>
+              A Java value <var>V</var> is
+              <a class='dfnref' href='#dfn-convert-java-to-idl-value'>converted</a>
+              to an IDL <a href='#idl-callback'>callback type</a> value
+              by running the following algorithm (where <var>C</var> is the <a class='dfnref' href='#dfn-callback'>callback</a>):
+            </p>
+            <ol class='algorithm'>
+              <li>If <var>V</var> is an object that implements the Java interface for <var>C</var>, then
+                return the IDL <a href='#idl-callback'>callback type</a> value that represents a reference to that object.</li>
+              <li>Otherwise, throw a <span class='javatype'>java.lang.IllegalArgumentException</span>.</li>
+            </ol>
+            <p>
+              <a class='dfnref' href='#dfn-convert-idl-to-java-value'>Conversions from</a> IDL
+              <a href='#idl-callback'>callback type</a> values to Java values
+              are performed in the same way as that for the IDL
+              <a class='idltype' href='#idl-object'>object</a> type.
             </p>
           </div>
 
@@ -1573,8 +1597,7 @@ public interface ObjectArray&lt;E&gt; {
               <li>
                 If <var>V</var> is any other type of object, then:
                 <ol>
-                  <li>If <var>types</var> includes a <a class='xattr' href='#Callback'>[Callback]</a>-annotated
-                    <a href='#idl-interface'>interface type</a>, then return the result of
+                  <li>If <var>types</var> includes a <a class='dfnref' href='#idl-callback-interface'>callback interface</a> type, then return the result of
                     <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a>
                     <var>V</var> to that interface type.</li>
                   <li>If <var>types</var> includes a <a href='#idl-dictionary'>dictionary type</a>, then return the
@@ -1763,11 +1786,11 @@ interface Something {
             </p>
             <ul>
               <li>
-                For each entry &lt;<var>op</var>, <var>types</var>, <var>any</var>> in the
+                For each pair &lt;<var>op</var>, <var>types</var>> in the
                 <a class='dfnref' href='#dfn-effective-overload-set'>effective overload set</a>
                 for <a class='dfnref' href='#dfn-regular-operation'>regular operations</a>
                 with identifier <var>id</var> on the IDL interface and with argument
-                count <var>0</var> (for the Java language binding), there <span class='rfc2119'>MUST</span>
+                count 0, there <span class='rfc2119'>MUST</span>
                 exist a method on the Java interface whose name, its <dfn id='dfn-java-method-name'>Java method name</dfn>,
                 is determined as follows:
                 <ol class='algorithm'>
@@ -1787,11 +1810,11 @@ interface Something {
             </p>
             <ul>
               <li>
-                For each entry &lt;<var>op</var>, <var>types</var>, <var>any</var>> in the
+                For each pair &lt;<var>op</var>, <var>types</var>> in the
                 <a class='dfnref' href='#dfn-effective-overload-set'>effective overload set</a>
                 for <a class='dfnref' href='#dfn-static-operation'>static operations</a>
                 with identifier <var>id</var> on the IDL interface and with argument
-                count <var>0</var> (for the Java language binding), there <span class='rfc2119'>MUST</span>
+                count 0, there <span class='rfc2119'>MUST</span>
                 exist a method on the <a class='dfnref' href='#dfn-utility-class'>utility class</a>
                 whose name is its <a class='dfnref' href='#dfn-java-method-name'>Java method name</a>
                 and which is declared with modifiers <code>public static final</code>.
@@ -2096,6 +2119,46 @@ interface Something {
           </div>
         </div>
 
+        <div id='java-callbacks' class='section'>
+          <h3>Callbacks</h3>
+
+          <p>
+            For every supported IDL <a class='dfnref' href='#dfn-callback'>callback</a>,
+            there <span class='rfc2119'>MUST</span> exist a corresponding public Java interface
+            whose name is the <a class='dfnref' href='#dfn-java-escaped'>Java escaped</a>
+            <a class='dfnref' href='#dfn-identifier'>identifier</a> of the callback.
+          </p>
+          <p>
+            The Java interface for a callback <var>A</var> <span class='rfc2119'>MUST</span> not
+            be declared to inherit from any other Java interface.
+          </p>
+          <p>
+            For each pair &lt;<var>callback</var>, <var>types</var>&gt; in the
+            <a class='dfnref' href='#dfn-effective-overload-set'>effective overload set</a>
+            for <a class='dfnref' href='#dfn-callback'>callback</a> <var>A</var> with argument count 0,
+            there <span class='rfc2119'>MUST</span> exist
+            a method on the Java interface with the following characteristics:
+          </p>
+          <ul>
+            <li>The name of the method is <code>call</code>.</li>
+            <li>
+              The return type of the method is the Java type that corresponds to the callback
+              return type, according to the rules in
+              <a href='#java-type-mapping'>section <?sref java-type-mapping?></a> <?sdir java-type-mapping?>.
+            </li>
+            <li>
+              The method has an argument for each type, in order, that is in <var>types</var>.  The type of
+              method argument <var>j</var> is the Java type that corresponds to the IDL type <var>types</var><sub><var>j</var></sub>,
+              according to the rules in <a href='#java-type-mapping'>section <?sref java-type-mapping?></a>
+              <?sdir java-type-mapping?>.  If the length of <var>types</var> is the length of the
+              argument list the callback is declared with, and the callback is declared
+              to be <a class='dfnref' href='#dfn-variadic-operation'>variadic</a>,
+              then the method is a <em>variable arity method</em> (<a href='#ref-JLS3'>[JLS3]</a>,
+              section 8.4.1).
+            </li>
+          </ul>
+        </div>
+
         <div id='java-platform-objects' class='section'>
           <h3>Platform objects implementing interfaces</h3>
           <p>
@@ -2152,23 +2215,21 @@ interface Something {
         </div>
 
         <div id='java-user-objects' class='section'>
-          <h3>User objects implementing interfaces</h3>
+          <h3>User objects implementing callback interfaces</h3>
 
           <p>
-            A Java <a class='dfnref' href='#dfn-user-object'>user object</a> that implements an IDL <a class='dfnref' href='#dfn-interface'>interface</a>
+            A Java <a class='dfnref' href='#dfn-user-object'>user object</a> that implements an IDL <a class='dfnref' href='#dfn-callback-interface'>callback interface</a>
             <span class='rfc2119'>MUST</span> be of a Java class that implements the Java interface
             that corresponds to the IDL interface, either by implementing the interface directly
             on that class or by inheriting from another class that implements the interface.
           </p>
           <div class='note'>
             <p>For example, with the following IDL:</p>
-            <x:codeblock language='idl'>[Callback]
-interface Base {
+            <x:codeblock language='idl'>callback interface Base {
   void f();
 };
 
-[Callback]
-interface Derived : Base {
+callback interface Derived : Base {
   void g();
 };</x:codeblock>
             <p>the Java implementation would provide the following interfaces:</p>
@@ -2455,6 +2516,11 @@ public <var>ExceptionName</var>(Throwable cause) {
           <dt>Current editor’s draft</dt>
           <dd>
             <ul>
+              <li>
+                <p>
+                  Added support for IDL callbacks and callback interfaces.
+                </p>
+              </li>
               <li>
                 <p>
                   Added support for IDL union types.

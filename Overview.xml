@@ -15,7 +15,7 @@
   <head>
     <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'/>
     <title>Web IDL</title>
-    <meta name='revision' content='$Id: Overview.xml,v 1.432 2011-12-27 22:57:40 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: Overview.xml,v 1.433 2011-12-28 06:14:18 cmccorma Exp $'/>
     <link rel='stylesheet' href='WebIDL.css' type='text/css'/>
     <script src='section-links.js' type='application/ecmascript'/>
     <script src='dfn.js' type='application/ecmascript'/>
@@ -384,7 +384,8 @@ interface GraphicalWindow {
             <a class='dfnref' href='#dfn-partial-interface'>partial interface definition</a>,
             <a class='dfnref' href='#dfn-dictionary'>dictionary</a>,
             <a class='dfnref' href='#dfn-exception'>exception</a>,
-            <a class='dfnref' href='#dfn-enumeration'>enumeration</a> and
+            <a class='dfnref' href='#dfn-enumeration'>enumeration</a>,
+            <a class='dfnref' href='#dfn-callback'>callback</a> and
             <a class='dfnref' href='#dfn-typedef'>typedef</a> (together called <dfn id='dfn-named-definition'>named definitions</dfn>)
             and every <a class='dfnref' href='#dfn-constant'>constant</a>,
             <a class='dfnref' href='#dfn-attribute'>attribute</a>,
@@ -401,13 +402,15 @@ interface GraphicalWindow {
               For <a class='dfnref' href='#dfn-named-definition'>named definitions</a>,
               the <a class='sym' href='#prod-identifier'>identifier</a> token that appears
               directly after the <code>interface</code>,
-              <code>dictionary</code>, <code>exception</code> or <code>enum</code> keyword
+              <code>dictionary</code>, <code>exception</code>, <code>enum</code>
+              or <code>callback</code> keyword
               determines the identifier of that definition.
               <pre class='syntax'>interface <em>interface-identifier</em> { <i>interface-members…</i> };
 partial interface <em>interface-identifier</em> { <i>interface-members…</i> };
 exception <em>exception-identifier</em> { <i>exception-members…</i> };
 dictionary <em>dictionary-identifier</em> { <i>dictionary-members…</i> };
-enum <em>enumeration-identifier</em> { <i>enumeration-values…</i> };</pre>
+enum <em>enumeration-identifier</em> { <i>enumeration-values…</i> };
+callback <em>callback-identifier</em> = <i>callback-signature</i>;</pre>
             </li>
             <li>
               For <a class='dfnref' href='#dfn-constant'>constants</a>, <a class='dfnref' href='#dfn-attribute'>attributes</a>,
@@ -472,14 +475,18 @@ dictionary <i>identifier</i> {
             the <a class='dfnref' href='#dfn-identifier'>identifier</a> of every
             <a class='dfnref' href='#dfn-interface'>interface</a>,
             <a class='dfnref' href='#dfn-dictionary'>dictionary</a>,
-            <a class='dfnref' href='#dfn-exception'>exception</a> and
+            <a class='dfnref' href='#dfn-exception'>exception</a>,
+            <a class='dfnref' href='#dfn-enumeration'>enumeration</a>,
+            <a class='dfnref' href='#dfn-callback'>callback</a> and
             <a class='dfnref' href='#dfn-typedef'>typedef</a>
             <span class='rfc2119'>MUST NOT</span>
             be the same as the identifier of any other
             <a class='dfnref' href='#dfn-interface'>interface</a>,
             <a class='dfnref' href='#dfn-dictionary'>dictionary</a>,
-            <a class='dfnref' href='#dfn-exception'>exception</a> or
-            <a class='dfnref' href='#dfn-typedef'>typedef</a>.
+            <a class='dfnref' href='#dfn-exception'>exception</a>,
+            <a class='dfnref' href='#dfn-enumeration'>enumeration</a>,
+            <a class='dfnref' href='#dfn-callback'>callback</a> or
+            <a class='dfnref' href='#dfn-typedef'>typedef</a>
           </p>
           <p>
             Within an <a class='dfnref' href='#dfn-idl-fragment'>IDL fragment</a>, a reference
@@ -557,7 +564,8 @@ interface TextField {
             describe object oriented systems.  In such systems, objects are entities
             that have identity and which are encapsulations of state and behavior.
             An <dfn id='dfn-interface'>interface</dfn> is a definition (matching
-            <a class='sym' href='#prod-Interface'>Interface</a>) that declares some
+            <a class='sym' href='#prod-Interface'>Interface</a> or
+            <span class='sym'>"callback"</span> <a class='sym' href='#prod-Interface'>Interface</a>) that declares some
             state and behavior that an object implementing that interface will expose.
           </p>
           <pre class='syntax'>interface <i>identifier</i> {
@@ -722,6 +730,89 @@ public interface B extends A {
 };</pre>
 
           <p>
+            A <dfn id='dfn-callback-interface'>callback interface</dfn> is
+            an <a class='dfnref' href='#dfn-interface'>interface</a>
+            that uses the <code>callback</code> keyword at the start of
+            its definition.  Callback interfaces are ones that can be
+            implemented by <a class='dfnref' href='#dfn-user-object'>user objects</a>
+            and not by <a class='dfnref' href='#dfn-platform-object'>platform objects</a>,
+            as described in <a href='#idl-objects'>section <?sref idl-objects?></a>
+            <?sdir idl-objects?>.
+          </p>
+          <pre class='syntax'>callback interface <i>identifier</i> {
+  <i>interface-members…</i>
+};</pre>
+          <div class='note'>
+            <p>See also the similarly named <a class='dfnref' href='#dfn-callback'>callback</a> definition.</p>
+          </div>
+          <p>
+            <a class='dfnref' href='#dfn-callback-interace'>Callback interfaces</a>
+            <span class='rfc2119'>MUST</span> not <a class='dfnref' href='#dfn-inherit'>inherit</a>
+            from any non-callback interfaces,
+            and all of a callback interface’s <a class='dfnref' href='#dfn-inherited-interfaces'>inherited interfaces</a>
+            <span class='rfc2119'>MUST NOT</span>
+            have any <a class='dfnref' href='#dfn-consequential-interfaces'>consequential interfaces</a>.
+          </p>
+          <div class='note'>
+            <p>
+              Specification authors wanting to define APIs that take ECMAScript objects
+              as “property bag” like function arguments are suggested to use
+              <a href='#idl-dictionaries'>dictionary types</a> rather than
+              <a class='dfnref' href='#dfn-callback-interface'>callback interfaces</a>.
+            </p>
+            <p>
+              For example, instead of this:
+            </p>
+            <x:codeblock language='idl'>callback interface Options {
+  attribute DOMString? option1;
+  attribute DOMString? option2;
+  attribute long? option3;
+};
+
+interface A {
+  void doTask(DOMString type, Options options);
+};</x:codeblock>
+            <p>
+              to be used like this:
+            </p>
+            <x:codeblock language='es'>var a = getA();  <span class='comment'>// Get an instance of A.</span>
+
+a.doTask("something", { option1: "banana", option3: 100 });</x:codeblock>
+            <p>
+              instead write the following:
+            </p>
+            <x:codeblock language='idl'>dictionary Options {
+  DOMString? option1;
+  DOMString? option2;
+  long? option3;
+};
+
+interface A {
+  void doTask(DOMString type, Options options);
+};</x:codeblock>
+          </div>
+          <div class='note'>
+            <p>
+              Specification authors should avoid using
+              <a class='dfnref' href='#dfn-callback-interface'>callback interfaces</a>
+              that have only a single <a class='dfnref' href='#dfn-operation'>operation</a>,
+              unless required to describe the requirements of existing APIs.
+              Instead, a <a class='dfnref' href='#dfn-callback'>callback</a> should be used.
+            </p>
+            <p>
+              The definition of <span class='idltype'>EventListener</span> as a
+              <a class='dfnref' href='#dfn-callback-interface'>callback interface</a>
+              is an example of an existing API that needs to allow
+              <a class='dfnref' href='#dfn-user-object'>user objects</a> with a
+              given property (in this case “handleEvent”) to be considered to implement the interface.
+              For new APIs, and those for which there are no compatibility concerns,
+              using a <a class='dfnref' href='#dfn-callback'>callback</a> will allow
+              only a <span class='estype'>Function</span> object (in the ECMAScript
+              language binding).
+            </p>
+          </div>
+
+          <p>
             The IDL for interfaces can be split into multiple parts by using
             <dfn id='dfn-partial-interface'>partial interface</dfn> definitions
             (matching <a class='sym' href='#prod-PartialInterface'>PartialInterface</a>).
@@ -755,7 +846,6 @@ partial interface <em>SomeInterface</em> {
             limitations.  The following extended attributes <span class='rfc2119'>MUST NOT</span>
             be specified on partial interface definitions:
             <a class='xattr' href='#ArrayClass'>[ArrayClass]</a>,
-            <a class='xattr' href='#Callback'>[Callback]</a>,
             <a class='xattr' href='#Constructor'>[Constructor]</a>,
             <a class='xattr' href='#ImplicitThis'>[ImplicitThis]</a>,
             <!--JAVA
@@ -797,7 +887,6 @@ partial interface <em>SomeInterface</em> {
           <p>
             The following extended attributes are applicable to interfaces:
             <a class='xattr' href='#ArrayClass'>[ArrayClass]</a>,
-            <a class='xattr' href='#Callback'>[Callback]</a>,
             <a class='xattr' href='#Constructor'>[Constructor]</a>,
             <a class='xattr' href='#ImplicitThis'>[ImplicitThis]</a>,
             <!--JAVA
@@ -809,7 +898,7 @@ partial interface <em>SomeInterface</em> {
             <a class='xattr' href='#ReplaceableNamedProperties'>[ReplaceableNamedProperties]</a>.
           </p>
 
-          <?productions grammar Interface PartialInterface Inheritance InterfaceMembers InterfaceMember?>
+          <?productions grammar Interface CallbackOrInterface CallbackRestOrInterface PartialInterface Inheritance InterfaceMembers InterfaceMember?>
 
           <div class='example'>
             <!--
@@ -841,6 +930,55 @@ interface Human : Animal {
 interface Dog : Animal {
   attribute Human? owner;
 };</x:codeblock>
+          </div>
+
+          <div class='example'>
+            <p>
+              The following <a class='dfnref' href='#dfn-idl-fragment'>IDL fragment</a> defines
+              simplified versions of a few DOM <a class='dfnref' href='#dfn-interface'>interfaces</a>, one of which
+              is a <a class='dfnref' href='#dfn-callback-interface'>callback interface</a>.
+            </p>
+            <x:codeblock language='idl'>interface Node {
+  readonly attribute DOMString nodeName;
+  readonly attribute Node? parentNode;
+  Node appendChild(Node newChild);
+  void addEventListener(DOMString type, EventListener listener);
+};
+
+callback interface EventListener {
+  void handleEvent(Event event);
+};</x:codeblock>
+            <p>
+              Since the <span class='idltype'>EventListener</span> interface is annotated
+              callback interface, <a class='dfnref' href='#dfn-user-object'>user objects</a>
+              can implement it:
+            </p>
+            <x:codeblock language='es'>var node = getNode();                                <span class='comment'>// Obtain an instance of Node.</span>
+
+var listener = {
+  handleEvent: function(event) {
+    ...
+  }
+};
+node.addEventListener("click", listener);            <span class='comment'>// This works.</span>
+
+node.addEventListener("click", function() { ... });  <span class='comment'>// As does this.</span></x:codeblock>
+            <p>
+              It is not possible for a user object to implement <span class='idltype'>Node</span>, however:
+            </p>
+            <x:codeblock language='es'>var node = getNode();  <span class='comment'>// Obtain an instance of Node.</span>
+
+var newNode = {
+  nodeName: "span",
+  parentNode: null,
+  appendChild: function(newchild) {
+    ...
+  },
+  addEventListener: function(type, listener) {
+    ...
+  }
+};
+node.appendChild(newNode);  <span class='comment'>// This will throw a TypeError exception.</span></x:codeblock>
           </div>
 
           <div id='idl-constants' class='section'>
@@ -1618,6 +1756,10 @@ dictionary.x = 1;                  <span class='comment'>// Invokes the property
               <a class='dfnref' href='#dfn-optional-argument'>optional arguments</a>.
             </p>
             <p>
+              Special operations <span class='rfc2119'>MUST NOT</span> be declared on
+              <a class='dfnref' href='#dfn-callback-interfaces'>callback interfaces</a>.
+            </p>
+            <p>
               If an object implements more than one <a class='dfnref' href='#dfn-interface'>interface</a>
               that defines a given special operation, then it is undefined which (if any)
               special operation is invoked for that operation.
@@ -2210,42 +2352,86 @@ partial interface A {
             </div>
             <p>
               An <dfn id='dfn-effective-overload-set'>effective overload set</dfn>
-              for a given 
-              <a class='dfnref' href='#dfn-identifier'>identifier</a>,
-              argument count,
-              <a class='dfnref' href='#dfn-interface'>interface</a> and
-              target language binding represents
-              the allowable invocations in that language binding
-              of operations or constructors
-              (specified with <a class='xattr' href='#Constructor'>[Constructor]</a>
-              and <a class='xattr' href='#NamedConstructor'>[NamedConstructor]</a>)
-              that have the specified identifier on that interface.  The
-              set is used to determine whether there are ambiguities in the 
-              overloaded operations or constructors specified on the interface.
-              The effective overload set is stated to be
-              “for regular operations”, “for static operations”, “for constructors” or “for legacy callers”,
-              to distinguish between these four uses.  Effective overload sets for
-              legacy callers do not use an identifier; only an argument count,
-              interface and target language binding are needed.
+              represents the allowable invocations for a particular
+              <a class='dfnref' href='#dfn-operation'>operation</a>,
+              constructor (specified with <a class='xattr' href='#Constructor'>[Constructor]</a>
+              or <a class='xattr' href='#NamedConstructor'>[NamedConstructor]</a>),
+              <a class='dfnref' href='#dfn-legacy-caller'>legacy caller</a> or 
+              <a class='dfnref' href='#dfn-callback'>callback</a>.
+              The algorithm to compute an <a class='dfnref' href='#dfn-effective-overload-set'>effective overload set</a>
+              operates on one of the following six types of IDL constructs, and listed with them below are
+              the inputs to the algorithm needed to compute the set.
+            </p>
+            <dl>
+              <dt>For regular operations</dt>
+              <dt>For static operations</dt>
+              <dd>
+                <ul>
+                  <li>the <a class='dfnref' href='#dfn-interface'>interface</a> on which the <a class='dfnref' href='#dfn-operation'>operations</a> are to be found</li>
+                  <li>the <a class='dfnref' href='#dfn-identifier'>identifier</a> of the operations</li>
+                  <li>the number of arguments to be passed</li>
+                </ul>
+              </dd>
+              <dt>For legacy callers</dt>
+              <dd>
+                <ul>
+                  <li>the <a class='dfnref' href='#dfn-interface'>interface</a> on which the <a class='dfnref' href='#dfn-legacy-caller'>legacy callers</a> are to be found</li>
+                  <li>the number of arguments to be passed</li>
+                </ul>
+              </dd>
+              <dt>For constructors</dt>
+              <dd>
+                <ul>
+                  <li>the <a class='dfnref' href='#dfn-interface'>interface</a> on which the <a href='#Constructor'>[Constructor]</a> <a class='dfnref' href='#dfn-extended-attribute'>extended attributes</a> are to be found</li>
+                  <li>the number of arguments to be passed</li>
+                </ul>
+              </dd>
+              <dt>For named constructors</dt>
+              <dd>
+                <ul>
+                  <li>the <a class='dfnref' href='#dfn-interface'>interface</a> on which the <a href='#NamedConstructor'>[NamedConstructor]</a> <a class='dfnref' href='#dfn-extended-attribute'>extended attributes</a> are to be found</li>
+                  <li>the <a class='dfnref' href='#dfn-identifier'>identifier</a> of the named constructors</li>
+                  <li>the number of arguments to be passed</li>
+                </ul>
+              </dd>
+              <dt>For callbacks</dt>
+              <dd>
+                <ul>
+                  <li>the <a class='dfnref' href='#dfn-callback'>callback</a></li>
+                  <li>the number of arguments to be passed</li>
+                </ul>
+              </dd>
+            </dl>
+            <p>
+              An effective overload set is used, among other things, to determine whether there are ambiguities in the 
+              overloaded operations, constructors and callers specified on an interface.
             </p>
             <p>
               The elements of an effective overload set are pairs of the form
               &lt;<var>f</var>, <var>types</var>>.  If the effective overload
-              set is for regular operations, static operations or legacy callers, then <var>f</var> is an operation,
-              and if it is for constructors, then <var>f</var> is an
-              extended attribute.  In either case, <var>types</var> is a list
+              set is for regular operations, static operations or legacy callers, then <var>f</var> is an operation;
+              if it is for constructors or named constructors, then <var>f</var> is an
+              extended attribute; and if it is for callbacks, then <var>f</var>
+              is the callback itself.  In all cases, <var>types</var> is a list
               of IDL types.  Each pair represents an allowable invocation of the operation,
-              constructor or legacy caller with an argument value list of the given types.
+              constructor, legacy caller or callback with an argument value list of the given types.
               Due to the use of <a class='dfnref' href='#dfn-optional-argument'>optional arguments</a>
               and <a class='dfnref' href='#dfn-variadic-operation'>variadic operations</a>
               and constructors, there may be multiple entries in an effective overload set identifying
               the same operation or constructor.
             </p>
             <p>
-              The effective overload set for identifier <var>A</var>,
-              argument count <var>N</var>,
-              interface <var>I</var> and a given target language binding
-              is derived as follows.  Whenever an argument of an extended
+              The algorithm below describes how to compute an effective overload set.
+              The following input variables are used, if they are required:
+            </p>
+            <ul>
+              <li>the identifier of the operation or named constructor is <var>A</var></li>
+              <li>the argument count is <var>N</var></li>
+              <li>the interface is <var>I</var></li>
+              <li>the callback is <var>C</var></li>
+            </ul>
+            <p>
+              Whenever an argument of an extended
               attribute is mentioned, it is referring to an argument of the
               extended attribute’s <a class='dfnref' href='#dfn-xattr-named-argument-list'>named argument list</a>.
             </p>
@@ -2266,18 +2452,25 @@ partial interface A {
                   <dt>For constructors</dt>
                   <dd>
                     The elements of <var>F</var> are the
+                    <a class='sym' href='#Constructor'>[Constructor]</a>
+                    <a class='dfnref' href='#dfn-extended-attribute'>extended attributes</a> on interface <var>I</var>.
+                  </dd>
+                  <dt>For named constructors</dt>
+                  <dd>
+                    The elements of <var>F</var> are the
                     <a class='sym' href='#NamedConstructor'>[NamedConstructor]</a>
                     <a class='dfnref' href='#dfn-extended-attribute'>extended attributes</a> on interface <var>I</var> whose
                     <a class='dfnref' href='#dfn-xattr-named-argument-list'>named argument lists’</a>
-                    identifiers are <var>A</var>.  If <var>A</var> is the same as the identifier of
-                    interface <var>I</var>, then <var>F</var> also includes the
-                    <a class='sym' href='#Constructor'>[Constructor]</a> extended
-                    attributes on <var>I</var>.
+                    identifiers are <var>A</var>.
                   </dd>
                   <dt>For legacy callers</dt>
                   <dd>
-                    The elements of <var>F</var> are the <a class='dfnref' href='#dfn-legacy-caller'>callers</a>
+                    The elements of <var>F</var> are the <a class='dfnref' href='#dfn-legacy-caller'>legacy callers</a>
                     defined on interface <var>I</var>.
+                  </dd>
+                  <dt>For callbacks</dt>
+                  <dd>
+                    The single element of <var>F</var> is the callback itself, <var>C</var>.
                   </dd>
                 </dl>
               </li>
@@ -2307,7 +2500,7 @@ partial interface A {
               </li>
               -->
               <li>
-                Let <var>maxarg</var> be the maximum number of arguments the operations or constructor extended attributes in <var>F</var> are declared to take.
+                Let <var>maxarg</var> be the maximum number of arguments the operations, constructor extended attributes or callbacks in <var>F</var> are declared to take.
                 For <a class='dfnref' href='#dfn-variadic'>variadic</a> operations and constructor extended attributes,
                 the argument on which the ellipsis appears counts as a single argument.
                 <div class='note'>
@@ -2315,7 +2508,7 @@ partial interface A {
                 </div>
               </li>
               <li>Let <var>m</var> be the maximum of <var>maxarg</var> and <var>N</var>.</li>
-              <li>For each operation or extended attribute <var>X</var> in <var>F</var>:
+              <li>For each operation, extended attribute or callback <var>X</var> in <var>F</var>:
                 <ol class='algorithm'>
                   <li>Let <var>n</var> be the number of arguments <var>X</var> is declared to take.</li>
                   <li>Let <var>t</var><sub>0..<var>n</var>−1</sub> be the types of the arguments <var>X</var> is defined to take.</li>
@@ -2340,7 +2533,7 @@ partial interface A {
                 </ol>
               </li>
               <li>
-                The effective overload set for identifier <var>A</var> and interface <var>X</var> is <var>S</var>.
+                The effective overload set is <var>S</var>.
               </li>
             </ol>
             <p>
@@ -2497,13 +2690,10 @@ partial interface A {
                   <li>The two identified <a class='dfnref' href='#dfn-interface'>interfaces</a> are
                     not the same, it is not possible for a single <a class='dfnref' href='#dfn-platform-object'>platform object</a>
                     to implement both <a class='dfnref' href='#dfn-interface'>interfaces</a>,
-                    and it is not the case that both have the <a class='xattr' href='#Callback'>[Callback]</a>
-                    <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>.</li>
-                  <li>The interface type does not have the <a class='xattr' href='#Callback'>[Callback]</a>
-                    <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>.</li>
-                  <li>The interface type does not have the <a class='xattr' href='#Callback'>[Callback]</a>
-                    <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>, and also
-                    does not <a class='dfnref' href='#dfn-support-indexed-properties'>support indexed properties</a>
+                    and it is not the case that both are <a class='dfnref' href='#dfn-callback-interface'>callback interfaces</a>.</li>
+                  <li>The interface type is not a <a class='dfnref' href='#dfn-callback-interface'>callback interface</a>.</li>
+                  <li>The interface type is not a <a class='dfnref' href='#dfn-callback-interface'>callback interface</a>,
+                    and also does not <a class='dfnref' href='#dfn-support-indexed-properties'>support indexed properties</a>
                     or <a class='dfnref' href='#dfn-inherit'>inherit</a> from or have as a
                     <a class='dfnref' href='#dfn-consequential-interface'>consequential interface</a> one
                     that does.</li>
@@ -2585,8 +2775,8 @@ interface C {
                 assuming <span class='idltype'>Node</span> and <span class='idltype'>Event</span>
                 are two other interfaces of which no object can implement both,
                 the <a class='dfnref' href='#dfn-effective-overload-set'>effective overload set</a>
-                for identifier <code>f</code> with argument count 4 (for the
-                ECMAScript language binding) is:
+                for <a class='dfnref' href='#dfn-regular-operation'>regular operations</a> with
+                identifier <code>f</code> and argument count 4 is:
               </p>
               <div class='set'>
                 { &lt;f1, (DOMString)>,<br/>
@@ -3135,6 +3325,58 @@ meal.type == "noodles";              <span class='comment'>// Evaluates to true.
           </div>
         </div>
 
+        <div id='idl-callbacks' class='section'>
+          <h3>Callbacks</h3>
+
+          <p>
+            A <dfn id='dfn-callback'>callback</dfn> is a definition (matching
+            <span class='sym'>"callback"</span> <a class='sym' href='#prod-CallbackRest'>CallbackRest</a>) used to declare a function type.
+          </p>
+          <pre class='syntax'>callback <i>identifier</i> = <i>return-type</i> (<i>arguments…</i>);</pre>
+          <div class='note'>
+            <p>See also the similarly named <a class='dfnref' href='#dfn-callback-interface'>callback interfaces</a>.</p>
+          </div>
+          <p>
+            The <a class='dfnref' href='#dfn-identifier'>identifier</a> on the
+            left of the equals sign gives the name of the <a class='dfnref' href='#dfn-callback'>callback</a>
+            and the return type and argument list (matching <a class='sym' href='#prod-ReturnType'>ReturnType</a>
+            and <a class='sym' href='#prod-ArgumentList'>ArgumentList</a>) on the right side of the equals
+            sign gives the signature of the callback function type.
+          </p>
+          <p>
+            <a class='dfnref' href='#dfn-callback'>Callbacks</a> <span class='rfc2119'>MUST NOT</span>
+            be used as the type of a <a class='dfnref' href='#dfn-constant'>constant</a>.
+          </p>
+          <p>
+            No <a class='dfnref' href='#dfn-extended-attribute'>extended attributes</a> defined
+            in this specification are applicable to <a class='dfnref' href='#dfn-callback'>callbacks</a>.
+          </p>
+
+          <?productions grammar CallbackOrInterface CallbackRestOrInterface CallbackRest?>
+
+          <div class='example'>
+            <p>
+              The following <a class='dfnref' href='#dfn-idl-fragment'>IDL fragment</a> defines
+              a <a class='dfnref' href='#dfn-callback'>callback</a> used for an API that
+              invokes a user-defined function when an operation is complete.
+            </p>
+            <x:codeblock language='idl'>callback AsyncOperationCallback = void (DOMString status);
+
+interface AsyncOperations {
+  void performOperation(AsyncOperationCallback whenFinished);
+};</x:codeblock>
+            <p>
+              In the ECMAScript language binding, a <span class='estype'>Function</span> object is
+              passed as the operation argument.
+            </p>
+            <x:codeblock language='es'>var ops = getAsyncOperations();  <span class='comment'>// Get an instance of AsyncOperations.</span>
+
+ops.performOperation(function(status) {
+  window.alert("Operation finished, status is " + status + ".");
+});</x:codeblock>
+          </div>
+        </div>
+
         <div id='idl-typedefs' class='section'>
           <h3>Typedefs</h3>
 
@@ -3154,7 +3396,7 @@ meal.type == "noodles";              <span class='comment'>// Evaluates to true.
           </p>
           <p>
             The <a class='sym' href='#prod-Type'>Type</a> <span class='rfc2119'>MUST NOT</span>
-            be identify another <a class='dfnref' href='#dfn-typedef'>typedef</a>.
+            identify the same or another <a class='dfnref' href='#dfn-typedef'>typedef</a>.
           </p>
           <p>
             <a class='dfnref' href='#dfn-extended-attribute'>Extended attributes</a> can be
@@ -3420,55 +3662,14 @@ EventTarget et = (EventTarget) n; <span class='comment'>// This should never thr
             to be a user object.  There is no way for a user object to represent an exception.
           </p>
           <p>
-            In IDL, the <a class='xattr' href='#Callback'>[Callback]</a>
-            <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
-            is used to annotate <a class='dfnref' href='#dfn-interface'>interfaces</a> that
-            can be implemented as user objects.  These interfaces may or may not also be
-            implemented as platform objects.
+            User objects can only implement <a class='dfnref' href='#dfn-callback-interface'>callback interfaces</a>
+            and platform objects can only implement non-callback interfaces.
           </p>
           <p>
-            Only interfaces with all of the following characteristics can be implemented
-            as user objects:
-          </p>
-          <ul>
-            <li>
-              The interface has a 
-              <a class='xattr' href='#Callback'>[Callback]</a>
-              <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
-              on it.
-            </li>
-            <li>
-              The interface does not <a class='dfnref' href='#dfn-inherit'>inherit</a>
-              from any non-<a class='xattr' href='#Callback'>[Callback]</a>-annotated interface.
-            </li>
-            <li>
-              The interface and all of its <a class='dfnref' href='#dfn-inherited-interfaces'>inherited interfaces</a>
-              do not have any <a class='dfnref' href='#dfn-consequential-interfaces'>consequential interfaces</a>.
-            </li>
-            <li>
-              The interface does not have a
-              <a class='xattr' href='#Constructor'>[Constructor]</a> or
-              <a class='xattr' href='#NamedConstructor'>[NamedConstructor]</a>
-              extended attribute on it.
-            </li>
-            <li>
-              The interface has no <a class='dfnref' href='#dfn-special-operation'>special operations</a>.
-            </li>
-            <li>
-              No <a class='dfnref' href='#dfn-attribute'>attribute</a> on the interface has a
-              <a class='xattr' href='#PutForwards'>[PutForwards]</a>,
-              <a class='xattr' href='#Replaceable'>[Replaceable]</a>,
-              <a class='xattr' href='#TreatNullAs'>[TreatNullAs]</a> or
-              <a class='xattr' href='#TreatUndefinedAs'>[TreatUndefinedAs]</a>
-              extended attribute on it.
-            </li>
-          </ul>
-          <p>
-            When a user object is passed to a platform object expecting an object of a
+            When an non-platform object is passed to a platform object expecting an object of a
             particular interface, be it as an argument value in an operation invocation,
             by assignment to an attribute, or through a dictionary member, and that
-            interface was not declared using the <a class='xattr' href='#Callback'>[Callback]</a>
-            <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>, then
+            interface is not a callback interface, then
             the object will not be considered to be one that implements that interface.
             Language bindings define when this check is made and what happens
             in response in such a case (such as throwing an exception).
@@ -3994,6 +4195,24 @@ interface Person {
             </p>
           </div>
 
+          <div id='idl-callback' class='section'>
+            <h4>Callback types</h4>
+
+            <p>
+              An <a class='dfnref' href='#dfn-identifier'>identifier</a> that identifies
+              a <a class='dfnref' href='#dfn-callback'>callback</a> is used to refer to
+              a type whose values are references to objects that are functions with the given signature.
+            </p>
+            <p>
+              There is no way to represent a constant <a class='dfnref' href='#dfn-callback'>callback</a>
+              value in IDL.
+            </p>
+            <p>
+              The <a class='dfnref' href='#dfn-type-name'>type name</a> of a callback type
+              is the <a class='dfnref' href='#dfn-identifier'>identifier</a> of the callback.
+            </p>
+          </div>
+
           <div id='idl-nullable-type' class='section'>
             <h4>Nullable types — <var>T</var>?</h4>
 
@@ -4376,9 +4595,7 @@ interface Person {
 
           <p>
             This specification defines a number of extended attributes that
-            are applicable to all language bindings, which are described in the
-            sub-sections below.  In addition, ECMAScript language binding
-            specific extended attributes are defined in
+            are applicable to the ECMAScript language binding, which are described in
             <a href='#es-extended-attributes'>section <?sref es-extended-attributes?></a>.
             Each extended attribute definition will state which of the above
             five forms are allowed.  <!--JAVA Although <a class='sym' href='#prod-ExtendedAttributeIdent'>ExtendedAttributeIdent</a>
@@ -4388,302 +4605,6 @@ interface Person {
 
           <?productions grammar ExtendedAttributeList ExtendedAttribute ExtendedAttributes ExtendedAttributeRest ExtendedAttributeInner Other OtherOrComma ExtendedAttributeNoArgs ExtendedAttributeArgList ExtendedAttributeIdent ExtendedAttributeNamedArgList ExtendedAttributeDottedName?>
 
-          <!--
-          <div id='ExceptionConsts' class='section'>
-            <h4>[ExceptionConsts]</h4>
-
-            <p>
-              If the <a class='xattr' href='#ExceptionConsts'>[ExceptionConsts]</a>
-              <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
-              appears on a <a class='dfnref' href='#dfn-module'>module</a>, it indicates that any
-              <a class='dfnref' href='#dfn-constant'>constants</a> declared on that module are intended to
-              exist on the language construct that corresponds to the <a class='dfnref' href='#dfn-exception'>exception</a>
-              given by the extended attribute’s argument (for languages that
-              support constants on exceptions).  Exactly how these constants
-              are exposed is language binding specific.
-            </p>
-            <p>
-              The <a class='xattr' href='#ExceptionConsts'>[ExceptionConsts]</a> extended attribute
-              <span class='rfc2119'>MUST</span> <a class='dfnref' href='#dfn-xattr-identifier'>take an identifier</a>
-              that is the <a class='dfnref' href='#dfn-identifier'>identifier</a>
-              of an exception defined in that module, on which the constants declared at the
-              module scope should live.
-            </p>
-            <div class='example'>
-              <p>
-                The following <a class='dfnref' href='#dfn-idl-fragment'>IDL fragment</a> declares an exception and a number of constants
-                at the module scope:
-              </p>
-              <x:codeblock language='idl'>[ExceptionConsts=FileIOException]
-module fileio {
-
-  exception FileIOException {
-    unsigned short code;
-  };
-
-  const unsigned short FILE_NOT_FOUND = 1;
-  const unsigned short READ_ERROR = 2;
-  const unsigned short WRITE_ERROR = 3;
-};</x:codeblock>
-              <p>
-                In the ECMAScript binding, this will result in properties on the
-                <a class='dfnref' href='#dfn-exception-interface-object'>exception interface object</a> for each of the constants:
-              </p>
-              <x:codeblock language='es'>typeof FileIOException;          <span class='comment'>// evaluates to "object"</span>
-FileIOException.FILE_NOT_FOUND;  <span class='comment'>// evaluates to 1</x:codeblock></span>
-            </div>
-          </div>
-          -->
-
-          <!--
-          <div id='NoNull' class='section'>
-            <h4>[NoNull]</h4>
-
-            <p>
-              If the <a class='xattr' href='#NoNull'>[NoNull]</a>
-              <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
-              appears on an <a class='dfnref' href='#dfn-attribute'>attribute</a>,
-              an <a class='dfnref' href='#dfn-operation'>operation</a> or an operation
-              argument, whose type is a
-              <a class='dfnref' href='#dfn-boxed-valuetype'>boxed valuetype</a>,
-              it indicates that a <span class='idlvalue'>null</span> value is not
-              expected and will never be returned.  How
-              implementations treat the assignment of a <span class='idlvalue'>null</span>
-              value to an attribute with the <a class='xattr' href='#NoNull'>[NoNull]</a>
-              extended attribute, or passing a <span class='idlvalue'>null</span> value as a
-              <a class='xattr' href='#NoNull'>[NoNull]</a> operation argument,
-              is specific to the language binding.
-            </p>
-            <p>
-              The <a class='xattr' href='#NoNull'>[NoNull]</a>
-              extended attribute <span class='rfc2119'>MUST</span> take no argument.
-            </p>
-            <div class='example'>
-              <p>
-                The following <a class='dfnref' href='#dfn-idl-fragment'>IDL fragment</a> defines an interface that has one
-                attribute with the <a class='xattr' href='#NoNull'>[NoNull]</a>
-                extended attribute, and one operation with an argument that has
-                the extended attribute:
-              </p>
-              <x:codeblock language='idl'>interface Dog {
-  [NoNull] attribute DOMString name;
-  attribute DOMString shortName;
-
-  boolean isMemberOfBreed([NoNull] DOMString breedName);
-};</x:codeblock>
-              <p>
-                An ECMAScript implementation implementing the <span class='idltype'>Dog</span>
-                interface would not allow the <span class='esvalue'>null</span> value to
-                be assigned to the <span class='prop'>name</span> property or passed as the
-                argument to the <span class='prop'>isMemberOfBreed</span> function:
-              </p>
-              <x:codeblock language='es'>var d = getDog();         <span class='comment'>// Assume d is a platform object implementing the Dog interface.</span>
-
-d.name = null;            <span class='comment'>// This assigns the string "null" to the .name property.</span>
-d.isMemberOfBreed(null);  <span class='comment'>// This passes the string "null" to the isMemberOfBreed function.</x:codeblock></span>
-            </div>
-          </div>
-          -->
-
-          <!--
-          <div id='Overloads' class='section'>
-            <h4>[Overloads]</h4>
-
-            <p>
-              If the <a class='xattr' href='#Overloads'>[Overloads]</a>
-              <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
-              appears on an <a class='dfnref' href='#dfn-operation'>operation</a>, it indicates that
-              the operation is to be considered to overload the operation
-              with the <a class='sym' href='#prod-identifier'>identifier</a>
-              given as the extended attribute argument.
-              The extent to which a language supports method overloading
-              determines whether an object implementing an interface with
-              overloaded operations must implement the operation using the
-              overloaded name or the original name, and is specific to the
-              language binding.
-            </p>
-            <p>
-              The <a class='xattr' href='#Overloads'>[Overloads]</a>
-              extended attribute <span class='rfc2119'>MUST</span> take a single argument,
-              an <a class='sym' href='#prod-identifier'>identifier</a>,
-              which <span class='rfc2119'>MUST</span> be the <a class='sym' href='#prod-identifier'>identifier</a>
-              of another operation defined on the <a class='dfnref' href='#dfn-interface'>interface</a>,
-              which this operation overloads.  The
-              <a class='sym' href='#prod-identifier'>identifier</a> <span class='rfc2119'>MUST NOT</span>
-              identify an operation that itself is declared with an
-              <a class='xattr' href='#Overloads'>[Overloads]</a> extended
-              attribute.
-            </p>
-            <div class='example'>
-              <p>
-                The following <a class='dfnref' href='#dfn-idl-fragment'>IDL fragment</a> defines an interface with
-                overloaded operations:
-              </p>
-              <x:codeblock language='idl'>interface Person;
-
-interface PersonFactory {
-  Person createPerson();
-  [Overloads=createPerson] Person createPersonWithAge(short age);
-};</x:codeblock>
-              <p>
-                Since the ECMAScript binding allows overloading, a platform object
-                implementing the <span class='idltype'>PersonFactory</span>
-                interface will have a single property <span class='prop'>createPerson</span>:
-              </p>
-              <x:codeblock language='es'>var f = getFactory();          <span class='comment'>// Assume f is a platform object implementing the PersonFactory interface.</span>
-
-typeof f.createPerson;         <span class='comment'>// Evaluates to "function".</span>
-typeof f.createPersonWithAge;  <span class='comment'>// Evaluates to "undefined".</span>
-
-var p1 = f.createPerson();     <span class='comment'>// Corresponds to the createPerson operation.</span>
-var p2 = f.createPerson(26);   <span class='comment'>// Corresponds to the createPersonWithAge operation.</x:codeblock></span>
-              <p>
-                However, a hypothetical C language binding would not, since
-                C does not support overloading.  Separate functions would likely
-                be used for the two operations:
-              </p>
-              <x:codeblock language='c'>PersonFactory* f = getFactory();
-
-Person* p1 = PersonFactory_createPerson(f);             <span class='comment'>// Corresponds to the createPerson operation.</span>
-Person* p2 = PersonFactory_createPersonWithAge(f, 26);  <span class='comment'>// Corresponds to the createPersonWithAge operation.</x:codeblock></span>
-            </div>
-          </div>
-          -->
-
-          <div id='Callback' class='section'>
-            <h4>[Callback]</h4>
-
-            <div class='ednote'>
-              <p>
-                Since the <a class='xattr' href='#Callback'>[Callback]</a> extended attribute
-                is now important at the IDL level to indicate whether user objects can
-                implement a given interface, does it make sense to hoist it up into
-                proper syntax (i.e., not be an extended attribute)?
-              </p>
-              <p>
-                It may be that <a class='xattr' href='#Callback'>[Callback]</a>
-                is not the best name for the extended attribute anyway, although
-                it does capture many uses of interfaces that user objects can
-                implement.  Maybe <span class='xattr'>[UserObject]</span> is better.
-              </p>
-            </div>
-            <p>
-              If the <a class='xattr' href='#Callback'>[Callback]</a>
-              <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
-              appears on an <a class='dfnref' href='#dfn-interface'>interface</a>,
-              it indicates that <a class='dfnref' href='#dfn-user-object'>user objects</a>
-              can implement the interface.  As described in <a href='#idl-objects'>section <?sref idl-objects?> <?sdir idl-objects?></a>,
-              user objects will only be considered to implement a given interface if
-              the interface is annotated with <a class='xattr' href='#Callback'>[Callback]</a>.
-              User objects implementing an interface are most often
-              used to provide callback methods to a <a class='dfnref' href='#dfn-platform-object'>platform object</a>,
-              hence the name of this extended attribute.
-            </p>
-            <p>
-              The <a class='xattr' href='#Callback'>[Callback]</a> extended attribute
-              <span class='rfc2119'>MUST</span> either <a class='dfnref' href='#dfn-xattr-identifier'>take an identifier</a>
-              or <a class='dfnref' href='#dfn-xattr-no-arguments'>take no arguments</a>.
-              The identifier, if present, is used only by the ECMAScript language binding,
-              to control exactly which kinds of objects can be considered to
-              implement a <a class='xattr' href='#Callback'>[Callback]</a>-annotated
-              interface.  See <a href='#es-Callback'>section <?sref es-Callback?> <?sdir es-Callback?></a> for
-              details and an example of this.
-            </p>
-            <p>
-              The <a class='xattr' href='#Callback'>[Callback]</a> extended attribute
-              <span class='rfc2119'>MUST NOT</span> be used on an interface that
-              does not meet the criteria for an interface that can implemented by
-              user objects, as described in <a href="#idl-objects">section <?sref idl-objects?> <?sdir idl-objects?></a>.
-            </p>
-            <div class='note'>
-              <p>
-                Specification authors wanting to APIs that take ECMAScript objects
-                as “property bag” like function arguments are suggested to use
-                <a href='#idl-dictionaries'>dictionary types</a> rather than
-                <a class='dfnref' href='#dfn-interface'>interfaces</a> annotated
-                with <code>[Callback,NoInterfaceObject]</code>.
-              </p>
-              <p>
-                For example, instead of this:
-              </p>
-              <x:codeblock language='idl'>[Callback,NoInterfaceObject]
-interface Options {
-  attribute DOMString? option1;
-  attribute DOMString? option2;
-  attribute long? option3;
-};
-
-interface A {
-  void doTask(DOMString type, Options options);
-};</x:codeblock>
-              <p>
-                to be used like this:
-              </p>
-              <x:codeblock language='es'>var a = getA();  <span class='comment'>// Get an instance of A.</span>
-
-a.doTask("something", { option1: "banana", option3: 100 });</x:codeblock>
-              <p>
-                instead write the following:
-              </p>
-              <x:codeblock language='idl'>dictionary Options {
-  DOMString? option1;
-  DOMString? option2;
-  long? option3;
-};
-
-interface A {
-  void doTask(DOMString type, Options options);
-};</x:codeblock>
-            </div>
-            <div class='example'>
-              <p>
-                The following <a class='dfnref' href='#dfn-idl-fragment'>IDL fragment</a> defines
-                simplified versions of a few DOM <a class='dfnref' href='#dfn-interface'>interfaces</a>, one of which
-                is annotated with the <a class='xattr' href='#Callback'>[Callback]</a>
-                <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>.
-              </p>
-              <x:codeblock language='idl'>interface Node {
-  readonly attribute DOMString nodeName;
-  readonly attribute Node? parentNode;
-  Node appendChild(Node newChild);
-  void addEventListener(DOMString type, EventListener listener);
-};
-
-[Callback]
-interface EventListener {
-  void handleEvent(Event event);
-};</x:codeblock>
-              <p>
-                Since the <span class='idltype'>EventListener</span> interface is annotated
-                with <a class='xattr' href='#Callback'>[Callback]</a>, <a class='dfnref' href='#dfn-user-object'>user objects</a>
-                can implement it:
-              </p>
-              <x:codeblock language='es'>var node = getNode();  <span class='comment'>// Obtain an instance of Node.</span>
-
-var listener = {
-  handleEvent: function(event) {
-    ...
-  }
-};
-node.addEventListener("click", listener);</x:codeblock>
-              <p>
-                It is not possible for a user object to implement <span class='idltype'>Node</span>, however:
-              </p>
-              <x:codeblock language='es'>var node = getNode();  <span class='comment'>// Obtain an instance of Node.</span>
-
-var newNode = {
-  nodeName: "span",
-  parentNode: null,
-  appendChild: function(newchild) {
-    ...
-  },
-  addEventListener: function(type, listener) {
-    ...
-  }
-};
-node.appendChild(newNode);  <span class='comment'>// This will throw a TypeError exception.</span></x:codeblock>
-            </div>
-          </div>
         </div>
       </div>
 
@@ -5628,7 +5549,8 @@ iframe.appendChild instanceof w.Function;  <span class='comment'>// Evaluates to
 
             <p>
               IDL <a href='#idl-interface'>interface type</a>
-              values are represented by ECMAScript <span class='estype'>Object</span> values.
+              values are represented by ECMAScript <span class='estype'>Object</span> or
+              <span class='estype'>Function</span> values.
             </p>
             <p>
               An ECMAScript value <var>V</var> is
@@ -5753,6 +5675,32 @@ iframe.appendChild instanceof w.Function;  <span class='comment'>// Evaluates to
               value is the <span class='estype'>String</span>
               value that represents the same sequence of <a class='dfnref' href='#dfn-code-unit'>code units</a> as
               the <a class='dfnref' href='#dfn-enumeration-value'>enumeration value</a>.
+            </p>
+          </div>
+
+          <div id='es-callback' class='section'>
+            <h4>Callback types</h4>
+
+            <p>
+              IDL <a href='#idl-callback'>callback types</a> are represented by ECMAScript <span class='estype'>Function</span>
+              objects.
+            </p>
+            <p>
+              An ECMAScript value <var>V</var> is
+              <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converted</a>
+              to an IDL <a href='#idl-callback'>callback type</a> value
+              by running the following algorithm:
+            </p>
+            <ol class='algorithm'>
+              <li>Let <var>x</var> be the result of calling ToObject(<var>V</var>).</li>
+              <li>If <var>x</var> is not a <span class='estype'>Function</span> object, then throw a <span class='esvalue'>TypeError</span>.</li>
+              <li>Return the IDL <a href='#idl-callback'>callback type</a> value that represents a reference to that <span class='estype'>Function</span> object.</li>
+            </ol>
+            <p>
+              The result of <a class='dfnref' href='#dfn-convert-idl-to-ecmascript-value'>converting</a>
+              an IDL <a href='#idl-callback'>callback type</a>
+              value to an ECMAScript value is a reference to the same object
+              that the IDL <a href='#idl-callback'>callback type</a> value represents.
             </p>
           </div>
 
@@ -6484,8 +6432,8 @@ results.numbers.length;       <span class='comment'>// So this still evaluates t
               <li>
                 If <var>V</var> is any other type of object, then:
                 <ol>
-                  <li>If <var>types</var> includes a <a class='xattr' href='#Callback'>[Callback]</a>-annotated
-                    <a href='#idl-interface'>interface type</a>, then return the result of
+                  <li>If <var>types</var> includes a <a class='dfnref' href='#dfn-callback-interface'>callback interface</a>
+                    type, then return the result of
                     <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a>
                     <var>V</var> to that interface type.</li>
                   <li>If <var>types</var> includes a <a href='#idl-dictionary'>dictionary type</a>, then return the
@@ -6652,90 +6600,6 @@ list.unshift({ });         <span class='comment'>// Insert an item at index 0.</
             </div>
           </div>
 
-          <div id='es-Callback' class='section'>
-            <h4>[Callback]</h4>
-
-            <p>
-              As described in <a href='#Callback'>section <?sref Callback?> <?sdir Callback?></a>,
-              the <a class='xattr' href='#Callback'>[Callback]</a>
-              <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a> is used to
-              indicate that an <a class='dfnref' href='#dfn-interface'>interface</a>
-              can be implemented by a <a class='dfnref' href='#dfn-user-object'>user object</a>.
-              In the ECMAScript language binding, the <a class='dfnref' href='#dfn-xattr-identifier'>identifier argument</a>
-              of <a class='xattr' href='#Callback'>[Callback]</a>, or the lack of one,
-              is used to control which kinds of ECMAScript objects can be used as user object implementations of
-              the interface, as follows:
-            </p>
-            <ul>
-              <li>If the <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a> was specified
-              as <code>[Callback]</code> (with no identifier argument) or as <code>[Callback=PropertyOnly]</code>,
-              then any native ECMAScript object is considered to be a <a class='dfnref' href='#dfn-user-object'>user object</a>
-              implementation of the <a class='dfnref' href='#dfn-interface'>interface</a>.</li>
-              <li>Otherwise, if it was specified as <code>[Callback=FunctionOnly]</code>, then only <span class='estype'>Function</span>
-              objects are considered to be user object implementations of the interface.</li>
-            </ul>
-            <p>
-              <code>[Callback=FunctionOnly]</code> <span class='rfc2119'>MUST NOT</span> be specified on
-              an <a class='dfnref' href='#dfn-interface'>interface</a> that is not a
-              <dfn id='dfn-single-operation-interface'>single operation interface</dfn>, which is an
-              interface that:
-            </p>
-            <ul>
-              <li>is not declared to <a class='dfnref' href='#dfn-inherit'>inherit</a> from another interface,</li>
-              <li>has no <a class='dfnref' href='#dfn-consequential-interfaces'>consequential interfaces</a>,</li>
-              <li>has no <a class='dfnref' href='#dfn-attribute'>attributes</a>, and</li>
-              <li>has one or more <a class='dfnref' href='#dfn-regular-operation'>regular operations</a>
-                that all have the same <a class='dfnref' href='#dfn-identifier'>identifier</a>,
-                and no others.</li>
-            </ul>
-            <p>
-              <a href='#es-user-objects'>Section <?sref es-user-objects?> <?sdir es-user-objects?></a> details how
-              native ECMAScript objects are used as <a class='dfnref' href='#dfn-user-object'>user objects</a>
-              implementing an interface and exactly how <a class='xattr' href='#Callback'>[Callback]</a>
-              influences this.
-            </p>
-
-            <div class='example'>
-              <p>
-                The following <a class='dfnref' href='#dfn-idl-fragment'>IDL fragment</a> defines a simple callback interface and an
-                interface for an object that expects an object that
-                implements that callback:
-              </p>
-              <x:codeblock language='idl'>[Callback]
-interface Listener {
-  void eventOccurred();
-};
-
-interface Thing {
-  void addListener(Listener listener);
-};</x:codeblock>
-              <p>
-                An ECMAScript implementation of the above two interfaces
-                allows any native object to be passed to <code>addListener</code>:
-              </p>
-              <x:codeblock language='es'><span class='comment'>// Obtain an instance of Thing.</span>
-var t = getThing();
-
-<span class='comment'>// The function is the implementation of the eventOccurred operation on the</span>
-<span class='comment'>// Listener interface.  If Listener had been declared with</span>
-<span class='comment'>// [Callback=PropertyOnly] this addListener() call would still succeed, but</span>
-<span class='comment'>// a TypeError would be thrown when the user agent attempts to invoke the</span>
-<span class='comment'>// callback.</span>
-t.addListener(function() { });
-
-<span class='comment'>// This also works, but it is the function with /* 1 */ in it that is the</span>
-<span class='comment'>// implementation of eventOccurred.</span>
-var x = function() { <span class='comment'>/* 1 */</span> };
-x.eventOccurred = function() { <span class='comment'>/* 2 */</span> };
-t.addListener(x);
-
-<span class='comment'>// This works too, and the value of the eventOccurred property is the</span>
-<span class='comment'>// implementation of the operation.  If Listener had been declared with</span>
-<span class='comment'>// [Callback=FunctionOnly] however, this would have thrown a TypeError.</span>
-t.addListener({ eventOccurred: function() { } });</x:codeblock>
-            </div>
-          </div>
-
           <div id='Clamp' class='section'>
             <h4>[Clamp]</h4>
 
@@ -6829,6 +6693,10 @@ context.setColorClamped(-1, 255, 257);</x:codeblock>
               If the <a class='xattr' href='#Constructor'>[Constructor]</a> extended attribute
               is specified on an interface, then the <a class='xattr' href='#NoInterfaceObject'>[NoInterfaceObject]</a>
               extended attribute <span class='rfc2119'>MUST NOT</span> also be specified on that interface.
+            </p>
+            <p>
+              The <a class='xattr' href='#Constructor'>[Constructor]</a> extended attribute
+              <span class='rfc2119'>MUST NOT</span> be used on a <a class='dfnref' href='#dfn-callback-interface'>callback interface</a>.
             </p>
             <p>
               See <a href='#es-interface-call'>section <?sref es-interface-call?></a>
@@ -7101,6 +6969,10 @@ Example.prototype.y;</x:codeblock>
               <a class='dfnref' href='#dfn-reserved-identifier'>reserved identifiers</a>.
             </p>
             <p>
+              The <a class='xattr' href='#Constructor'>[Constructor]</a> extended attribute
+              <span class='rfc2119'>MUST NOT</span> be used on a <a class='dfnref' href='#dfn-callback-interface'>callback interface</a>.
+            </p>
+            <p>
               See <a href='#named-constructors'>section <?sref named-constructors?></a>
               <?sdir named-constructors?> for details on how named constructors
               are to be implemented.
@@ -7166,9 +7038,14 @@ var a2 = new Audio('a.flac');   <span class='comment'>// Creates an HTMLAudioEle
             </p>
             <p>
               The <a class='xattr' href='#NoInterfaceObject'>[NoInterfaceObject]</a> extended attribute
+              <span class='rfc2119'>MUST NOT</span> be specified on a <a class='dfnref' href='#dfn-callback-interface'>callback interface</a>,
+              as <a class='dfnref' href='#dfn-interface-object'>interface objects</a> never exist
+              for callback interfaces.
+            </p>
+            <p>
+              The <a class='xattr' href='#NoInterfaceObject'>[NoInterfaceObject]</a> extended attribute
               <span class='rfc2119'>SHOULD NOT</span> be used on interfaces that are not
-              solely used as <a class='dfnref' href='#dfn-supplemental-interface'>supplemental</a> or
-              <a href='#Callback'>callback</a> interfaces,
+              solely used as <a class='dfnref' href='#dfn-supplemental-interface'>supplemental</a> interfaces,
               unless there are clear Web compatibility reasons for doing so.
             </p>
             <p>
@@ -7451,6 +7328,11 @@ Node implements EventTarget;</x:codeblock>
               extended attribute.
             </p>
             <p>
+              The <a class='xattr' href='#PutForwards'>[PutForwards]</a> extended attribute
+              <span class='rfc2119'>MUST NOT</span> be used on an attribute declared on
+              a <a class='dfnref' href='#dfn-callback-interface'>callback interface</a>.
+            </p>
+            <p>
               See the <a href='#es-attributes'>Attributes</a> section <?sdir es-attributes?> for how
               <a class='xattr' href='#PutForwards'>[PutForwards]</a>
               is to be implemented.
@@ -7511,6 +7393,11 @@ p.name.full = 'John Citizen';  <span class='comment'>// ...has the same behavior
               extended attribute <span class='rfc2119'>MUST NOT</span> also be declared
               with the <a class='xattr' href='#PutForwards'>[PutForwards]</a>
               extended attribute.
+            </p>
+            <p>
+              The <a class='xattr' href='#Replaceable'>[Replaceable]</a> extended attribute
+              <span class='rfc2119'>MUST NOT</span> be used on an attribute declared on
+              a <a class='dfnref' href='#dfn-callback-interface'>callback interface</a>.
             </p>
             <p>
               See <a href='#es-attributes'>section <?sref es-attributes?></a>
@@ -7638,8 +7525,8 @@ window.abc;    <span class='comment'>// Evaluates to 1.</span>
               appears on an <a class='dfnref' href='#dfn-attribute'>attribute</a>
               or <a class='dfnref' href='#dfn-operation'>operation</a> argument whose type is
               a <a class='dfnref' href='#dfn-nullable-type'>nullable</a>
-              <a class='xattr' href='#Callback'>[Callback]</a>-annotated
-              <a href='#idl-interface'>interface type</a>, it indicates that any value
+              <a class='dfnref' href='#dfn-callback-interface'>callback interface</a>,
+              it indicates that any value
               assigned to the attribute or passed as the operation argument
               that is not a callable object will be converted to
               the <span class='idlvalue'>null</span> value.
@@ -7647,9 +7534,8 @@ window.abc;    <span class='comment'>// Evaluates to 1.</span>
             <p>
               The <a class='xattr' href='#TreatNonCallableAsNull'>[TreatNonCallableAsNull]</a>
               extended attribute <span class='rfc2119'>MUST NOT</span> be specified
-              on an attribute or operation argument whose type is not an
-              interface that is annotated with <code>[Callback]</code> or
-              <code>[Callback=FunctionOnly]</code>.
+              on an attribute or operation argument whose type is not a nullable
+              callback interface.
             </p>
             <p>
               Specifications <span class='rfc2119'>SHOULD NOT</span> use <a href='#TreatNonCallableAsNull' class='xattr'>[TreatNonCallableAsNull]</a>
@@ -7672,8 +7558,7 @@ window.abc;    <span class='comment'>// Evaluates to 1.</span>
                 attribute with the <a class='xattr' href='#TreatNonCallableAsNull'>[TreatNonCallableAsNull]</a>
                 extended attribute and one without:
               </p>
-              <x:codeblock language='idl'>[Callback=FunctionOnly]
-interface EventHandler {
+              <x:codeblock language='idl'>callback interface EventHandler {
   void eventOccurred(DOMString details);
 };
 
@@ -7956,14 +7841,22 @@ system.loginTime;  <span class='comment'>// So this now evaluates to forgedLogin
           <h3>Interfaces</h3>
 
           <p>
-            For every <a class='dfnref' href='#dfn-interface'>interface</a> that is not declared with the
-            <a class='xattr' href='#NoInterfaceObject'>[NoInterfaceObject]</a>
-            <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>,
+            For every <a class='dfnref' href='#dfn-interface'>interface</a> that:
+          </p>
+          <ul>
+            <li>is a <a class='dfnref' href='#dfn-callback-interface'>callback interface</a>
+              that has <a class='dfnref' href='#dfn-constant'>constants</a> declared on it, or</li>
+            <li>is a non-callback <a class='dfnref' href='#dfn-interface'>interface</a>
+              that is not declared with the <a class='xattr' href='#NoInterfaceObject'>[NoInterfaceObject]</a>
+              <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>,</li>
+          </ul>
+          <p>
             a corresponding property <span class='rfc2119'>MUST</span> exist on the
             ECMAScript global object.
             The name of the property is the <a class='dfnref' href='#dfn-identifier'>identifier</a> of the interface,
-            and its value is an object called the
-            <dfn id='dfn-interface-object'>interface object</dfn>.
+            and its value is an object called the <dfn id='dfn-interface-object'>interface object</dfn>.
+          </p>
+          <p>
             The property has the attributes <span class='descriptor'>{ [[Writable]]: <span class='esvalue'>true</span>, [[Enumerable]]: <span class='esvalue'>false</span>, [[Configurable]]: <span class='esvalue'>true</span> }</span>.
             The characteristics of an interface object are described in <a href='#interface-object'>section <?sref interface-object?></a>
             <?sdir interface-object?>.
@@ -7987,13 +7880,9 @@ system.loginTime;  <span class='comment'>// So this now evaluates to forgedLogin
             <h4>Interface object</h4>
 
             <p>
-              There exists an interface object for every <a class='dfnref' href='#dfn-interface'>interface</a>
-              not declared with the <a class='xattr' href='#NoInterfaceObject'>[NoInterfaceObject]</a>
-              <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>.  Interface objects
-              are always <a class='dfnref' href='#dfn-function-object'>function objects</a>.
-            </p>
-            <p>
-              The interface object also has properties that correspond to
+              The interface object for a given <a class='dfnref' href='#dfn-interface'>interface</a>
+              is a <a class='dfnref' href='#dfn-function-object'>function object</a>.
+              It has properties that correspond to
               the <a class='dfnref' href='#dfn-constant'>constants</a> and
               <a class='dfnref' href='#dfn-static-operation'>static operations</a>
               defined on that interface, as described in sections
@@ -8002,7 +7891,7 @@ system.loginTime;  <span class='comment'>// So this now evaluates to forgedLogin
               <?sdir es-constants?>.
             </p>
             <p>
-              The interface object <span class='rfc2119'>MUST</span> also have a property named
+              The interface object for non-callback interfaces <span class='rfc2119'>MUST</span> also have a property named
               “prototype” with attributes
               <span class='descriptor'>{ [[Writable]]: <span class='esvalue'>false</span>, [[Enumerable]]: <span class='esvalue'>false</span>, [[Configurable]]: <span class='esvalue'>false</span> }</span>
               whose value is an object called the <dfn id='dfn-interface-prototype-object'>interface prototype
@@ -8146,7 +8035,7 @@ system.loginTime;  <span class='comment'>// So this now evaluates to forgedLogin
                   <ol>
                     <li>If there is an entry in <var>S</var> that has one of the following types at position <var>i</var> of its type list,
                       <ul>
-                        <li>a <a class='xattr' href='#Callback'>[Callback]</a>-annotated <a href='#idl-interface'>interface type</a></li>
+                        <li>a <a class='dfnref' href='#dfn-callback-interface'>callback interface</a> type</li>
                         <li>a <a href='#idl-dictionary'>dictionary type</a></li>
                         <li><span class='idltype'>object</span></li>
                         <li>a <a class='dfnref' href='#dfn-nullable'>nullable</a> version of any of the above types</li>
@@ -8214,7 +8103,7 @@ system.loginTime;  <span class='comment'>// So this now evaluates to forgedLogin
                   <a class='dfnref' href='#dfn-effective-overload-set'>effective overload set</a>
                   for constructors with <a class='dfnref' href='#dfn-identifier'>identifier</a>
                   <var>id</var> on <a class='dfnref' href='#dfn-interface'>interface</a>
-                  <var>I</var> and with argument count <var>n</var> (for the ECMAScript language binding).
+                  <var>I</var> and with argument count <var>n</var>.
                 </li>
                 <li>
                   Let <var>entry</var> be the result of passing <var>S</var> and
@@ -8236,7 +8125,7 @@ system.loginTime;  <span class='comment'>// So this now evaluates to forgedLogin
                   <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a>
                   <var>arg</var><sub><var>i</var></sub> to an IDL value.  These conversions
                   <span class='rfc2119'>MUST</span> be done in order from
-                  <var>arg</var><sub><var>0</var></sub> to <var>arg</var><sub><var>m</var>−1</sub>.
+                  <var>arg</var><sub>0</sub> to <var>arg</var><sub><var>m</var>−1</sub>.
                 </li>
                 <li x:step='a'>
                   Let <var>R</var> be the result of performing the actions listed in the description of
@@ -8272,7 +8161,7 @@ system.loginTime;  <span class='comment'>// So this now evaluates to forgedLogin
                   for constructors with
                   <a class='dfnref' href='#dfn-identifier'>identifier</a>
                   <var>id</var> on <a class='dfnref' href='#dfn-interface'>interface</a>
-                  <var>I</var> and with argument count 0 (for the ECMAScript language binding).
+                  <var>I</var> and with argument count 0.
                 </li>
                 <li>
                   Return the maximum argument list length of the constructors in the entries of <var>S</var>.
@@ -8340,7 +8229,7 @@ system.loginTime;  <span class='comment'>// So this now evaluates to forgedLogin
                 <a class='dfnref' href='#dfn-effective-overload-set'>effective overload set</a>
                 for constructors with <a class='dfnref' href='#dfn-identifier'>identifier</a>
                 <var>id</var> on <a class='dfnref' href='#dfn-interface'>interface</a>
-                <var>I</var> and with argument count <var>n</var> (for the ECMAScript language binding).
+                <var>I</var> and with argument count <var>n</var>.
               </li>
               <li>
                 Let <var>entry</var> be the result of passing <var>S</var> and
@@ -8363,7 +8252,7 @@ system.loginTime;  <span class='comment'>// So this now evaluates to forgedLogin
                 <var>arg</var><sub><var>i</var></sub> to an IDL value of type
                 <var>t</var><sub><var>i</var></sub>.  These conversions
                 <span class='rfc2119'>MUST</span> be done in order from
-                <var>arg</var><sub><var>0</var></sub> to <var>arg</var><sub><var>m</var>−1</sub>.
+                <var>arg</var><sub>0</sub> to <var>arg</var><sub><var>m</var>−1</sub>.
               </li>
               <li>
                 Let <var>R</var> be the result of performing the actions listed in the description of
@@ -8396,7 +8285,7 @@ system.loginTime;  <span class='comment'>// So this now evaluates to forgedLogin
                 for constructors with
                 <a class='dfnref' href='#dfn-identifier'>identifier</a>
                 <var>id</var> on <a class='dfnref' href='#dfn-interface'>interface</a>
-                <var>I</var> and with argument count 0 (for the ECMAScript language binding).
+                <var>I</var> and with argument count 0.
               </li>
               <li>
                 Return the maximum argument list length of the constructors in the entries of <var>S</var>.
@@ -8420,7 +8309,7 @@ system.loginTime;  <span class='comment'>// So this now evaluates to forgedLogin
             <p>
               There <span class='rfc2119'>MUST</span> exist an
               <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype
-                object</a> for every <a class='dfnref' href='#dfn-interface'>interface</a>
+                object</a> for every non-callback <a class='dfnref' href='#dfn-interface'>interface</a>
               defined, regardless of whether the interface was declared with the
               <a class='xattr' href='#NoInterfaceObject'>[NoInterfaceObject]</a>
               <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>.
@@ -8457,7 +8346,7 @@ system.loginTime;  <span class='comment'>// So this now evaluates to forgedLogin
               value of the internal <span class='prop'>[[Prototype]]</span> property
               of <var>A</var> is the <span class='estype'>Array</span> prototype object
               (<a href="#ref-ECMA-262">[ECMA-262]</a>, section 15.4.4) if the interface
-              was declared with <a class='xattr' href='#ArrayClass'>ArrayClass</a>,
+              was declared with <a class='xattr' href='#ArrayClass'>[ArrayClass]</a>,
               or the <span class='estype'>Object</span> prototype object otherwise
               (<a href="#ref-ECMA-262">[ECMA-262]</a>, section 15.2.4).</li>
               <li>Otherwise, <var>A</var> does <a class='dfnref' href='#dfn-inherit'>inherit</a> from another
@@ -8735,8 +8624,7 @@ interface
               (if it is a <a class='dfnref' href='#dfn-static-operation'>static operation</a>),
               unless the <a class='dfnref' href='#dfn-effective-overload-set'>effective overload set</a>
               for that <a class='dfnref' href='#dfn-identifier'>identifier</a> and <a class='dfnref' href='#dfn-operation'>operation</a>
-              and with an argument count of 0 (for the ECMAScript language binding) has no
-              entries.
+              and with an argument count of 0 has no entries.
             </p>
             <p>
               The characteristics of such a corresponding property are as follows:
@@ -8786,7 +8674,7 @@ interface
                     (if the operation is a static operation) with
                     <a class='dfnref' href='#dfn-identifier'>identifier</a>
                     <var>id</var> on <a class='dfnref' href='#dfn-interface'>interface</a>
-                    <var>I</var> and with argument count <var>n</var> (for the ECMAScript language binding).
+                    <var>I</var> and with argument count <var>n</var>.
                   </li>
                   <li>
                     Let <var>entry</var> be the result of passing <var>S</var> and
@@ -8807,7 +8695,7 @@ interface
                     <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a>
                     <var>arg</var><sub><var>i</var></sub> to an IDL value.  These conversions
                     <span class='rfc2119'>MUST</span> be done in order from
-                    <var>arg</var><sub><var>0</var></sub> to <var>arg</var><sub><var>m</var>−1</sub>.
+                    <var>arg</var><sub>0</sub> to <var>arg</var><sub><var>m</var>−1</sub>.
                   </li>
                   <li>
                     Let <var>R</var> be the result of performing the actions listed in the description of
@@ -8834,7 +8722,7 @@ interface
                     (if the operation is a static operation) with
                     <a class='dfnref' href='#dfn-identifier'>identifier</a>
                     <var>id</var> on <a class='dfnref' href='#dfn-interface'>interface</a>
-                    <var>I</var> and with argument count 0 (for the ECMAScript language binding).
+                    <var>I</var> and with argument count 0.
                   </li>
                   <li>
                     Return the maximum argument list length of the functions in the entries of <var>S</var>.
@@ -9448,9 +9336,8 @@ interface
               values passed to <span class='prop'>[[Call]]</span>:
             </p>
             <ol class='algorithm'>
-              <li>Initialize <var>S</var> to the <a class='dfnref' href='#dfn-effective-overload-set'>effective overload</a>
-                for legacy callers on <var>I</var> and with argument count <var>n</var> (for the
-                ECMAScript language binding).</li>
+              <li>Initialize <var>S</var> to the <a class='dfnref' href='#dfn-effective-overload-set'>effective overload set</a>
+                for legacy callers on <var>I</var> and with argument count <var>n</var>.</li>
               <li>Let <var>entry</var> to be the result of passing <var>S</var> and
                 <var>arg</var><sub>0..<var>n</var>−1</sub> to the
                 <a class='dfnref' href='#dfn-overload-resolution-algorithm'>overload resolution algorithm</a>.</li>
@@ -9464,7 +9351,7 @@ interface
               <li>Perform the actions listed in the description of legacy caller <var>op</var> with
                 <var>idlarg</var><sub>0..<var>m</var>−1</sub> as the argument values.  These conversions
                 <span class='rfc2119'>MUST</span> be done in order from
-                <var>arg</var><sub><var>0</var></sub> to <var>arg</var><sub><var>m</var>−1</sub>.</li>
+                <var>arg</var><sub>0</sub> to <var>arg</var><sub><var>m</var>−1</sub>.</li>
               <li>Return the result of <a class='dfnref' href='#dfn-convert-idl-to-ecmascript-value'>converting</a>
                 the return value from those actions to an ECMAScript value of the type
                 <var>op</var> is declared to return (or <span class='esvalue'>undefined</span>
@@ -9502,55 +9389,54 @@ interface
         </div>
 
         <div id='es-user-objects' class='section'>
-          <h3>User objects implementing interfaces</h3>
+          <h3>User objects implementing callback interfaces</h3>
 
           <p>
             As described in <a href='#idl-objects'>section <?sref idl-objects?> <?sdir idl-objects?></a>,
-            some <a class='dfnref' href='#dfn-interface'>interfaces</a> can be
-            implemented in script by an ECMAScript native object.
-            The following cases determine whether a given native object
-            is considered to be a user object implementing an interface with
-            the required characteristics:
+            <a class='dfnref' href='#dfn-callback-interface'>callback interfaces</a> can be
+            implemented in script by an ECMAScript object.
+            The following cases determine whether and how a given object
+            is considered to be a user object implementing a callback interface:
           </p>
           <ul>
             <li>
-              If the <code>[Callback=FunctionOnly]</code> <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
-              appears on the interface, then the native object is considered to
-              implement that interface only if it is a <span class='estype'>Function</span>
-              object.  The <span class='estype'>Function</span> object itself is the
-              implementation of the <a class='dfnref' href='#dfn-operation'>operation</a>
-              (or set of overloaded operations, if multiple operations with the same
-              <a class='dfnref' href='#dfn-identifier'>identifier</a> are defined on
-              the interface).
-            </li>
-            <li>
-              Otherwise, if the interface is a <a class='dfnref' href='#dfn-single-operation-interface'>single operation interface</a>
-              but the <a class='xattr' href='#Callback'>[Callback]</a>
-              extended attribute on the interface does not have the <code>FunctionOnly</code>
-              argument, then any native object is considered to implement that interface.
+              If the interface is a <a class='dfnref' href='#dfn-single-operation-interface'>single operation interface</a>
+              (defined below)
+              then any object whose internal <span class='prop'>[[Class]]</span> property
+              is “Object” or “Function” and which is not a <a class='dfnref' href='#dfn-platform-object'>platform object</a>
+              is considered to implement that interface.
               The implementation of the operation (or set of overloaded operations) is
               as follows:
               <ul>
-                <li>If the native object is a <span class='estype'>Function</span> object and the
-                <a class='xattr' href='#Callback'>[Callback]</a> extended attribute
-                does not have the <code>PropertyOnly</code> argument, then the
-                implementation of the operation (or set of overloaded operations) is
+                <li>If the object is a <span class='estype'>Function</span> object,
+                then the implementation of the operation (or set of overloaded operations) is
                 the <span class='estype'>Function</span> object itself.</li>
-                <li>Otherwise, the native object is not a <span class='estype'>Function</span> object
-                or the interface did have <code>[Callback=PropertyOnly]</code> specified on it.
+                <li>Otherwise, the object is not a <span class='estype'>Function</span> object.
                 The implementation of the operation (or set of overloaded operations) is
                 the result of invoking the internal <span class='prop'>[[Get]]</span> method
-                on the native object with a property name that is the <a class='dfnref' href='#dfn-identifier'>identifier</a>
+                on the object with a property name that is the <a class='dfnref' href='#dfn-identifier'>identifier</a>
                 of the operation.</li>
               </ul>
             </li>
             <li>
               Otherwise, the interface is not a <a class='dfnref' href='#dfn-single-operation-interface'>single operation interface</a>.
-              Any native object is considered to implement the interface.
+              Any object whose internal <span class='prop'>[[Class]]</span> property
+              is “Object” or “Function” and which is not a <a class='dfnref' href='#dfn-platform-object'>platform object</a>
+              is considered to implement the interface.
               For each operation declared on the interface with a given <a class='dfnref' href='#dfn-identifier'>identifier</a>, the implementation
-              is the result of invoking <span class='prop'>[[Get]]</span> on the native object with a
+              is the result of invoking <span class='prop'>[[Get]]</span> on the object with a
               property name that is that identifier.
             </li>
+          </ul>
+          <p>
+            A <dfn id='dfn-single-operation-interface'>single operation interface</dfn> is one that:
+          </p>
+          <ul>
+            <li>is not declared to <a class='dfnref' href='#dfn-inherit'>inherit</a> from another interface,</li>
+            <li>has no <a class='dfnref' href='#dfn-consequential-interface'>consequential interfaces</a>,</li>
+            <li>has no <a class='dfnref' href='#dfn-attribute'>attributes</a>, and</li>
+            <li>has one or more <a class='dfnref' href='#dfn-regular-operation'>regular operations</a> that all have the same <a class='dfnref' href='#dfn-identifier'>identifier</a>,
+              and no others.</li>
           </ul>
           <p>
             A <a class='dfnref' href='#dfn-user-object'>user object</a>’s
@@ -9558,14 +9444,14 @@ interface
             with a list of IDL argument values <var>idlarg</var><sub>0..<var>n</var>−1</sub> by
             following the algorithm below.  The <dfn id='dfn-callback-this-value'>callback this value</dfn>
             is the value to use as the <span class='esvalue'>this</span> value
-            when calling the native object’s operation implementation internal
-            <span class='prop'>[[Call]]</span> method.  By default, the native object
+            when calling the object’s operation implementation internal
+            <span class='prop'>[[Call]]</span> method.  By default, the object
             itself is used as the <a class='dfnref' href='#dfn-callback-this-value'>callback this value</a>,
             however this <span class='rfc2119'>MAY</span> be overridden by other
             specifications.
           </p>
           <ol class='algorithm'>
-            <li>Let <var>O</var> be the native object that is the <a class='dfnref' href='#dfn-user-object'>user object</a> implementing the <a class='dfnref' href='#dfn-interface'>interface</a>.</li>
+            <li>Let <var>O</var> be the object that is the <a class='dfnref' href='#dfn-user-object'>user object</a> implementing the <a class='dfnref' href='#dfn-interface'>interface</a>.</li>
             <li>Let <var>X</var> be the implementation of the operation.  If <var>O</var> is a <span class='estype'>Function</span> object that itself is
               considered to be the implementation of the operation, then <var>X</var> is <var>O</var>.  Otherwise, <var>X</var> is the result of calling
               the internal <span class='prop'>[[Get]]</span> method of <var>O</var> with the identifier of the operation as the property name.</li>
@@ -9587,7 +9473,7 @@ interface
             </li>
           </ol>
           <p>
-            Note that native ECMAScript objects need not have
+            Note that ECMAScript objects need not have
             properties corresponding to <a class='dfnref' href='#dfn-constant'>constants</a>
             on them to be considered as <a class='dfnref' href='#dfn-user-object'>user objects</a>
             implementing <a class='dfnref' href='#dfn-interface'>interfaces</a> that happen
@@ -9599,7 +9485,7 @@ interface
             following algorithm:
           </p>
           <ol class='algorithm'>
-            <li>Let <var>O</var> be the native object that is the <a class='dfnref' href='#dfn-user-object'>user object</a> implementing the <a class='dfnref' href='#dfn-interface'>interface</a>.</li>
+            <li>Let <var>O</var> be the object that is the <a class='dfnref' href='#dfn-user-object'>user object</a> implementing the <a class='dfnref' href='#dfn-interface'>interface</a>.</li>
             <li>Let <var>P</var> be the <a class='dfnref' href='#dfn-identifier'>identifier</a> of the attribute.</li>
             <li>Let <var>R</var> be the result of invoking the <span class='prop'>[[Get]]</span> method of <var>O</var> with property name <var>P</var>.</li>
             <li>Return the result of <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a> <var>R</var> to an IDL value of the same type as the attribute’s type.</li>
@@ -9610,11 +9496,45 @@ interface
             following algorithm:
           </p>
           <ol class='algorithm'>
-            <li>Let <var>O</var> be the native object that is the <a class='dfnref' href='#dfn-user-object'>user object</a> implementing the <a class='dfnref' href='#dfn-interface'>interface</a>.</li>
+            <li>Let <var>O</var> be the object that is the <a class='dfnref' href='#dfn-user-object'>user object</a> implementing the <a class='dfnref' href='#dfn-interface'>interface</a>.</li>
             <li>Let <var>P</var> be the <a class='dfnref' href='#dfn-identifier'>identifier</a> of the attribute.</li>
             <li>Let <var>V</var> be the IDL value to be assigned to the attribute.</li>
             <li>Let <var>W</var> be the result of <a class='dfnref' href='#dfn-convert-idl-to-ecmascript-value'>converting</a> <var>V</var> to an ECMAScript value.</li>
             <li>Invoke the <span class='prop'>[[Put]]</span> method of <var>O</var> with property name <var>P</var> and value <var>W</var>.</li>
+          </ol>
+        </div>
+
+        <div id='es-invoking-callbacks' class='section'>
+          <h3>Invoking callbacks</h3>
+
+          <p>
+            An ECMAScript <span class='estype'>Function</span> object that is being
+            used as a <a class='dfnref' href='#dfn-callback'>callback</a> value is
+            called in a manner similar to how <a class='dfnref' href='#dfn-operation'>operations</a>
+            on <a class='dfnref' href='#dfn-user-object'>user objects</a> are called (as
+            described in the previous section).  The <span class='estype'>Function</span> object
+            is called with a list of IDL argument values
+            <var>idlarg</var><sub>0..<var>n</var>−1</sub> by
+            following the algorithm below.  By default, the <a class='dfnref' href='#dfn-callback-this-value'>callback this value</a>
+            when invoking a <a class='dfnref' href='#dfn-callback'>callback</a>
+            is <span class='esvalue'>null</span>, unless overridden by other specifications.
+          </p>
+          <ol class='algorithm'>
+            <li>Let <var>F</var> be the <span class='estype'>Function</span> object that is the <a class='dfnref' href='#dfn-callback'>callback</a> value.</li>
+            <li>
+              Let <var>arg</var><sub>0..<var>n</var>−1</sub> be a list of
+              ECMAScript values, where <var>arg</var><sub><var>i</var></sub> is the result
+              of <a class='dfnref' href='#dfn-convert-idl-to-ecmascript-value'>converting</a>
+              <var>idlarg</var><sub><var>i</var></sub> to an ECMAScript value.
+            </li>
+            <li>Let <var>R</var> be the result of invoking the <span class='prop'>[[Call]]</span> method of <var>F</var>, providing the <a class='dfnref' href='#dfn-callback-this-value'>callback this value</a> as the <span class='esvalue'>this</span> value and <var>arg</var><sub>0..<var>n</var>−1</sub> as the argument values.</li>
+            <li>
+              If the callback’s return type is <span class='idltype'>void</span>, return.
+            </li>
+            <li>
+              Return the result of <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a>
+              <var>R</var> to an IDL value of the same type as the operation’s return type.
+            </li>
           </ol>
         </div>
 
@@ -10190,6 +10110,7 @@ d.type = et;
           Ms2ger,
           Andrew Oakley,
           岡坂 史紀 (Shiki Okasaka),
+          Olli Pettay,
           Simon Pieters,
           Andrei Popescu,
           Tim Renouf,
@@ -10303,9 +10224,10 @@ d.type = et;
         </p>
 
         <grammar id='grammar' xmlns='http://mcc.id.au/ns/local'>
-          <prod nt='Definitions'>Definition Definitions | ε</prod>
-          <prod nt='Definition'>ExtendedAttributeList NormalDefinition | PartialInterface</prod>
-          <prod nt='NormalDefinition'>Interface | Dictionary | Exception | Enum | Typedef | ImplementsStatement</prod>
+          <prod nt='Definitions'>ExtendedAttributeList Definition Definitions | ε</prod>
+          <prod nt='Definition'>CallbackOrInterface | PartialInterface | Dictionary | Exception | Enum | Typedef | ImplementsStatement</prod>
+          <prod nt='CallbackOrInterface'>"callback" CallbackRestOrInterface | Interface</prod>
+          <prod nt='CallbackRestOrInterface'>CallbackRest | Interface</prod>
           <prod nt='Interface'>"interface" identifier Inheritance "{" InterfaceMembers "}" ";"</prod>
           <prod nt='PartialInterface'>"partial" "interface" identifier "{" InterfaceMembers "}" ";"</prod>
           <prod nt='Inheritance'>":" identifier | ε</prod>
@@ -10321,6 +10243,7 @@ d.type = et;
           <prod nt='Enum'>"enum" identifier "{" EnumValueList "}" ";"</prod>
           <prod nt='EnumValueList'>string EnumValues</prod>
           <prod nt='EnumValues'>"," string EnumValues | ε</prod>
+          <prod nt='CallbackRest'>identifier = ReturnType "(" ArgumentList ")" ";"</prod>
           <prod nt='Typedef'>"typedef" ExtendedAttributeList Type identifier ";"</prod>
           <prod nt='ImplementsStatement'>identifier "implements" identifier ";"</prod>
           <prod nt='Const'>"const" ConstType identifier "=" ConstValue ";"</prod>
@@ -10563,6 +10486,14 @@ d.type = et;
           <dt>Current editor’s draft</dt>
           <dd>
             <ul>
+              <li>
+                <p>
+                  Dropped the <span class='xattr'>[Callback]</span> extended attribute and
+                  made callback interfaces and callbacks (for single functions) base IDL language level features.
+                  User objects now may only implement callback interfaces, and platform objects
+                  may only implement non-callback interfaces.
+                </p>
+              </li>
               <li>
                 <p>
                   Redesigned overloading to avoid having to pay attention to the order that
