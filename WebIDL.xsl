@@ -306,7 +306,10 @@
     <xsl:variable name='id' select='substring-before(., " ")'/>
     <xsl:variable name='names' select='concat(" ", substring-after(., " "), " ")'/>
     <table class='grammar'>
-      <xsl:apply-templates select='//*[@id=$id]/x:prod[contains($names, concat(" ", @nt, " "))]' mode='def'/>
+      <xsl:call-template name='proddef'>
+        <xsl:with-param name='prods' select='//*[@id=$id]/x:prod[contains($names, concat(" ", @nt, " "))]'/>
+        <xsl:with-param name='pi' select='.'/>
+      </xsl:call-template>
     </table>
   </xsl:template>
 
@@ -556,24 +559,32 @@
     </table>
   </xsl:template>
 
-  <xsl:template match='x:prod' mode='def'>
-    <tr id='proddef-{@nt}'>
-      <td><span class='prod-number'>[<xsl:value-of select='count(preceding-sibling::x:prod) + 1'/>]</span></td>
-      <td>
-        <a class='sym' href='#prod-{@nt}'><xsl:value-of select='@nt'/></a>
-        <xsl:if test='@whitespace="explicit"'>
-          <sub class='nt-attr'>explicit</sub>
+  <xsl:template name='proddef'>
+    <xsl:param name='prods'/>
+    <xsl:param name='pi'/>
+    <xsl:for-each select='$prods'>
+      <xsl:variable name='nt' select='@nt'/>
+      <tr>
+        <xsl:if test='not($pi/preceding::processing-instruction("productions")[contains(concat(" ", substring-after(., " "), " "), concat(" ", $nt, " "))])'>
+          <xsl:attribute name='id'>proddef-<xsl:value-of select='@nt'/></xsl:attribute>
         </xsl:if>
-      </td>
-      <td class='prod-mid'>→</td>
-      <td class='prod-rhs'>
-        <span class='prod-lines'>
-          <xsl:call-template name='bnf'>
-            <xsl:with-param name='s' select='string(.)'/>
-          </xsl:call-template>
-        </span>
-      </td>
-    </tr>
+        <td><span class='prod-number'>[<xsl:value-of select='count(preceding-sibling::x:prod) + 1'/>]</span></td>
+        <td>
+          <a class='sym' href='#prod-{@nt}'><xsl:value-of select='@nt'/></a>
+          <xsl:if test='@whitespace="explicit"'>
+            <sub class='nt-attr'>explicit</sub>
+          </xsl:if>
+        </td>
+        <td class='prod-mid'>→</td>
+        <td class='prod-rhs'>
+          <span class='prod-lines'>
+            <xsl:call-template name='bnf'>
+              <xsl:with-param name='s' select='string(.)'/>
+            </xsl:call-template>
+          </span>
+        </td>
+      </tr>
+    </xsl:for-each>
   </xsl:template>
 
   <xsl:template match='x:prod'>
