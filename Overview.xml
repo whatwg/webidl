@@ -15,7 +15,7 @@
   <head>
     <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'/>
     <title>Web IDL</title>
-    <meta name='revision' content='$Id: Overview.xml,v 1.438 2011-12-29 00:23:01 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: Overview.xml,v 1.439 2011-12-29 04:11:24 cmccorma Exp $'/>
     <link rel='stylesheet' href='WebIDL.css' type='text/css'/>
     <script src='section-links.js' type='application/ecmascript'/>
     <script src='dfn.js' type='application/ecmascript'/>
@@ -155,11 +155,6 @@
         <div id='conventions' class='section'>
           <h3>Typographic conventions</h3>
 
-          <div class='ednote'>
-            <p>For algorithms, Glenn Maynard requests on IRC that any time a
-              called algorithm can throw an exception that the calling algorithm
-              explicitly handle it.</p>
-          </div>
           <p>
             The following typographic conventions are used in this document:
           </p>
@@ -2433,11 +2428,11 @@ partial interface A {
             </p>
             <p>
               The elements of an effective overload set are pairs of the form
-              &lt;<var>f</var>, <var>types</var>>.  If the effective overload
-              set is for regular operations, static operations or legacy callers, then <var>f</var> is an operation;
-              if it is for constructors or named constructors, then <var>f</var> is an
-              extended attribute; and if it is for callbacks, then <var>f</var>
-              is the callback itself.  In all cases, <var>types</var> is a list
+              &lt;<var>callable</var>, <var>type list</var>>.  If the effective overload
+              set is for regular operations, static operations or legacy callers, then <var>callable</var> is an operation;
+              if it is for constructors or named constructors, then <var>callable</var> is an
+              extended attribute; and if it is for callbacks, then <var>callable</var>
+              is the callback itself.  In all cases, <var>type list</var> is a list
               of IDL types.  Each pair represents an allowable invocation of the operation,
               constructor, legacy caller or callback with an argument value list of the given types.
               Due to the use of <a class='dfnref' href='#dfn-optional-argument'>optional arguments</a>
@@ -4696,6 +4691,30 @@ interface Person {
           ToObject, IsAccessorDescriptor and IsDataDescriptor abstract operations and the
           Type(<var>x</var>) notation referenced in this section are defined in ECMA-262 sections 8 and 9.
         </p>
+        <p>
+          Note that algorithm steps can call in to other algorithms and abstract operations and
+          not explicitly handle exceptions that are thrown from them.  When an exception
+          is thrown by an algorithm or abstract operation and it is not explicitly
+          handled by the caller, then it is taken to end the algorithm and propagate out
+          to its caller, and so on.
+        </p>
+        <div class='example'>
+          <p>
+            Consider the following algorithm:
+          </p>
+          <ol class='algorithm'>
+            <li>Let <var>x</var> be the ECMAScript value passed in to this algorithm.</li>
+            <li>Let <var>y</var> be the result of calling ToString(<var>x</var>).</li>
+            <li>Return <var>y</var>.</li>
+          </ol>
+          <p>
+            Since ToString can throw an exception (for example if passed the object
+            <code>({ toString: function() { throw 1 } })</code>), and the exception is
+            not handled in the above algorithm, if one is thrown then it causes this
+            algorithm to end and for the exception to propagate out to its caller, if there
+            is one.
+          </p>
+        </div>
 
         <div id='es-environment' class='section'>
           <h3>ECMAScript environment</h3>
@@ -5781,8 +5800,8 @@ iframe.appendChild instanceof w.Function;  <span class='comment'>// Evaluates to
                         value that represents the empty string.
                       </li>
                       <li>
-                        Otherwise, the argument given to <a class='xattr' href='#TreatUndefinedAs'>[TreatUndefinedAs]</a>
-                        is <code>Null</code>.  Return the <span class='idlvalue'>null</span>
+                        Otherwise, if the argument given to <a class='xattr' href='#TreatUndefinedAs'>[TreatUndefinedAs]</a>
+                        is <code>Null</code>, then return the <span class='idlvalue'>null</span>
                         <span class='idltype'>DOMString?</span> value.
                       </li>
                     </ol>
@@ -7636,10 +7655,9 @@ manager.handler2;            <span class='comment'>// Evaluates to null.</span><
             </p>
             <p>
               If <a class='xattr' href='#TreatNullAs'>[TreatNullAs]</a> is specified on
-              an operation itself, then it indicates that a <a href='#es-user-objects'>user object
-                implementing the interface</a> will have the return
-              value of the function that implements the operation
-              handled in the same way as for operation arguments
+              an operation itself, and that operation is on a <a class='dfnref' href='#dfn-callback-interface'>callback interface</a>,
+              then it indicates that a <a href='#es-user-objects'>user object implementing the interface</a> will have the return
+              value of the function that implements the operation handled in the same way as for operation arguments
               and attributes, as above.
             </p>
             <p>
@@ -7657,6 +7675,11 @@ manager.handler2;            <span class='comment'>// Evaluates to null.</span><
               use <a class='xattr' href='#TreatNullAs'>[TreatNullAs]</a>, since <span class='idlvalue'>null</span>
               is a valid value of that type.</p>
             </div>
+            <p>
+              The <a class='xattr' href='#TreatNullAs'>[TreatNullAs]</a> extended attribute
+              also <span class='rfc2119'>MUST NOT</span> be specified on an operation on
+              a non-callback interface.
+            </p>
             <p>
               See <a href='#es-DOMString'>section <?sref es-DOMString?></a>
               for the specific requirements that the use of
@@ -7699,11 +7722,19 @@ d.isMemberOfBreed(null);  <span class='comment'>// This passes the string "" to 
             <h4>[TreatUndefinedAs]</h4>
 
             <p>
-              If the <a class='xattr' href='#TreatUndefinedAs'>[TreatUndefinedAs]</a>
+              The <a class='xattr' href='#TreatUndefinedAs'>[TreatUndefinedAs]</a>
               <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
+              has two uses.
+            </p>
+            <p>
+              The first use is to control how the <span class='esvalue'>undefined</span>
+              value is converted into a <span class='idltype'>DOMString</span>.
+              If the extended attribute
               appears on an <a class='dfnref' href='#dfn-attribute'>attribute</a>
               or <a class='dfnref' href='#dfn-operation'>operation</a> argument whose type is
               <a class='idltype' href='#idl-DOMString'>DOMString</a> or <span class='idltype'>DOMString?</span>,
+              and it is specified as <code>[TreatUndefinedAs=EmptyString]</code> or
+              <code>[TreatUndefinedAs=Null]</code>,
               it indicates that an <span class='esvalue'>undefined</span> value
               assigned to the corresponding property or passed as an argument to
               the corresponding function will be handled differently from its
@@ -7733,24 +7764,56 @@ d.isMemberOfBreed(null);  <span class='comment'>// This passes the string "" to 
               and attributes, as above.
             </p>
             <p>
-              The <a class='xattr' href='#TreatUndefinedAs'>[TreatUndefinedAs]</a>
-              extended attribute <span class='rfc2119'>MUST</span> <a class='dfnref' href='#dfn-xattr-identifier'>take an identifier</a>:
-              either <code>EmptyString</code> or <code>Null</code>.
+              The second use for <a class='xattr' href='#TreatUndefinedAs'>[TreatUndefinedAs]</a>
+              is to control how <span class='esvalue'>undefined</span> values passed
+              to a function corresponding to an <a class='dfnref' href='#dfn-operation'>operation</a>
+              are treated.  If it is specified as <code>[TreatUndefinedAs=Missing]</code> on
+              an <a class='dfnref' href='#dfn-optional-argument'>optional</a> operation argument, then an explicit <span class='esvalue'>undefined</span> value
+              will cause the function call to be treated as if the argument had been omitted.
             </p>
             <p>
-              <a class='xattr' href='#TreatUndefinedAs'>[TreatUndefinedAs=Null]</a>
+              The <a class='xattr' href='#TreatUndefinedAs'>[TreatUndefinedAs]</a>
+              extended attribute <span class='rfc2119'>MUST</span> <a class='dfnref' href='#dfn-xattr-identifier'>take an identifier</a>:
+              <code>EmptyString</code>, <code>Null</code> or <code>Missing</code>.
+            </p>
+            <p>
+              <code>[TreatUndefinedAs=Null]</code>
               <span class='rfc2119'>MUST NOT</span> be specified on operation argument,
               attribute or operation return value whose type is not <span class='idltype'>DOMString?</span>,
-              and <a class='xattr' href='#TreatUndefinedAs'>[TreatUndefinedAs=EmptyString]</a>
+              and <code>[TreatUndefinedAs=EmptyString]</code>
               <span class='rfc2119'>MUST NOT</span> be specified on operation argument,
               attribute or operation return value whose type is neither
               <span class='idltype'>DOMString</span> nor <span class='idltype'>DOMString?</span>.
             </p>
             <p>
+              The <code>[TreatUndefinedAs]</code> extended attribute
+              also <span class='rfc2119'>MUST NOT</span> be specified on an operation on
+              a non-callback interface.
+            </p>
+            <p>
+              <code>[TreatUndefinedAs=Missing]</code> <span class='rfc2119'>MUST NOT</span>
+              be specified on an operation itself and <span class='rfc2119'>MUST NOT</span> be
+              specified on a non-optional operation argument.  When specified on an operation argument,
+              then any following arguments <span class='rfc2119'>MUST</span> also be annotated with
+              <code>[TreatUndefinedAs=Missing]</code>.
+            </p>
+            <div class='warning'>
+              <p>
+                Specifications <span class='rfc2119'>SHOULD NOT</span> use <code>[TreatUndefinedAs=Missing]</code>
+                unless required for compatibility reasons.  Specification authors who
+                wish to use this feature are strongly advised to discuss this on the 
+                <a href='mailto:public-script-coord@w3.org'>public-script-coord@w3.org</a>
+                mailing list before proceeding.
+              </p>
+            </div>
+            <p>
               See <a href='#es-DOMString'>section <?sref es-DOMString?></a>
               and <a href='#es-nullable-type'>section <?sref es-nullable-type?></a>
               for the specific requirements that the use of
-              <a class='xattr' href='#TreatUndefinedAs'>[TreatUndefinedAs]</a> entails.
+              <code>[TreatUndefinedAs=Null]</code>
+              and <code>[TreatUndefinedAs=EmptyString]</code>
+              entails.  See the <a class='dfnref' href='#dfn-overload-resolution-algorithm'>overload resolution algorithm</a>
+              for how <code>[TreatUndefinedAs=Missing]</code> is handled.
             </p>
             <div class='example'>
               <p>
@@ -7784,6 +7847,19 @@ c.owner = undefined;           <span class='comment'>// This assigns the null va
 
 c.isMemberOfBreed(undefined);  <span class='comment'>// This passes the string "" to the</span>
                                <span class='comment'>// isMemberOfBreed function.</span></x:codeblock>
+            </div>
+            <div class='example'>
+              <p>
+                The following <a class='dfnref' href='#dfn-idl-fragment'>IDL fragment</a> defines an interface with
+                an operation that uses <code>[TreatUndefinedAs=Missing]</code>.
+              </p>
+              <x:codeblock language='es'>interface A {
+  void f(float x, [TreatUndefinedAs=Missing] optional float y);
+};</x:codeblock>
+              <p>
+                If f is called as <code>f(1, undefined)</code> then it will have the same behavior
+                as if it were called as <code>f(1)</code>.
+              </p>
             </div>
           </div>
 
@@ -7971,12 +8047,17 @@ system.loginTime;  <span class='comment'>// So this now evaluates to forgedLogin
                 <li>Let <var>maxarg</var> be the length of the longest type list of the entries in <var>S</var>.</li>
                 <li>Initialize <var>argcount</var> to be min(<var>maxarg</var>, <var>n</var>).</li>
 
-                <li>Let <var>undefcount</var> be the number of trailing <span class='estype'>undefined</span> values in <var>arg</var><sub>0..<var>n</var>−1</sub>.</li>
-                <li>Initialize <var>j</var> to <var>undefcount</var>.</li>
-                <li>While <var>j</var> &gt; 0:
+                <li>Initialize <var>j</var> to <var>n</var>−1.</li>
+                <li>While <var>j</var> ≥ 0 and <var>arg</var><sub><var>j</var></sub> is <span class='estype'>undefined</span>:
                   <ol>
-                    <li>If <var>S</var> has any entries whose type list is of length <var>n</var>−<var>j</var>,
-                      then set <var>argcount</var> to <var>j</var> and break this while loop.</li>
+                    <li>If <var>S</var> has one or more entries whose type list is of length <var>j</var>, then:
+                      <ol>
+                        <li>If <var>S</var> has one or more entries whose type list is longer than <var>j</var>,
+                          and at least one of those entries has the <code>[TreatUndefinedAs=Missing]</code>
+                          <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
+                          on its arguments at indices <var>j</var> and above, then set <var>argcount</var> to <var>j</var>.</li>
+                      </ol>
+                    </li>
                     <li>Set <var>j</var> to <var>j</var>−1.</li>
                   </ol>
                 </li>
@@ -10516,6 +10597,14 @@ d.type = et;
           <dt>Current editor’s draft</dt>
           <dd>
             <ul>
+              <li>
+                <p>
+                  Changed the handling of <span class='esvalue'>undefined</span> in ECMAScript
+                  operation calls so that they are not unconditionally treated as missing
+                  optional arguments.  Now, <code>[TreatUndefinedAs=Missing]</code> must be
+                  placed on those arguments to allow this behavior.
+                </p>
+              </li>
               <li>
                 <p>
                   Disallowed static operations from having the same identifier as a regular operation
