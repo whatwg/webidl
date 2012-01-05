@@ -15,7 +15,7 @@
   <head>
     <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'/>
     <title>Web IDL</title>
-    <meta name='revision' content='$Id: Overview.xml,v 1.446 2011-12-30 00:06:31 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: Overview.xml,v 1.447 2012-01-05 01:02:26 cmccorma Exp $'/>
     <link rel='stylesheet' href='WebIDL.css' type='text/css'/>
     <script src='section-links.js' type='application/ecmascript'/>
     <script src='dfn.js' type='application/ecmascript'/>
@@ -3821,7 +3821,7 @@ interface Person {
             assign to the attribute.
           </p>
 
-          <?productions grammar Type SingleType OptionalUnionTypeParts UnionTypeParts ParenthesizedUnionType ConstType Null PrimitiveType UnsignedIntegerType IntegerType OptionalLong TypeSuffix TypeSuffixStartingWithArray?>
+          <?productions grammar Type SingleType NonAnyType UnionType UnionMemberType UnionMemberTypes ConstType Null PrimitiveType UnsignedIntegerType IntegerType OptionalLong TypeSuffix TypeSuffixStartingWithArray?>
 
           <div id='idl-any' class='section'>
             <h4>any</h4>
@@ -4384,25 +4384,25 @@ interface Person {
             <p>
               A <dfn id='dfn-union-type'>union type</dfn> is a type whose set of values
               is the union of those in two or more other types.  Union types (matching
-              <a class='sym' href='#prod-SingleType'>SingleType</a> <a class='sym' href='#prod-UnionTypeParts'>UnionTypeParts</a>)
-              are written as a series of types separated by the <code>or</code> keyword,
-              with a set of surrounding parentheses if a <code>?</code> or <code>[]</code>
-              suffix is required.
+              <a class='sym' href='#prod-UnionType'>UnionType</a>)
+              are written as a series of types separated by the <code>or</code> keyword
+              with a set of surrounding parentheses.
               The types which comprise the union type are known as the
               union’s <dfn id='dfn-union-member-type'>member types</dfn>.
             </p>
             <div class='note'>
               <p>
-                For example, you might write <code>Node or DOMString</code>
-                or <code>float or float[]</code>.  Parentheses are required
-                to apply a <code>[]</code> or <code>?</code> suffix to a
+                For example, you might write <code>(Node or DOMString)</code>
+                or <code>(float or float[])</code>.  When applying a
+                a <code>[]</code> or <code>?</code> suffix to a
                 <a class='dfnref' href='#dfn-union-type'>union type</a>
-                as a whole, as in <code>(Node or DOMString)?</code>.
+                as a whole, it is placed after the closing parenthesis,
+                as in <code>(Node or DOMString)?</code>.
               </p>
               <p>
                 Note that the <a class='dfnref' href='#dfn-union-member-type'>member types</a>
                 of a union type do not descend into nested union types.  So for
-                <code>float or (Date or Event) or (Node or DOMString)?</code> the member types
+                <code>(float or (Date or Event) or (Node or DOMString)?)</code> the member types
                 are <code>float</code>, <code>(Date or Event)</code> and
                 <code>(Node or DOMString)?</code>.
               </p>
@@ -4438,7 +4438,7 @@ interface Person {
               <p>
                 For example, the <a class='dfnref' href='#dfn-flattened-union-member-types'>flattened member types</a>
                 of the <a class='dfnref' href='#dfn-union-type'>union type</a>
-                <code>Node or (Date or Event) or (XMLHttpRequest or DOMString)? or (float[] or NodeList)[]</code>
+                <code>(Node or (Date or Event) or (XMLHttpRequest or DOMString)? or (float[] or NodeList)[])</code>
                 are the six types <code>Node</code>, <code>Date</code>, <code>Event</code>,
                 <code>XMLHttpRequest</code>, <code>DOMString</code> and
                 <code>(float[] or NodeList)[]</code>.
@@ -4502,6 +4502,7 @@ interface Person {
               type is formed by taking the type names of each member type, in order,
               and joining them with the string “Or”.
             </p>
+            <?productions grammar UnionType UnionMemberType UnionMemberTypes NonAnyType?>
           </div>
 
           <div id='idl-Date' class='section'>
@@ -10436,17 +10437,18 @@ d.type = et;
             | "legacycaller" | "const" | "creator" | "deleter" | "double"
             | "exception" | "false" | "float" | "getter" | "implements"
             | "inherit" | "interface" | "long" | "null" | "object" | "octet"
-            <!--| "omittable" -->| "optional" | "sequence"
+            <!--| "omittable" -->| "optional" | "or" | "sequence"
             | "setter" | "short" | "static" | "stringifier" | "true" | "typedef"
             | "unsigned" | "void"
           </prod>
           <prod nt='OtherOrComma'>Other | ","</prod>
 
-          <prod nt='Type'>SingleType OptionalUnionTypeParts | ParenthesizedUnionType</prod>
-          <prod nt='SingleType'>PrimitiveType TypeSuffix | "DOMString" TypeSuffix | identifier TypeSuffix | "sequence" "&lt;" Type ">" Null | "object" TypeSuffix | "Date" TypeSuffix | "any" TypeSuffixStartingWithArray</prod>
-          <prod nt='OptionalUnionTypeParts'>UnionTypeParts | ε</prod>
-          <prod nt='ParenthesizedUnionType'>"(" SingleType UnionTypeParts ")" TypeSuffix</prod>
-          <prod nt='UnionTypeParts'>"or" SingleType UnionTypeParts</prod>
+          <prod nt='Type'>SingleType | UnionType TypeSuffix</prod>
+          <prod nt='SingleType'>NonAnyType | "any" TypeSuffixStartingWithArray</prod>
+          <prod nt='UnionType'>"(" UnionMemberType "or" UnionMemberType UnionMemberTypes ")"</prod>
+          <prod nt='UnionMemberType'>NonAnyType | UnionType TypeSuffix | "any" "[" "]" TypeSuffix</prod>
+          <prod nt='UnionMemberTypes'>"or" UnionMemberType UnionMemberTypes | ε</prod>
+          <prod nt='NonAnyType'>PrimitiveType TypeSuffix | "DOMString" TypeSuffix | identifier TypeSuffix | "sequence" "&lt;" Type ">" Null | "object" TypeSuffix | "Date" TypeSuffix</prod>
           <prod nt='ConstType'>PrimitiveType Null</prod>
           <prod nt='PrimitiveType'>UnsignedIntegerType | "boolean" | "byte" | "octet" | "float" | "double"</prod>
           <prod nt='UnsignedIntegerType'>"unsigned" IntegerType | IntegerType</prod>
