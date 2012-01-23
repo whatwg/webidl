@@ -15,7 +15,7 @@
   <head>
     <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'/>
     <title>Web IDL</title>
-    <meta name='revision' content='$Id: Overview.xml,v 1.447 2012-01-05 01:02:26 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: Overview.xml,v 1.448 2012-01-23 04:36:21 cmccorma Exp $'/>
     <link rel='stylesheet' href='WebIDL.css' type='text/css'/>
     <script src='section-links.js' type='application/ecmascript'/>
     <script src='dfn.js' type='application/ecmascript'/>
@@ -5599,8 +5599,8 @@ iframe.appendChild instanceof w.Function;  <span class='comment'>// Evaluates to
               by running the following algorithm:
             </p>
             <ol class='algorithm'>
-              <li>Let <var>x</var> be the result of calling <a href='#ecmascript-abstractop' class='dfnref external'>ToObject</a>(<var>V</var>).</li>
-              <li>Return the IDL <span class='idltype'>object</span> value that is a reference to the same object as <var>x</var>.</li>
+              <li>If <a href='#ecmascript-abstractop' class='dfnref external'>Type</a>(<var>V</var>) is not Object, then <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>TypeError</span></a>.</li>
+              <li>Return the IDL <span class='idltype'>object</span> value that is a reference to the same object as <var>V</var>.</li>
             </ol>
             <p>
               The result of <a class='dfnref' href='#dfn-convert-idl-to-ecmascript-value'>converting</a>
@@ -5625,9 +5625,9 @@ iframe.appendChild instanceof w.Function;  <span class='comment'>// Evaluates to
               by running the following algorithm (where <var>I</var> is the <a class='dfnref' href='#dfn-interface'>interface</a>):
             </p>
             <ol class='algorithm'>
-              <li>Let <var>x</var> be the result of calling <a href='#ecmascript-abstractop' class='dfnref external'>ToObject</a>(<var>V</var>).</li>
-              <li>If <var>x</var> is a <a class='dfnref' href='#dfn-platform-object'>platform object</a> that implements <var>I</var>, then return the IDL <a href='#idl-interface'>interface type</a> value that represents a reference to that platform object.</li>
-              <li>If <var>x</var> is a <a class='dfnref' href='#dfn-user-object'>user object</a> that is considered to implement <var>I</var> according to the rules in <a href='#es-user-objects'>section <?sref es-user-objects?></a>, then return the IDL <a href='#idl-interface'>interface type</a> value that represents a reference to that user object.</li>
+              <li>If <a href='#ecmascript-abstractop' class='dfnref external'>Type</a>(<var>V</var>) is not Object, then <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>TypeError</span></a>.</li>
+              <li>If <var>V</var> is a <a class='dfnref' href='#dfn-platform-object'>platform object</a> that implements <var>I</var>, then return the IDL <a href='#idl-interface'>interface type</a> value that represents a reference to that platform object.</li>
+              <li>If <var>V</var> is a <a class='dfnref' href='#dfn-user-object'>user object</a> that is considered to implement <var>I</var> according to the rules in <a href='#es-user-objects'>section <?sref es-user-objects?></a>, then return the IDL <a href='#idl-interface'>interface type</a> value that represents a reference to that user object.</li>
               <li><a href='#ecmascript-throw' class='dfnref external'>Throw a <span class='esvalue'>TypeError</span></a>.</li>
             </ol>
             <p>
@@ -5758,8 +5758,7 @@ iframe.appendChild instanceof w.Function;  <span class='comment'>// Evaluates to
               by running the following algorithm:
             </p>
             <ol class='algorithm'>
-              <li>Let <var>x</var> be the result of calling <a href='#ecmascript-abstractop' class='dfnref external'>ToObject</a>(<var>V</var>).</li>
-              <li>If <var>x</var> is not a <span class='estype'>Function</span> object, then <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='esvalue'>TypeError</span></a>.</li>
+              <li>If <var>V</var> is not a <span class='estype'>Function</span> object, then <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='esvalue'>TypeError</span></a>.</li>
               <li>Return the IDL <a href='#idl-callback'>callback type</a> value that represents a reference to that <span class='estype'>Function</span> object.</li>
             </ol>
             <p>
@@ -5890,23 +5889,55 @@ iframe.appendChild instanceof w.Function;  <span class='comment'>// Evaluates to
               to an IDL <a class='idltype' href='#idl-sequence'>sequence&lt;<var>T</var>></a> value as follows:
             </p>
             <ol class='algorithm'>
-              <li>If <var>V</var> is <span class='esvalue'>null</span> or <span class='esvalue'>undefined</span>,
-                then return a sequence of length zero.</li>
-              <li>Let <var>A</var> be the result of calling <a href='#ecmascript-abstractop' class='dfnref external'>ToObject</a>(<var>V</var>).</li>
-              <li>Let <var>length</var> be the result of calling <span class='prop'>[[Get]]</span> on <var>A</var> with property name “length”.</li>
-              <li>Let <var>n</var> be the result of calling ToUint32(<var>length</var>).</li>
-              <li>Initialize <var>S</var><sub>0..<var>n</var>−1</sub> to be an IDL sequence with elements of type <var>T</var>, where each element is uninitialized.</li>
               <li>Initialize <var>i</var> to be 0.</li>
-              <li>While <var>i</var> &lt; <var>n</var>:
-                <ol>
-                  <li>Let <var>P</var> be the result of calling <a href='#ecmascript-abstractop' class='dfnref external'>ToString</a>(<var>i</var>).</li>
-                  <li>Let <var>E</var> be the result of calling <span class='prop'>[[Get]]</span> on <var>A</var> with property name <var>P</var>.</li>
-                  <li>Set <var>S</var><sub><var>i</var></sub> to the result of <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a>
-                    <var>E</var> to an IDL value of type <var>T</var>.</li>
-                  <li>Set <var>i</var> to <var>i</var> + 1.</li>
-                </ol>
+              <li>Depending on the type of <var>V</var>:
+                <dl class='switch'>
+                  <dt>A <a class='dfnref' href='#dfn-platform-array-object'>platform array object</a></dt>
+                  <dd>
+                    <ol>
+                      <li>Let <var>length</var> be the length of the <a class='dfnref' href='#dfn-platform-array-object'>platform array object</a>.</li>
+                      <li>Initialize <var>S</var><sub>0..<var>n</var>−1</sub> to be an IDL sequence with elements of type <var>T</var>, where each element is uninitialized.</li>
+                      <li>While <var>i</var> &lt; <var>n</var>:
+                        <ol>
+                          <li>Let <var>E</var> be the result of <a class='dfnref' href='#dfn-convert-idl-to-ecmascript-value'>converting</a>
+                            the <a class='dfnref' href='#dfn-platform-array-object'>platform array object</a> element at index <var>i</var>
+                            to an ECMAScript value.</li>
+                          <li>Set <var>S</var><sub><var>i</var></sub> to the result of <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a>
+                            <var>E</var> to an IDL value of type <var>T</var>.</li>
+                          <li>Set <var>i</var> to <var>i</var> + 1.</li>
+                        </ol>
+                      </li>
+                      <li>Return <var>S</var>.</li>
+                    </ol>
+                  </dd>
+                  <dt>A native <span class='estype'>Array</span> object</dt>
+                  <dt>A <a class='dfnref' href='#dfn-platform-object'>platform object</a> that <a class='dfnref' href='#dfn-support-indexed-properties'>supports indexed properties</a></dt>
+                  <dd>
+                    <ol>
+                      <li>Let <var>A</var> be the result of calling <a href='#ecmascript-abstractop' class='dfnref external'>ToObject</a>(<var>V</var>).</li>
+                      <li>Let <var>length</var> be the result of calling <span class='prop'>[[Get]]</span> on <var>A</var> with property name “length”.</li>
+                      <li>Let <var>n</var> be the result of calling ToUint32(<var>length</var>).</li>
+                      <li>Initialize <var>S</var><sub>0..<var>n</var>−1</sub> to be an IDL sequence with elements of type <var>T</var>, where each element is uninitialized.</li>
+                      <li>While <var>i</var> &lt; <var>n</var>:
+                        <ol>
+                          <li>Let <var>P</var> be the result of calling <a href='#ecmascript-abstractop' class='dfnref external'>ToString</a>(<var>i</var>).</li>
+                          <li>Let <var>E</var> be the result of calling <span class='prop'>[[Get]]</span> on <var>A</var> with property name <var>P</var>.</li>
+                          <li>Set <var>S</var><sub><var>i</var></sub> to the result of <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a>
+                            <var>E</var> to an IDL value of type <var>T</var>.</li>
+                          <li>Set <var>i</var> to <var>i</var> + 1.</li>
+                        </ol>
+                      </li>
+                      <li>Return <var>S</var>.</li>
+                    </ol>
+                  </dd>
+                  <dt>Otherwise</dt>
+                  <dd>
+                    <ol>
+                      <li><a href='#ecmascript-throw' class='dfnref external'>Throw a <span class='estype'>TypeError</span></a>.</li>
+                    </ol>
+                  </dd>
+                </dl>
               </li>
-              <li>Return <var>S</var>.</li>
             </ol>
             <p>
               An IDL sequence value <var>S</var><sub>0..<var>n</var>−1</sub> of type
@@ -6166,29 +6197,13 @@ alert(b[4]);    <span class='comment'>// This would alert "50".</span></x:codebl
               to an IDL array value of type <span class='idltype'><var>T</var>[]</span> as follows:
             </p>
             <ul>
-              <li>Let <var>O</var> be the result of calling <a href='#ecmascript-abstractop' class='dfnref external'>ToObject</a>(<var>V</var>).</li>
-              <li>If <var>O</var> is a <a class='dfnref' href='#dfn-platform-array-object'>platform array object</a>,
-                then the IDL array value is the array value that the platform array object represents.</li>
-              <li>Otherwise, the IDL array value is determined as follows:
-                <ol class='algorithm'>
-                  <li>Initialize <var>n</var> to be the result of calling <span class='prop'>[[Get]]</span> on <var>V</var> with property name “length”.</li>
-                  <li>Set <var>n</var> to ToUint32(<var>n</var>).</li>
-                  <li>Initialize <var>values</var><sub>0..<var>n</var>−1</sub> to be a list of IDL values.</li>
-                  <li>Initialize <var>i</var> to be 0.</li>
-                  <li>While <var>i</var> &lt; <var>n</var>:
-                    <ol>
-                      <li>Let <var>x</var> be the result of calling <span class='prop'>[[Get]]</span> on <var>V</var> with
-                        property name <a href='#ecmascript-abstractop' class='dfnref external'>ToString</a>(<var>i</var>).</li>
-                      <li>Set <var>values</var><sub><var>i</var></sub> to be the result of
-                        <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a>
-                        <var>x</var> to an IDL value of type <var>T</var>.</li>
-                      <li>Set <var>i</var> to <var>i</var> + 1.</li>
-                    </ol>
-                  </li>
-                  <li>The IDL array value is a <a class='dfnref' href='#dfn-fixed-length'>fixed length</a>
-                    array of length <var>n</var> whose values are <var>values</var><sub>0..<var>n</var>−1</sub>.</li>
-                </ol>
-              </li>
+              <li>Let <var>values</var> be the result of <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a>
+                <var>V</var> to a <a class='dfnref' href='#dfn-sequence'>sequence</a> with element
+                type <var>T</var>.</li>
+              <li>Let <var>n</var> be the length of <var>values</var>.</li>
+              <li>Return a new <a class='dfnref' href='#dfn-fixed-length'>fixed length</a>
+                array of length <var>n</var> whose element values are the same as those
+                in <var>values</var>.</li>
             </ul>
 
             <p>
@@ -6550,10 +6565,9 @@ results.numbers.length;       <span class='comment'>// So this still evaluates t
               by running the following algorithm:
             </p>
             <ol class='algorithm'>
-              <li>Let <var>D</var> be the result of calling <a href='#ecmascript-abstractop' class='dfnref external'>ToObject</a>(<var>V</var>).</li>
-              <li>If <var>D</var> is not an ECMAScript <span class='estype'>Date</span> object, then <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>TypeError</span></a>.</li>
-              <li>If the time value of <var>D</var> is <span class='esvalue'>NaN</span>, then return the <span class='idlvalue'>undefined</span> IDL <span class='idltype'>Date</span> value.</li>
-              <li>Return the IDL <span class='idltype'>Date</span> value that represents the same time value as <var>D</var>.</li>
+              <li>If <var>V</var> is not an ECMAScript <span class='estype'>Date</span> object, then <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>TypeError</span></a>.</li>
+              <li>If the time value of <var>V</var> is <span class='esvalue'>NaN</span>, then return the <span class='idlvalue'>undefined</span> IDL <span class='idltype'>Date</span> value.</li>
+              <li>Return the IDL <span class='idltype'>Date</span> value that represents the same time value as <var>V</var>.</li>
             </ol>
             <p>
               An IDL <span class='idltype'>Date</span> value <var>V</var> is <a class='dfnref' href='#dfn-convert-idl-to-ecmascript-value'>converted</a>
@@ -10617,6 +10631,13 @@ d.type = et;
           <dt>Current editor’s draft</dt>
           <dd>
             <ul>
+              <li>
+                <p>
+                  Tighten up the conversion rules from ECMAScript values to IDL values,
+                  so that they are more in line with the values accepted by the
+                  overload resolution algorithm.
+                </p>
+              </li>
               <li>
                 <p>
                   Changed the handling of <span class='esvalue'>undefined</span> in ECMAScript
