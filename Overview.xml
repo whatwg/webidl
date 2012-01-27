@@ -15,7 +15,7 @@
   <head>
     <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'/>
     <title>Web IDL</title>
-    <meta name='revision' content='$Id: Overview.xml,v 1.454 2012-01-27 04:03:35 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: Overview.xml,v 1.455 2012-01-27 05:11:57 cmccorma Exp $'/>
     <link rel='stylesheet' href='WebIDL.css' type='text/css'/>
     <script src='section-links.js' type='application/ecmascript'/>
     <script src='dfn.js' type='application/ecmascript'/>
@@ -99,6 +99,14 @@
         Since the second Last Call Working Draft publication of this document,
         the Java language binding has been split out into its own document. <a href='#ref-WEBIDL-JAVA'>[WEBIDL-JAVA]</a>
       </p>
+      <p>
+        The following features are considered <em>at risk</em>, and may be removed in
+        a future publication of this document if there are no uses for the feature:
+      </p>
+      <ul>
+        <li><a class='dfnref' href='#dfn-optional-argument-default-value'>Default values</a> for optional arguments.</li>
+        <li>The <a class='xattr' href='#ArrayClass'>[ArrayClass]</a>, <a class='xattr' href='#Clamp'>[Clamp]</a>, <a class='xattr' href='#EnforceRange'>[EnforceRange]</a> and <a class='xattr' href='#ImplicitThis'>[ImplicitThis]</a> extended attributes.</li>
+      </ul>
       <p>
         This document is produced by the
         <a href='http://www.w3.org/2008/webapps/'>Web Applications Working Group</a>, part of the
@@ -1029,10 +1037,10 @@ node.appendChild(newNode);  <span class='comment'>// This will throw a TypeError
             </p>
             <div class='note'>
               <p>
-                <a class='dfnref' href='#dfn-dictionary-member'>Dictionary member</a>
-                declarations can also use these values – in addition to strings –
-                to specify <a class='dfnref' href='#dfn-default-value'>default values</a>.
-                Note that strings cannot be used as the value of a
+                These values – in addition to strings – can also be used to specify the
+                <a class='dfnref' href='#dfn-dictionary-member-default-value'>default value
+                  of a dictionary member</a> or <a class='dfnref' href='#dfn-optional-argument-default-value'>of
+                  an optional argument</a>.  Note that strings cannot be used as the value of a
                 <a class='dfnref' href='#dfn-constant'>constant</a>.
               </p>
             </div>
@@ -1517,6 +1525,39 @@ s.union(1, 4, 7);         <span class='comment'>// Passing three arguments corre
             <pre class='syntax'><i>return-type</i> <i>identifier</i>(<i>type</i> <i>identifier</i>, optional <i>type</i> <i>identifier</i>);</pre>
 
             <p>
+              Optional arguments can also have a <dfn id='dfn-optional-argument-default-value'>default value</dfn>
+              specified.  If the argument’s identifier is followed by a <span class='char'>U+003D EQUALS SIGN ("=")</span>
+              and a value (matching <a class='sym' href='#prod-DefaultValue'>DefaultValue</a>),
+              then that gives the optional argument its <a class='dfnref' href='#dfn-optional-argument-default-value'>default value</a>.
+              The implicitly optional final argument of a <a class='dfnref' href='#dfn-variadic'>variadic</a>
+              operation <span class='rfc2119'>MUST NOT</span> have a default value specified.
+              The default value is the value to be assumed when the operation is called with the
+              corresponding argument omitted.
+            </p>
+            <pre class='syntax'><i>return-type</i> <i>identifier</i>(<i>type</i> <i>identifier</i>, optional <i>type</i> <i>identifier</i> = <i>value</i>);</pre>
+            <p>
+              When a boolean literal tokens (<code>true</code> or <code>false</code>),
+              the <code>null</code> token,
+              an <a class='sym' href='#prod-integer'>integer</a> token or a
+              <a class='sym' href='#prod-float'>float</a> token is used as the
+              <a class='dfnref' href='#dfn-optional-argument-default-value'>default value</a>,
+              it is interpreted in the same way as for a <a class='dfnref' href='#dfn-constant'>constant</a>.
+              Optional argument default values can also be specified using a <a class='sym' href='#prod-string'>string</a>
+              token, whose value is a <span class='idltype'>DOMString</span> or
+              <a class='dfnref' href='#dfn-enumeration'>enumeration</a> determined as follows:
+            </p>
+            <ol class='algorithm'>
+              <li>Let <var>S</var> be the sequence of characters matched by the <a class='sym' href='#prod-string'>string</a> token with its leading and trailing <span class='char'>U+0022 QUOTATION MARK ('"')</span> characters removed.</li>
+              <li>The value of the <a class='sym' href='#prod-string'>string</a> token is the sequence of 16 bit unsigned integer code units (hereafter referred to just as <dfn id='dfn-code-unit'>code units</dfn>) corresponding to the UTF-16 encoding of <var>S</var>.</li>
+            </ol>
+            <p>
+              If the type of the <a class='dfnref' href='#dfn-optional-argument'>optional argument</a>
+              is an <a class='dfnref' href='#dfn-enumeration'>enumeration</a>, then its
+              <a class='dfnref' href='#dfn-optional-argument-default-value'>default value</a> if specified <span class='rfc2119'>MUST</span>
+              be one of the <a class='dfnref' href='#dfn-enumeration-value'>enumeration’s values</a>.
+            </p>
+
+            <p>
               Web IDL operations do not support being called with omitted optional arguments
               unless all subsequent optional arguments are also omitted.  Bindings for
               languages that do support function calling in this way will fail such
@@ -1596,7 +1637,7 @@ s.union(1, 4, 7);         <span class='comment'>// Passing three arguments corre
             <!--
             <?productions grammar Operation OperationRest Qualifiers Specials Special ReturnType OptionalIdentifier ArgumentList Arguments Argument In Optional Ellipsis Raises?>
             -->
-            <?productions grammar AttributeOrOperation StringifierAttributeOrOperation Operation OperationRest Qualifiers Specials Special ReturnType OptionalIdentifier ArgumentList Arguments Argument In Optional Ellipsis?>
+            <?productions grammar AttributeOrOperation StringifierAttributeOrOperation Operation OperationRest Qualifiers Specials Special ReturnType OptionalIdentifier ArgumentList Arguments Argument OptionalOrRequiredArgument DefaultValue In Optional Ellipsis?>
           </div>
 
           <div id='idl-special-operations' class='section'>
@@ -2877,7 +2918,7 @@ dictionary <i>Derived</i> : <em>Base</em> {
             On a given dictionary value, the presence of each dictionary member is optional.
             When specified in the dictionary value, a dictionary member is said to be
             <dfn id='dfn-present'>present</dfn>, otherwise it is <a class='dfnref' href='#dfn-present'>not present</a>.
-            Dictionary members can also optionally have a <dfn id='dfn-default-value'>default value</dfn>, which is
+            Dictionary members can also optionally have a <dfn id='dfn-dictionary-member-default-value'>default value</dfn>, which is
             the value the dictionary member is to be considered to have when not present.
           </p>
           <p>
@@ -2900,17 +2941,17 @@ dictionary <i>Derived</i> : <em>Base</em> {
           <p>
             If the identifier is followed by a <span class='char'>U+003D EQUALS SIGN ("=")</span>
             and a value (matching <a class='sym' href='#prod-DefaultValue'>DefaultValue</a>),
-            then that gives the dictionary member its <a class='dfnref' href='#dfn-default-value'>default value</a>.
+            then that gives the dictionary member its <a class='dfnref' href='#dfn-dictionary-member-default-value'>default value</a>.
           </p>
           <pre class='syntax'>dictionary <i>identifier</i> {
   <i>type</i> <i>identifier</i> = <i>value</i>;
 };</pre>
           <p>
-            When a boolean literal tokens (<code>true</code> or <code>false</code>),
+            When a boolean literal token (<code>true</code> or <code>false</code>),
             the <code>null</code> token,
             an <a class='sym' href='#prod-integer'>integer</a> token or a
             <a class='sym' href='#prod-float'>float</a> token is used as the
-            <a class='dfnref' href='#dfn-default-value'>default value</a>,
+            <a class='dfnref' href='#dfn-dictionary-member-default-value'>default value</a>,
             it is interpreted in the same way as for a <a class='dfnref' href='#dfn-constant'>constant</a>.
             Dictionary member default values can also be specified using a <a class='sym' href='#prod-string'>string</a>
             token, whose value is a <span class='idltype'>DOMString</span> or
@@ -2923,7 +2964,7 @@ dictionary <i>Derived</i> : <em>Base</em> {
           <p>
             If the type of the <a class='dfnref' href='#dfn-dictionary-member'>dictionary member</a>
             is an <a class='dfnref' href='#dfn-enumeration'>enumeration</a>, then its
-            <a class='dfnref' href='#dfn-default-value'>default value</a> if specified <span class='rfc2119'>MUST</span>
+            <a class='dfnref' href='#dfn-dictionary-member-default-value'>default value</a> if specified <span class='rfc2119'>MUST</span>
             be one of the <a class='dfnref' href='#dfn-enumeration-value'>enumeration’s values</a>.
           </p>
           <p>
@@ -3034,7 +3075,7 @@ var ctx = getGraphicsContext();
 <span class='comment'>// Draw a rectangle.</span>
 ctx.drawRectangle(300, 200, { fillPattern: "red", position: new Point(10, 10) });</x:codeblock>
             <p>
-              Both fillPattern and strokePattern are given <a class='dfnref' href='#dfn-default-value'>default values</a>,
+              Both fillPattern and strokePattern are given <a class='dfnref' href='#dfn-dictionary-member-default-value'>default values</a>,
               so if they are omitted, the definition of drawRectangle can assume that they
               have the given default values and not include explicit wording to handle
               their non-presence.
@@ -4143,8 +4184,8 @@ interface Person {
             <p>
               There is no way to represent a constant <a class='idltype' href='#idl-DOMString'>DOMString</a>
               value in IDL, although <span class='idltype'>DOMString</span> <a class='dfnref' href='#dfn-dictionary-member'>dictionary member</a>
-              <a class='dfnref' href='#dfn-default-value'>default values</a> can be specified using a
-              <a class='sym' href='#prod-string'>string</a> literal.
+              and <a class='dfnref' href='#dfn-optional-argument'>operation optional argument</a> default values
+              an be specified using a <a class='sym' href='#prod-string'>string</a> literal.
             </p>
             <p>
               The <a class='dfnref' href='#dfn-type-name'>type name</a> of the
@@ -4230,7 +4271,7 @@ interface Person {
             <p>
               Like <a class='idltype'>DOMString</a>, there is no way to represent a constant <a class='dfnref' href='#dfn-enumeration'>enumeration</a>
               value in IDL, although enumeration-typed <a class='dfnref' href='#dfn-dictionary-member'>dictionary member</a>
-              <a class='dfnref' href='#dfn-default-value'>default values</a> can be specified using a
+              <a class='dfnref' href='#dfn-dictionary-member-default-value'>default values</a> can be specified using a
               <a class='sym' href='#prod-string'>string</a> literal.
             </p>
             <p>
@@ -8271,6 +8312,45 @@ system.loginTime;  <span class='comment'>// So this now evaluates to forgedLogin
                 </li>
               </ol>
               <p>
+                We also define the <dfn id='dfn-argument-resolution-algorithm'>argument resolution algorithm</dfn>,
+                which converts ECMAScript argument values to IDL values and fills in any <a class='dfnref' href='#dfn-optional-argument-default-value'>default values</a>.
+                Its input is an <a class='dfnref' href='#dfn-effective-overload-set'>effective overload set</a>
+                entry <var>E</var>, and a list of ECMAScript values, <var>arg</var><sub>0..<var>n</var>−1</sub>.
+                Its output is a list of IDL value.  The algorithm behaves as follows:
+              </p>
+              <ol class='algorithm'>
+                <li>
+                  Let <var>op</var> be the operation and <var>t</var><sub>0..<var>m</var>−1</sub>
+                  be the type list of <var>E</var>.
+                </li>
+                <li>
+                  Initialize <var>values</var><sub>0..<var>m</var>−1</sub> to be a list
+                  of IDL values, where <var>values</var><sub><var>i</var></sub>
+                  is the result of
+                  <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a>
+                  <var>arg</var><sub><var>i</var></sub> to an IDL value of type <var>t</var><sub><var>i</var></sub>.  These conversions
+                  <span class='rfc2119'>MUST</span> be done in order from
+                  <var>arg</var><sub>0</sub> to <var>arg</var><sub><var>m</var>−1</sub>.
+                </li>
+                <li>
+                  Let <var>i</var> be <var>n</var>.
+                </li>
+                <li>
+                  While <var>i</var> &lt; <var>m</var>:
+                  <ol>
+                    <li>If the argument of <var>op</var> at index <var>i</var> is <a class='dfnref' href='#dfn-optional-argument'>optional</a>
+                      and has a <a class='dfnref' href='#dfn-optional-argument-default-value'>default value</a> specified, then:
+                      <ol>
+                        <li>Append the default value to <var>values</var>.</li>
+                        <li>Set <var>m</var> to <var>m</var> + 1.</li>
+                      </ol>
+                    </li>
+                    <li>Set <var>i</var> to <var>i</var> + 1.</li>
+                  </ol>
+                </li>
+                <li>Return <var>values</var>.</li>
+              </ol>
+              <p>
                 The internal <span class='prop'>[[Call]]</span> method
                 of the interface object behaves as follows, assuming
                 <var>arg</var><sub>0..<var>n</var>−1</sub> is the list
@@ -8302,24 +8382,13 @@ system.loginTime;  <span class='comment'>// So this now evaluates to forgedLogin
                   If <var>entry</var> is <span class='idltype'>null</span>, <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>TypeError</span></a>.
                 </li>
                 <li>
-                  Let <var>x</var> be the <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
-                  that represents the constructor and <var>t</var><sub>0..<var>m</var>−1</sub> be the type
-                  list of <var>entry</var>.
+                  Let <var>values</var> be the result of passing <var>entry</var>
+                  and <var>arg</var><sub>0..<var>n</var>−1</sub> to the
+                  <a class='dfnref' href='#dfn-argument-resolution-algorithm'>argument resolution algorithm</a>.
                 </li>
                 <li>
-                  Let <var>idlarg</var><sub>0..<var>m</var>−1</sub> be a list
-                  of IDL values, where <var>idlarg</var><sub><var>i</var></sub>
-                  is the result of
-                  <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a>
-                  <var>arg</var><sub><var>i</var></sub> to an IDL value.  These conversions
-                  <span class='rfc2119'>MUST</span> be done in order from
-                  <var>arg</var><sub>0</sub> to <var>arg</var><sub><var>m</var>−1</sub>.
-                </li>
-                <li x:step='a'>
                   Let <var>R</var> be the result of performing the actions listed in the description of
-                  the constructor represented by <var>x</var>
-                  with <var>idlarg</var><sub>0..<var>m</var>−1</sub>
-                  as the argument values.
+                  the constructor of <var>entry</var> with <var>values</var> as the argument values.
                 </li>
                 <li>
                   Return the result of <a class='dfnref' href='#dfn-convert-idl-to-ecmascript-value'>converting</a>
@@ -8428,25 +8497,13 @@ system.loginTime;  <span class='comment'>// So this now evaluates to forgedLogin
                 If <var>entry</var> is <span class='idltype'>null</span>, <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>TypeError</span></a>.
               </li>
               <li>
-                Let <var>x</var> be the <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
-                that represents the constructor, and <var>t</var><sub>0..<var>m</var>−1</sub> be the type
-                list, of <var>entry</var>.
-              </li>
-              <li>
-                Let <var>idlarg</var><sub>0..<var>m</var>−1</sub> be a list
-                of IDL values, where <var>idlarg</var><sub><var>i</var></sub>
-                is the result of
-                <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a>
-                <var>arg</var><sub><var>i</var></sub> to an IDL value of type
-                <var>t</var><sub><var>i</var></sub>.  These conversions
-                <span class='rfc2119'>MUST</span> be done in order from
-                <var>arg</var><sub>0</sub> to <var>arg</var><sub><var>m</var>−1</sub>.
+                Let <var>values</var> be the result of passing <var>entry</var>
+                and <var>arg</var><sub>0..<var>n</var>−1</sub> to the
+                <a class='dfnref' href='#dfn-argument-resolution-algorithm'>argument resolution algorithm</a>.
               </li>
               <li>
                 Let <var>R</var> be the result of performing the actions listed in the description of
-                the constructor represented by <var>x</var>
-                with <var>idlarg</var><sub>0..<var>m</var>−1</sub>
-                as the argument values.
+                the constructor of <var>entry</var> with <var>values</var> as the argument values.
               </li>
               <li>
                 Return the result of <a class='dfnref' href='#dfn-convert-idl-to-ecmascript-value'>converting</a>
@@ -8971,23 +9028,15 @@ interface
                     If <var>entry</var> is <span class='idltype'>null</span>, <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>TypeError</span></a>.
                   </li>
                   <li>
-                    Let <var>op</var> be the operation and <var>t</var><sub>0..<var>m</var>−1</sub>
-                    be the type list of <var>entry</var>.
-                  </li>
-                  <li>
-                    Let <var>idlarg</var><sub>0..<var>m</var>−1</sub> be a list
-                    of IDL values, where <var>idlarg</var><sub><var>i</var></sub>
-                    is the result of
-                    <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a>
-                    <var>arg</var><sub><var>i</var></sub> to an IDL value.  These conversions
-                    <span class='rfc2119'>MUST</span> be done in order from
-                    <var>arg</var><sub>0</sub> to <var>arg</var><sub><var>m</var>−1</sub>.
+                    Let <var>values</var> be the result of passing <var>entry</var>
+                    and <var>arg</var><sub>0..<var>n</var>−1</sub> to the
+                    <a class='dfnref' href='#dfn-argument-resolution-algorithm'>argument resolution algorithm</a>.
                   </li>
                   <li>
                     Let <var>R</var> be the result of performing (on <var>O</var>, if the operation
                     is not a static operation) the actions listed in the description of
-                    operation <var>op</var> with <var>idlarg</var><sub>0..<var>m</var>−1</sub>
-                    as the argument values.
+                    operation the <a class='dfnref' href='#dfn-operation'>operation</a> of
+                    <var>entry</var> with <var>values</var> as the argument values.
                   </li>
                   <li>
                     Return the result of <a class='dfnref' href='#dfn-convert-idl-to-ecmascript-value'>converting</a>
@@ -9644,13 +9693,12 @@ interface
                 <var>arg</var><sub>0..<var>n</var>−1</sub> to the
                 <a class='dfnref' href='#dfn-overload-resolution-algorithm'>overload resolution algorithm</a>.</li>
               <li>If <var>entry</var> is <span class='idltype'>null</span>, <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>TypeError</span></a>.</li>
-              <li>Let <var>op</var> be the operation and <var>t</var><sub>0..<var>m</var>−1</sub> be the type list
-                of <var>entry</var>.</li>
-              <li>Let <var>idlarg</var><sub>0..<var>m</var>−1</sub> be a list of IDL values,
-                where <var>idlarg</var><sub><var>i</var></sub> is the result of
-                <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a>
-                <var>arg</var><sub><var>i</var></sub> to an IDL value.</li>
-              <li>Perform the actions listed in the description of legacy caller <var>op</var> with
+              <li>
+                Let <var>values</var> be the result of passing <var>entry</var>
+                and <var>arg</var><sub>0..<var>n</var>−1</sub> to the
+                <a class='dfnref' href='#dfn-argument-resolution-algorithm'>argument resolution algorithm</a>.
+              </li>
+              <li>Perform the actions listed in the description of the legacy caller of <var>entry</var> with
                 <var>idlarg</var><sub>0..<var>m</var>−1</sub> as the argument values.  These conversions
                 <span class='rfc2119'>MUST</span> be done in order from
                 <var>arg</var><sub>0</sub> to <var>arg</var><sub><var>m</var>−1</sub>.</li>
@@ -10583,7 +10631,8 @@ d.type = et;
           -->
           <prod nt='ArgumentList'>Argument Arguments | ε</prod>
           <prod nt='Arguments'>"," Argument Arguments | ε</prod>
-          <prod nt='Argument'>ExtendedAttributeList Optional Type Ellipsis identifier</prod>
+          <prod nt='Argument'>ExtendedAttributeList OptionalOrRequiredArgument</prod>
+          <prod nt='OptionalOrRequiredArgument'>"optional" Type identifier Default | Type Ellipsis identifier</prod>
           <prod nt='Optional'>"optional" | ε</prod>
           <prod nt='Ellipsis'>"..." | ε</prod>
           <prod nt='ExceptionMember'>Const | ExceptionField</prod>
@@ -10791,6 +10840,11 @@ d.type = et;
           <dt>Current editor’s draft</dt>
           <dd>
             <ul>
+              <li>
+                <p>
+                  Allow default values to be specified for optional operation arguments.
+                </p>
+              </li>
               <li>
                 <p>
                   Rename [ReplaceableNamedProperties] to [NamedPropertiesObject] and make it
