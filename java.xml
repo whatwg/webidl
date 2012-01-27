@@ -15,7 +15,7 @@
   <head>
     <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'/>
     <title>Java language binding for Web IDL</title>
-    <meta name='revision' content='$Id: java.xml,v 1.8 2011-12-29 00:20:49 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: java.xml,v 1.9 2012-01-27 05:45:49 cmccorma Exp $'/>
     <link rel='stylesheet' href='WebIDL.css' type='text/css'/>
     <script src='section-links.js' type='application/ecmascript'/>
     <script src='dfn.js' type='application/ecmascript'/>
@@ -57,7 +57,13 @@
     <div class='section'>
       <h2>Status of This Document</h2>
       <?sotd-top public-script-coord@w3.org http://lists.w3.org/Archives/Public/public-script-coord/?>
-      <p>...</p>
+      <p>
+        This document originally existed as a section in the <a href='#ref-WEBIDL'>[WEBIDL]</a>
+        specification.  It was split out into a separate document due to the prospect of it
+        impeding the progress of Web IDL due to having insufficient implementations and because
+        of a general lack of interest in the Java binding.  The Working Group intends to publish
+        this document eventually as a Note.
+      </p>
       <p>
         This document is produced by the
         <a href='http://www.w3.org/2008/webapps/'>Web Applications Working Group</a>, part of the
@@ -86,7 +92,9 @@
 
         <p class='norm'>This section is informative.</p>
 
-        <p>...</p>
+        <p>
+          This document defines a Web IDL language binding for Java 5. <a href='#ref-WEBIDL'>[WEBIDL]</a> <a href='#ref-JLS3'>[JLS3]</a>
+        </p>
 
         <div id='conventions' class='section'>
           <h3>Typographic conventions</h3>
@@ -1786,7 +1794,7 @@ interface Something {
             </p>
             <ul>
               <li>
-                For each pair &lt;<var>op</var>, <var>types</var>> in the
+                For each pair &lt;<var>callable</var>, <var>type list</var>> in the
                 <a class='dfnref' href='#dfn-effective-overload-set'>effective overload set</a>
                 for <a class='dfnref' href='#dfn-regular-operation'>regular operations</a>
                 with identifier <var>id</var> on the IDL interface and with argument
@@ -1794,7 +1802,7 @@ interface Something {
                 exist a method on the Java interface whose name, its <dfn id='dfn-java-method-name'>Java method name</dfn>,
                 is determined as follows:
                 <ol class='algorithm'>
-                  <li>Let <var>identifier</var> be the <a class='dfnref' href='#dfn-identifier'>identifier</a> of the <a class='dfnref' href='#dfn-operation'>operation</a>.</li>
+                  <li>Let <var>identifier</var> be the <a class='dfnref' href='#dfn-identifier'>identifier</a> of the <a class='dfnref' href='#dfn-operation'>operation</a> <var>callable</var>.</li>
                   <li>Initialize <var>name</var> to be <var>identifier</var> <a class='dfnref' href='#dfn-java-escaped'>Java escaped</a>.</li>
                   <li>If <var>name</var> is the same as the name of
                     one of the methods defined on <span class='javatype'>java.lang.Object</span>,
@@ -1810,7 +1818,7 @@ interface Something {
             </p>
             <ul>
               <li>
-                For each pair &lt;<var>op</var>, <var>types</var>> in the
+                For each pair &lt;<var>callable</var>, <var>type list</var>> in the
                 <a class='dfnref' href='#dfn-effective-overload-set'>effective overload set</a>
                 for <a class='dfnref' href='#dfn-static-operation'>static operations</a>
                 with identifier <var>id</var> on the IDL interface and with argument
@@ -1850,7 +1858,8 @@ interface Something {
             <p>
               For all of the above operations – regular, static, and the abovementioned
               special operations – their corresponding Java methods have the following
-              characteristics:
+              characteristics, based on the <a class='dfnref' href='#dfn-effective-overload-set'>effective overload set</a>
+              entry &lt;<var>callable</var>, <var>type list</var>>:
             </p>
             <ul>
               <li>
@@ -1859,11 +1868,12 @@ interface Something {
                 <a href='#java-type-mapping'>section <?sref java-type-mapping?></a> <?sdir java-type-mapping?>.
               </li>
               <li>
-                The method has an argument for each type, in order, that is in <var>types</var>.  The type of
-                method argument <var>j</var> is the Java type that corresponds to the IDL type <var>types</var><sub><var>j</var></sub>,
+                The method has an argument for each type, in order, that is in <var>type list</var>.  The type of
+                method argument <var>j</var> is the Java type that corresponds to the IDL type at
+                index <var>j</var> in <var>type list</var>,
                 according to the rules in <a href='#java-type-mapping'>section <?sref java-type-mapping?></a>
-                <?sdir java-type-mapping?>.  If the length of <var>types</var> is the length of the
-                argument list <var>op</var> is declared with, and <var>op</var> is a
+                <?sdir java-type-mapping?>.  If the length of <var>type list</var> is the length of the
+                argument list <var>callable</var> is declared with, and <var>callable</var> is a
                 <a class='dfnref' href='#dfn-variadic'>variadic</a> operation,
                 then the method is a <em>variable arity method</em> (<a href='#ref-JLS3'>[JLS3]</a>,
                 section 8.4.1).
@@ -1897,7 +1907,7 @@ interface Something {
                   </li>
                   <li>
                     Let <var>R</var> be the result of performing the actions listed in the description of the operation
-                    <var>op</var> with <var>idlarg</var><sub>0..<var>n</var>−1</sub>
+                    <var>callable</var> with <var>idlarg</var><sub>0..<var>n</var>−1</sub>
                     as the argument values.
                   </li>
                   <li>
@@ -1905,7 +1915,7 @@ interface Something {
                     exception being thrown, then allow that exception to propagate
                     out from this algorithm.  Otherwise, return the result of
                     <a class='dfnref' href='#dfn-convert-idl-to-java-value'>converting</a>
-                    <var>R</var> to a Java value of the type <var>op</var>
+                    <var>R</var> to a Java value of the type <var>callable</var>
                     is declared to return.
                   </li>
                 </ol>
