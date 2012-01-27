@@ -11,7 +11,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <title>Web IDL</title>
-    <meta name="revision" content="$Id: Overview.html,v 1.452 2012-01-27 05:11:57 cmccorma Exp $" />
+    <meta name="revision" content="$Id: Overview.html,v 1.453 2012-01-27 05:30:54 cmccorma Exp $" />
     <link rel="stylesheet" href="WebIDL.css" type="text/css" />
     <script src="section-links.js" type="application/ecmascript"></script>
     <script src="dfn.js" type="application/ecmascript"></script>
@@ -3774,7 +3774,7 @@ EventTarget et = (EventTarget) n; <span class='comment'>// This should never thr
           <h3>3.9. Objects implementing interfaces</h3>
 
           <p>
-            In systems described by <a class="dfnref" href="#dfn-idl-fragment">IDL fragments</a>,
+            In a given implementation of a set of <a class="dfnref" href="#dfn-idl-fragment">IDL fragments</a>,
             an object can be described as being a <dfn id="dfn-platform-object">platform object</dfn>, a
             <dfn id="dfn-user-object">user object</dfn>, or neither.  There are three kinds of
             object that are considered to be platform objects:
@@ -3788,9 +3788,20 @@ EventTarget et = (EventTarget) n; <span class='comment'>// This should never thr
             In a browser, for example,
             the browser-implemented DOM objects (implementing interfaces such as <span class="idltype">Node</span> and
             <span class="idltype">Document</span>) that provide access to a web page’s contents
-            to ECMAScript running in the page would be platform objects.  An ECMAScript library
-            that adds support for some Web API that is not natively supported by a browser
-            would also be considered to expose platform objects.
+            to ECMAScript running in the page would be platform objects.  These objects might be host objects,
+            implemented in a language like C++, or they might be native ECMAScript objects.  Regardless,
+            an implementation of a given set of IDL fragments needs to be able to recognize all platform objects
+            that are created by the implementation.  This might be done by having some internal state that records whether
+            a given object is indeed a platform object for that implementation, or perhaps by observing
+            that the object is implemented by a given internal C++ class.  How exactly platform objects
+            are recognised by a given implementation of a set of IDL fragments is implementation specific.
+          </p>
+          <p>
+            All other objects in the system would not be treated as platform objects.  For example, assume that
+            a web page opened in a browser loads an ECMAScript library that implements DOM Core.  This library
+            would be considered to be a different implementation from the browser provided implementation.
+            The objects created by the ECMAScript library that implement the <span class="idltype">Node</span> interface
+            will not be treated as platform objects that implement <span class="idltype">Node</span> by the browser implementation.
           </p>
           <p>
             User objects are those that authors would create, implementing
