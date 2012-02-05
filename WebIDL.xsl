@@ -591,7 +591,14 @@
     <tr id='prod-{@nt}'>
       <td><span class='prod-number'>[<xsl:value-of select='count(preceding-sibling::x:prod) + 1'/>]</span></td>
       <td>
-        <a class='sym' href='#proddef-{@nt}'><xsl:value-of select='@nt'/></a>
+        <xsl:choose>
+          <xsl:when test='../@links="off"'>
+            <xsl:value-of select='@nt'/>
+          </xsl:when>
+          <xsl:otherwise>
+            <a class='sym' href='#proddef-{@nt}'><xsl:value-of select='@nt'/></a>
+          </xsl:otherwise>
+        </xsl:choose>
         <xsl:if test='@whitespace="explicit"'>
           <sub class='nt-attr'>explicit</sub>
         </xsl:if>
@@ -599,8 +606,9 @@
       <td class='prod-mid'>→</td>
       <td class='prod-rhs'>
         <span class='prod-lines'>
-            <xsl:call-template name='bnf'>
+          <xsl:call-template name='bnf'>
             <xsl:with-param name='s' select='string(.)'/>
+            <xsl:with-param name='links' select='../@links'/>
           </xsl:call-template>
         </span>
       </td>
@@ -610,6 +618,7 @@
   <xsl:template name='bnf'>
     <xsl:param name='s'/>
     <xsl:param name='mode' select='0'/>
+    <xsl:param name='links'/>
     <xsl:if test='$s != ""'>
       <xsl:variable name='c' select='substring($s, 1, 1)'/>
       <xsl:choose>
@@ -620,15 +629,28 @@
               <xsl:with-param name='s' select='substring($s, 2)'/>
             </xsl:call-template>
           </xsl:variable>
-          <a class='sym' href='#prod-{$nt}'><xsl:value-of select='$nt'/></a>
+            <!--
+          <xsl:choose>
+            <xsl:when test='$links="off"'>
+              <xsl:value-of select='$nt'/>
+            </xsl:when>
+            <xsl:otherwise>
+            -->
+              <a class='sym' href='#prod-{$nt}'><xsl:value-of select='$nt'/></a>
+            <!--
+            </xsl:otherwise>
+          </xsl:choose>
+            -->
           <xsl:call-template name='bnf'>
             <xsl:with-param name='s' select='substring($s, string-length($nt) + 1)'/>
+            <xsl:with-param name='links' select='$links'/>
           </xsl:call-template>
         </xsl:when>
         <xsl:when test='$mode = 0 and $c = "|"'>
           <!--div class='prod-line-subsequent'--><br/> |
             <xsl:call-template name='bnf'>
               <xsl:with-param name='s' select='substring($s, 2)'/>
+              <xsl:with-param name='links' select='$links'/>
             </xsl:call-template>
           <!--/div-->
         </xsl:when>
@@ -643,6 +665,7 @@
           <xsl:call-template name='bnf'>
             <xsl:with-param name='s' select='substring($s, 2)'/>
             <xsl:with-param name='mode' select='$newMode'/>
+            <xsl:with-param name='links' select='$links'/>
           </xsl:call-template>
         </xsl:when>
         <xsl:when test="$c = &#34;'&#34;">
@@ -656,6 +679,7 @@
           <xsl:call-template name='bnf'>
             <xsl:with-param name='s' select='substring($s, 2)'/>
             <xsl:with-param name='mode' select='$newMode'/>
+            <xsl:with-param name='links' select='$links'/>
           </xsl:call-template>
         </xsl:when>
         <xsl:when test="$c = '[' and $mode = 0">
@@ -665,6 +689,7 @@
               <xsl:text>]</xsl:text>
               <xsl:call-template name='bnf'>
                 <xsl:with-param name='s' select='substring($s, 3)'/>
+                <xsl:with-param name='links' select='$links'/>
               </xsl:call-template>
             </xsl:when>
             <xsl:otherwise>
@@ -677,6 +702,7 @@
               <xsl:call-template name='bnf'>
                 <xsl:with-param name='s' select='substring($s, 2)'/>
                 <xsl:with-param name='mode' select='$newMode'/>
+                <xsl:with-param name='links' select='$links'/>
               </xsl:call-template>
             </xsl:otherwise>
           </xsl:choose>
@@ -685,6 +711,7 @@
           <xsl:value-of select='$c'/>
           <xsl:call-template name='bnf'>
             <xsl:with-param name='s' select='substring($s, 2)'/>
+            <xsl:with-param name='links' select='$links'/>
           </xsl:call-template>
         </xsl:when>
         <xsl:otherwise>
@@ -692,6 +719,7 @@
           <xsl:call-template name='bnf'>
             <xsl:with-param name='s' select='substring($s, 2)'/>
             <xsl:with-param name='mode' select='$mode'/>
+            <xsl:with-param name='links' select='$links'/>
           </xsl:call-template>
         </xsl:otherwise>
       </xsl:choose>
