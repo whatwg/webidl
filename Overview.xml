@@ -15,7 +15,7 @@
   <head>
     <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'/>
     <title>Web IDL</title>
-    <meta name='revision' content='$Id: Overview.xml,v 1.473 2012-03-05 04:00:36 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: Overview.xml,v 1.474 2012-03-06 01:41:58 cmccorma Exp $'/>
     <link rel='stylesheet' href='WebIDL.css' type='text/css'/>
     <script src='section-links.js' type='application/ecmascript'/>
     <script src='dfn.js' type='application/ecmascript'/>
@@ -105,6 +105,7 @@
         a future publication of this document if there is insufficient support for them:
       </p>
       <ul>
+        <li>The <span class='idltype'>unrestricted float</span> and <span class='idltype'>unrestricted double</span> types.</li>
         <li><a class='dfnref' href='#dfn-optional-argument-default-value'>Default values</a> for optional arguments.</li>
         <li>The <a class='xattr' href='#ArrayClass'>[ArrayClass]</a>, <a class='xattr' href='#Clamp'>[Clamp]</a>, <a class='xattr' href='#EnforceRange'>[EnforceRange]</a> and <a class='xattr' href='#ImplicitThis'>[ImplicitThis]</a> extended attributes.</li>
       </ul>
@@ -1095,11 +1096,13 @@ node.appendChild(newNode);  <span class='comment'>// This will throw a TypeError
                 parsed as an ECMAScript <a class="external" href="http://es5.github.com/#x7.8.3"><em>NumericLiteral</em></a> (<a href='#ref-ECMA-262'>[ECMA-262]</a>, section 7.8.3).</li>
               <li>
                 If the <a class='sym' href='#prod-float'>float</a> token is being
-                used as the value for a <span class='idltype'>float</span>, then
+                used as the value for a <span class='idltype'>float</span> or
+                <span class='idltype'>unrestricted float</span>, then
                 the value of the <a class='sym' href='#prod-float'>float</a> token
                 is the IEEE 754 single-precision floating point number closest to
                 <var>result</var>.  Otherwise, the <a class='sym' href='#prod-float'>float</a> token is being
-                used as the value for a <span class='idltype'>double</span>, and
+                used as the value for a <span class='idltype'>double</span> or
+                <span class='idltype'>unrestricted double</span>, and
                 the value of the <a class='sym' href='#prod-float'>float</a> token
                 is the IEEE 754 double-precision floating point number closest to
                 <var>result</var>.
@@ -3864,8 +3867,10 @@ interface Person {
             The following types are known as <dfn id='dfn-primitive-type'>primitive types</dfn>:
             <a class='idltype' href='#idl-boolean'>boolean</a>,
             the <a class='dfnref' href='#dfn-integer-type'>integer types</a>,
-            <a class='idltype' href='#idl-float'>float</a> and
-            <a class='idltype' href='#idl-float'>double</a>.
+            <a class='idltype' href='#idl-float'>float</a>,
+            <a class='idltype' href='#idl-unrestricted-float'>unresticted float</a>,
+            <a class='idltype' href='#idl-double'>double</a> and
+            <a class='idltype' href='#idl-unrestricted-double'>unrestricted double</a>.
           </p>
           <p>
             The <a class='idltype' href='#idl-object'>object</a> type and
@@ -3893,7 +3898,7 @@ interface Person {
             assign to the attribute.
           </p>
 
-          <?productions grammar Type SingleType NonAnyType UnionType UnionMemberType UnionMemberTypes ConstType Null PrimitiveType UnsignedIntegerType IntegerType OptionalLong TypeSuffix TypeSuffixStartingWithArray?>
+          <?productions grammar Type SingleType NonAnyType UnionType UnionMemberType UnionMemberTypes ConstType Null PrimitiveType FloatType UnrestrictedFloatType UnsignedIntegerType IntegerType OptionalLong TypeSuffix TypeSuffixStartingWithArray?>
 
           <div id='idl-any' class='section'>
             <h4>any</h4>
@@ -4088,7 +4093,7 @@ interface Person {
 
             <p>
               The <a class='idltype' href='#idl-float'>float</a> type is a floating point numeric
-              type that corresponds to the set of possible single-precision 32 bit
+              type that corresponds to the set of finite single-precision 32 bit
               IEEE 754 floating point numbers.  <a href='#ref-IEEE-754'>[IEEE-754]</a>
             </p>
             <p>
@@ -4102,12 +4107,31 @@ interface Person {
             </p>
           </div>
 
+          <div id='idl-unrestricted-float' class='section'>
+            <h4>unrestricted float</h4>
+
+            <p>
+              The <a class='idltype' href='#idl-unrestricted-float'>unrestricted float</a> type is a floating point numeric
+              type that corresponds to the set of all possible single-precision 32 bit
+              IEEE 754 floating point numbers, finite and non-finite.  <a href='#ref-IEEE-754'>[IEEE-754]</a>
+            </p>
+            <p>
+              <a class='idltype' href='#idl-unrestricted-float'>unrestricted float</a> constant values in IDL are
+              represented with <a class='sym' href='#prod-float'>float</a>
+              tokens.
+            </p>
+            <p>
+              The <a class='dfnref' href='#dfn-type-name'>type name</a> of the
+              <span class='idltype'>unrestricted float</span> type is “UnrestrictedFloat”.
+            </p>
+          </div>
+
           <div id='idl-double' class='section'>
             <h4>double</h4>
 
             <p>
               The <a class='idltype' href='#idl-double'>double</a> type is a floating point numeric
-              type that corresponds to the set of possible double-precision 64 bit
+              type that corresponds to the set of finite double-precision 64 bit
               IEEE 754 floating point numbers.  <a href='#ref-IEEE-754'>[IEEE-754]</a>
             </p>
             <p>
@@ -4118,6 +4142,25 @@ interface Person {
             <p>
               The <a class='dfnref' href='#dfn-type-name'>type name</a> of the
               <span class='idltype'>double</span> type is “Double”.
+            </p>
+          </div>
+
+          <div id='idl-unrestricted-double' class='section'>
+            <h4>unrestricted double</h4>
+
+            <p>
+              The <a class='idltype' href='#idl-unrestricted-double'>unrestricted double</a> type is a floating point numeric
+              type that corresponds to the set of all possible double-precision 32 bit
+              IEEE 754 floating point numbers, finite and non-finite.  <a href='#ref-IEEE-754'>[IEEE-754]</a>
+            </p>
+            <p>
+              <a class='idltype' href='#idl-unrestricted-double'>unrestricted double</a> constant values in IDL are
+              represented with <a class='sym' href='#prod-float'>float</a>
+              tokens.
+            </p>
+            <p>
+              The <a class='dfnref' href='#dfn-type-name'>type name</a> of the
+              <span class='idltype'>unrestricted double</span> type is “UnrestrictedDouble”.
             </p>
           </div>
 
@@ -5497,7 +5540,51 @@ iframe.appendChild instanceof w.Function;  <span class='comment'>// Evaluates to
             </p>
             <ol class='algorithm'>
               <li>Let <var>x</var> be <a href='http://es5.github.com/#x9.3' class='dfnref external'>ToNumber</a>(<var>V</var>).</li>
-              <li>If <var>x</var> is <span class='esvalue'>NaN</span>, then return the IDL <span class='idltype'>float</span> value that represents the IEEE 754 NaN value with the bit pattern 0x7fc00000 <a href='#ref-IEEE-754'>[IEEE-754]</a>.</li>
+              <li>If <var>x</var> is <span class='esvalue'>NaN</span>, <span class='esvalue'>+Infinity</span> or
+                <span class='esvalue'>−Infinity</span>, then <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>TypeError</span></a>.</li>
+              <li>
+                Let <var>S</var> be the set of finite IEEE 754 single-precision floating
+                point values except −0, but with two special values added: 2<sup>128</sup> and
+                −2<sup>128</sup>.
+              </li>
+              <li>
+                Let <var>y</var> be the number in <var>S</var> that is closest
+                to <var>x</var>, selecting the number with an
+                <em>even significand</em> if there are two equally close values
+                (<a href='#ref-ECMA-262'>[ECMA-262]</a>, <a class="external" href="http://es5.github.com/#x8.5">section 8.5</a>).
+                (The two special values 2<sup>128</sup> and −2<sup>128</sup>
+                are considered to have even significands for this purpose.)
+              </li>
+              <li>
+                If <var>y</var> is 2<sup>128</sup> or −2<sup>128</sup>, then <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>TypeError</span></a>.
+              </li>
+              <li>
+                If <var>y</var> is +0 and <var>x</var> is negative, return −0.
+              </li>
+              <li>
+                Return <var>y</var>.
+              </li>
+            </ol>
+            <p>
+              The result of <a class='dfnref' href='#dfn-convert-idl-to-ecmascript-value'>converting</a>
+              an IDL <span class='idltype'>float</span> value to an ECMAScript
+              value is the <span class='estype'>Number</span> value that represents the same numeric value as the IDL
+              <span class='idltype'>float</span> value.
+            </p>
+          </div>
+
+          <div id='es-unrestricted-float' class='section'>
+            <h4>unrestricted float</h4>
+
+            <p>
+              An ECMAScript value <var>V</var> is
+              <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converted</a>
+              to an IDL <span class='idltype'>unrestricted float</span> value
+              by running the following algorithm:
+            </p>
+            <ol class='algorithm'>
+              <li>Let <var>x</var> be <a href='http://es5.github.com/#x9.3' class='dfnref external'>ToNumber</a>(<var>V</var>).</li>
+              <li>If <var>x</var> is <span class='esvalue'>NaN</span>, then return the IDL <span class='idltype'>unrestricted float</span> value that represents the IEEE 754 NaN value with the bit pattern 0x7fc00000 <a href='#ref-IEEE-754'>[IEEE-754]</a>.</li>
               <li>
                 Let <var>S</var> be the set of finite IEEE 754 single-precision floating
                 point values except −0, but with two special values added: 2<sup>128</sup> and
@@ -5534,18 +5621,18 @@ iframe.appendChild instanceof w.Function;  <span class='comment'>// Evaluates to
             </div>
             <p>
               The result of <a class='dfnref' href='#dfn-convert-idl-to-ecmascript-value'>converting</a>
-              an IDL <span class='idltype'>float</span> value to an ECMAScript
+              an IDL <span class='idltype'>unrestricted float</span> value to an ECMAScript
               value is a <span class='estype'>Number</span>:
             </p>
             <ul>
               <li>
-                If the IDL <span class='idltype'>float</span> value is a NaN,
+                If the IDL <span class='idltype'>unrestricted float</span> value is a NaN,
                 then the <span class='estype'>Number</span> value is <span class='esvalue'>NaN</span>.
               </li>
               <li>
                 Otherwise, the <span class='estype'>Number</span> value is
                 the one that represents the same numeric value as the IDL
-                <span class='idltype'>float</span> value.
+                <span class='idltype'>unrestricted float</span> value.
               </li>
             </ul>
           </div>
@@ -5561,9 +5648,35 @@ iframe.appendChild instanceof w.Function;  <span class='comment'>// Evaluates to
             </p>
             <ol class='algorithm'>
               <li>Let <var>x</var> be <a href='http://es5.github.com/#x9.3' class='dfnref external'>ToNumber</a>(<var>V</var>).</li>
-              <li>If <var>x</var> is <span class='esvalue'>NaN</span>, then return the IDL <span class='idltype'>double</span> value that represents the IEEE 754 NaN value with the bit pattern 0x7ff8000000000000 <a href='#ref-IEEE-754'>[IEEE-754]</a>.</li>
+              <li>If <var>x</var> is <span class='esvalue'>NaN</span>, <span class='esvalue'>+Infinity</span> or
+                <span class='esvalue'>−Infinity</span>, then <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>TypeError</span></a>.</li>
               <li>
                 Return the IDL <span class='idltype'>double</span> value
+                that has the same numeric value as <var>x</var>.
+              </li>
+            </ol>
+            <p>
+              The result of <a class='dfnref' href='#dfn-convert-idl-to-ecmascript-value'>converting</a>
+              an IDL <span class='idltype'>double</span> value to an ECMAScript
+              value is the <span class='estype'>Number</span> value that represents the
+              same numeric value as the IDL <span class='idltype'>double</span> value.
+            </p>
+          </div>
+
+          <div id='es-unrestricted-double' class='section'>
+            <h4>unrestricted double</h4>
+
+            <p>
+              An ECMAScript value <var>V</var> is
+              <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converted</a>
+              to an IDL <span class='idltype'>unrestricted double</span> value
+              by running the following algorithm:
+            </p>
+            <ol class='algorithm'>
+              <li>Let <var>x</var> be <a href='http://es5.github.com/#x9.3' class='dfnref external'>ToNumber</a>(<var>V</var>).</li>
+              <li>If <var>x</var> is <span class='esvalue'>NaN</span>, then return the IDL <span class='idltype'>unrestricted double</span> value that represents the IEEE 754 NaN value with the bit pattern 0x7ff8000000000000 <a href='#ref-IEEE-754'>[IEEE-754]</a>.</li>
+              <li>
+                Return the IDL <span class='idltype'>unrestricted double</span> value
                 that has the same numeric value as <var>x</var>.
               </li>
             </ol>
@@ -5577,18 +5690,18 @@ iframe.appendChild instanceof w.Function;  <span class='comment'>// Evaluates to
             </div>
             <p>
               The result of <a class='dfnref' href='#dfn-convert-idl-to-ecmascript-value'>converting</a>
-              an IDL <span class='idltype'>double</span> value to an ECMAScript
+              an IDL <span class='idltype'>unrestricted double</span> value to an ECMAScript
               value is a <span class='estype'>Number</span>:
             </p>
             <ul>
               <li>
-                If the IDL <span class='idltype'>double</span> value is a NaN,
+                If the IDL <span class='idltype'>unrestricted double</span> value is a NaN,
                 then the <span class='estype'>Number</span> value is <span class='esvalue'>NaN</span>.
               </li>
               <li>
                 Otherwise, the <span class='estype'>Number</span> value is
                 the one that represents the same numeric value as the IDL
-                <span class='idltype'>double</span> value.
+                <span class='idltype'>unrestricted double</span> value.
               </li>
             </ul>
           </div>
@@ -10692,7 +10805,7 @@ d.type = et;
             | "inherit" | "interface" | "long" | "null" | "object" | "octet"
             <!--| "omittable" -->| "optional" | "or" | "sequence"
             | "setter" | "short" | "static" | "stringifier" | "true" | "typedef"
-            | "unsigned" | "void"
+            | "unrestricted" | "unsigned" | "void"
           </prod>
           <prod nt='OtherOrComma'>Other | ","</prod>
 
@@ -10703,7 +10816,9 @@ d.type = et;
           <prod nt='UnionMemberTypes'>"or" UnionMemberType UnionMemberTypes | ε</prod>
           <prod nt='NonAnyType'>PrimitiveType TypeSuffix | "DOMString" TypeSuffix | identifier TypeSuffix | "sequence" "&lt;" Type ">" Null | "object" TypeSuffix | "Date" TypeSuffix</prod>
           <prod nt='ConstType'>PrimitiveType Null</prod>
-          <prod nt='PrimitiveType'>UnsignedIntegerType | "boolean" | "byte" | "octet" | "float" | "double"</prod>
+          <prod nt='PrimitiveType'>UnsignedIntegerType | UnrestrictedFloatType | "boolean" | "byte" | "octet"</prod>
+          <prod nt='UnrestrictedFloatType'>"unrestricted" FloatType | FloatType</prod>
+          <prod nt='FloatType'>"float" | "double"</prod>
           <prod nt='UnsignedIntegerType'>"unsigned" IntegerType | IntegerType</prod>
           <prod nt='IntegerType'>"short" | "long" OptionalLong</prod>
           <prod nt='OptionalLong'>"long" | ε</prod>
@@ -10879,6 +10994,14 @@ d.type = et;
         <dl class='changes'>
           <dt>Current editor’s draft</dt>
           <dd>
+            <ul>
+              <li>
+                <p>
+                  Split the <span class='idltype'>float</span> and <span class='idltype'>double</span>
+                  into types that do and do not include non-finite values.
+                </p>
+              </li>
+            </ul>
             <ul>
               <li>
                 <p>
