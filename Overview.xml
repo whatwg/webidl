@@ -15,7 +15,7 @@
   <head>
     <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'/>
     <title>Web IDL</title>
-    <meta name='revision' content='$Id: Overview.xml,v 1.474 2012-03-06 01:41:58 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: Overview.xml,v 1.475 2012-03-11 23:20:17 cmccorma Exp $'/>
     <link rel='stylesheet' href='WebIDL.css' type='text/css'/>
     <script src='section-links.js' type='application/ecmascript'/>
     <script src='dfn.js' type='application/ecmascript'/>
@@ -481,6 +481,25 @@ dictionary <i>identifier</i> {
             </p>
           </div>
           <p>
+            Operation arguments can take a slightly wider set of identifiers.  In an operation
+            declaration, the identifier of an argument is specified immediately after its
+            type and is given by either an <a class='sym' href='#prod-identifier'>identifier</a>
+            token or by one of the keywords that match the <a class='sym' href='#prod-ArgumentNameKeyword'>ArgumentNameKeyword</a>
+            symbol.  If one of these keywords is used, it need not be escaped with a leading
+            underscore.
+          </p>
+          <pre class='syntax'><i>return-type</i> <i>operation-identifier</i>(<i>argument-type</i> <em>argument-identifier</em>, …);</pre>
+          <?productions grammar ArgumentNameKeyword?>
+          <p>
+            If an <a class='sym' href='#prod-identifier'>identifier</a> token is used, then the
+            <a class='dfnref' href='#dfn-identifier'>identifier</a> of the operation argument 
+            is the value of that token with any single leading 
+            <span class='char'>U+005F LOW LINE ("_")</span> character (underscore) removed.
+            If instead one of the <a class='sym' href='#prod-ArgumentNameKeyword'>ArgumentNameKeyword</a>
+            keyword token is used, then the <a class='dfnref' href='#dfn-identifier'>identifier</a> of the operation argument 
+            is simply that token.
+          </p>
+          <p>
             The <a class='dfnref' href='#dfn-identifier'>identifier</a> of any of the abovementioned
             IDL constructs <a class='rfc2119'>MUST NOT</a> be “prototype”, “constructor”, “toString”
             or begin with a <span class='char'>U+005F LOW LINE ("_")</span> character.  These
@@ -549,6 +568,9 @@ interface System {
   <span class='comment'>// Operation identifier:          "createObject"</span>
   <span class='comment'>// Operation argument identifier: "interface"</span>
   object createObject(DOMString _interface);
+
+  <span class='comment'>// Operation argument identifier: "interface"</span>
+  object[] createObjectArray(DOMString interface);
 
   <span class='comment'>// Operation has no identifier; it declares a getter.</span>
   getter DOMString (DOMString keyName);
@@ -1423,8 +1445,15 @@ interface Person : Animal {
               An operation’s arguments (matching <a class='sym' href='#prod-ArgumentList'>ArgumentList</a>)
               are given between the parentheses in the declaration.  Each individual argument is specified
               as a type (matching <a class='sym' href='#prod-Type'>Type</a>) followed by an <a class='dfnref' href='#dfn-identifier'>identifier</a>
-              (given by an <a class='sym' href='#prod-identifier'>identifier</a> token).
-              If the <a class='sym' href='#prod-Type'>Type</a> is an identifier or an identifier
+              (matching <a class='sym' href='#prod-ArgumentName'>ArgumentName</a>).
+            </p>
+            <div class='note'>
+              <p>For expressiveness, the identifier of an operation argument can also be specified
+                as one of the keywords matching the <a class='sym' href='#prod-ArgumentNameKeyword'>ArgumentNameKeyword</a>
+                symbol without needing to escape it.</p>
+            </div>
+            <p>
+              If the <a class='sym' href='#prod-Type'>Type</a> of an operation argument is an identifier or an identifier
               followed by <code>?</code>,
               then the identifier <span class='rfc2119'>MUST</span> identify an interface, <a class='dfnref' href='#dfn-dictionary'>dictionary</a>,
               <a class='dfnref' href='#dfn-enumeration'>enumeration</a>, <a class='dfnref' href='#dfn-callback'>callback</a>
@@ -1645,7 +1674,7 @@ s.union(1, 4, 7);         <span class='comment'>// Passing three arguments corre
             <!--
             <?productions grammar Operation OperationRest Qualifiers Specials Special ReturnType OptionalIdentifier ArgumentList Arguments Argument In Optional Ellipsis Raises?>
             -->
-            <?productions grammar AttributeOrOperation StringifierAttributeOrOperation Operation OperationRest Qualifiers Specials Special ReturnType OptionalIdentifier ArgumentList Arguments Argument OptionalOrRequiredArgument DefaultValue In Ellipsis?>
+            <?productions grammar AttributeOrOperation StringifierAttributeOrOperation Operation OperationRest Qualifiers Specials Special ReturnType OptionalIdentifier ArgumentList Arguments Argument OptionalOrRequiredArgument ArgumentName ArgumentNameKeyword DefaultValue In Ellipsis?>
           </div>
 
           <div id='idl-special-operations' class='section'>
@@ -10776,7 +10805,8 @@ d.type = et;
           <prod nt='ArgumentList'>Argument Arguments | ε</prod>
           <prod nt='Arguments'>"," Argument Arguments | ε</prod>
           <prod nt='Argument'>ExtendedAttributeList OptionalOrRequiredArgument</prod>
-          <prod nt='OptionalOrRequiredArgument'>"optional" Type identifier Default | Type Ellipsis identifier</prod>
+          <prod nt='OptionalOrRequiredArgument'>"optional" Type ArgumentName Default | Type Ellipsis ArgumentName</prod>
+          <prod nt='ArgumentName'>ArgumentNameKeyword | identifier</prod>
           <prod nt='Ellipsis'>"..." | ε</prod>
           <prod nt='ExceptionMember'>Const | ExceptionField</prod>
           <prod nt='ExceptionField'>Type identifier ";"</prod>
@@ -10799,13 +10829,16 @@ d.type = et;
           <prod nt='Other'>
               integer | float | identifier | string <!--| whitespace--> | other
             | "." | "..." | ":" | ";" | "&lt;" | "=" | ">" | "?"
-            | "Date" | "DOMString" | "any" | "attribute" | "boolean" | "byte"
-            | "legacycaller" | "const" | "creator" | "deleter" | "double"
-            | "exception" | "false" | "float" | "getter" | "implements"
-            | "inherit" | "interface" | "long" | "null" | "object" | "octet"
-            <!--| "omittable" -->| "optional" | "or" | "sequence"
-            | "setter" | "short" | "static" | "stringifier" | "true" | "typedef"
-            | "unrestricted" | "unsigned" | "void"
+            | "Date" | "DOMString" | "any" | "boolean" | "byte" | "double" | "false" | "float" 
+            | "long" | "null" | "object" | "octet" | "or" | "optional" | "sequence"
+            | "short" | "true" | "unsigned" | "void"
+            | ArgumentNameKeyword
+          </prod>
+          <prod nt='ArgumentNameKeyword'>
+              "attribute" | "callback" | "const" | "creator" | "deleter" | "dictionary"
+            | "enum" | "exception" | "getter" | "implements" | "inherit" | "interface"
+            | "legacycaller" | "partial" | "setter" | "static" | "stringifier" | "typedef"
+            | "unrestricted"
           </prod>
           <prod nt='OtherOrComma'>Other | ","</prod>
 
@@ -10886,8 +10919,8 @@ d.type = et;
         </grammar>
         <div class='note'>
           <p>
-            The choices listed for the <a class='sym' href='#prod-Other'>Other</a>
-            non-terminal are all of the terminal symbols except for
+            The <a class='sym' href='#prod-Other'>Other</a>
+            non-terminal matches any single terminal symbol except for
             <span class='sym'>"("</span>, <span class='sym'>")"</span>,
             <span class='sym'>"["</span>, <span class='sym'>"]"</span>,
             <span class='sym'>"{"</span>, <span class='sym'>"}"</span>
@@ -10997,12 +11030,16 @@ d.type = et;
             <ul>
               <li>
                 <p>
+                  Allow operation arguments to be specified using particular
+                  keywords without requiring them to be escaped.
+                </p>
+              </li>
+              <li>
+                <p>
                   Split the <span class='idltype'>float</span> and <span class='idltype'>double</span>
                   into types that do and do not include non-finite values.
                 </p>
               </li>
-            </ul>
-            <ul>
               <li>
                 <p>
                   Removed the check on ECMAScript <span class='estype'>Number</span> to
@@ -11011,8 +11048,6 @@ d.type = et;
                   by using <span class='xattr'>[EnforceRange]</span>.
                 </p>
               </li>
-            </ul>
-            <ul>
               <li>
                 <p>
                   Added direct links to an unofficial HTML version of the ECMAScript spec,
