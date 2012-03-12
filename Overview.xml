@@ -15,7 +15,7 @@
   <head>
     <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'/>
     <title>Web IDL</title>
-    <meta name='revision' content='$Id: Overview.xml,v 1.475 2012-03-11 23:20:17 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: Overview.xml,v 1.476 2012-03-12 00:51:45 cmccorma Exp $'/>
     <link rel='stylesheet' href='WebIDL.css' type='text/css'/>
     <script src='section-links.js' type='application/ecmascript'/>
     <script src='dfn.js' type='application/ecmascript'/>
@@ -1321,7 +1321,6 @@ attribute <i>type</i> <i>identifier</i> inherits getter setraises(<i>scoped-name
               <a class='xattr' href='#LenientThis'>[LenientThis]</a>,
               <a class='xattr' href='#PutForwards'>[PutForwards]</a>,
               <a class='xattr' href='#Replaceable'>[Replaceable]</a>,
-              <a class='xattr' href='#TreatNonCallableAsNull'>[TreatNonCallableAsNull]</a>,
               <a class='xattr' href='#TreatNullAs'>[TreatNullAs]</a>,
               <a class='xattr' href='#TreatUndefinedAs'>[TreatUndefinedAs]</a>,
               <a class='xattr' href='#Unforgeable'>[Unforgeable]</a>.
@@ -1666,7 +1665,6 @@ s.union(1, 4, 7);         <span class='comment'>// Passing three arguments corre
               The following extended attributes are applicable to operation arguments:
               <a class='xattr' href='#Clamp'>[Clamp]</a>,
               <a class='xattr' href='#EnforceRange'>[EnforceRange]</a>,
-              <a class='xattr' href='#TreatNonCallableAsNull'>[TreatNonCallableAsNull]</a>,
               <a class='xattr' href='#TreatNullAs'>[TreatNullAs]</a>,
               <a class='xattr' href='#TreatUndefinedAs'>[TreatUndefinedAs]</a>.
             </p>
@@ -3466,8 +3464,8 @@ meal.type == "noodles";              <span class='comment'>// Evaluates to true.
             be used as the type of a <a class='dfnref' href='#dfn-constant'>constant</a>.
           </p>
           <p>
-            No <a class='dfnref' href='#dfn-extended-attribute'>extended attributes</a> defined
-            in this specification are applicable to <a class='dfnref' href='#dfn-callback'>callbacks</a>.
+            The following extended attribute is applicable to callbacks:
+            <a class='xattr' href='#TreatNonCallableAsNull'>[TreatNonCallableAsNull]</a>,
           </p>
 
           <?productions grammar CallbackOrInterface CallbackRestOrInterface CallbackRest?>
@@ -6050,17 +6048,10 @@ iframe.appendChild instanceof w.Function;  <span class='comment'>// Evaluates to
                 <ol>
                   <li>
                     If the conversion to an IDL value is being performed due
-                    to any of the following:
-                    <ul>
-                      <li>
-                        <var>V</var> is being passed as an <a class='dfnref' href='#dfn-operation'>operation</a>
-                        argument that is annotated with the <a class='xattr' href='#TreatNonCallableAsNull'>[TreatNonCallableAsNull]</a>,
-                      </li>
-                      <li>
-                        <var>V</var> is being assigned to an <a class='dfnref' href='#dfn-attribute'>attribute</a>
-                        annotated with <a class='xattr' href='#TreatNonCallableAsNull'>[TreatNonCallableAsNull]</a>,
-                      </li>
-                    </ul>
+                    to <var>V</var> being assigned to an <a class='dfnref' href='#dfn-attribute'>attribute</a>
+                    whose type is a <a class='dfnref' href='#dfn-nullable'>nullable</a>
+                    <a class='dfnref' href='#dfn-callback'>callback</a>
+                    that is annotated with <a class='xattr' href='#TreatNonCallableAsNull'>[TreatNonCallableAsNull]</a>,
                     then return the IDL 
                     <a class='dfnref' href='#dfn-nullable-type'>nullable type</a> <span class='idltype'><var>T</var>?</span>
                     value <span class='idlvalue'>null</span>.
@@ -7852,35 +7843,27 @@ window.abc;    <span class='comment'>// Evaluates to 1.</span>
             <p>
               If the <a class='xattr' href='#TreatNonCallableAsNull'>[TreatNonCallableAsNull]</a>
               <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
-              appears on an <a class='dfnref' href='#dfn-attribute'>attribute</a>
-              or <a class='dfnref' href='#dfn-operation'>operation</a> argument whose type is
-              a <a class='dfnref' href='#dfn-nullable-type'>nullable</a>
-              <a class='dfnref' href='#dfn-callback-interface'>callback interface</a>,
-              it indicates that any value
-              assigned to the attribute or passed as the operation argument
+              appears on a <a class='dfnref' href='#dfn-callback'>callback</a>,
+              then it indicates that any value assigned to an <a class='dfnref' href='#dfn-attribute'>attribute</a>
+              whose type is a <a class='dfnref' href='#dfn-nullable'>nullable</a>
+              <a class='dfnref' href='#dfn-callback'>callback</a>
               that is not a callable object will be converted to
               the <span class='idlvalue'>null</span> value.
             </p>
             <div class='warning'>
               <p>
                 Specifications <span class='rfc2119'>SHOULD NOT</span> use <a href='#TreatNonCallableAsNull' class='xattr'>[TreatNonCallableAsNull]</a>
-                unless required to specify the behavior of legacy APIs.  Specification authors who
+                unless required to specify the behavior of legacy APIs or for consistency with these
+                APIs.  Specification authors who
                 wish to use this feature are strongly advised to discuss this on the 
                 <a href='mailto:public-script-coord@w3.org'>public-script-coord@w3.org</a>
-                mailing list before proceeding.
+                mailing list before proceeding.  At the time of writing, the only known
+                valid use of <a href='#TreatNonCallableAsNull' class='xattr'>[TreatNonCallableAsNull]</a>
+                is for the <a class='dfnref' href='#dfn-callback'>callbacks</a> used as the type
+                of <a href='http://www.w3.org/TR/2011/WD-html5-20110525/webappapis.html#event-handler-attributes'>event handler IDL attributes</a>
+                (<a href='#ref-HTML5'>[HTML5]</a>, section 6.1.6.1)
+                such as <code>onclick</code> and <code>onerror</code>.
               </p>
-            </div>
-            <p>
-              The <a class='xattr' href='#TreatNonCallableAsNull'>[TreatNonCallableAsNull]</a>
-              extended attribute <span class='rfc2119'>MUST NOT</span> be specified
-              on an attribute or operation argument whose type is not a nullable
-              callback interface.
-            </p>
-            <div class='note'>
-              <p>The <a class='xattr' href='#TreatNonCallableAsNull'>[TreatNonCallableAsNull]</a>
-              <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
-              is intended for use on <a href='http://www.w3.org/TR/2011/WD-html5-20110525/webappapis.html#event-handler-attributes'>event handler IDL attributes</a>
-              defined in HTML5 (<a href='#ref-HTML5'>[HTML5]</a>, section 6.1.6.1).</p>
             </div>
             <p>
               See <a href='#es-nullable-type'>section <?sref es-nullable-type?></a>
@@ -7890,16 +7873,18 @@ window.abc;    <span class='comment'>// Evaluates to 1.</span>
             <div class='example'>
               <p>
                 The following <a class='dfnref' href='#dfn-idl-fragment'>IDL fragment</a> defines an interface that has one
-                attribute with the <a class='xattr' href='#TreatNonCallableAsNull'>[TreatNonCallableAsNull]</a>
-                extended attribute and one without:
+                attribute whose type is a <a class='xattr' href='#TreatNonCallableAsNull'>[TreatNonCallableAsNull]</a>-annotated
+                <a class='dfnref' href='#dfn-callback'>callback</a> and another whose type is a
+                <a class='dfnref' href='#dfn-callback'>callback</a> without the <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>:
               </p>
-              <x:codeblock language='idl'>callback interface EventHandler {
-  void eventOccurred(DOMString details);
-};
+              <x:codeblock language='idl'>[TreatNonCallableAsNull]
+callback OccurrenceHandler = void (DOMString details);
+
+callback ErrorHandler = void (DOMString details);
 
 interface Manager {
-  attribute EventHandler? handler1;
-  [TreatNonCallableAsNull] attribute EventHandler? handler2;
+  attribute OccurrenceHandler? handler1;
+  attribute ErrorHandler? handler2;
 };</x:codeblock>
               <p>
                 In an ECMAScript implementation, assigning a value that is not
@@ -11030,7 +11015,15 @@ d.type = et;
             <ul>
               <li>
                 <p>
-                  Allow operation arguments to be specified using particular
+                  Changed <span class='xattr'>[TreatNonCallableAsNull]</span> so that it is
+                  specified on the callback rather than the attribute, and such that it
+                  affects only type conversions done for attributes and not for operation
+                  arguments, etc.
+                </p>
+              </li>
+              <li>
+                <p>
+                  Allowed operation arguments to be specified using particular
                   keywords without requiring them to be escaped.
                 </p>
               </li>
