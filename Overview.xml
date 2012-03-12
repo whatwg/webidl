@@ -15,7 +15,7 @@
   <head>
     <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'/>
     <title>Web IDL</title>
-    <meta name='revision' content='$Id: Overview.xml,v 1.476 2012-03-12 00:51:45 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: Overview.xml,v 1.477 2012-03-12 05:02:00 cmccorma Exp $'/>
     <link rel='stylesheet' href='WebIDL.css' type='text/css'/>
     <script src='section-links.js' type='application/ecmascript'/>
     <script src='dfn.js' type='application/ecmascript'/>
@@ -1060,8 +1060,10 @@ node.appendChild(newNode);  <span class='comment'>// This will throw a TypeError
               one of the two boolean literal tokens (<code>true</code>
               and <code>false</code>),
               the <code>null</code> token, an
-              <a class='sym' href='#prod-integer'>integer</a> token or a
-              <a class='sym' href='#prod-float'>float</a> token.
+              <a class='sym' href='#prod-integer'>integer</a> token,
+              a <a class='sym' href='#prod-float'>float</a> token,
+              or one of the three special floating point constant values
+              (<code>-Infinity</code>, <code>Infinity</code> and <code>NaN</code>).
             </p>
             <div class='note'>
               <p>
@@ -1101,7 +1103,7 @@ node.appendChild(newNode);  <span class='comment'>// This will throw a TypeError
             </ol>
             <p>
               The type of an <a class='sym' href='#prod-integer'>integer</a> token is the same
-              as the type of the constant or dictionary member it is being used as the value of.
+              as the type of the constant, dictionary member or optional argument it is being used as the value of.
               The value of the <a class='sym' href='#prod-integer'>integer</a> token <span class='rfc2119'>MUST NOT</span>
               lie outside the valid range of values for its type, as given in
               <a href='#idl-types'>section <?sref idl-types?></a> <?sdir idl-types?>.
@@ -1110,7 +1112,7 @@ node.appendChild(newNode);  <span class='comment'>// This will throw a TypeError
               The value of a <a class='sym' href='#prod-float'>float</a> token is
               either an IEEE 754 single-precision floating point number or an IEEE 754
               double-precision floating point number, depending on the type of the
-              constant or dictionary member it is being used as the value for, determined as follows:
+              constant, dictionary member or optional argument it is being used as the value for, determined as follows:
             </p>
             <ol class='algorithm'>
               <li>Let <var>S</var> be the sequence of characters matched by the <a class='sym' href='#prod-float'>float</a> token.</li>
@@ -1132,26 +1134,47 @@ node.appendChild(newNode);  <span class='comment'>// This will throw a TypeError
               </li>
             </ol>
             <p>
-              It is not possible to specify an infinite or Not-a-Number
-              <span class='idltype'>float</span> constant or dictionary member default value.
+              The value of a constant value specified as
+              <code>Infinity</code>, <code>-Infinity</code> or <code>NaN</code> is either
+              an IEEE 754 single-precision floating point number or an IEEE 754
+              double-precision floating point number, depending on the type of the
+              constant, dictionary member or optional argument is is being used as the
+              value for:
             </p>
+            <dl class='switch'>
+              <dt>Type <span class='idltype'>unrestricted float</span>, constant value <code>Infinity</code></dt>
+              <dd>The value is the IEEE 754 single-precision positive infinity value.</dd>
+              <dt>Type <span class='idltype'>unrestricted double</span>, constant value <code>Infinity</code></dt>
+              <dd>The value is the IEEE 754 double-precision positive infinity value.</dd>
+              <dt>Type <span class='idltype'>unrestricted float</span>, constant value <code>-Infinity</code></dt>
+              <dd>The value is the IEEE 754 single-precision negative infinity value.</dd>
+              <dt>Type <span class='idltype'>unrestricted double</span>, constant value <code>-Infinity</code></dt>
+              <dd>The value is the IEEE 754 double-precision negative infinity value.</dd>
+              <dt>Type <span class='idltype'>unrestricted float</span>, constant value <code>NaN</code></dt>
+              <dd>The value is the IEEE 754 single-precision NaN value with the bit pattern 0x7fc00000.</dd>
+              <dt>Type <span class='idltype'>unrestricted double</span>, constant value <code>NaN</code></dt>
+              <dd>The value is the IEEE 754 double-precision NaN value with the bit pattern 0x7ff8000000000000.</dd>
+            </dl>
             <p>
               The type of a <a class='sym' href='#prod-float'>float</a> token is the same
-              as the type of the constant or dictionary member it is being used as the value of.  The value of the
+              as the type of the constant, dictionary member or optional argument it is being used as the value of.  The value of the
               <a class='sym' href='#prod-float'>float</a> token <span class='rfc2119'>MUST NOT</span>
               lie outside the valid range of values for its type, as given in
               <a href='#idl-types'>section <?sref idl-types?></a> <?sdir idl-types?>.
+              Also, <code>Infinity</code>, <code>-Infinity</code> and <code>NaN</code> <span class='rfc2119'>MUST NOT</span>
+              be used as the value of a <span class='idltype'>float</span>
+              or <span class='idltype'>double</span>.
             </p>
             <p>
               The value of the <code>null</code> token is the special
               <span class='idlvalue'>null</span> value that is a member of the
               <a class='dfnref' href='#dfn-nullable-type'>nullable types</a>.  The type of
               the <code>null</code> token is the same as the
-              type of the constant or dictionary member it is being used as the value of.
+              type of the constant, dictionary member or optional argument it is being used as the value of.
             </p>
             <p>
               If <var>VT</var> is the type of the value assigned to a constant, and <var>DT</var>
-              is the type of the constant or dictionary member itself, then these types <span class='rfc2119'>MUST</span>
+              is the type of the constant, dictionary member or optional argument itself, then these types <span class='rfc2119'>MUST</span>
               be compatible, which is the case if <var>DT</var> and <var>VT</var> are identical,
               or <var>DT</var> is a <a class='dfnref' href='#dfn-nullable-type'>nullable type</a> 
               whose <a class='dfnref' href='#dfn-inner-type'>inner type</a> is <var>VT</var>.
@@ -1186,7 +1209,7 @@ node.appendChild(newNode);  <span class='comment'>// This will throw a TypeError
               defined in this specification are applicable to constants.
             </p>
 
-            <?productions grammar Const ConstType ConstValue BooleanLiteral?>
+            <?productions grammar Const ConstType ConstValue BooleanLiteral FloatLiteral?>
             <div class='example'>
               <p>
                 The following <a class='dfnref' href='#dfn-idl-fragment'>IDL fragment</a>
@@ -1572,10 +1595,12 @@ s.union(1, 4, 7);         <span class='comment'>// Passing three arguments corre
             </p>
             <pre class='syntax'><i>return-type</i> <i>identifier</i>(<i>type</i> <i>identifier</i>, optional <i>type</i> <i>identifier</i> = <i>value</i>);</pre>
             <p>
-              When a boolean literal tokens (<code>true</code> or <code>false</code>),
+              When a boolean literal token (<code>true</code> or <code>false</code>),
               the <code>null</code> token,
-              an <a class='sym' href='#prod-integer'>integer</a> token or a
-              <a class='sym' href='#prod-float'>float</a> token is used as the
+              an <a class='sym' href='#prod-integer'>integer</a> token, a
+              <a class='sym' href='#prod-float'>float</a> token or one of
+              the three special floating point literal values (<code>Infinity</code>,
+              <code>-Infinity</code> or <code>NaN</code>) is used as the
               <a class='dfnref' href='#dfn-optional-argument-default-value'>default value</a>,
               it is interpreted in the same way as for a <a class='dfnref' href='#dfn-constant'>constant</a>.
               Optional argument default values can also be specified using a <a class='sym' href='#prod-string'>string</a>
@@ -2989,7 +3014,9 @@ dictionary <i>Derived</i> : <em>Base</em> {
             When a boolean literal token (<code>true</code> or <code>false</code>),
             the <code>null</code> token,
             an <a class='sym' href='#prod-integer'>integer</a> token, a
-            <a class='sym' href='#prod-float'>float</a> token or
+            <a class='sym' href='#prod-float'>float</a> token,
+            one of the three special floating point literal values (<code>Infinity</code>,
+            <code>-Infinity</code> or <code>NaN</code>) or
             a <a class='sym' href='#prod-string'>string</a> token is used as the
             <a class='dfnref' href='#dfn-dictionary-member-default-value'>default value</a>,
             it is interpreted in the same way as for an <a class='dfnref' href='#dfn-operation'>operation</a>’s
@@ -10756,8 +10783,9 @@ d.type = et;
           <prod nt='Typedef'>"typedef" ExtendedAttributeList Type identifier ";"</prod>
           <prod nt='ImplementsStatement'>identifier "implements" identifier ";"</prod>
           <prod nt='Const'>"const" ConstType identifier "=" ConstValue ";"</prod>
-          <prod nt='ConstValue'>BooleanLiteral | integer | float | "null"</prod>
+          <prod nt='ConstValue'>BooleanLiteral | FloatLiteral | integer | "null"</prod>
           <prod nt='BooleanLiteral'>"true" | "false"</prod>
+          <prod nt='FloatLiteral'>float | "-" "Infinity" | "Infinity" | "NaN"</prod>
           <prod nt='AttributeOrOperation'>"stringifier" StringifierAttributeOrOperation | Attribute | Operation</prod>
           <prod nt='StringifierAttributeOrOperation'>Attribute | OperationRest | ";"</prod>
           <!--
@@ -10813,8 +10841,8 @@ d.type = et;
           </prod>
           <prod nt='Other'>
               integer | float | identifier | string <!--| whitespace--> | other
-            | "." | "..." | ":" | ";" | "&lt;" | "=" | ">" | "?"
-            | "Date" | "DOMString" | "any" | "boolean" | "byte" | "double" | "false" | "float" 
+            | "-" | "." | "..." | ":" | ";" | "&lt;" | "=" | ">" | "?"
+            | "Date" | "DOMString" | "Infinity" | "NaN" | "any" | "boolean" | "byte" | "double" | "false" | "float" 
             | "long" | "null" | "object" | "octet" | "or" | "optional" | "sequence"
             | "short" | "true" | "unsigned" | "void"
             | ArgumentNameKeyword
@@ -11013,6 +11041,13 @@ d.type = et;
           <dt>Current editor’s draft</dt>
           <dd>
             <ul>
+              <li>
+                <p>
+                  Allowed <code>Infinity</code>, <code>-Infinity</code> and <code>NaN</code>
+                  to be specified as values for constants, dictionary members and optional
+                  argument default values.
+                </p>
+              </li>
               <li>
                 <p>
                   Changed <span class='xattr'>[TreatNonCallableAsNull]</span> so that it is
