@@ -15,7 +15,7 @@
   <head>
     <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'/>
     <title>Web IDL</title>
-    <meta name='revision' content='$Id: Overview.xml,v 1.488 2012-03-19 09:04:19 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: Overview.xml,v 1.489 2012-03-21 02:06:27 cmccorma Exp $'/>
     <link rel='stylesheet' href='WebIDL.css' type='text/css'/>
     <script src='section-links.js' type='application/ecmascript'/>
     <script src='dfn.js' type='application/ecmascript'/>
@@ -8428,8 +8428,6 @@ system.loginTime;  <span class='comment'>// So this now evaluates to forgedLogin
 
                 <li>Initialize <var>k</var> to <var>argcount</var>.</li>
 
-                <li>Let <var>T</var> be a copy of <var>S</var>.</li>
-
                 <li>Remove from <var>S</var> all entries whose type list is not of length <var>argcount</var>.</li>
 
                 <li>If <var>S</var> is empty, then <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>TypeError</span></a>.</li>
@@ -8590,6 +8588,53 @@ system.loginTime;  <span class='comment'>// So this now evaluates to forgedLogin
 
                 <li>Return the pair &lt;<var>callable</var>, <var>values</var>&gt;.</li>
               </ol>
+              <div class='note'>
+                <p>
+                  The argument resolution algorithm performs both the identification
+                  of which overloaded operation, constructor, etc. is being called,
+                  and the conversion of the ECMAScript argument values to their
+                  corresponding IDL values.  Informally, it operates as follows.
+                </p>
+                <p>First, the selection of valid overloads is done by considering
+                  the number of ECMAScript arguments that were passed in to the function:</p>
+                <ul>
+                  <li>If there are more arguments passed in than the longest
+                    overload argument list, then they are ignored.</li>
+                  <li>Any trailing <span class='esvalue'>undefined</span> values
+                    are ignored if there is an overload that has
+                    <code>[TreatUndefinedAs=Missing]</code> on the corresponding argument.</li>
+                  <li>After ignoring these trailing arguments, only overloads
+                    that can take this exact number of arguments are considered.
+                    If there are none, then a <span class='estype'>TypeError</span> is thrown.</li>
+                </ul>
+                <p>Once we have a set of possible overloads with the right number
+                  of arguments, the ECMAScript values are converted from left to right.
+                  The nature of the restrictions on overloading means that if we
+                  have multiple possible overloads at this point, then there will
+                  be one position in the argument list that will be used to
+                  distinguish which overload we will finally select; this is
+                  the <a class='dfnref' href='#dfn-distinguishing-argument-index'>distinguishing
+                    argument index</a>.  All arguments
+                  to the left of this one, in all the overloads we are still considering
+                  at this point, will have the same type at a given argument index.</p>
+                <p>So we convert all of the arguments from index 0 up to the
+                  distinguishing argument index.  Once we come to the distinguishing
+                  argument index, we inspect the type of the ECMAScript value
+                  that is passed in to determine which IDL type it may correspond to.
+                  This allows us to select the final overload that will
+                  be invoked.  If there is no valid overload for the type of
+                  value passed in here, then we throw a <span class='estype'>TypeError</span>.
+                  The inspection of the value does not have any side effects;
+                  the only side effects that come from running the argument resolution
+                  algorithm are those that come from converting the ECMAScript values
+                  to IDL values. After this, we convert the remaining argument values, still
+                  from left to right.</p>
+                <p>If at the end of this process, we have selected an overload
+                  that has <a class='dfnref' href='#dfn-optional-argument-default-value'>optional argument default values</a>
+                  for arguments that follow the explicit arguments that we have
+                  just converted, then we include those default values in
+                  the list of argument values we return from the algorithm.</p>
+              </div>
               <p>
                 The internal <span class='prop'>[[Call]]</span> method
                 of the interface object behaves as follows, assuming
