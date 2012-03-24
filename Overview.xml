@@ -15,7 +15,7 @@
   <head>
     <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'/>
     <title>Web IDL</title>
-    <meta name='revision' content='$Id: Overview.xml,v 1.495 2012-03-23 06:22:12 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: Overview.xml,v 1.496 2012-03-24 00:23:44 cmccorma Exp $'/>
     <link rel='stylesheet' href='WebIDL.css' type='text/css'/>
     <script src='section-links.js' type='application/ecmascript'/>
     <script src='dfn.js' type='application/ecmascript'/>
@@ -294,6 +294,7 @@ window.onload = function() { window.alert("loaded"); };</x:codeblock></li>
           <a class='dfnref' href='#dfn-interface'>interfaces</a>,
           <a class='dfnref' href='#dfn-partial-interface'>partial interface definitions</a>,
           <a class='dfnref' href='#dfn-dictionary'>dictionaries</a>,
+          <a class='dfnref' href='#dfn-partial-dictionary'>partial dictionary definitions</a>,
           <a class='dfnref' href='#dfn-exception'>exceptions</a>,
           <a class='dfnref' href='#dfn-typedef'>typedefs</a> and
           <a class='dfnref' href='#dfn-implements-statement'>implements statements</a>.
@@ -396,6 +397,7 @@ interface GraphicalWindow {
             Every <a class='dfnref' href='#dfn-interface'>interface</a>,
             <a class='dfnref' href='#dfn-partial-interface'>partial interface definition</a>,
             <a class='dfnref' href='#dfn-dictionary'>dictionary</a>,
+            <a class='dfnref' href='#dfn-partial-dictionary'>partial dictionary definition</a>,
             <a class='dfnref' href='#dfn-exception'>exception</a>,
             <a class='dfnref' href='#dfn-enumeration'>enumeration</a>,
             <a class='dfnref' href='#dfn-callback-function'>callback function</a> and
@@ -422,6 +424,7 @@ interface GraphicalWindow {
 partial interface <em>interface-identifier</em> { <i>interface-members…</i> };
 exception <em>exception-identifier</em> { <i>exception-members…</i> };
 dictionary <em>dictionary-identifier</em> { <i>dictionary-members…</i> };
+partial dictionary <em>dictionary-identifier</em> { <i>dictionary-members…</i> };
 enum <em>enumeration-identifier</em> { <i>enumeration-values…</i> };
 callback <em>callback-identifier</em> = <i>callback-signature</i>;</pre>
             </li>
@@ -854,7 +857,7 @@ interface A {
           <p>
             The IDL for interfaces can be split into multiple parts by using
             <dfn id='dfn-partial-interface'>partial interface</dfn> definitions
-            (matching <a class='sym' href='#prod-PartialInterface'>PartialInterface</a>).
+            (matching <span class='sym'>"partial"</span> <a class='sym' href='#prod-PartialInterface'>PartialInterface</a>).
             The <a class='dfnref' href='#dfn-identifier'>identifier</a> of a partial
             interface definition <span class='rfc2119'>MUST</span> be the same
             as the identifier of an interface definition.  All of
@@ -936,7 +939,7 @@ partial interface <em>SomeInterface</em> {
             <a class='xattr' href='#OverrideBuiltins'>[OverrideBuiltins]</a>.
           </p>
 
-          <?productions grammar Interface CallbackOrInterface CallbackRestOrInterface PartialInterface Inheritance InterfaceMembers InterfaceMember?>
+          <?productions grammar Interface CallbackOrInterface CallbackRestOrInterface Partial PartialDefinition PartialInterface Inheritance InterfaceMembers InterfaceMember?>
 
           <div class='example'>
             <!--
@@ -3109,31 +3112,60 @@ dictionary <i>Derived</i> : <em>Base</em> {
             be one of the <a class='dfnref' href='#dfn-enumeration-value'>enumeration’s values</a>.
           </p>
           <p>
+            As with interfaces, the IDL for dictionaries can be split into multiple parts
+            by using <dfn id='dfn-partial-dictionary'>partial dictionary</dfn> definitions
+            (matching <span class='sym'>"partial"</span> <a class='sym' href='#prod-Dictionary'>Dictionary</a>).
+            The <a class='dfnref' href='#dfn-identifier'>identifier</a> of a partial
+            dictionary definition <span class='rfc2119'>MUST</span> be the same as the
+            identifier of a dictionary definition.  All of the members that appear on each
+            of the partial dictionary definitions are considered to be members of
+            the dictionary itself.
+          </p>
+          <pre class='syntax'>dictionary <em>SomeDictionary</em> {
+  <i>dictionary-members…</i>
+};
+
+partial dictionary <em>SomeDictionary</em> {
+  <i>dictionary-members…</i>
+};</pre>
+          <div class='note'>
+            <p>As with partial interface definitions, partial dictionary definitions are intended for use as a specification
+              editorial aide, allowing the definition of an interface to be separated
+              over more than one section of the document, and sometimes multiple documents.</p>
+          </div>
+          <p>
             The order of the <a class="dfnref" href="#dfn-dictionary-member">dictionary members</a>
-            on a given dictionary is the order in which they appear in the dictionary
-            <a class="dfnref" href="#dfn-definition">definition</a>, and
-            with inherited dictionary members ordered before non-inherited members.
+            on a given dictionary is such that inherited dictionary members are ordered
+            before non-inherited members, and the dictionary members on the one
+            dictionary definition (including any partial dictionary definitions) are
+            ordered lexicographically by the Unicode codepoints that comprise their
+            identifiers.
           </p>
           <div class="note">
             <p>For example, with the following definitions:</p>
             <x:codeblock language='idl'>dictionary B : A {
-  long a;
   long b;
+  long a;
 };
 
 dictionary A {
   long c;
-  long d;
+  long g;
 };
 
 dictionary C : B {
   long e;
   long f;
+};
+
+partial dictionary A {
+  long h;
+  long d;
 };</x:codeblock>
             <p>
               the order of the <a class="dfnref" href="#dfn-dictionary-member">dictionary members</a>
               of a dictionary value of type <span class="idltype">C</span> is
-              c, d, a, b, e, f.
+              c, d, g, h, a, b, e, f.
             </p>
             <p>
               Dictionaries are required to have their members ordered because
@@ -3183,7 +3215,7 @@ something.f(dict);</x:codeblock>
             <a class='xattr' href='#Clamp'>[Clamp]</a>,
             <a class='xattr' href='#EnforceRange'>[EnforceRange]</a>.
           </p>
-          <?productions grammar Dictionary Inheritance DictionaryMembers DictionaryMember Default DefaultValue?>
+          <?productions grammar Partial Dictionary PartialDefinition PartialDictionary Inheritance DictionaryMembers DictionaryMember Default DefaultValue?>
           <div class='example'>
             <p>
               One use of dictionary types is to allow a number of optional arguments to
@@ -10892,16 +10924,19 @@ d.type = et;
 
         <grammar id='grammar' xmlns='http://mcc.id.au/ns/local'>
           <prod nt='Definitions'>ExtendedAttributeList Definition Definitions | ε</prod>
-          <prod nt='Definition'>CallbackOrInterface | PartialInterface | Dictionary | Exception | Enum | Typedef | ImplementsStatement</prod>
+          <prod nt='Definition'>CallbackOrInterface | Partial | Dictionary | Exception | Enum | Typedef | ImplementsStatement</prod>
           <prod nt='CallbackOrInterface'>"callback" CallbackRestOrInterface | Interface</prod>
           <prod nt='CallbackRestOrInterface'>CallbackRest | Interface</prod>
           <prod nt='Interface'>"interface" identifier Inheritance "{" InterfaceMembers "}" ";"</prod>
-          <prod nt='PartialInterface'>"partial" "interface" identifier "{" InterfaceMembers "}" ";"</prod>
+          <prod nt='Partial'>"partial" PartialDefinition</prod>
+          <prod nt='PartialDefinition'>PartialInterface | PartialDictionary</prod>
+          <prod nt='PartialInterface'>"interface" identifier "{" InterfaceMembers "}" ";"</prod>
           <prod nt='InterfaceMembers'>ExtendedAttributeList InterfaceMember InterfaceMembers | ε</prod>
           <prod nt='InterfaceMember'>Const | AttributeOrOperation</prod>
           <prod nt='Dictionary'>"dictionary" identifier Inheritance "{" DictionaryMembers "}" ";"</prod>
           <prod nt='DictionaryMembers'>ExtendedAttributeList DictionaryMember DictionaryMembers | ε</prod>
           <prod nt='DictionaryMember'>Type identifier Default ";"</prod>
+          <prod nt='PartialDictionary'>"dictionary" identifier "{" DictionaryMembers "}" ";"</prod>
           <prod nt='Default'>"=" DefaultValue | ε</prod>
           <prod nt='DefaultValue'>ConstValue | string | ε</prod>
           <prod nt='Exception'>"exception" identifier Inheritance "{" ExceptionMembers "}" ";"</prod>
@@ -11172,6 +11207,13 @@ d.type = et;
           <dt>Current editor’s draft</dt>
           <dd>
             <ul>
+              <li>
+                <p>
+                  Allowed dictionaries to be split into partial definitions, and changed the
+                  order of dictionary members to be lexicographical instead of appearance
+                  order in order to have a defined ordering when partial dictionaries are used.
+                </p>
+              </li>
               <li>
                 <p>
                   Renamed “callbacks” to “callback functions” to reduce confusion with
