@@ -15,7 +15,7 @@
   <head>
     <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'/>
     <title>Web IDL (Second Edition)</title>
-    <meta name='revision' content='$Id: Overview.xml,v 1.540 2012-06-22 05:48:23 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: Overview.xml,v 1.541 2012-06-22 06:19:36 cmccorma Exp $'/>
     <link rel='stylesheet' href='WebIDL.css' type='text/css'/>
     <script src='section-links.js' type='application/ecmascript'/>
     <script src='dfn.js' type='application/ecmascript'/>
@@ -1268,16 +1268,18 @@ exception Problem {
               or an identifier followed by <code>?</code>, then the identifier <span class='rfc2119'>MUST</span>
               identify an interface, <a class='dfnref' href='#dfn-enumeration'>enumeration</a>,
               <a class='dfnref' href='#dfn-callback-function'>callback function</a> or <a class='dfnref' href='#dfn-typedef'>typedef</a>.
-              The type of the attribute <span class='rfc2119'>MUST NOT</span> be a
-              <a href='#idl-sequence'>sequence type</a> or
-              nullable <a href='#idl-sequence'>sequence type</a>,
-              and it <span class='rfc2119'>MUST NOT</span> be a
-              <a class='dfnref' href='#dfn-union-type'>union type</a> if
-              one of its <a class='dfnref' href='#dfn-union-member-type'>member types</a>
-              (or one of its member types’ member types, and so on)
-              is a <a href='#idl-sequence'>sequence type</a> or
-              <a class='dfnref' href='#dfn-nullable-type'>nullable</a> <a href='#idl-sequence'>sequence type</a>.
             </p>
+            <p>
+              The type of the attribute, after resolving typedefs, <span class='rfc2119'>MUST NOT</span> be a
+              <a class='dfnref' href='#dfn-nullable-type'>nullable</a> or non-nullable version of any of the following types:
+            </p>
+            <ul>
+              <li>a <a href='#idl-sequence'>sequence type</a></li>
+              <li>a <a href='#dfn-dictionary'>dictionary</a></li>
+              <li>a <a class='dfnref' href='#dfn-union-type'>union type</a>
+                that has a nullable or non-nullable sequence type or dictionary
+                as one of its <a class='dfnref' href='#dfn-flattened-union-member-type'>flattened member types</a></li>
+            </ul>
             <p>
               The attribute is <dfn id='dfn-read-only'>read only</dfn> if the
               <code>readonly</code> keyword is used before the <code>attribute</code> keyword.
@@ -3347,17 +3349,18 @@ exception <i>Derived</i> : <em>Base</em> {
             <span class='rfc2119'>MUST</span> identify an
             interface, <a class='dfnref' href='#dfn-enumeration'>enumeration</a>,
             <a class='dfnref' href='#dfn-callback-function'>callback function</a> or <a class='dfnref' href='#dfn-typedef'>typedef</a>.
-            The type of the exception field <span class='rfc2119'>MUST NOT</span> be a
-            <a href='#idl-sequence'>sequence type</a> or
-            <a class='dfnref' href='#dfn-nullable-type'>nullable</a> <a href='#idl-sequence'>sequence type</a>,
-            and it it <span class='rfc2119'>MUST NOT</span> be a
-            <a class='dfnref' href='#dfn-union-type'>union type</a> if
-            one of its <a class='dfnref' href='#dfn-union-member-type'>member types</a>
-            (or one of its member types’ member types, and so on)
-            is a <a href='#idl-sequence'>sequence type</a> or
-            <a class='dfnref' href='#dfn-nullable-type'>nullable</a>
-            <a href='#idl-sequence'>sequence type</a>.
           </p>
+          <p>
+            The type of the exception field, after resolving typedefs, <span class='rfc2119'>MUST NOT</span> be a
+            <a class='dfnref' href='#dfn-nullable-type'>nullable</a> or non-nullable version of any of the following types:
+          </p>
+          <ul>
+            <li>a <a href='#idl-sequence'>sequence type</a></li>
+            <li>a <a href='#dfn-dictionary'>dictionary</a></li>
+            <li>a <a class='dfnref' href='#dfn-union-type'>union type</a>
+              that has a nullable or non-nullable sequence type or dictionary
+              as one of its <a class='dfnref' href='#dfn-flattened-union-member-type'>flattened member types</a></li>
+          </ul>
           <p>
             Exception fields are similar to <a class='dfnref' href='#dfn-attribute'>attributes</a> in that they
             will correspond to attributes of the same name and type on exception objects
@@ -11376,6 +11379,12 @@ d.type = et;
               <li>
                 <p>
                   Added static attributes.
+                </p>
+              </li>
+              <li>
+                <p>
+                  Explicitly disallow dictionaries from being used inside union types
+                  as the type of an attribute or exception field.
                 </p>
               </li>
               <li>
