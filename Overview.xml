@@ -15,7 +15,7 @@
   <head>
     <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'/>
     <title>Web IDL (Second Edition)</title>
-    <meta name='revision' content='$Id: Overview.xml,v 1.538 2012-06-22 02:15:17 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: Overview.xml,v 1.539 2012-06-22 05:35:36 cmccorma Exp $'/>
     <link rel='stylesheet' href='WebIDL.css' type='text/css'/>
     <script src='section-links.js' type='application/ecmascript'/>
     <script src='dfn.js' type='application/ecmascript'/>
@@ -1234,12 +1234,25 @@ exception Problem {
 
             <p>
               An <dfn id='dfn-attribute'>attribute</dfn> is an <a class='dfnref' href='#dfn-interface-member'>interface member</a>
-              (matching <span class='sym'>"stringifier"</span> <a class='sym' href='#prod-Attribute'>Attribute</a> or <a class='sym' href='#prod-Attribute'>Attribute</a>)
-              that is used to declare that objects implementing the <a class='dfnref' href='#dfn-interface'>interface</a> will have a member with the given
+              (matching <a href='#sym-Qualifier' class='sym'>Qualifier</a> <a class='sym' href='#prod-AttributeRest'>AttributeRest</a> or <a class='sym' href='#prod-Attribute'>Attribute</a>)
+              that is used to declare data fields with a given type and
               <a class='dfnref' href='#dfn-identifier'>identifier</a> whose value can
-              be retrieved and (in some cases) changed.
+              be retrieved and (in some cases) changed.  There are two kinds of attributes:
             </p>
-            <pre class='syntax'>attribute <i>type</i> <i>identifier</i>;</pre>
+            <ol>
+              <li><a class='dfnref' href='#dfn-regular-attribute'>regular attributes</a>, which are those
+              used to declare that objects implementing the <a class='dfnref' href='#dfn-interface'>interface</a>
+              will have a data field member with the given <a class='dfnref' href='#dfn-identifier'>identifier</a>
+              <pre class='syntax'>attribute <i>type</i> <i>identifier</i>;</pre></li>
+              <li><a class='dfnref' href='#dfn-static-attribute'>static attributes</a>, which are used
+              to declare attributes that are not associated with a particular object implementing the interface
+              <pre class='syntax'>static attribute <i>type</i> <i>identifier</i>;</pre></li>
+            </ol>
+            <p>
+              If an attribute has no <code>static</code> keyword, then it declares a
+              <dfn id='dfn-regular-attribute'>regular attribute</dfn>.  Otherwise,
+              it declares a <a class='dfnref' href='#dfn-static-attribute'>static attribute</a>.
+            </p>
             <p>
               The <a class='dfnref' href='#dfn-identifier'>identifier</a> of an
               <a class='dfnref' href='#dfn-attribute'>attribute</a>
@@ -1275,7 +1288,8 @@ exception Problem {
             </p>
             <pre class='syntax'>readonly attribute <i>type</i> <i>identifier</i>;</pre>
             <p>
-              An attribute that is not <a class='dfnref' href='#dfn-read-only'>read only</a>
+              A <a class='dfnref' href='#dfn-regular-attribute'>regular attribute</a>
+              that is not <a class='dfnref' href='#dfn-read-only'>read only</a>
               can be declared to <dfn id='dfn-inherit-getter'>inherit its getter</dfn>
               from an ancestor interface.  This can be used to make a read only attribute
               in an ancestor interface be writable on a derived interface.  An attribute
@@ -1286,7 +1300,8 @@ exception Problem {
               of the one on which the inheriting attribute is defined.  The attribute
               whose getter is being inherited <span class='rfc2119'>MUST</span> be
               of the same type as the inheriting attribute, and <code>inherit</code>
-              <span class='rfc2119'>MUST NOT</span> appear on a read only attribute.
+              <span class='rfc2119'>MUST NOT</span> appear on a <a class='dfnref' href='#dfn-read-only'>read only</a>
+              attribute or a <a class='dfnref' href='#dfn-static-attribute'>static attribute</a>.
             </p>
             <pre class='syntax'>interface <i>Ancestor</i> {
   readonly attribute <i>TheType</i> <i>theIdentifier</i>;
@@ -1313,7 +1328,8 @@ attribute <i>type</i> <i>identifier</i> inherits getter setraises(<i>scoped-name
             -->
             <p>
               When the <code>stringifier</code> keyword is used
-              in an attribute declaration, it indicates that objects implementing the
+              in a <a class='dfnref' href='#dfn-regular-attribute'>regular attribute</a>
+              declaration, it indicates that objects implementing the
               interface will be stringified to the value of the attribute.  See
               <a href='#idl-stringifiers'>section <?sref idl-stringifiers?></a>
               <?sdir idl-stringifiers?> for details.
@@ -1335,21 +1351,26 @@ attribute <i>type</i> <i>identifier</i> inherits getter setraises(<i>scoped-name
 
             <p>
               The following <a class='dfnref' href='#dfn-extended-attribute'>extended attributes</a>
-              are applicable to attributes:
+              are applicable to regular and static attributes:
               <a class='xattr' href='#Clamp'>[Clamp]</a>,
               <a class='xattr' href='#EnforceRange'>[EnforceRange]</a>,
-              <a class='xattr' href='#LenientThis'>[LenientThis]</a>,
-              <a class='xattr' href='#PutForwards'>[PutForwards]</a>,
-              <a class='xattr' href='#Replaceable'>[Replaceable]</a>,
               <a class='xattr' href='#TreatNullAs'>[TreatNullAs]</a>,
               <a class='xattr' href='#TreatUndefinedAs'>[TreatUndefinedAs]</a>,
               <a class='xattr' href='#Unforgeable'>[Unforgeable]</a>.
             </p>
 
+            <p>
+              The following <a class='dfnref' href='#dfn-extended-attribute'>extended attributes</a>
+              are applicable only to regular attributes:
+              <a class='xattr' href='#LenientThis'>[LenientThis]</a>,
+              <a class='xattr' href='#PutForwards'>[PutForwards]</a>,
+              <a class='xattr' href='#Replaceable'>[Replaceable]</a>.
+            </p>
+
             <!--
             <?productions grammar AttributeOrOperation StringifierAttributeOrOperation Attribute ReadOnly Get GetRaises SetRaises ExceptionList?>
             -->
-            <?productions grammar AttributeOrOperation StringifierAttributeOrOperation Attribute Inherit ReadOnly Get?>
+            <?productions grammar Qualifier AttributeOrOperation StringifierAttributeOrOperation Attribute AttributeRest Inherit ReadOnly?>
 
             <div class='example'>
               <p>
@@ -1389,7 +1410,7 @@ interface Person : Animal {
 
             <p>
               An <dfn id='dfn-operation'>operation</dfn> is an <a class='dfnref' href='#dfn-interface-member'>interface member</a>
-              (matching <span class='sym'>"stringifier"</span> <a class='sym' href='#prod-OperationRest'>OperationRest</a> or <a class='sym' href='#prod-Operation'>Operation</a>)
+              (matching <a href='#prod-Qualifier' class='sym'>Qualifier</a> <a class='sym' href='#prod-OperationRest'>OperationRest</a> or <a class='sym' href='#prod-Operation'>Operation</a>)
               that defines a behavior that can be invoked on objects implementing the interface.
               There are three kinds of operation:
             </p>
@@ -1410,7 +1431,7 @@ interface Person : Animal {
               <pre class='syntax'>static <i>return-type</i> <i>identifier</i>(<i>arguments…</i>);</pre></li>
             </ol>
             <p>
-              If an operation has an identifier but no <span class='sym'>static</span>
+              If an operation has an identifier but no <code>static</code>
               keyword, then it declares a <dfn id='dfn-regular-operation'>regular operation</dfn>.
               If the operation has one or more
               <a class='dfnref' href='#dfn-special-keyword'>special keywords</a>
@@ -1695,10 +1716,7 @@ s.union(1, 4, 7);         <span class='comment'>// Passing three arguments corre
               <a class='xattr' href='#TreatUndefinedAs'>[TreatUndefinedAs]</a>.
             </p>
 
-            <!--
-            <?productions grammar Operation OperationRest Qualifiers Specials Special ReturnType OptionalIdentifier ArgumentList Arguments Argument In Optional Ellipsis Raises?>
-            -->
-            <?productions grammar AttributeOrOperation StringifierAttributeOrOperation Operation OperationRest Qualifiers Specials Special ReturnType OptionalIdentifier ArgumentList Arguments Argument OptionalOrRequiredArgument ArgumentName ArgumentNameKeyword DefaultValue In Ellipsis?>
+            <?productions grammar AttributeOrOperation AttributeOrOperationRest Operation OperationRest Specials Special ReturnType OptionalIdentifier ArgumentList Arguments Argument OptionalOrRequiredArgument ArgumentName ArgumentNameKeyword DefaultValue In Ellipsis?>
           </div>
 
           <div id='idl-special-operations' class='section'>
@@ -2002,6 +2020,8 @@ omittable stringifier DOMString <i>identifier</i>();--></pre>
                 value of the attribute.  The <code>stringifier</code> keyword
                 <span class='rfc2119'>MUST NOT</span> be placed on an attribute unless
                 it is declared to be of type <span class='idltype'>DOMString</span>.
+                It also <span class='rfc2119'>MUST NOT</span> be placed on
+                a <a class='dfnref' href='#dfn-static-attribute'>static attribute</a>.
               </p>
               <pre class='syntax'>stringifier attribute DOMString <i>identifier</i>;</pre>
 
@@ -2377,24 +2397,25 @@ omittable deleter <i>type</i> <i>identifier</i>(DOMString <i>identifier</i>);-->
             </div>
           </div>
 
-          <div id='idl-static-operations' class='section'>
-            <h4>Static operations</h4>
+          <div id='idl-static-attributes-and-operations' class='section'>
+            <h4>Static attributes and operations</h4>
 
             <p>
-              A <dfn id='dfn-static-operation'>static operation</dfn> is one that is
-              not called on a particular instance of the <a class='dfnref' href='#dfn-interface'>interface</a>
+              <dfn id='dfn-static-attribute'>Static attributes</dfn> and
+              <dfn id='dfn-static-operation'>static operations</dfn> are ones that
+              are not associated with a particular instance of the
+              <a class='dfnref' href='#dfn-interface'>interface</a>
               on which it is declared, and is instead associated with the interface
-              itself.  Static operations are declared by using the
-              <code>static</code> keyword in an operation
-              declaration.
+              itself.  Static attributes and operations are declared by using the
+              <code>static</code> keyword in their declarations.
             </p>
             <p>
               It is language binding specific whether it is possible to invoke
-              a static operation through a reference to an instance of the
-              interface.
+              a static operation or get or set a static attribute through a reference
+              to an instance of the interface.
             </p>
             <p>
-              Static operations <span class='rfc2119'>MUST NOT</span> be 
+              Static attributes and operations <span class='rfc2119'>MUST NOT</span> be 
               declared on <a class='dfnref' href='#dfn-callback-interface'>callback interfaces</a>.
             </p>
             <div class='example'>
@@ -2410,21 +2431,29 @@ interface Circle {
   attribute float cy;
   attribute float radius;
 
+  static readonly attribute long triangulationCount;
   static Point triangulate(Circle c1, Circle c2, Circle c3);
 };</x:codeblock>
               <p>
                 In the ECMAScript language binding, the <span class='estype'>Function</span> object for
-                <code>triangulate</code> will exist on the <a class='dfnref' href='#dfn-interface-object'>interface object</a>
+                <code>triangulate</code> and the accessor property for <code>triangulationCount</code>
+                will exist on the <a class='dfnref' href='#dfn-interface-object'>interface object</a>
                 for <span class='idltype'>Circle</span>:
               </p>
               <x:codeblock language='es'>var circles = getCircles();    <span class='comment'>// an Array of Circle objects</span>
 
-typeof Circle.triangulate;     <span class='comment'>// Evaluates to "function"</span>
-Circle.prototype.triangulate;  <span class='comment'>// Evaluates to undefined</span>
-circles[0].triangulate;        <span class='comment'>// Also evaluates to undefined</span>
+typeof Circle.triangulate;            <span class='comment'>// Evaluates to "function"</span>
+typeof Circle.triangulationCount;     <span class='comment'>// Evaluates to "number"</span>
+Circle.prototype.triangulate;         <span class='comment'>// Evaluates to undefined</span>
+Circle.prototype.triangulationCount;  <span class='comment'>// Also evaluates to undefined</span>
+circles[0].triangulate;               <span class='comment'>// As does this</span>
+circles[0].triangulationCount;        <span class='comment'>// And this</span>
 
 <span class='comment'>// Call the static operation</span>
-var triangulationPoint = Circle.triangulate(circles[0], circles[1], circles[2]);</x:codeblock>
+var triangulationPoint = Circle.triangulate(circles[0], circles[1], circles[2]);
+
+<span class='comment'>// Find out how many triangulations we have done</span>
+window.alert(Circle.triangulationCount);</x:codeblock>
               <!--JAVA
               <p>
                 In the Java language binding, however, the <code>triangulate</code> method
@@ -7192,7 +7221,7 @@ var z = new NodeList();    <span class='comment'>// This would throw a TypeError
               If the <a class='xattr' href='#EnforceRange'>[EnforceRange]</a>
               <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
               appears on an <a class='dfnref' href='#dfn-operation'>operation</a> argument,
-              writable <a class='dfnref' href='#dfn-attribute'>attribute</a> or
+              writable <a class='dfnref' href='#dfn-regular-attribute'>regular attribute</a> or
               <a class='dfnref' href='#dfn-dictionary-member'>dictionary member</a>
               whose type is one of the <a class='dfnref' href='#dfn-integer-type'>integer types</a>,
               it indicates that when an ECMAScript <span class='estype'>Number</span> is
@@ -7209,7 +7238,8 @@ var z = new NodeList();    <span class='comment'>// This would throw a TypeError
             <p>
               The <a class='xattr' href='#EnforceRange'>[EnforceRange]</a> extended attribute
               <span class='rfc2119'>MUST NOT</span> appear on a <a class='dfnref' href='#dfn-read-only'>read only</a>
-              attribute, or an attribute, operation argument or dictionary member
+              attribute, a <a class='dfnref' href='#dfn-static-attribute'>static attribute</a>,
+              or an attribute, operation argument or dictionary member
               that is not of an integer type.  It also <span class='rfc2119'>MUST NOT</span>
               be used in conjunction with the <a class='xattr' href='#Clamp'>[Clamp]</a>
               extended attribute.
@@ -7317,7 +7347,7 @@ Object.getOwnPropertyDescriptor(Window.prototype, "name").get.call(null);</x:cod
             <p>
               If the <a class='xattr' href='#LenientThis'>[LenientThis]</a>
               <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
-              appears on an <a class='dfnref' href='#dfn-attribute'>attribute</a>,
+              appears on a <a class='dfnref' href='#dfn-regular-attribute'>regular attribute</a>,
               it indicates that invocations of the attribute’s getter or setter
               with a <span class='esvalue'>this</span> value that is not an
               object that implements the <a class='dfnref' href='#dfn-interface'>interface</a>
@@ -7327,6 +7357,8 @@ Object.getOwnPropertyDescriptor(Window.prototype, "name").get.call(null);</x:cod
               The <a class='xattr' href='#LenientThis'>[LenientThis]</a> extended attribute
               <span class='rfc2119'>MUST</span>
               <a class='dfnref' href='#dfn-xattr-no-arguments'>take no arguments</a>.
+              It <span class='rfc2119'>MUST NOT</span> be used on a
+              <a class='dfnref' href='#dfn-static-attribute'>static attribute</a>.
             </p>
             <div class='warning'>
               <p>
@@ -7715,7 +7747,7 @@ Node implements EventTarget;</x:codeblock>
               If the <a class='xattr' href='#PutForwards'>[PutForwards]</a>
               <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
               appears on a <a class='dfnref' href='#dfn-read-only'>read only</a>
-              <a class='dfnref' href='#dfn-attribute'>attribute</a> declaration whose type is
+              <a class='dfnref' href='#dfn-regular-attribute'>regular attribute</a> declaration whose type is
               an <a href='#idl-interface'>interface type</a>,
               it indicates that assigning to the attribute will have specific behavior.
               Namely, the assignment is “forwarded” to the attribute (specified by
@@ -7775,6 +7807,11 @@ Node implements EventTarget;</x:codeblock>
             </p>
             <p>
               The <a class='xattr' href='#PutForwards'>[PutForwards]</a> extended attribute
+              <span class='rfc2119'>MUST NOT</span> be used on a
+              <a class='dfnref' href='#dfn-static-attribute'>static attribute</a>.
+            </p>
+            <p>
+              The <a class='xattr' href='#PutForwards'>[PutForwards]</a> extended attribute
               <span class='rfc2119'>MUST NOT</span> be used on an attribute declared on
               a <a class='dfnref' href='#dfn-callback-interface'>callback interface</a>.
             </p>
@@ -7821,7 +7858,7 @@ p.name.full = 'John Citizen';  <span class='comment'>// ...has the same behavior
               If the <a class='xattr' href='#Replaceable'>[Replaceable]</a>
               <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
               appears on a <a class='dfnref' href='#dfn-read-only'>read only</a>
-              <a class='dfnref' href='#dfn-attribute'>attribute</a>,
+              <a class='dfnref' href='#dfn-regular-attribute'>regular attribute</a>,
               it indicates that setting the corresponding property on the
               <a class='dfnref' href='#dfn-platform-object'>platform object</a> will result in
               an own property with the same name being created on the object
@@ -7839,6 +7876,11 @@ p.name.full = 'John Citizen';  <span class='comment'>// ...has the same behavior
               extended attribute <span class='rfc2119'>MUST NOT</span> also be declared
               with the <a class='xattr' href='#PutForwards'>[PutForwards]</a>
               extended attribute.
+            </p>
+            <p>
+              The <a class='xattr' href='#Replaceable'>[Replaceable]</a> extended attribute
+              <span class='rfc2119'>MUST NOT</span> be used on a
+              <a class='dfnref' href='#dfn-static-attribute'>static attribute</a>.
             </p>
             <p>
               The <a class='xattr' href='#Replaceable'>[Replaceable]</a> extended attribute
@@ -8297,8 +8339,8 @@ c.isMemberOfBreed(undefined);  <span class='comment'>// This passes the string "
               a way that means its behavior cannot be modified and that performing
               a property lookup on the object will always result in the attribute’s
               property value being returned.  In particular, the property will be
-              non-configurable and will exist as an own property on the object
-              itself rather than on its prototype.
+              non-configurable and, if it is a <a class='dfnref' href='#dfn-regular-attribute'>regular attribute</a>,
+              will exist as an own property on the object itself rather than on its prototype.
             </p>
             <p>
               The <a class='xattr' href='#Unforgeable'>[Unforgeable]</a>
@@ -8421,8 +8463,8 @@ system.loginTime;  <span class='comment'>// So this now evaluates to forgedLogin
               The value of the “prototype” property of an interface object for a non-callback interface
               <span class='rfc2119'>MUST</span> be an object called the <dfn id='dfn-interface-prototype-object'>interface prototype
                 object</dfn>.  This object has properties
-              that correspond to the <a class='dfnref' href='#dfn-attribute'>attributes</a> and
-              <a class='dfnref' href='#dfn-operation'>operations</a> defined on the interface,
+              that correspond to the <a class='dfnref' href='#dfn-regular-attribute'>regular attributes</a> and
+              <a class='dfnref' href='#dfn-regular-operation'>regular operations</a> defined on the interface,
               and is described in more detail in
               <a href='#interface-prototype-object'>section <?sref interface-prototype-object?></a>
               <?sdir interface-prototype-object?>.
@@ -8914,8 +8956,8 @@ system.loginTime;  <span class='comment'>// So this now evaluates to forgedLogin
               <a class='xattr' href='#NoInterfaceObject'>[NoInterfaceObject]</a>
               <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>.
               The interface prototype object for a particular interface has
-              properties that correspond to the <a class='dfnref' href='#dfn-attribute'>attributes</a>
-              and <a class='dfnref' href='#dfn-operation'>operations</a>
+              properties that correspond to the <a class='dfnref' href='#dfn-regular-attribute'>regular attributes</a>
+              and <a class='dfnref' href='#dfn-regular-operation'>regular operations</a>
               defined on that interface.  These properties are described in more detail in
               sections <a href='#es-attributes'><?sref es-attributes?></a> and
               <a href='#es-operations'><?sref es-operations?></a> <?sdir es-operations?>.
@@ -9175,19 +9217,21 @@ interface
             <p>
               For each <a class='dfnref' href='#dfn-attribute'>attribute</a> defined on
               the <a class='dfnref' href='#dfn-interface'>interface</a>, there
-              <span class='rfc2119'>MUST</span> exist a corresponding property.
-              If the attribute was declared with the <a class='xattr' href='#Unforgeable'>[Unforgeable]</a>
-              <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>,
-              then the property exists on every object that implements the 
-              interface. Otherwise, it exists on the interface’s
-              <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype object</a>.
-            </p>
-            <p>
+              <span class='rfc2119'>MUST</span> exist one or more corresponding properties.
               The characteristics of these properties are as follows:
             </p>
             <ul>
               <li>
                 The name of the property is the <a class='dfnref' href='#dfn-identifier'>identifier</a> of the <a class='dfnref' href='#dfn-attribute'>attribute</a>.
+              </li>
+              <li>
+                If the attribute is a <a class='dfnref' href='#dfn-static-attribute'>static attribute</a>,
+                then there is a single corresponding property and it exists on the interface’s <a class='dfnref' href='#dfn-interface-object'>interface object</a>.
+                Otherwise, if the attribute was declared with the <a class='xattr' href='#Unforgeable'>[Unforgeable]</a>
+                <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>,
+                then there exists a corresponding property on every object that implements the 
+                interface. Otherwise, there is a single corresponding property and it exists on the interface’s
+                <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype object</a>.
               </li>
               <li>
                 The property has attributes <span class='descriptor'>{ [[Get]]: <var>G</var>, [[Set]]: <var>S</var>, [[Enumerable]]: <span class='esvalue'>true</span>, [[Configurable]]: <var>configurable</var> }</span>,
@@ -9203,24 +9247,31 @@ interface
                 The <dfn id='dfn-attribute-getter'>attribute getter</dfn> is a <span class='estype'>Function</span>
                 object whose behavior when invoked is as follows:
                 <ol class='algorithm'>
-                  <li>If <a href='http://es5.github.com/#x8' class='dfnref external'>Type</a>(<var>V</var>) is not Object, then <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>TypeError</span></a>.</li>
-                  <li>If <var>O</var> is not a <a class='dfnref' href='#dfn-platform-object'>platform object</a> that implements the <a class='dfnref' href='#dfn-interface'>interface</a>
-                    on which the attribute was declared, then:
+                  <li>Let <var>idlValue</var> be an IDL value determined as follows.</li>
+                  <li>If the <a class='dfnref' href='#dfn-attribute'>attribute</a> is a <a class='dfnref' href='#dfn-regular-attribute'>regular attribute</a>, then:
                     <ol>
-                      <li>If the <a class='dfnref' href='#dfn-attribute'>attribute</a> was specified with the
-                        <a class='xattr' href='#LenientThis'>[LenientThis]</a> <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>,
-                        then return <span class='esvalue'>undefined</span>.</li>
-                      <li>Otherwise, <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>TypeError</span></a>.</li>
-                    </ol></li>
-                  <li>
-                    Let <var>idlValue</var> be the result of performing the actions listed in the description of the attribute that occur when getting
-                    (or those listed in the description of the inherited attribute, if this attribute is declared to
-                    <a class='dfnref' href='#dfn-inherit-getter'>inherit its getter</a>),
-                    with <var>O</var> as the object.
+                      <li>Let <var>O</var> be the <strong>this</strong> value.</li>
+                      <li>If <var>O</var> is not a <a class='dfnref' href='#dfn-platform-object'>platform object</a> that implements the <a class='dfnref' href='#dfn-interface'>interface</a>
+                        on which the attribute was declared, then:
+                        <ol>
+                          <li>If the <a class='dfnref' href='#dfn-attribute'>attribute</a> was specified with the
+                            <a class='xattr' href='#LenientThis'>[LenientThis]</a> <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>,
+                            then return <span class='esvalue'>undefined</span>.</li>
+                          <li>Otherwise, <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>TypeError</span></a>.</li>
+                        </ol></li>
+                      <li>
+                        Set <var>idlValue</var> to be the result of performing the actions listed in the description of the attribute that occur when getting
+                        (or those listed in the description of the inherited attribute, if this attribute is declared to
+                        <a class='dfnref' href='#dfn-inherit-getter'>inherit its getter</a>),
+                        with <var>O</var> as the object.
+                      </li>
+                    </ol>
                   </li>
+                  <li>Otherwise, the attribute is a <a class='dfnref' href='#dfn-static-attribute'>static attribute</a>.
+                    Set <var>idlValue</var> to be the result of performing the actions listed in the description of the attribute that occur when getting.</li>
                   <li>
                     Let <var>V</var> be the result of <a class='dfnref' href='#dfn-convert-idl-to-ecmascript-value'>converting</a>
-                    the <var>idlValue</var> for this attribute to an ECMAScript value.
+                    <var>idlValue</var> to an ECMAScript value.
                   </li>
                   <li>
                     Return <var>V</var>.
@@ -9236,39 +9287,43 @@ interface
                 <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a> declared on it.
                 Otherwise, it is a <span class='estype'>Function</span> object whose behavior when invoked is as follows:
                 <ol class='algorithm'>
-                  <li>If <a href='http://es5.github.com/#x8' class='dfnref external'>Type</a>(<var>V</var>) is not Object, then <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>TypeError</span></a>.</li>
-                  <li>Let <var>validThis</var> be <span class='esvalue'>true</span> if <var>O</var> is a
-                    <a class='dfnref' href='#dfn-platform-object'>platform object</a> that implements the
-                    <a class='dfnref' href='#dfn-interface'>interface</a> on which the attribute was declared, or
-                    <span class='esvalue'>false</span> otherwise.</li>
-                  <li>If <var>validThis</var> is <span class='esvalue'>false</span> and the
-                    <a class='dfnref' href='#dfn-attribute'>attribute</a> was not specified with the
-                    <a class='xattr' href='#LenientThis'>[LenientThis]</a> <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>,
-                    then <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>TypeError</span></a>.</li>
-                  <li>Let <var>V</var> be the value of the first argument passed to the <span class='estype'>Function</span>,
-                    or <span class='esvalue'>undefined</span> if no arguments were passed.</li>
-                  <li>If the attribute is declared with a <a class='xattr' href='#Replaceable'>[Replaceable]</a>
-                    extended attribute, then:
+                  <li>If the <a class='dfnref' href='#dfn-attribute'>attribute</a> is a <a class='dfnref' href='#dfn-regular-attribute'>regular attribute</a>, then:
                     <ol>
-                      <li>Let <var>P</var> be the identifier of the attribute.</li>
-                      <li>Call the <span class='prop'>[[DefineOwnProperty]]</span> method of <var>O</var>
-                        passing property name <var>P</var>, Property Descriptor
-                        <span class='desc'>{ [[Value]]: <var>V</var>, [[Writable]]: <span class='esvalue'>true</span>, [[Enumerable]]: <span class='esvalue'>true</span>, [[Configurable]]: <span class='esvalue'>true</span> }</span>,
-                        and <b>false</b>.</li>
-                      <li>Return <span class='esvalue'>undefined</span>.</li>
-                    </ol>
-                  </li>
-                  <li>If <var>validThis</var> is <span class='esvalue'>false</span>, then return.</li>
-                  <li>If the attribute is declared with a <a class='xattr' href='#PutForwards'>[PutForwards]</a>
-                    extended attribute, then:
-                    <ol>
-                      <li>Let <var>Q</var> be the result of calling the <span class='prop'>[[Get]]</span> method
-                        on <var>O</var> using the identifier of the attribute as the property name.</li>
-                      <li>If <var>Q</var> is not an object, then <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>TypeError</span></a>.</li>
-                      <li>Let <var>A</var> be the attribute identified by the <a class='xattr' href='#PutForwards'>[PutForwards]</a> extended attribute.</li>
-                      <li>Call the <span class='prop'>[[Put]]</span> method on <var>Q</var>
-                        using the identifier of <var>A</var> as the property name and <var>V</var> as the value.</li>
-                      <li>Return.</li>
+                      <li>Let <var>O</var> be the <strong>this</strong> value.</li>
+                      <li>Let <var>validThis</var> be <span class='esvalue'>true</span> if <var>O</var> is a
+                        <a class='dfnref' href='#dfn-platform-object'>platform object</a> that implements the
+                        <a class='dfnref' href='#dfn-interface'>interface</a> on which the attribute was declared, or
+                        <span class='esvalue'>false</span> otherwise.</li>
+                      <li>If <var>validThis</var> is <span class='esvalue'>false</span> and the
+                        <a class='dfnref' href='#dfn-attribute'>attribute</a> was not specified with the
+                        <a class='xattr' href='#LenientThis'>[LenientThis]</a> <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>,
+                        then <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>TypeError</span></a>.</li>
+                      <li>Let <var>V</var> be the value of the first argument passed to the <span class='estype'>Function</span>,
+                        or <span class='esvalue'>undefined</span> if no arguments were passed.</li>
+                      <li>If the attribute is declared with a <a class='xattr' href='#Replaceable'>[Replaceable]</a>
+                        extended attribute, then:
+                        <ol>
+                          <li>Let <var>P</var> be the identifier of the attribute.</li>
+                          <li>Call the <span class='prop'>[[DefineOwnProperty]]</span> method of <var>O</var>
+                            passing property name <var>P</var>, Property Descriptor
+                            <span class='desc'>{ [[Value]]: <var>V</var>, [[Writable]]: <span class='esvalue'>true</span>, [[Enumerable]]: <span class='esvalue'>true</span>, [[Configurable]]: <span class='esvalue'>true</span> }</span>,
+                            and <b>false</b>.</li>
+                          <li>Return <span class='esvalue'>undefined</span>.</li>
+                        </ol>
+                      </li>
+                      <li>If <var>validThis</var> is <span class='esvalue'>false</span>, then return.</li>
+                      <li>If the attribute is declared with a <a class='xattr' href='#PutForwards'>[PutForwards]</a>
+                        extended attribute, then:
+                        <ol>
+                          <li>Let <var>Q</var> be the result of calling the <span class='prop'>[[Get]]</span> method
+                            on <var>O</var> using the identifier of the attribute as the property name.</li>
+                          <li>If <var>Q</var> is not an object, then <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>TypeError</span></a>.</li>
+                          <li>Let <var>A</var> be the attribute identified by the <a class='xattr' href='#PutForwards'>[PutForwards]</a> extended attribute.</li>
+                          <li>Call the <span class='prop'>[[Put]]</span> method on <var>Q</var>
+                            using the identifier of <var>A</var> as the property name and <var>V</var> as the value.</li>
+                          <li>Return.</li>
+                        </ol>
+                      </li>
                     </ol>
                   </li>
                   <li>Let <var>idlValue</var> be an IDL value determined as follows:
@@ -9284,8 +9339,10 @@ interface
                         The value of <var>idlValue</var> is the result of <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a>
                         <var>V</var> to an IDL value.</li>
                     </ul></li>
-                  <li>Perform the actions listed in the description of the attribute that occur when setting,
+                  <li>If the attribute is a regular attribute, then perform the actions listed in the description of the attribute that occur when setting,
                     with <var>O</var> as the object and <var>idlValue</var> as the value.</li>
+                  <li>Otherwise, the attribute is a <a class='dfnref' href='#dfn-static-atttribute'>static attribute</a>.
+                    Perform the actions listed in the description of the attribute that occur when setting with <var>idlValue</var> as the value.</li>
                   <li>Return <span class='esvalue'>undefined</span>.</li>
                 </ol>
                 The value of the <span class='estype'>Function</span> object’s “length”
@@ -10970,12 +11027,14 @@ d.type = et;
           <prod nt='ConstValue'>BooleanLiteral | FloatLiteral | integer | "null"</prod>
           <prod nt='BooleanLiteral'>"true" | "false"</prod>
           <prod nt='FloatLiteral'>float | "-" "Infinity" | "Infinity" | "NaN"</prod>
-          <prod nt='AttributeOrOperation'>"stringifier" StringifierAttributeOrOperation | Attribute | Operation</prod>
-          <prod nt='StringifierAttributeOrOperation'>Attribute | OperationRest | ";"</prod>
+          <prod nt='AttributeOrOperation'>Qualifier AttributeOrOperationRest | Attribute | Operation</prod>
+          <prod nt='Qualifier'>"static" | "stringifier"</prod>
+          <prod nt='AttributeOrOperation'>AttributeRest | OperationRest | ";"</prod>
           <!--
           <prod nt='Attribute'>ReadOnly "attribute" AttributeType identifier Get SetRaises ";"</prod>
           -->
-          <prod nt='Attribute'>Inherit ReadOnly "attribute" Type identifier ";"</prod>
+          <prod nt='Attribute'>Inherit AttributeRest</prod>
+          <prod nt='AttributeRest'>ReadOnly "attribute" Type identifier ";"</prod>
           <prod nt='Inherit'>"inherit" | ε</prod>
           <prod nt='ReadOnly'>"readonly" | ε</prod>
           <!--
@@ -10986,8 +11045,7 @@ d.type = et;
           <prod nt='GetRaises'>"getraises" ExceptionList | ε</prod>
           <prod nt='SetRaises'>"setraises" ExceptionList | ε</prod>
           -->
-          <prod nt='Operation'>Qualifiers OperationRest</prod>
-          <prod nt='Qualifiers'>"static" | <!--"omittable" Specials | -->Specials</prod>
+          <prod nt='Operation'>Specials OperationRest</prod>
           <prod nt='Specials'>Special Specials | ε</prod>
           <prod nt='Special'>"getter" | "setter" | "creator" | "deleter" | "legacycaller"</prod>
           <!--
@@ -11218,6 +11276,7 @@ d.type = et;
         </div>
       </div>
 
+      <!--
       <div id='cr-exit' class='section'>
         <h2>Candidate Recommendation exit criteria</h2>
 
@@ -11288,6 +11347,7 @@ d.type = et;
           <li>the <a class='xattr' href='#TreatUndefinedAs'>[TreatUndefinedAs]</a> extended attribute</li>
         </ul>
       </div>
+      -->
 
       <div id='changes' class='section'>
         <h2>Changes</h2>
@@ -11305,6 +11365,11 @@ d.type = et;
           <dt>Current editor’s draft</dt>
           <dd>
             <ul>
+              <li>
+                <p>
+                  Added static attributes.
+                </p>
+              </li>
               <li>
                 <p>
                   Fixed a bug in the definition of distinguishability where a nullable
