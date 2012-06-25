@@ -15,7 +15,7 @@
   <head>
     <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'/>
     <title>Web IDL (Second Edition)</title>
-    <meta name='revision' content='$Id: Overview.xml,v 1.551 2012-06-25 03:35:51 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: Overview.xml,v 1.552 2012-06-25 03:52:09 cmccorma Exp $'/>
     <link rel='stylesheet' href='WebIDL.css' type='text/css'/>
     <script src='section-links.js' type='application/ecmascript'/>
     <script src='dfn.js' type='application/ecmascript'/>
@@ -3475,7 +3475,10 @@ dictionary <i>Derived</i> : <em>Base</em> {
             When specified in the dictionary value, a dictionary member is said to be
             <dfn id='dfn-present'>present</dfn>, otherwise it is <a class='dfnref' href='#dfn-present'>not present</a>.
             Dictionary members can also optionally have a <dfn id='dfn-dictionary-member-default-value'>default value</dfn>, which is
-            the value the dictionary member is to be considered to have when not present.
+            the value to use for the dictionary member when passing a value to a
+            <a class='dfnref' href='#dfn-platform-object'>platform object</a> that does
+            not have a specified value.  Dictionary members with default values are
+            always considered to be present.
           </p>
           <p>
             Each <a class='dfnref' href='#dfn-dictionary-member'>dictionary member</a> (matching
@@ -6527,6 +6530,12 @@ iframe.appendChild instanceof w.Function;  <span class='comment'>// Evaluates to
                         <ol>
                           <li>Let <var>value</var> be the result of calling the <span class='prop'>[[Get]]</span> internal method on <var>V</var> with property name <var>key</var>.</li>
                           <li>Let <var>idlValue</var> be the result of <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a> <var>value</var> to an IDL value whose type is the type <var>member</var> is declared to be of.</li>
+                          <li>Set the dictionary member on <var>dict</var> with key name <var>key</var> to the value <var>idlValue</var>.  This dictionary member is considered to be <a class='dfnref' href='#dfn-present'>present</a>.</li>
+                        </ol>
+                      </li>
+                      <li>Otherwise, if <var>present</var> is false but the <a class='dfnref' href='#dfn-dictionary-member'>dictionary member</a> has a <a class='dfnref' href='#dfn-dictionary-member-default-value'>default value</a>, then:
+                        <ol>
+                          <li>Let <var>idlValue</var> be the dictionary member’s default value.</li>
                           <li>Set the dictionary member on <var>dict</var> with key name <var>key</var> to the value <var>idlValue</var>.  This dictionary member is considered to be <a class='dfnref' href='#dfn-present'>present</a>.</li>
                         </ol>
                       </li>
@@ -11981,6 +11990,11 @@ d.type = et;
               <li>
                 <p>
                   Added static attributes.
+                </p>
+              </li>
+              <li>
+                <p>
+                  Always consider dictionary members with default values as present.
                 </p>
               </li>
               <li>
