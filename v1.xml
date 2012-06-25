@@ -15,7 +15,7 @@
   <head>
     <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'/>
     <title>Web IDL</title>
-    <meta name='revision' content='$Id: v1.xml,v 1.16 2012-06-25 03:52:09 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: v1.xml,v 1.17 2012-06-25 04:58:44 cmccorma Exp $'/>
     <link rel='stylesheet' href='WebIDL.css' type='text/css'/>
     <script src='section-links.js' type='application/ecmascript'/>
     <script src='dfn.js' type='application/ecmascript'/>
@@ -1621,6 +1621,22 @@ s.union(1, 4, 7);         <span class='comment'>// Passing three arguments corre
               optional arguments <span class='rfc2119'>MUST</span> also have a default value.
             </p>
             <p>
+              If the type of an argument is a <a href='#idl-dictionary'>dictionary type</a>,
+              and this argument is either the final argument or is followed by an
+              <a class='dfnref' href='#dfn-optional-argument'>optional argument</a>, then
+              the argument is implicitly considered optional and <span class='rfc2119'>MUST</span>
+              be specified as optional.  Optional dictionary type arguments are always
+              considered to have a <a class='dfnref' href='#dfn-default-value'>default value</a>
+              of an empty dictionary.
+            </p>
+            <div class='note'>
+              <p>
+                This is to encourage API designs that do not require authors to pass an
+                empty dictionary value when they wish only to use the dictionary’s
+                default values.
+              </p>
+            </div>
+            <p>
               When a boolean literal token (<code>true</code> or <code>false</code>),
               the <code>null</code> token,
               an <a class='sym' href='#prod-integer'>integer</a> token, a
@@ -2749,6 +2765,7 @@ partial interface A {
             <p>
               Two types are <dfn id='dfn-distinguishable'>distinguishable</dfn> if
               at most one of the two <a class='dfnref' href='#dfn-includes-a-nullable-type'>includes a nullable type</a>
+              or is a <a href='#idl-dictionary'>dictionary type</a>,
               and at least one of the following three conditions is true:
             </p>
             <ol>
@@ -4582,10 +4599,11 @@ interface Person {
               to be a member of its set of values.  <a class='dfnref' href='#dfn-nullable-type'>Nullable types</a>
               are represented in IDL by placing a <span class='char'>U+003F QUESTION MARK ("?")</span>
               character after an existing type.  The inner type <span class='rfc2119'>MUST NOT</span>
-              be <span class='idltype'>any</span> or another nullable type or a
-              <a class='dfnref' href='#dfn-union-type'>union type</a> that itself has a
-              nullable type as a <a class='dfnref' href='#dfn-union-member-type'>member type</a>, as they already
-              allow the <span class='idlvalue'>null</span> value.
+              be <span class='idltype'>any</span>, a <a href='#idl-dictionary'>dictionary type</a>,
+              another nullable type, or a <a class='dfnref' href='#dfn-union-type'>union type</a>
+              that itself has <a class='dfnref' href='#dfn-includes-a-nullable-type'>includes a nullable type</a>
+              or has a dictionary type as one of its
+              <a class='dfnref' href='#dfn-flattened-member-type'>flattened member types</a>.
             </p>
             <p>
               Nullable type constant values in IDL are represented in the same way that
@@ -6060,7 +6078,7 @@ iframe.appendChild instanceof w.Function;  <span class='comment'>// Evaluates to
               by running the following algorithm (where <var>D</var> is the <a class='dfnref' href='#dfn-dictionary'>dictionary</a>):
             </p>
             <ol class='algorithm'>
-              <li>If <a href='http://es5.github.com/#x8' class='dfnref external'>Type</a>(<var>V</var>) is not Object, then <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>TypeError</span></a>.</li>
+              <li>If <a href='http://es5.github.com/#x8' class='dfnref external'>Type</a>(<var>V</var>) is not Undefined, Null or Object, then <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>TypeError</span></a>.</li>
               <li>Let <var>dict</var> be an empty dictionary value of type <var>D</var>;
               every <a class='dfnref' href='#dfn-dictionary-member'>dictionary member</a>
               is initially considered to be <a class='dfnref' href='#dfn-present'>not present</a>.</li>
@@ -6071,7 +6089,8 @@ iframe.appendChild instanceof w.Function;  <span class='comment'>// Evaluates to
                   <li>For each dictionary member <var>member</var> declared on <var>D</var>, in order:
                     <ol>
                       <li>Let <var>key</var> be the <a class='dfnref' href='#dfn-identifier'>identifier</a> of <var>member</var>.</li>
-                      <li>Let <var>present</var> be the result of calling the <span class='prop'>[[HasProperty]]</span> internal method on <var>V</var> with property name <var>key</var>.</li>
+                      <li>Let <var>present</var> be <span class='idltype'>false</span> if <a href='http://es5.github.com/#x8' class='dfnref external'>Type</a>(<var>V</var>) is Undefined or Null,
+                        or the result of calling the <span class='prop'>[[HasProperty]]</span> internal method on <var>V</var> with property name <var>key</var> otherwise.</li>
                       <li>If <var>present</var> is true, then:
                         <ol>
                           <li>Let <var>value</var> be the result of calling the <span class='prop'>[[Get]]</span> internal method on <var>V</var> with property name <var>key</var>.</li>
@@ -8577,8 +8596,9 @@ system.loginTime;  <span class='comment'>// So this now evaluates to forgedLogin
                       <div class='note'><p>This is the argument that will be used to resolve which overload is selected.</p></div></li>
 
                     <li>If <var>V</var> is <span class='esvalue'>null</span> or <span class='esvalue'>undefined</span>,
-                      and any entry in <var>S</var> has a <a class='dfnref' href='#dfn-nullable-type'>nullable type</a>
-                      or a <a class='dfnref' href='#dfn-union-type'>union type</a> that <a class='dfnref' href='#dfn-includes-a-nullable-type'>includes a nullable type</a>
+                      and any entry in <var>S</var> has a <a class='dfnref' href='#dfn-nullable-type'>nullable type</a>,
+                      a <a class='dfnref' href='#dfn-union-type'>union type</a> that <a class='dfnref' href='#dfn-includes-a-nullable-type'>includes a nullable type</a>
+                      or a <a href='#idl-dictionary'>dictionary type</a>
                       at position <var>i</var> of its type list, then remove from <var>S</var> all other entries.</li>
 
                     <li>
@@ -11360,6 +11380,15 @@ d.type = et;
           <dt>Current editor’s draft</dt>
           <dd>
             <ul>
+              <li>
+                <p>
+                  Require that dictionary type arguments followed by optional arguments
+                  must also be optional, and that such optional arguments always are
+                  assumed to have a default value of an empty dictionary.  Also disallow
+                  dictionary types from being used inside nullable types and from being
+                  considered distinguishable from nullable types.
+                </p>
+              </li>
               <li>
                 <p>
                   Always consider dictionary members with default values as present.
