@@ -11,7 +11,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <title>Web IDL (Second Edition)</title>
-    <meta name="revision" content="$Id: Overview.html,v 1.550 2012-06-25 07:09:43 cmccorma Exp $" />
+    <meta name="revision" content="$Id: Overview.html,v 1.551 2012-06-25 07:14:41 cmccorma Exp $" />
     <link rel="stylesheet" href="WebIDL.css" type="text/css" />
     <script src="section-links.js" type="application/ecmascript"></script>
     <script src="dfn.js" type="application/ecmascript"></script>
@@ -528,7 +528,8 @@ dictionary <i>identifier</i> {
           </p>
           <p>
             The <a class="dfnref" href="#dfn-identifier">identifier</a> of any of the abovementioned
-            IDL constructs <a class="rfc2119">MUST NOT</a> be “prototype”, “constructor”, “toString”
+            IDL constructs <a class="rfc2119">MUST NOT</a> be “prototype”, “constructor”, “iterator”,
+            “toString”, “toJSON”,
             or begin with a <span class="char">U+005F LOW LINE ("_")</span> character.  These
             are known as <dfn id="dfn-reserved-identifier">reserved identifiers</dfn>.
           </p>
@@ -9736,6 +9737,28 @@ partial interface Window {
             </div>
 
             <p>
+              If an <a class="dfnref" href="#dfn-interface">interface</a> defines an
+              <a class="dfnref" href="#dfn-indexed-property-getter">indexed property getter</a>, then its 
+              <a class="dfnref" href="#dfn-interface-prototype-object">interface prototype object</a>
+              <span class="rfc2119">MUST</span> have a property named “iterator” with attributes
+              <span class="descriptor">{ [[Writable]]: <span class="esvalue">true</span>, [[Enumerable]]: <span class="esvalue">true</span>, [[Configurable]]: <span class="esvalue">true</span> }</span>
+              and whose value is a <span class="estype">Function</span> object with the
+              following behavior:
+            </p>
+            <ol class="algorithm">
+              <li>Let <var>object</var> be the <span class="estype">this</span> value.</li>
+              <li>Let <var>proto</var> be the [[ArrayIteratorPrototype]] object.</li>
+              <li>Return a new object with internal properties <span class="descriptor">{ [[NativeBrand]]: NativeArrayIterator, [[Prototype]]: <var>proto</var>, [[Target]]: <var>object</var>, [[Index]]: 0 }</span>.</li>
+            </ol>
+            <div class="ednote"><div class="ednoteHeader">Editorial note</div>
+              <p>
+                Native array iterators are currently only defined in
+                <a href="http://wiki.ecmascript.org/doku.php?id=harmony:iterators">a strawman wiki page</a>
+                and this will need to updated once they have been added to the ES6 spec.
+              </p>
+            </div>
+
+            <p>
               The <a class="dfnref" href="#dfn-class-string">class string</a> of an
               <a class="dfnref" href="#dfn-interface-prototype-object">interface prototype object</a>
               is the concatenation of the <a class="dfnref" href="#dfn-interface">interface</a>’s
@@ -12191,6 +12214,12 @@ d.type = et;
           <dt>Current editor’s draft</dt>
           <dd>
             <ul>
+              <li>
+                <p>
+                  Added an <code>iterator</code> method to objects with indexed
+                  properties.
+                </p>
+              </li>
               <li>
                 <p>
                   Updated to ECMAScript 6th Edition.
