@@ -15,7 +15,7 @@
   <head>
     <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'/>
     <title>Web IDL (Second Edition)</title>
-    <meta name='revision' content='$Id: Overview.xml,v 1.546 2012-06-23 06:13:40 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: Overview.xml,v 1.547 2012-06-25 01:15:30 cmccorma Exp $'/>
     <link rel='stylesheet' href='WebIDL.css' type='text/css'/>
     <script src='section-links.js' type='application/ecmascript'/>
     <script src='dfn.js' type='application/ecmascript'/>
@@ -1733,7 +1733,7 @@ s.union(1, 4, 7);         <span class='comment'>// Passing three arguments corre
               in an operation declaration.
             </p>
             <p>
-              There are six kinds of special operations.  The table below indicates
+              There are seven kinds of special operations.  The table below indicates
               for a given kind of special operation what special keyword
               is used to declare it and what the purpose of the special operation is:
             </p>
@@ -1772,6 +1772,11 @@ s.union(1, 4, 7);         <span class='comment'>// Passing three arguments corre
                 <td><dfn id='dfn-stringifier'>Stringifiers</dfn></td>
                 <td><code>stringifier</code></td>
                 <td>Defines how an object is converted into a <span class='idltype'>DOMString</span>.</td>
+              </tr>
+              <tr>
+                <td><dfn id='dfn-serializer'>Serializers</dfn></td>
+                <td><code>serializer</code></td>
+                <td>Defines how an object is converted into a serialized form.</td>
               </tr>
             </table>
             <p>
@@ -1902,7 +1907,7 @@ dictionary.x = 1;                  <span class='comment'>// Invokes the property
             <p>
               On a given <a class='dfnref' href='#dfn-interface'>interface</a>,
               there <span class='rfc2119'>MUST</span> exist at most one
-              stringifier and at most one of each variety of getter, setter,
+              stringifier, at most one serializer, and at most one of each variety of getter, setter,
               creator and deleter.  Multiple legacy callers can exist on an interface
               to specify overloaded calling behavior.
             </p>
@@ -2090,6 +2095,358 @@ s.familyName = 'Smithee';
 s.givenName = 'Alan';
 
 var greeting = 'Hi ' + s;  <span class='comment'>// Now greeting == 'Hi Alan Smithee'.</span></x:codeblock>
+              </div>
+            </div>
+
+            <div id='idl-serializers' class='section'>
+              <h5>Serializers</h5>
+
+              <p>
+                When an <a class='dfnref' href='#dfn-interface'>interface</a> has a
+                <a class='dfnref' href='#dfn-serializer'>serializer</a>, it indicates that objects provide
+                a way for them to be converted into a serialized form.  Serializers can be declared
+                using the <code>serializer</code> keyword:
+              </p>
+              <pre class='syntax'>serializer;</pre>
+              <p>
+                Prose accompanying an interface that declares a serializer in this
+                way <span class='rfc2119'>MUST</span> define the
+                <dfn id='dfn-serialization-behavior'>serialization behavior</dfn>
+                of the interface.  Serialization behavior is defined as returning
+                a <dfn id='dfn-serialized-value'>serialized value</dfn> of one of the following types:
+              </p>
+              <ul>
+                <li>a <em>map</em> of key–value pairs, where the keys are
+                  <span class='idltype'>DOMString</span> values (unique in the map) and the
+                  values are <a class='dfnref' href='#dfn-serialized-value'>serialized values</a></li>
+                <li>a <em>list</em> of <a class='dfnref' href='#dfn-serialized-value'>serialized values</a></li>
+                <li>a <span class='idltype'>DOMString</span> value</li>
+                <li>an <a class='idltype' href='#idl-unrestricted-double'>unrestricted double</a> value</li>
+                <li>a <span class='idltype'>boolean</span> value</li>
+                <li>the <span class='idlvalue'>null</span> value</li>
+              </ul>
+              <p>
+                How the <a class='dfnref' href='#dfn-serialization-behavior'>serialization behavior</a>
+                is made available on an object in a language binding, and how exactly the abstract
+                <a class='dfnref' href='#dfn-serialized-value'>serialized value</a> is converted into
+                an appropriate concrete value, is language binding specific.
+              </p>
+              <div class='note'>
+                <p>In the ECMAScript language binding,
+                <a class='dfnref' href='#dfn-serialization-behavior'>serialization behavior</a>
+                is exposed as a <code>toJSON</code> method which returns the
+                <a class='dfnref' href='#dfn-serialized-value'>serialized value</a> converted
+                into an ECMAScript value that can be serialized to JSON by the
+                <code>JSON.stringify</code> function.  See <a href='#es-serializer'>section <?sref es-serializer?></a>
+                <?sdir es-serializer?> for details.</p>
+              </div>
+              <p>
+                <a class='dfnref' href='#dfn-serialization-behavior'>Serialization behavior</a>
+                can also be specified directly in IDL, rather than separately as prose.
+                This is done by following the <code>serializer</code> keyword with
+                a <span class='char'>U+003D EQUALS SIGN ("=")</span> character and
+                a <dfn id='dfn-serialization-pattern'>serialization pattern</dfn>,
+                which can take one of the following six forms:
+              </p>
+              <ul>
+                <li>
+                  <p>A map with entries corresponding to zero or more attributes from the interface, and optionally
+                  attributes from an inherited interface:</p>
+                  <pre class='syntax'>serializer = { <i>attribute-identifier</i>, <i>attribute-identifier</i>, … };
+serializer = { inherit, <i>attribute-identifier</i>, <i>attribute-identifier</i>, … };</pre>
+                  <p>Each identifier <span class='rfc2119'>MUST</span> be the identifier of an attribute declared
+                  on the interface.  The identified attributes all <span class='rfc2119'>MUST</span> have a
+                  <a class='dfnref' href='#dfn-serializable-type'>serializable type</a>.</p>
+                  <p>The <code>inherit</code> keyword <span class='rfc2119'>MUST NOT</span> be used unless
+                  the interface inherits from another that defines a serializer, and the closest such interface
+                  defines its serializer using this <a class='dfnref' href='#dfn-serialization-pattern'>serialization pattern</a>
+                  form or the following form (i.e. <code>{ attribute }</code>).</p>
+                  <p>The <a class='dfnref' href='#dfn-serialization-behavior'>serialization behavior</a> for this
+                  form of serialization pattern is as follows:</p>
+                  <ol class='algorithm'>
+                    <li>Let <var>map</var> be an empty map.</li>
+                    <li>If the <code>inherit</code> keyword was used, then set <var>map</var> to be the result of
+                    the <a class='dfnref' href='#dfn-serialization-behavior'>serialization behavior</a> of the
+                    closest inherited interface that declares a serializer.</li>
+                    <li>For each attribute identifier <var>i</var> in the serialization pattern, in order:
+                      <ol>
+                        <li>Remove any entry in <var>map</var> with key name <var>i</var>.</li>
+                        <li>Let <var>V</var> be the value of the attribute with identifier <var>i</var>.</li>
+                        <li>Add an entry to <var>map</var> whose key name is <var>i</var> and whose
+                        value is result of <a class='dfnref' href='#dfn-convert-to-serializable-value'>converting</a>
+                        <var>V</var> to a serialized value.</li>
+                      </ol>
+                    </li>
+                    <li>Return <var>map</var>.</li>
+                  </ol>
+                </li>
+                <li>
+                  <p>A map with entries corresponding to all attributes from the interface that have
+                  a <a class='dfnref' href='#dfn-serializable-type'>serializable type</a>, and optionally
+                  attributes from an inherited interface:</p>
+                  <pre class='syntax'>serializer = { attribute };
+serializer = { inherit, attribute };</pre>
+                  <p>The <code>inherit</code> keyword <span class='rfc2119'>MUST NOT</span> be used unless
+                  the interface inherits from another that defines a serializer, and the closest such interface
+                  defines its serializer using this <a class='dfnref' href='#dfn-serialization-pattern'>serialization pattern</a>
+                  form or the previous form.</p>
+                  <p>The <a class='dfnref' href='#dfn-serialization-behavior'>serialization behavior</a> for this
+                  form of serialization pattern is as follows:</p>
+                  <ol class='algorithm'>
+                    <li>Let <var>map</var> be an empty map.</li>
+                    <li>If the <code>inherit</code> keyword was used, then set <var>map</var> to be the result of
+                    the <a class='dfnref' href='#dfn-serialization-behavior'>serialization behavior</a> of the
+                    closest inherited interface that declares a serializer.</li>
+                    <li>For each identifier <var>i</var> of an attribute on the interface whose type is
+                    a <a class='dfnref' href='#dfn-serializable-type'>serializable type</a>, in the order they appear
+                    on the interface:
+                      <ol>
+                        <li>Remove any entry in <var>map</var> with key name <var>i</var>.</li>
+                        <li>Let <var>V</var> be the value of the attribute with identifier <var>i</var>.</li>
+                        <li>Add an entry to <var>map</var> whose key name is <var>i</var> and whose
+                        value is result of <a class='dfnref' href='#dfn-convert-to-serializable-value'>converting</a>
+                        <var>V</var> to a serialized value.</li>
+                      </ol>
+                    </li>
+                    <li>Return <var>map</var>.</li>
+                  </ol>
+                </li>
+                <li>
+                  <p>A map with entries corresponding to the named properties:</p>
+                  <pre class='syntax'>serializer = { getter };</pre>
+                  <p>This form <span class='rfc2119'>MUST NOT</span> be used unless the interface or one it
+                  inherits from supports named properties and the return type of the named property getter
+                  is a serializable type.</p>
+                  <p>The <a class='dfnref' href='#dfn-serialization-behavior'>serialization behavior</a> for this
+                  form of serialization pattern is as follows:</p>
+                  <ol class='algorithm'>
+                    <li>Let <var>map</var> be an empty map.</li>
+                    <li>For each supported property name <var>n</var> on the object, in order:
+                      <ol>
+                        <li>Let <var>V</var> be the value of the named property with name <var>n</var>.</li>
+                        <li>Add an entry to <var>map</var> whose key name is <var>i</var> and whose
+                        value is result of <a class='dfnref' href='#dfn-convert-to-serializable-value'>converting</a>
+                        <var>V</var> to a serialized value.</li>
+                      </ol>
+                    </li>
+                    <li>Return <var>map</var>.</li>
+                  </ol>
+                </li>
+                <li>
+                  <p>A list of value of zero or more attributes on the interface:</p>
+                  <pre class='syntax'>serializer = [ <i>attribute-identifier</i>, <i>attribute-identifier</i>, … ];</pre>
+                  <p>Each identifier <span class='rfc2119'>MUST</span> be the identifier of an attribute declared
+                  on the interface.  The identified attributes all <span class='rfc2119'>MUST</span> have a
+                  <a class='dfnref' href='#dfn-serializable-type'>serializable type</a>.</p>
+                  <p>The <a class='dfnref' href='#dfn-serialization-behavior'>serialization behavior</a> for this
+                  form of serialization pattern is as follows:</p>
+                  <ol class='algorithm'>
+                    <li>Let <var>list</var> be an empty list.</li>
+                    <li>For each attribute identifier <var>i</var> in the serialization pattern:
+                      <ol>
+                        <li>Let <var>V</var> be the value of the attribute with identifier <var>i</var>.</li>
+                        <li>Append to <var>list</var> the value that is the result of
+                        <a class='dfnref' href='#dfn-convert-to-serializable-value'>converting</a>
+                        <var>V</var> to a serialized value.</li>
+                      </ol>
+                    </li>
+                    <li>Return <var>list</var>.</li>
+                  </ol>
+                </li>
+                <li>
+                  <p>A list with entries corresponding to the indexed properties:</p>
+                  <pre class='syntax'>serializer = [ getter ];</pre>
+                  <p>This form <span class='rfc2119'>MUST NOT</span> be used unless the interface or one it
+                  inherits from supports indexed properties and the return type of the indexed property getter
+                  is a serializable type.</p>
+                  <p>The <a class='dfnref' href='#dfn-serialization-behavior'>serialization behavior</a> for this
+                  form of serialization pattern is as follows:</p>
+                  <ol class='algorithm'>
+                    <li>Let <var>list</var> be an empty list.</li>
+                    <li>Let <var>i</var> be 0.</li>
+                    <li>While <var>i</var> is less than or equal to the greatest supported property index on the object:
+                      <ol>
+                        <li>Let <var>V</var> be the value of the indexed property with index <var>i</var>
+                          if <var>i</var> is a supported property index, or <span class='idlvalue'>null</span> otherwise.</li>
+                        <li>Append to <var>list</var> the value that is the result of
+                        <a class='dfnref' href='#dfn-convert-to-serializable-value'>converting</a>
+                        <var>V</var> to a serialized value.</li>
+                        <li>Set <var>i</var> to <var>i</var> + 1.</li>
+                      </ol>
+                    </li>
+                    <li>Return <var>map</var>.</li>
+                  </ol>
+                </li>
+                <li>
+                  <p>A single attribute:</p>
+                  <pre class='syntax'>serializer = <i>attribute-identifier</i>;</pre>
+                  <p>The identifier <span class='rfc2119'>MUST</span> be the identifier of an attribute declared
+                  on the interface, and this attribute <span class='rfc2119'>MUST</span> have a
+                  <a class='dfnref' href='#dfn-serializable-type'>serializable type</a>.</p>
+                  <p>The <a class='dfnref' href='#dfn-serialization-behavior'>serialization behavior</a> for this
+                  form of serialization pattern is as follows:</p>
+                  <ol class='algorithm'>
+                    <li>Let <var>V</var> be the value of the attribute with the specified identifier.</li>
+                    <li>Return the result of <a class='dfnref' href='#dfn-convert-to-serializable-value'>converting</a>
+                      <var>V</var> to a serialized value.</li>
+                  </ol>
+                </li>
+              </ul>
+
+              <div class='note'>
+                <p>
+                  Entries are added to maps in a particular order so that in the ECMAScript language binding
+                  it is defined what order properties are added to objects.  This is because this order
+                  can influence the serialization that <code>JSON.stringify</code> can produce.
+                </p>
+              </div>
+
+              <p>The list of <dfn id='dfn-serializable-type'>serializable types</dfn> and how they are
+              <dfn id='dfn-convert-to-serialized-value'>converted to serialized values</dfn> is as follows:</p>
+              <dl class='switch'>
+                <dt><span class='idltype'>long long</span></dt>
+                <dd>converted by choosing the closest equivalent <a class='idltype' href='#idl-double'>double</a> value
+                  (as when <a href='#es-long-long'>converting a <span class='idltype'>long long</span> to an ECMAScript <span class='estype'>Number</span> value</a>)</dd>
+                <dt><span class='idltype'>unsigned long long</span></dt>
+                <dd>converted by choosing the closest equivalent <a class='idltype' href='#idl-double'>double</a> value
+                  (as when <a href='#es-unsigned-long-long'>converting a <span class='idltype'>unsigned long long</span> to an ECMAScript <span class='estype'>Number</span> value</a>)</dd>
+                <dt>any other <a class='dfnref' href='#dfn-integer-type'>integer type</a></dt>
+                <dt><span class='idltype'>float</span></dt>
+                <dd>converted by choosing the equivalent <a class='idltype' href='#idl-double'>double</a> value</dd>
+                <dt><span class='idltype'>double</span></dt>
+                <dt><span class='idltype'>boolean</span></dt>
+                <dt><span class='idltype'>DOMString</span></dt>
+                <dt><span class='idltype'>Date</span></dt>
+                <dd>the same value of the respective type</dd>
+                <dt>an <a class='dfnref' href='#dfn-enumeration'>enumeration type</a></dt>
+                <dd>the equivalent <span class='idltype'>DOMString</span> value</dd>
+                <dt>a <a class='dfnref' href='#dfn-nullable'>nullable</a> serializable type</dt>
+                <dd>converted to <span class='idltype'>null</span> if that is its value,
+                  otherwise converted as per its <a class='dfnref' href='#dfn-inner-type'>inner type</a></dd>
+                <dt>a <a class='dfnref' href='#dfn-union-type'>union type</a> where
+                  all of its <a class='dfnref' href='#dfn-union-member-type'>member types</a>
+                  are serializable types</dt>
+                <dd>converted as per its <a class='dfnref' href='#dfn-specific-type'>specific type</a></dd>
+                <dt>a <a class='dfnref' href='#dfn-sequence'>sequence type</a> that
+                  has a serializable type as its element type</dt>
+                <dd>converted to a list where each element is the result of converting its
+                  corresponding sequence element to a serialized value</dd>
+                <dt>a <a class='dfnref' href='#dfn-dictionary'>dictionary</a> where
+                  all of its <a class='dfnref' href='#dfn-dictionary-member'>members</a> have
+                  serializable types</dt>
+                <dd>converted to a map consisting of an entry for each dictionary member
+                  that is present, where the entry’s key is the identifier of the dictionary
+                  member and its value is the result of converting the dictionary member’s
+                  value to a serializable type</dd>
+                <dt>an <a href='#idl-interface'>interface</a> type that has a
+                  <a class='dfnref' href='#dfn-serializer'>serializer</a></dt>
+                <dd>converted by invoking the object’s serializer</dd>
+              </dl>
+
+              <p>
+                Serializers can also be specified using an <a class='dfnref' href='#dfn-operation'>operation</a>
+                with the <code>serializer</code> keyword:
+              </p>
+              <pre class='syntax'>serializer <i>type</i> <i>identifier</i>();</pre>
+              <p>
+                Serializers declared with operations <span class='rfc2119'>MUST</span>
+                be declared to take zero arguments and return a <a class='dfnref' href='#dfn-serializable-type'>serializable type</a>.
+              </p>
+              <p>
+                The <a class='dfnref' href='#dfn-serialization-behavior'>serialization behavior</a>
+                of the interface with a serializer declared with an operation is the result of
+                <a class='dfnref' href='#dfn-convert-to-serialized-value'>converting</a>
+                the value returned from invoking the operation to a serialized value.
+              </p>
+
+              <div class='example'>
+                <p>
+                  The following <a class='dfnref' href='#dfn-idl-fragment'>IDL fragment</a> defines
+                  an interface <span class='idltype'>Transaction</span> that has a
+                  <a class='dfnref' href='#dfn-serializer'>serializer</a> defines in prose:
+                </p>
+                <x:codeblock language='idl'>interface Transaction {
+  readonly attribute Account from;
+  readonly attribute Account to;
+  readonly attribute float amount;
+  readonly attribute DOMString description;
+  readonly attribute unsigned long number;
+
+  serializer;
+};
+
+interface Account {
+  DOMString name;
+  unsigned long number;
+};</x:codeblock>
+                <p>
+                  The serializer could be defined as follows:
+                </p>
+                <blockquote>
+                  <p>
+                    The <a class='dfnref' href='#dfn-serialization-behavior'>serialization behavior</a>
+                    of the <span class='idltype'>Transaction</span> interface is to run the following
+                    algorithm, where <var>O</var> is the object that implements <span class='idltype'>Transaction</span>:
+                  </p>
+                  <ol class='algorithm'>
+                    <li>Let <var>map</var> be an empty map.</li>
+                    <li>Add an entry to <var>map</var> whose key is “from” and whose value is
+                      the <a class='dfnref' href='#dfn-serialized-value'>serialized value</a> of
+                      the <code>number</code> attribute on the <span class='idltype'>Account</span>
+                      object referenced by the <code>from</code> attribute on <var>O</var>.</li>
+                    <li>Add an entry to <var>map</var> whose key is “to” and whose value is
+                      the <a class='dfnref' href='#dfn-serialized-value'>serialized value</a> of
+                      the <code>number</code> attribute on the <span class='idltype'>Account</span>
+                      object referenced by the <code>from</code> attribute on <var>O</var>.</li>
+                    <li>For both of the attributes <code>amount</code> and <code>description</code>,
+                      add an entry to <var>map</var> whose key is the
+                      <a class='dfnref' href='#dfn-identifier'>identifier</a> of the attribute
+                      and whose value is the <a class='dfnref' href='#dfn-serialized-value'>serialized value</a>
+                      of the value of the attribute on <var>O</var>.</li>
+                    <li>Return <var>map</var>.</li>
+                  </ol>
+                </blockquote>
+                <p>
+                  If it was acceptable for <span class='idltype'>Account</span> objects to be serializable
+                  on their own, then <a class='dfnref' href='#dfn-serialization-pattern'>serialization patterns</a>
+                  could be used to avoid having to define the <a class='dfnref' href='#dfn-serialization-behavior'>serialization behavior</a>
+                  in prose:
+                </p>
+                <x:codeblock language='idl'>interface Transaction {
+  readonly attribute Account from;
+  readonly attribute Account to;
+  readonly attribute float amount;
+  readonly attribute DOMString description;
+  readonly attribute unsigned long number;
+
+  serializer = { from, to, amount, description };
+};
+
+interface Account {
+  DOMString name;
+  unsigned long number;
+
+  serializer = number;
+};</x:codeblock>
+                <p>
+                  In the ECMAScript language binding, there would exist a <code>toJSON</code> method on
+                  <span class='idltype'>Transaction</span> objects:
+                </p>
+                <x:codeblock language='es'><span class='comment'>// Get an instance of Transaction.</span>
+var txn = getTransaction();
+
+<span class='comment'>// Evaluates to an object like this:
+// {
+//   from: 1234
+//   to: 5678
+//   amount: 110.75
+//   description: "dinner"
+// }</span>
+txn.toJSON();
+
+<span class='comment'>// Evaluates to a string like this:
+// '{"from":1234,"to":5678,"amount":110.75,"description":"dinner"}'</span>
+JSON.stringify(txn);</x:codeblock>
               </div>
             </div>
 
@@ -5140,6 +5497,7 @@ interface Person {
             <li><a class='dfnref' href='#dfn-attribute-setter'>attribute setters</a></li>
             <li><a href='#es-operations'>the <span class='estype'>Function</span> objects that correspond to operations</a></li>
             <li><a href='#es-stringifier'>the <span class='estype'>Function</span> objects that correspond to stringifiers</a></li>
+            <li><a href='#es-serializer'>the <span class='estype'>Function</span> objects that correspond to serializers</a></li>
             <li><a class='dfnref' href='#dfn-exception-interface-object'>exception interface objects</a></li>
             <li><a class='dfnref' href='#dfn-exception-interface-prototype-object'>exception interface prototype objects</a></li>
             <li><a class='dfnref' href='#dfn-exception-field-getter'>exception field getters</a></li>
@@ -8834,7 +9192,7 @@ system.loginTime;  <span class='comment'>// So this now evaluates to forgedLogin
                   In general, an explicit <span class='esvalue'>undefined</span> passed to an operation 
                   is not treated the same as a missing optional argument (unless <code>[TreatUndefinedAs=Missing]</code>
                   is specified in the IDL).  This is inline with the current
-                  proposed behaviour for parameter default values in ECMAScript 6th edition.  However,
+                  proposed behavior for parameter default values in ECMAScript 6th edition.  However,
                   there is a possibility that ES6 will change, in which case the treatment of <span class='esvalue'>undefined</span>
                   might be revisited.
                 </p>
@@ -9552,56 +9910,161 @@ interface
               </li>
             </ul>
 
-            <p id="es-stringifier">
-              In addition, if the <a class='dfnref' href='#dfn-interface'>interface</a>
-              has a <a class='dfnref' href='#dfn-stringifier'>stringifier</a>, then
-              a property <span class='rfc2119'>MUST</span> exist on
-              the <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype object</a>
-              whose name is “toString”,
-              with attributes <span class='descriptor'>{ [[Writable]]: <span class='esvalue'>true</span>, [[Enumerable]]: <span class='esvalue'>true</span>, [[Configurable]]: <span class='esvalue'>true</span> }</span>
-              and whose value is a
-              <span class='estype'>Function</span> object.  If <code>stringifier</code>
-              was specified on an <a class='dfnref' href='#dfn-attribute'>attribute</a> <var>A</var>, then the
-              function, when invoked,
-              <span class='rfc2119'>MUST</span> behave as follows:
-            </p>
-            <ol class='algorithm'>
-              <li>Let <var>O</var> be the result of calling <a href='http://es5.github.com/#x9.9' class='dfnref external'>ToObject</a> on the <span class='esvalue'>this</span> value.</li>
-              <li>If <var>O</var> is not an object that implements the <a class='dfnref' href='#dfn-interface'>interface</a>
-                on which <var>A</var> was declared, then <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>TypeError</span></a>.</li>
-              <li>
-                Let <var>V</var> be the result of invoking the <span class='prop'>[[Get]]</span> method of <var>O</var>
-                with <var>P</var> as the argument.
-              </li>
-              <li>Return <a href='http://es5.github.com/#x9.8' class='dfnref external'>ToString</a>(<var>V</var>).</li>
-            </ol>
-            <p>
-              If <code>stringifier</code>
-              was specified on an <a class='dfnref' href='#dfn-operation'>operation</a>
-              with an identifier <var>P</var>, then
-              the function, when invoked,
-              <span class='rfc2119'>MUST</span> behave as follows:
-            </p>
-            <ol class='algorithm'>
-              <li>Let <var>O</var> be the result of calling <a href='http://es5.github.com/#x9.9' class='dfnref external'>ToObject</a> on the <span class='esvalue'>this</span> value.</li>
-              <li>
-                Let <var>F</var> be the result of invoking the <span class='prop'>[[Get]]</span> method of object
-                <var>O</var> with <var>P</var> as the argument.
-              </li>
-              <li>If <var>F</var> is not callable, <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>TypeError</span></a>.</li>
-              <li>Let <var>V</var> be the result of invoking the <span class='prop'>[[Call]]</span> method of <var>F</var>,
-                using <var>O</var> as the <span class='esvalue'>this</span> value
-                and passing no arguments.</li>
-              <li>Return <a href='http://es5.github.com/#x9.8' class='dfnref external'>ToString</a>(<var>V</var>).</li>
-            </ol>
-            <p>
-              If <code>stringifier</code>
-              was specified on an <a class='dfnref' href='#dfn-operation'>operation</a>
-              with no identifier,
-              then the behavior of the function
-              is the <a class='dfnref' href='#dfn-stringification-behavior'>stringification behavior</a>
-              of the interface, as described in the prose for the interface.
-            </p>
+            <div id="es-stringifier" class='section'>
+              <h5>Stringifiers</h5>
+
+              <p>
+                If the <a class='dfnref' href='#dfn-interface'>interface</a>
+                has a <a class='dfnref' href='#dfn-stringifier'>stringifier</a>, then
+                a property <span class='rfc2119'>MUST</span> exist on
+                the <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype object</a>
+                whose name is “toString”,
+                with attributes <span class='descriptor'>{ [[Writable]]: <span class='esvalue'>true</span>, [[Enumerable]]: <span class='esvalue'>true</span>, [[Configurable]]: <span class='esvalue'>true</span> }</span>
+                and whose value is a
+                <span class='estype'>Function</span> object.  If <code>stringifier</code>
+                was specified on an <a class='dfnref' href='#dfn-attribute'>attribute</a> <var>A</var>, then the
+                function, when invoked,
+                <span class='rfc2119'>MUST</span> behave as follows:
+              </p>
+              <ol class='algorithm'>
+                <li>Let <var>O</var> be the result of calling <a href='http://es5.github.com/#x9.9' class='dfnref external'>ToObject</a> on the <span class='esvalue'>this</span> value.</li>
+                <li>If <var>O</var> is not an object that implements the <a class='dfnref' href='#dfn-interface'>interface</a>
+                  on which <var>A</var> was declared, then <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>TypeError</span></a>.</li>
+                <li>
+                  Let <var>V</var> be the result of invoking the <span class='prop'>[[Get]]</span> method of <var>O</var>
+                  with <var>P</var> as the argument.
+                </li>
+                <li>Return <a href='http://es5.github.com/#x9.8' class='dfnref external'>ToString</a>(<var>V</var>).</li>
+              </ol>
+              <p>
+                If <code>stringifier</code>
+                was specified on an <a class='dfnref' href='#dfn-operation'>operation</a>
+                with an identifier <var>P</var>, then
+                the function, when invoked,
+                <span class='rfc2119'>MUST</span> behave as follows:
+              </p>
+              <ol class='algorithm'>
+                <li>Let <var>O</var> be the result of calling <a href='http://es5.github.com/#x9.9' class='dfnref external'>ToObject</a> on the <span class='esvalue'>this</span> value.</li>
+                <li>
+                  Let <var>F</var> be the result of invoking the <span class='prop'>[[Get]]</span> method of object
+                  <var>O</var> with <var>P</var> as the argument.
+                </li>
+                <li>If <var>F</var> is not callable, <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>TypeError</span></a>.</li>
+                <li>Let <var>V</var> be the result of invoking the <span class='prop'>[[Call]]</span> method of <var>F</var>,
+                  using <var>O</var> as the <span class='esvalue'>this</span> value
+                  and passing no arguments.</li>
+                <li>Return <a href='http://es5.github.com/#x9.8' class='dfnref external'>ToString</a>(<var>V</var>).</li>
+              </ol>
+              <p>
+                If <code>stringifier</code>
+                was specified on an <a class='dfnref' href='#dfn-operation'>operation</a>
+                with no identifier,
+                then the behavior of the function
+                is the <a class='dfnref' href='#dfn-stringification-behavior'>stringification behavior</a>
+                of the interface, as described in the prose for the interface.
+              </p>
+            </div>
+
+            <div id='es-serializer' class='section'>
+              <h5>Serializers</h5>
+
+              <p>
+                If the <a class='dfnref' href='#dfn-interface'>interface</a>
+                has a <a class='dfnref' href='#dfn-serializer'>serializer</a>, then
+                a property <span class='rfc2119'>MUST</span> exist on
+                the <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype object</a>
+                whose name is “toJSON”,
+                with attributes <span class='descriptor'>{ [[Writable]]: <span class='esvalue'>true</span>, [[Enumerable]]: <span class='esvalue'>true</span>, [[Configurable]]: <span class='esvalue'>true</span> }</span>
+                and whose value is a
+                <span class='estype'>Function</span> object.  If <code>stringifier</code>
+                was specified on an <a class='dfnref' href='#dfn-operation'>operation</a>
+                with an identifier <var>P</var>, then
+                the function, when invoked,
+                <span class='rfc2119'>MUST</span> behave as follows:
+              </p>
+              <ol class='algorithm'>
+                <li>Let <var>O</var> be the result of calling <a href='http://es5.github.com/#x9.9' class='dfnref external'>ToObject</a> on the <span class='esvalue'>this</span> value.</li>
+                <li>
+                  Let <var>F</var> be the result of invoking the <span class='prop'>[[Get]]</span> method of object
+                  <var>O</var> with <var>P</var> as the argument.
+                </li>
+                <li>If <var>F</var> is not callable, <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>TypeError</span></a>.</li>
+                <li>Let <var>V</var> be the result of invoking the <span class='prop'>[[Call]]</span> method of <var>F</var>,
+                  using <var>O</var> as the <span class='esvalue'>this</span> value
+                  and passing no arguments.</li>
+                <li>Return <var>V</var>.</li>
+              </ol>
+              <p>
+                If <code>stringifier</code> was specified as a keyword, either with
+                or without a <a class='dfnref' href='#dfn-serialization-pattern'>serialization pattern</a>, then
+                the function, when invoked, <span class='rfc2119'>MUST</span> behave as follows:
+              </p>
+              <ol class='algorithm'>
+                <li>Let <var>O</var> be the result of calling <a href='http://es5.github.com/#x9.9' class='dfnref external'>ToObject</a> on the <span class='esvalue'>this</span> value.</li>
+                <li>Let <var>S</var> be the <a class='dfnref' href='#dfn-serialized-value'>serialized value</a> that is the result of invoking the <a class='dfnref' href='#dfn-serialization-behavior'>serialization behavior</a> of the
+                  <a class='dfnref' href='#dfn-interface'>interface</a> for object <var>O</var>.</li>
+                <li>Let <var>V</var> be the result of <a class='dfnref' href='#dfn-convert-serialized-value-to-ecmascript-value'>converting</a>
+                  <var>S</var> to an ECMAScript value.</li>
+                <li>Return <var>V</var>.</li>
+              </ol>
+              <p>
+                The following steps define how to <dfn id='dfn-convert-serialized-value-to-ecmascript-value'>convert a serialized value to an ECMAScript value</dfn>:
+              </p>
+              <ol class='algorithm'>
+                <li>Let <var>S</var> be the <a class='dfnref' href='#dfn-serialized-value'>serialized value</a>.</li>
+                <li>Depending on the type of <var>S</var>:
+                  <dl class='switch'>
+                    <dt>a map</dt>
+                    <dd>
+                      <ol class='algorithm'>
+                        <li>Let <var>O</var> be a new object created as if by the expression <code>({})</code>.</li>
+                        <li>For each entry in <var>S</var>, in the order they were added to the map:
+                          <ol>
+                            <li>Let <var>V</var> be the result of <a class='dfnref' href='#dfn-convert-serialized-value-to-ecmascript-value'>converting</a>
+                            the value of the entry to an ECMAScript value.</li>
+                            <li>Let <var>P</var> be the entry’s key.</li>
+                            <li>Call the <span class='prop'>[[DefineOwnProperty]]</span> internal method of <var>O</var> passing
+                            property name <var>P</var>, Property Descriptor <span class='descriptor'>{ [[Value]]: <var>V</var>,
+                            [[Writable]]: <span class='esvalue'>true</span>, [[Enumerable]]: <span class='esvalue'>true</span>,
+                            [[Configurable]]: <span class='esvalue'>true</span> }</span>, and <span class='esvalue'>false</span>
+                            as arguments.</li>
+                          </ol>
+                        </li>
+                        <li>Return <var>O</var>.</li>
+                      </ol>
+                    </dd>
+                    <dt>a list</dt>
+                    <dd>
+                      <ol class='algorithm'>
+                        <li>Let <var>A</var> be a new <span class='estype'>Array</span> object created as if by the expression <code>[]</code>.</li>
+                        <li>Let <var>index</var> be 0.</li>
+                        <li>While <var>index</var> is less than the number of elements in <var>S</var>:
+                          <ol>
+                            <li>Let <var>V</var> be the result of <a class='dfnref' href='#dfn-convert-serialized-value-to-ecmascript-value'>converting</a>
+                            the value of the element in <var>S</var> at index <var>index</var> to an ECMAScript value.</li>
+                            <li>Let <var>P</var> be <a href='http://es5.github.com/#x9.8' class='dfnref external'>ToString</a>(<var>index</var>).</li>
+                            <li>Call the <span class='prop'>[[DefineOwnProperty]]</span> internal method of <var>O</var> passing
+                            property name <var>P</var>, Property Descriptor <span class='descriptor'>{ [[Value]]: <var>V</var>,
+                            [[Writable]]: <span class='esvalue'>true</span>, [[Enumerable]]: <span class='esvalue'>true</span>,
+                            [[Configurable]]: <span class='esvalue'>true</span> }</span>, and <span class='esvalue'>false</span>
+                            as arguments.</li>
+                          </ol>
+                        </li>
+                        <li>Return <var>A</var>.</li>
+                      </ol>
+                    </dd>
+                    <dt>any other serialized value</dt>
+                    <dd>
+                      <ol class='algorithm'>
+                        <li>Let <var>V</var> be the result of <a class='dfnref' href='#dfn-convert-idl-to-ecmascript-value'>converting</a>
+                        <var>S</var> to an ECMAScript value.</li>
+                        <li>Return <var>V</var>.</li>
+                      </ol>
+                    </dd>
+                  </dl>
+                </li>
+              </ol>
+            </div>
           </div>
 
         </div>
@@ -10951,6 +11414,7 @@ d.type = et;
           L. David Baron,
           Art Barstow,
           Robin Berjon,
+          David Bruant,
           Marcos Cáceres,
           Giovanni Campagna,
           Brendan Eich,
@@ -11469,6 +11933,11 @@ d.type = et;
           <dt>Current editor’s draft</dt>
           <dd>
             <ul>
+              <li>
+                <p>
+                  Added serializers.
+                </p>
+              </li>
               <li>
                 <p>
                   Added a <span class='idltype'>ByteString</span> type, for representing
