@@ -15,7 +15,7 @@
   <head>
     <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'/>
     <title>Web IDL (Second Edition)</title>
-    <meta name='revision' content='$Id: Overview.xml,v 1.547 2012-06-25 01:15:30 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: Overview.xml,v 1.548 2012-06-25 01:38:08 cmccorma Exp $'/>
     <link rel='stylesheet' href='WebIDL.css' type='text/css'/>
     <script src='section-links.js' type='application/ecmascript'/>
     <script src='dfn.js' type='application/ecmascript'/>
@@ -1412,7 +1412,8 @@ interface Person : Animal {
 
             <p>
               An <dfn id='dfn-operation'>operation</dfn> is an <a class='dfnref' href='#dfn-interface-member'>interface member</a>
-              (matching <a href='#prod-Qualifier' class='sym'>Qualifier</a> <a class='sym' href='#prod-OperationRest'>OperationRest</a> or <a class='sym' href='#prod-Operation'>Operation</a>)
+              (matching <a href='#prod-Qualifier' class='sym'>Qualifier</a> <a class='sym' href='#prod-OperationRest'>OperationRest</a>,
+              <span class='sym'>"serializer"</span> <a href='#prod-OperationRest'>OperationRest</a> or <a class='sym' href='#prod-Operation'>Operation</a>)
               that defines a behavior that can be invoked on objects implementing the interface.
               There are three kinds of operation:
             </p>
@@ -1718,7 +1719,7 @@ s.union(1, 4, 7);         <span class='comment'>// Passing three arguments corre
               <a class='xattr' href='#TreatUndefinedAs'>[TreatUndefinedAs]</a>.
             </p>
 
-            <?productions grammar AttributeOrOperation AttributeOrOperationRest Operation OperationRest Specials Special ReturnType OptionalIdentifier ArgumentList Arguments Argument OptionalOrRequiredArgument ArgumentName ArgumentNameKeyword DefaultValue In Ellipsis?>
+            <?productions grammar AttributeOrOperation Serializer SerializerRest AttributeOrOperationRest Operation OperationRest Specials Special ReturnType OptionalIdentifier ArgumentList Arguments Argument OptionalOrRequiredArgument ArgumentName ArgumentNameKeyword DefaultValue In Ellipsis?>
           </div>
 
           <div id='idl-special-operations' class='section'>
@@ -2358,6 +2359,8 @@ serializer = { inherit, attribute };</pre>
                 <a class='dfnref' href='#dfn-convert-to-serialized-value'>converting</a>
                 the value returned from invoking the operation to a serialized value.
               </p>
+
+              <?productions grammar Serializer SerializerRest SerializationPattern SerializationPatternMap SerializationPatternList Identifiers?>
 
               <div class='example'>
                 <p>
@@ -11589,9 +11592,15 @@ d.type = et;
           <prod nt='ConstValue'>BooleanLiteral | FloatLiteral | integer | "null"</prod>
           <prod nt='BooleanLiteral'>"true" | "false"</prod>
           <prod nt='FloatLiteral'>float | "-" "Infinity" | "Infinity" | "NaN"</prod>
-          <prod nt='AttributeOrOperation'>Qualifier AttributeOrOperationRest | Attribute | Operation</prod>
+          <prod nt='AttributeOrOperation'>Serializer | Qualifier AttributeOrOperationRest | Attribute | Operation</prod>
+          <prod nt='Serializer'>"serializer" SerializerRest</prod>
+          <prod nt='SerializerRest'>OperationRest | "=" SerializationPattern | ε</prod>
+          <prod nt='SerializationPattern'>"{" SerializationPatternMap "}" | "[" SerializationPatternList "]" | identifier</prod>
+          <prod nt='SerializationPatternMap'>"getter" | "inherit" Identifiers | identifier Identifiers | ε</prod>
+          <prod nt='SerializationPatternList'>"getter" | identifier Identifiers | ε</prod>
+          <prod nt='Identifiers'>"," identifier Identifiers | ε</prod>
           <prod nt='Qualifier'>"static" | "stringifier"</prod>
-          <prod nt='AttributeOrOperation'>AttributeRest | OperationRest | ";"</prod>
+          <prod nt='AttributeOrOperationRest'>AttributeRest | OperationRest | ";"</prod>
           <!--
           <prod nt='Attribute'>ReadOnly "attribute" AttributeType identifier Get SetRaises ";"</prod>
           -->
