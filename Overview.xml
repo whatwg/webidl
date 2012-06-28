@@ -15,7 +15,7 @@
   <head>
     <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'/>
     <title>Web IDL (Second Edition)</title>
-    <meta name='revision' content='$Id: Overview.xml,v 1.556 2012-06-26 01:08:45 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: Overview.xml,v 1.557 2012-06-28 02:21:09 cmccorma Exp $'/>
     <link rel='stylesheet' href='WebIDL.css' type='text/css'/>
     <script src='section-links.js' type='application/ecmascript'/>
     <script src='dfn.js' type='application/ecmascript'/>
@@ -450,7 +450,7 @@ dictionary <i>identifier</i> {
               <a class='sym' href='#prod-identifier'>identifier</a> token that appears
               after the return type but before the opening parenthesis (that is,
               one that is matched as part of the <a class='sym' href='#prod-OptionalIdentifier'>OptionalIdentifier</a>
-              grammar symbol in an <a class='sym' href='#prod-Operation'>Operation</a>) determines the identifier of the operation.  If
+              grammar symbol in an <a class='sym' href='#prod-OperationRest'>OperationRest</a>) determines the identifier of the operation.  If
               there is no such <a class='sym' href='#prod-identifier'>identifier</a> token,
               then the operation does not have an identifier.
               <pre class='syntax'><i>return-type</i> <em>operation-identifier</em>(<i>arguments…</i>);</pre>
@@ -1413,8 +1413,14 @@ interface Person : Animal {
 
             <p>
               An <dfn id='dfn-operation'>operation</dfn> is an <a class='dfnref' href='#dfn-interface-member'>interface member</a>
-              (matching <a href='#prod-Qualifier' class='sym'>Qualifier</a> <a class='sym' href='#prod-OperationRest'>OperationRest</a>,
-              <span class='sym'>"serializer"</span> <a href='#prod-OperationRest'>OperationRest</a> or <a class='sym' href='#prod-Operation'>Operation</a>)
+              (matching
+              <a href='#prod-Qualifier' class='sym'>Qualifier</a>
+                <a class='sym' href='#prod-OperationRest'>OperationRest</a>,
+              <span class='sym'>"serializer"</span>
+                <a class='sym' href='#prod-OperationRest'>OperationRest</a>,
+              <a class='sym' href='#prod-ReturnType'>ReturnType</a>
+                <a class='sym' href='#prod-OperationRest'>OperationRest</a> or
+              <a class='sym' href='#prod-SpecialOperation'>SpecialOperation</a>)
               that defines a behavior that can be invoked on objects implementing the interface.
               There are three kinds of operation:
             </p>
@@ -1736,7 +1742,7 @@ s.union(1, 4, 7);         <span class='comment'>// Passing three arguments corre
               <a class='xattr' href='#TreatUndefinedAs'>[TreatUndefinedAs]</a>.
             </p>
 
-            <?productions grammar AttributeOrOperation Serializer SerializerRest AttributeOrOperationRest Operation OperationRest Specials Special ReturnType OptionalIdentifier ArgumentList Arguments Argument OptionalOrRequiredArgument ArgumentName ArgumentNameKeyword DefaultValue In Ellipsis?>
+            <?productions grammar AttributeOrOperationOrIterator Serializer SerializerRest Qualifier AttributeOrOperationRest OperationRest OperationOrIterator OperationOrIteratorRest SpecialOperation Specials Special ReturnType OptionalIdentifier ArgumentList Arguments Argument OptionalOrRequiredArgument ArgumentName ArgumentNameKeyword DefaultValue In Ellipsis?>
           </div>
 
           <div id='idl-special-operations' class='section'>
@@ -2819,7 +2825,7 @@ interface Circle {
                 will exist on the <a class='dfnref' href='#dfn-interface-object'>interface object</a>
                 for <span class='idltype'>Circle</span>:
               </p>
-              <x:codeblock language='es'>var circles = getCircles();    <span class='comment'>// an Array of Circle objects</span>
+              <x:codeblock language='es'>var circles = getCircles();           <span class='comment'>// an Array of Circle objects</span>
 
 typeof Circle.triangulate;            <span class='comment'>// Evaluates to "function"</span>
 typeof Circle.triangulationCount;     <span class='comment'>// Evaluates to "number"</span>
@@ -3437,6 +3443,382 @@ interface C {
               </p>
             </div>
             -->
+          </div>
+
+          <div id='idl-iterators' class='section'>
+            <h4>Iterators</h4>
+
+            <p>
+              An <dfn id='dfn-iterator'>iterator</dfn> is an <a class='dfnref' href='#dfn-interface-member'>interface member</a>
+              (matching <a class='sym' href='#prod-ReturnType'>ReturnType</a> <span class='sym'>"iterator"</span>
+              <a class='sym' href='#prod-OptionalIteratorInterface'>OptionalIteratorInterface</a>)
+              that defines behavior that can be invoked on objects implementing the interface,
+              which returns an iterator that allows values from the object to be iterated over.
+            </p>
+            <div class='note'>
+              <p>In the ECMAScript language binding, an <a class='dfnref' href='#dfn-iterator'>iterator</a>
+              is exposed as a method named <code>iterator</code> on an
+              <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype object</a>
+              which returns an iterator object.</p>
+            </div>
+            <div class='ednote'>
+              <p>This relies on the <a href='http://wiki.ecmascript.org/doku.php?id=harmony:iterators'>iterators strawman proposal</a>
+              which has not yet been incorporated into the ES6 specification.</p>
+            </div>
+            <pre class='syntax'><i>iterated-type</i> iterator;</pre>
+            <p>
+              The type on the left of the <code>iterator</code> keyword is 
+              the <dfn id='dfn-iterated-type'>iterated type</dfn>,
+              which is the type of values the <a class='dfnref' href='#dfn-iterator'>iterator</a> will return.
+            </p>
+            <p>
+              Prose accompanying an <a class='dfnref' href='#dfn-interface'>interface</a>
+              that declares an <a class='dfnref' href='#dfn-iterator'>iterator</a> in this way
+              <span class='rfc2119'>MUST</span> define the
+              <dfn id='dfn-iterator-behavior'>iterator behavior</dfn>,
+              which describes how to determine the first or next value to be provided
+              by the iterator for a given target object that implements the interface.
+              The <a class='dfnref' href='#dfn-iterator-behavior'>iterator behavior</a>
+              <span class='rfc2119'>MUST</span> be described in terms of:
+            </p>
+            <ol>
+              <li>a current <dfn id='dfn-iterator-state'>iterator state</dfn>,
+              which at the time the iterator is first invoked is the
+              <dfn id='dfn-uninitialized-iterator-state'>uninitialized iterator state</dfn>
+              and in subsequent iterations is whatever value the 
+              <a class='dfnref' href='#dfn-iterator-behavior'>iterator behavior</a> defines
+              it to be updated to, and</li>
+              <li>the <dfn id='dfn-iterator-target-object'>target object</dfn>, which is
+              the object whose values are being iterated over.</li>
+            </ol>
+            <p>
+              The <a class='dfnref' href='#dfn-iterator-behavior'>iterator behavior</a> <span class='rfc2119'>MUST</span>
+              be defined so that it does one of the following three things:
+            </p>
+            <ol>
+              <li>return an IDL value, which is the next value to be iterated over,</li>
+              <li><dfn id='dfn-iterator-return-no-value'>not return a value</dfn>, which means
+              that no more values will be iterated over, or</li>
+              <li>throw an exception.</li>
+            </ol>
+            <p>
+              Any value returned from the definition of <a class='dfnref' href='#dfn-iterator-behavior'>iterator behavior</a>
+              for an interface <span class='rfc2119'>MUST</span> be of the same
+              type as the <a class='dfnref' href='#dfn-iterated-type'>iterated type</a>.
+            </p>
+
+            <div class='example'>
+              <p>Consider the following interface <span class='idltype'>SessionManager</span>, which allows access to
+              a number of <span class='idltype'>Session</span> objects:</p>
+              <x:codeblock language='idl'>interface SessionManager {
+  Session getSessionForUser(DOMString username);
+  readonly attribute unsigned long sessionCount;
+
+  Session iterator;
+};
+
+interface Session {
+  readonly attribute DOMString username;
+  <span class='comment'>// ...</span>
+};</x:codeblock>
+              <p>
+                The behavior of the iterator could be defined like so:
+              </p>
+              <blockquote>
+                <p>
+                  The <a class='dfnref' href='#dfn-iterator-behavior'>iterator behavior</a> of the
+                  <span class='idltype'>SessionManager</span> <a class='dfnref' href='#dfn-interface'>interface</a>
+                  is as follows:
+                </p>
+                <ol class='algorithm'>
+                  <li>Let <var>sessions</var> be a list of open sessions sorted by username.</li>
+                  <li>If <var>sessions</var> is empty, then return <a class='dfnref' href='#dfn-iteration-return-no-value'>no value</a>.</li>
+                  <li>Let <var>state</var> be the current <a class='dfnref' href='#dfn-iterator-state'>iterator state</a>.</li>
+                  <li>If <var>state</var> is <a class='dfnref' href='#dfn-uninitialized-iterator-state'>uninitialized</a>, then:
+                    <ol>
+                      <li>Let <var>session</var> be the first <span class='idltype'>Session</span> object in <var>sessions</var>.</li>
+                      <li>Set the <a class='dfnref' href='#dfn-iterator-state'>iterator state</a> to the username of <var>session</var>.</li>
+                      <li>Return <var>session</var>.</li>
+                    </ol>
+                  </li>
+                  <li>Otherwise:
+                    <ol>
+                      <li>If there is no <span class='idltype'>Session</span> object in <var>sessions</var> with a username that sorts
+                        after <var>state</var>, then return <a class='dfnref' href='#dfn-iteration-return-no-value'>no value</a>.</li>
+                      <li>Let <var>session</var> be the first <span class='idltype'>Session</span> object in <var>sessions</var>
+                        with a username that sorts after <var>state</var>.</li>
+                      <li>Set the <a class='dfnref' href='#dfn-iterator-state'>iterator state</a> to the username of <var>session</var>.</li>
+                      <li>Return <var>session</var>.</li>
+                    </ol>
+                  </li>
+                </ol>
+              </blockquote>
+              <p>
+                In the ECMAScript language binding, the <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype object</a>
+                for the <span class='idltype'>SessionManager</span> <a class='dfnref' href='#dfn-interface'>interface</a>
+                has an <code>iterator</code> method that when invoked returned a
+                <a class='dfnref' href='#dfn-default-iterator-object'>default iterator object</a>,
+                which itself has a <code>next</code> method that returns the
+                next value to be iterated over.
+                This also allows a <span class='idltype'>SessionManager</span>
+                object to be used in a <code>for..of</code> loop:
+              </p>
+              <x:codeblock language='es'><span class='comment'>// Get an instance of SessionManager.
+// Assume that it has sessions for two users, "anna" and "brian".</span>
+var sm = getSessionManager();
+
+typeof SessionManager.prototype.iterator;  <span class='comment'>// Evaluates to "function"</span>
+var it = sm.iterator();                    <span class='comment'>// iterator() returns an iterator object</span>
+String(it);                                <span class='comment'>// Evaluates to "[object SessionManagerIterator]"</span>
+typeof it.next;                            <span class='comment'>// Evaluates to "function"</span>
+
+<span class='comment'>// This loop will alert "anna" and then "brian".</span>
+for (;;) {
+  try {
+    let session = it.next();
+    window.alert(session.username);
+  } catch (e) {
+    String(e);                             <span class='comment'>// Evaluates to "[object StopIteration]"</span>
+  }
+}
+
+<span class='comment'>// This loop will also alert "anna" and then "brian".</span>
+for (let session of sm) {
+  window.alert(session.username);
+}</x:codeblock>
+            </div>
+
+            <p>
+              <a class='dfnref' href='#dfn-iterator'>Iterators</a> can be declared in a second way, where
+              iteration is exposed through an object that implements a specific
+              <a class='dfnref' href='#dfn-interface'>interface</a>.
+            </p>
+            <pre class='syntax'><i>iterated-type</i> iterator = <i>interface-identifier</i>;</pre>
+            <p>
+              The <a class='dfnref' href='#dfn-identifier'>identifier</a> that appears on the
+              right hand side <span class='rfc2119'>MUST</span> identify an <a class='dfnref' href='#dfn-interface'>interface</a>
+              that has been declared to be an <dfn id='dfn-iterator-object-interface'>iterator object interface</dfn>,
+              which is done by placing an <code>iterator object</code> declaration on the interface:
+            </p>
+            <pre class='syntax'>interface <i>interface-identifier</i> {
+  …
+  <i>iterated-type</i> iterator object;
+};</pre>
+            <p>
+              An <a class='dfnref' href='#dfn-iterator'>iterator</a> declared by identifying an
+              <a class='dfnref' href='#dfn-iterator-object-interface'>iterator object interface</a>
+              <span class='rfc2119'>MUST</span> have the same type as listed in the
+              <code>iterator object</code> declaration of the iterator object interface.
+            </p>
+            <p>
+              Prose accompanying an <a class='dfnref' href='#dfn-interface'>interface</a>
+              that declares an <a class='dfnref' href='#dfn-iterator'>iterator</a> in this way
+              <span class='rfc2119'>MUST</span> define how an <dfn id='dfn-create-iterator-object'>iterator object is created</dfn>
+              for an object that implements the interface.  That definition <span class='rfc2119'>MUST</span>
+              return an object that implements the <a class='dfnref' href='#dfn-iterator-object-interface'>iterator object interface</a>
+              or throw an exception.
+            </p>
+            <p>
+              Prose accompanying an <a class='dfnref' href='#dfn-iterator-object-interface'>iterator object interface</a>
+              <span class='rfc2119'>MUST</span> define the <dfn id='dfn-iterator-object-behavior'>iterator object behavior</dfn>,
+              which describes how to determine the next value to be iterated over using the 
+              <a class='dfnref' href='#dfn-iterator-object'>iterator object</a> itself as the iterator’s state.
+              As with <a class='dfnref' href='#dfn-iterator-behavior'>iterator behavior</a>, the
+              <a class='dfnref' href='#dfn-iterator-object-behavior'>iterator object behavior</a> <span class='rfc2119'>MUST</span>
+              be defined so that it does one of the following three things:
+            </p>
+            <ol>
+              <li>return an IDL value, which is the next value to be iterated over,</li>
+              <li><a class='dfnref' href='#dfn-iterator-return-no-value'>not return a value</a>, which means
+              that no more values will be iterated over, or</li>
+              <li>throw an exception.</li>
+            </ol>
+            <p>
+              Any value returned from the definition of <a class='dfnref' href='#dfn-iterator-object-behavior'>iterator object behavior</a>
+              for an interface <span class='rfc2119'>MUST</span> be of the same
+              type as identified in the <code>iterator object</code> declaration.
+            </p>
+            <p>
+              There <span class='rfc2119'>MUST NOT</span> be
+              an <a class='dfnref' href='#dfn-interface-member'>interface member</a>
+              on an <a class='dfnref' href='#dfn-iterator-object-interface'>iterator object interface</a>
+              or any of its <a class='dfnref' href='#dfn-consequential-interfaces'>consequential interfaces</a>
+              with the identifier “next”.
+            </p>
+            <div class='note'>
+              <p>This is because in the ECMAScript language binding, the
+                <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype object</a> for an
+                <a class='dfnref' href='#dfn-iterator-object-interface'>iterator object interface</a>
+                has <a href='#es-iterator-object-interfaces'>a <code>next</code> method</a>.</p>
+            </div>
+
+            <div class='example'>
+              <p>
+                Consider the following interfaces, a variant of the previous example:
+              </p>
+              <x:codeblock language='idl'>interface SessionManager {
+  Session getSessionForUser(DOMString username);
+  readonly attribute unsigned long sessionCount;
+
+  Session iterator = SessionIterator;
+};
+
+interface Session {
+  readonly attribute DOMString username;
+  <span class='comment'>// ...</span>
+};
+
+interface SessionIterator {
+  readonly attribute unsigned long remainingSessions;
+};</x:codeblock>
+              <p>
+                The <span class='idltype'>SessionIterator</span> interface provides
+                some additional information that can be accessed while iterating:
+                the <code>remainingSessions</code> attribute is defined to return the
+                number of sessions remaining to be iterated over.
+              </p>
+              <p>
+                Since the <a class='dfnref' href='#dfn-iterator'>iterator</a> on
+                <span class='idltype'>SessionManager</span> is declared by referencing
+                <span class='idltype'>SessionIterator</span>, two things need to be
+                defined: how to <a class='dfnref' href='#dfn-create-iterator-object'>create an iterator object</a>
+                for a <span class='idltype'>SessionManager</span>, and what the
+                <a class='dfnref' href='#dfn-iterator-object-behavior'>iterator object behavior</a>
+                for a <span class='idltype'>SessionIterator</span> is.  These could be defined
+                like so:
+              </p>
+              <blockquote>
+                <p>
+                  An <a class='dfnref' href='#dfn-create-iterator-object'>iterator object is created</a>
+                  for a <span class='idltype'>SessionManager</span> as follows:
+                </p>
+                <ol class='algorithm'>
+                  <li>Let <var>manager</var> be the <span class='idltype'>SessionManager</span> object.</li>
+                  <li>Let <var>iterator</var> be a newly created <span class='idltype'>SessionIterator</span> object which has
+                    stored internally (a) the <span class='idltype'>SessionManager</span> object
+                    it is iterating over, <var>manager</var>, and (b) the username of the last
+                    <span class='idltype'>Session</span> object that was returned, which
+                    initially is recorded as being undefined.</li>
+                  <li>Return <var>iterator</var>.</li>
+                </ol>
+                <p>
+                  The <a class='dfnref' href='#dfn-iterator-object-behavior'>iterator object behavior</a>
+                  for a <span class='idltype'>SessionIterator</span> is as follows:
+                </p>
+                <ol class='algorithm'>
+                  <li>Let <var>iterator</var> be the <span class='idltype'>SessionIterator</span> object.</li>
+                  <li>Let <var>manager</var> be the <span class='idltype'>SessionManager</span> object
+                    <var>iterator</var> is iterating over.</li>
+                  <li>Let <var>username</var> be the username of the last <span class='idltype'>Session</span> object
+                    that was returned by <var>iterator</var>.</li>
+                  <li>Let <var>sessions</var> be a list of open sessions from <var>manager</var> sorted by username.</li>
+                  <li>If <var>sessions</var> is empty, then return <a class='dfnref' href='#dfn-iterator-return-no-value'>no value</a>.</li>
+                  <li>If <var>username</var> is undefined, then:
+                    <ol>
+                      <li>Let <var>session</var> be the first <span class='idltype'>Session</span> object in <var>sessions</var>.</li>
+                      <li>Store <var>session</var>’s username as the username of the last <span class='idltype'>Session</span> object
+                        that was returned by <var>iterator</var>.</li>
+                      <li>Return <var>session</var>.</li>
+                    </ol>
+                  </li>
+                  <li>Otherwise:
+                    <ol>
+                      <li>If there is no <span class='idltype'>Session</span> object in <var>sessions</var> with a username that sorts
+                        after <var>username</var>, then return <a class='dfnref' href='#dfn-iteration-return-no-value'>no value</a>.</li>
+                      <li>Let <var>session</var> be the first <span class='idltype'>Session</span> object in <var>sessions</var>
+                        with a username that sorts after <var>username</var>.</li>
+                      <li>Store <var>session</var>’s username as the username of the last <span class='idltype'>Session</span> object
+                        that was returned by <var>iterator</var>.</li>
+                      <li>Return <var>session</var>.</li>
+                    </ol>
+                  </li>
+                </ol>
+              </blockquote>
+
+              <p>
+                In the ECMAScript language binding, the value returned from the <code>iterator</code>
+                method on a <span class='idltype'>SessionManager</span> object is a
+                <span class='idltype'>SessionIterator</span> object, which itself has a
+                <code>next</code> method that returns the next value to be iterated over:
+              </p>
+
+              <x:codeblock language='es'><span class='comment'>// Get an instance of SessionManager.
+// Assume that it has sessions for two users, "anna" and "brian".</span>
+var sm = getSessionManager();
+
+typeof SessionManager.prototype.iterator;  <span class='comment'>// Evaluates to "function"</span>
+var it = sm.iterator();                    <span class='comment'>// iterator() returns a SessionIterator object</span>
+String(it);                                <span class='comment'>// Evaluates to "[object SessionIterator]"</span>
+typeof SessionIterator.prototype.next;     <span class='comment'>// Evaluates to "function"</span>
+
+<span class='comment'>// This loop will alert "anna, 1 to go" and then "brian, 0 to go".</span>
+for (;;) {
+  try {
+    let session = it.next();
+    window.alert(session.username + ", " + it.remainingSessions + " to go");
+  } catch (e) {
+    String(e);                             <span class='comment'>// Evaluates to "[object StopIteration]"</span>
+  }
+}
+
+<span class='comment'>// When using a for..of loop, the SessionIterator object is not accessible.</span>
+<span class='comment'>// This loop will also alert "anna" and then "brian".</span>
+for (let session of sm) {
+  window.alert(session.username);
+}</x:codeblock>
+            </div>
+
+            <!--
+            <p>
+              The <a class='dfnref' href='#dfn-iteration-behavior'>iteration behavior</a> for an <a class='dfnref' href='#dfn-interface'>interface</a>
+              whose <a class='dfnref' href='#dfn-iterator'>iterator</a> declaration identifies an <a class='dfnref' href='#dfn-iterator-object-interface'>iterator object interface</a>
+              is as follows:
+            </p>
+            <ol class='algorithm'>
+              <li>Let <var>interface</var> be the <a class='dfnref' href='#dfn-interface'>interface</a> for which this
+                <a class='dfnref' href='#dfn-iteration-behavior'>iteration behavior</a> is defined.</li>
+              <li>Let <var>target</var> be the <a class='dfnref' href='#dfn-target-object'>target object</a> of the iteration.</li>
+              <li>Let <var>object</var> be the result of <a class='dfnref' href='#dfn-create-iterator-object'>creating an iterator object</a>
+                for <var>target</var> by following the steps accompanying the definition of <var>interface</var>.</li>
+              <li>Return <v
+            </ol>
+            -->
+
+            <!--
+            <p>
+              If the second form of <a class='dfnref' href='#dfn-iterator'>iterator</a> declaration
+              is used, where an <a class='dfnref' href='#dfn-identifier'>identifier</a> is specified
+              after the <span class='char'>U+003D EQUALS SIGN ("=")</span> character, then this
+              identifier <span class='rfc2119'>MUST</span> identify an <a class='dfnref' href='#dfn-interface'>interface</a>,
+              called the <dfn id='dfn-iterator-interface'>iterator interface</dfn>.
+              This declaration indicates that the <a class='dfnref' href='#dfn-iterator-behavior'>iterator behavior</a>
+              is defined in terms of an <dfn id='dfn-iterator-object'>iterator object</dfn>, which is
+              an object that implements the <a class='dfnref' href='#dfn-iterator-interface'>iterator interface</a>.
+            </p>
+            <p>
+              In this case, the <a class='dfnref' href='#dfn-iterator-behavior'>iterator behavior</a>
+              of the interface need not get and set the <a class='dfnref' href='#dfn-iterator-state'>iterator state</a>,
+              but instead <span class='rfc2119'>MUST</span> be defined in terms of the
+              <a class='dfnref' href='#dfn-iterator-object'>iterator object</a>.  It <span class='rfc2119'>MUST</span>
+              also be defined how an <a class='dfnref' href='#dfn-iterator-object'>iterator object</a>
+              is <dfn id='dfn-create-iterator-object'>created</dfn> for
+            </p>
+            -->
+
+            <p>
+              Amongst an <a class='dfnref' href='#dfn-interface'>interface</a> and its
+              <a class='dfnref' href='#dfn-consequential-interfaces'>consequential interfaces</a>, there <span class='rfc2119'>MUST</span>
+              be at most one <a class='dfnref' href='#dfn-iterator'>iterator</a> declaration
+              and at most one <code>iterator object</code> declaration.
+            </p>
+
+            <p>
+              No <a class='dfnref' href='#dfn-extended-attribute'>extended attributes</a>
+              defined in this specification are applicable to <a class='dfnref' href='#dfn-iterator'>iterators</a>
+              or <code>iterator object</code> declarations.
+            </p>
+
+            <?productions grammar OperationOrIterator OperationOrIteratorRest IteratorRest OptionalIteratorInterfaceOrObject OptionalIteratorInterface?>
           </div>
         </div>
 
@@ -5491,6 +5873,17 @@ interface Person {
           just as the algorithms in ECMA-262 do.
         </p>
         <p>
+          When an algorithm says to “throw <b>StopIteration</b>” then this means to throw
+          the unique <span class='esvalue'>StopIteration</span> object.
+        </p>
+        <div class='ednote'>
+          <p>
+            The <span class='esvalue'>StopIteration</span> value is currently defined in
+            <a href='http://wiki.ecmascript.org/doku.php?id=harmony:iterators'>a strawman wiki page</a>
+            and this will need to updated once it has been added to the ES6 spec.
+          </p>
+        </div>
+        <p>
           Note that algorithm steps can call in to other algorithms and abstract operations and
           not explicitly handle exceptions that are thrown from them.  When an exception
           is thrown by an algorithm or abstract operation and it is not explicitly
@@ -5532,11 +5925,13 @@ interface Person {
             <li><a class='dfnref' href='#dfn-named-constructor'>named constructors</a></li>
             <li><a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype objects</a></li>
             <li><a class='dfnref' href='#dfn-named-properties-object'>named properties objects</a></li>
+            <li><a class='dfnref' href='#dfn-iterator-prototype-object'>iterator prototype objects</a></li>
             <li><a class='dfnref' href='#dfn-attribute-getter'>attribute getters</a></li>
             <li><a class='dfnref' href='#dfn-attribute-setter'>attribute setters</a></li>
             <li><a href='#es-operations'>the <span class='estype'>Function</span> objects that correspond to operations</a></li>
             <li><a href='#es-stringifier'>the <span class='estype'>Function</span> objects that correspond to stringifiers</a></li>
             <li><a href='#es-serializer'>the <span class='estype'>Function</span> objects that correspond to serializers</a></li>
+            <li><a href='#es-iterators'>the <span class='estype'>Function</span> objects that correspond to iterators</a></li>
             <li><a class='dfnref' href='#dfn-exception-interface-object'>exception interface objects</a></li>
             <li><a class='dfnref' href='#dfn-exception-interface-prototype-object'>exception interface prototype objects</a></li>
             <li><a class='dfnref' href='#dfn-exception-field-getter'>exception field getters</a></li>
@@ -9521,28 +9916,6 @@ partial interface Window {
             </div>
 
             <p>
-              If an <a class='dfnref' href='#dfn-interface'>interface</a> defines an
-              <a class='dfnref' href='#dfn-indexed-property-getter'>indexed property getter</a>, then its 
-              <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype object</a>
-              <span class='rfc2119'>MUST</span> have a property named “iterator” with attributes
-              <span class='descriptor'>{ [[Writable]]: <span class='esvalue'>true</span>, [[Enumerable]]: <span class='esvalue'>true</span>, [[Configurable]]: <span class='esvalue'>true</span> }</span>
-              and whose value is a <span class='estype'>Function</span> object with the
-              following behavior:
-            </p>
-            <ol class='algorithm'>
-              <li>Let <var>object</var> be the <span class='estype'>this</span> value.</li>
-              <li>Let <var>proto</var> be the [[ArrayIteratorPrototype]] object.</li>
-              <li>Return a new object with internal properties <span class='descriptor'>{ [[NativeBrand]]: NativeArrayIterator, [[Prototype]]: <var>proto</var>, [[Target]]: <var>object</var>, [[Index]]: 0 }</span>.</li>
-            </ol>
-            <div class='ednote'>
-              <p>
-                Native array iterators are currently only defined in
-                <a href='http://wiki.ecmascript.org/doku.php?id=harmony:iterators'>a strawman wiki page</a>
-                and this will need to updated once they have been added to the ES6 spec.
-              </p>
-            </div>
-
-            <p>
               The <a class='dfnref' href='#dfn-class-string'>class string</a> of an
               <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype object</a>
               is the concatenation of the <a class='dfnref' href='#dfn-interface'>interface</a>’s
@@ -10132,6 +10505,186 @@ interface
             </div>
           </div>
 
+          <div id='es-iterators' class='section'>
+            <h4>Iterators</h4>
+
+            <p>
+              If the <a class='dfnref' href='#dfn-interface'>interface</a>
+              has an <a class='dfnref' href='#dfn-iterator'>iterator</a> or
+              if the interface defines an <a class='dfnref' href='#dfn-indexed-property-getter'>indexed property getter</a>, then
+              a property <span class='rfc2119'>MUST</span> exist on
+              the <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype object</a>
+              whose name is “iterator”,
+              with attributes <span class='descriptor'>{ [[Writable]]: <span class='esvalue'>true</span>, [[Enumerable]]: <span class='esvalue'>true</span>, [[Configurable]]: <span class='esvalue'>true</span> }</span>
+              and whose value is a <a class='dfnref' href='#dfn-function-object'>function object</a>.
+            </p>
+            <p>
+              If the interface has an <a class='dfnref' href='#dfn-iterator'>iterator</a>,
+              then the <a class='dfnref' href='#dfn-function-object'>function object</a>
+              function, when invoked, <span class='rfc2119'>MUST</span> behave as follows:
+            </p>
+            <ol class='algorithm'>
+              <li>Let <var>object</var> be the result of calling <a href='http://people.mozilla.org/~jorendorff/es6-draft.html#sec-9.1.9' class='dfnref external'>ToObject</a> on the <span class='esvalue'>this</span> value.</li>
+              <li>Let <var>interface</var> be the <a class='dfnref' href='#dfn-interface'>interface</a>
+                on which the <a class='dfnref' href='#dfn-iterator'>iterator</a> is declared.</li>
+              <li>If <var>object</var> is not a <a class='dfnref' href='#dfn-platform-object'>platform object</a>
+                that implements <var>interface</var>,
+                then <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>TypeError</span></a>.</li>
+              <li>Let <var>iterator</var> be an object determined depending on how the
+                <a class='dfnref' href='#dfn-iterator'>iterator</a> was declared:
+                <dl class='switch'>
+                  <dt>identifying an <a class='dfnref' href='#dfn-iterator-object-interface'>iterator object interface</a></dt>
+                  <dd><var>iterator</var> is the result of following the definition of how to
+                    <a class='dfnref' href='#dfn-create-iterator-object'>create an iterator object</a>
+                    for <var>object</var>.</dd>
+                  <dt>otherwise</dt>
+                  <dd><var>iterator</var> is a newly created <a class='dfnref' href='#dfn-default-iterator-object'>default iterator object</a>
+                    for <var>interface</var> with <var>object</var> as its target.</dd>
+                </dl>
+              </li>
+              <li>Return <var>iterator</var>.</li>
+            </ol>
+            <p>
+              If the interface does not have an <a class='dfnref' href='#dfn-iterator'>iterator</a>
+              but does define an <a class='dfnref' href='#dfn-indexed-property-getter'>indexed property getter</a>,
+              then <a class='dfnref' href='#dfn-function-object'>function object</a> that is
+              the value of the <code>iterator</code> property, when invoked, <span class='rfc2119'>MUST</span>
+              behave as follows:
+            </p>
+            <ol class='algorithm'>
+              <li>Let <var>object</var> be the result of calling <a href='http://people.mozilla.org/~jorendorff/es6-draft.html#sec-9.1.9' class='dfnref external'>ToObject</a> on the <span class='esvalue'>this</span> value.</li>
+              <li>If <var>object</var> is not a <a class='dfnref' href='#dfn-platform-object'>platform object</a>
+                that implements the <a class='dfnref' href='#dfn-interface'>interface</a>
+                on which the <a class='dfnref' href='#dfn-iterator'>iterator</a> is defined,
+                then <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>TypeError</span></a>.</li>
+              <li>Let <var>proto</var> be the [[ArrayIteratorPrototype]] object.</li>
+              <li>Return a new object with internal properties <span class='descriptor'>{ [[NativeBrand]]: NativeArrayIterator, [[Prototype]]: <var>proto</var>, [[Target]]: <var>object</var>, [[Index]]: 0 }</span>.</li>
+            </ol>
+            <div class='ednote'>
+              <p>
+                Native array iterators are currently only defined in
+                <a href='http://wiki.ecmascript.org/doku.php?id=harmony:iterators'>a strawman wiki page</a>
+                and this will need to updated once they have been added to the ES6 spec.
+              </p>
+            </div>
+            <p>
+              In either case, the value of the <span class='estype'>Function</span> object’s “length”
+              property is the <span class='estype'>Number</span> value <span class='esvalue'>0</span>.
+            </p>
+
+            <div id='es-default-iterator-object' class='section'>
+              <h5>Default iterator objects</h5>
+
+              <p>
+                A <dfn id='dfn-default-iterator-object'>default iterator object</dfn> for a given
+                <a class='dfnref' href='#dfn-interface'>interface</a> and target
+                is an object whose internal [[Prototype]] property is the
+                <a class='dfnref' href='#dfn-iterator-prototype-object'>iterator prototype object</a>
+                for the <a class='dfnref' href='#dfn-interface'>interface</a>.
+              </p>
+              <p>
+                A <a class='dfnref' href='#dfn-default-iterator-object'>default iterator object</a>
+                has two internal values:
+              </p>
+              <ol>
+                <li>its <em>target</em>, which is an object whose values are to be iterated, and</li>
+                <li>its <em>state</em>, which is an value that is used to track the state of the iterator.</li>
+              </ol>
+              <p>
+                The state of a <a class='dfnref' href='#dfn-default-iterator-object'>default iterator object</a>
+                can be <a class='dfnref' href='#dfn-uninitialized-iterator-state'>uninitialized</a>,
+                or it can be any value that the <a class='dfnref' href='#dfn-iterator-behavior'>iterator behavior</a>
+                of the <a class='dfnref' href='#dfn-interface'>interface</a> specifies, 
+                or it can be the special value <strong>finished</strong>.  When a
+                <a class='dfnref' href='#dfn-default-iterator-object'>default iterator object</a> is first created,
+                its state begins <a class='dfnref' href='#dfn-uninitialized-iterator-state'>uninitialized</a>.
+                Once it has iterated through all of the values of the target object, its state will be the
+                special <strong>finished</strong> value.
+              </p>
+              <p>
+                The <a class='dfnref' href='#dfn-class-string'>class string</a> of a
+                <a class='dfnref' href='#dfn-default-iterator-object'>default iterator object</a>
+                for a given <a class='dfnref' href='#dfn-interface'>interface</a>
+                is the result of concatenting the <a class='dfnref' href='#dfn-identifier'>identifier</a>
+                of the <a class='dfnref' href='#dfn-interface'>interface</a> and
+                the string “Iterator”.
+              </p>
+            </div>
+
+            <div id='es-iterator-prototype-object' class='section'>
+              <h5>Iterator prototype object</h5>
+
+              <p>
+                The <dfn id='dfn-iterator-prototype-object'>iterator prototype object</dfn>
+                for a given <a class='dfnref' href='#dfn-interface'>interface</a>
+                is an object that exists for every interface that defines an
+                <a class='dfnref' href='#dfn-iterator'>iterator</a>.  It serves as the
+                prototype for <a class='dfnref' href='#dfn-default-iterator-object'>default iterator objects</a>
+                for the interface.
+              </p>
+              <p>
+                The internal [[Prototype]] property of an <a class='dfnref' href='#dfn-iterator-prototype-object'>iterator prototype object</a>
+                <span class='rfc2119'>MUST</span> be the Object.prototype object.
+              </p>
+              <p>
+                An <a class='dfnref' href='#dfn-iterator-prototype-object'>iterator prototype object</a>
+                <span class='rfc2119'>MUST</span> have a property named “next” with
+                attributes <span class='descriptor'>{ [[Writable]]: <span class='esvalue'>true</span>, [[Enumerable]]: <span class='esvalue'>true</span>, [[Configurable]]: <span class='esvalue'>true</span> }</span>
+                and whose value is a <a class='dfnref' href='#dfn-function-object'>function object</a>
+                that behaves as follows:
+              </p>
+              <ol class='algorithm'>
+                <li>Let <var>interface</var> be the <a class='dfnref' href='#dfn-interface'>interface</a> for which the
+                  <a class='dfnref' href='#dfn-iterator-prototype-object'>iterator prototype object</a> exists.</li>
+                <li>Let <var>object</var> be the result of calling <a href='http://people.mozilla.org/~jorendorff/es6-draft.html#sec-9.1.9' class='dfnref external'>ToObject</a> on the <span class='esvalue'>this</span> value.</li>
+                <li>If <var>object</var> is not a <a class='dfnref' href='#dfn-default-iterator-object'>default iterator object</a> for <var>interface</var>,
+                  then <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>TypeError</span></a>.</li>
+                <li>Let <var>target</var> be <var>object</var>’s target.</li>
+                <li>If <var>object</var>’s state is the special value <strong>finished</strong>, then <a href='#ecmascript-throw' class='dfnref external'>throw <span class='estype'>StopIteration</span></a>.</li>
+                <li>Let <var>value</var> be the result of performing the steps listed as the <a class='dfnref' href='#dfn-iterator-behavior'>iterator behavior</a>
+                  of the <a class='dfnref' href='#dfn-interface'>interface</a> for the <var>target</var> object, with the <var>object</var>’s state as the <a class='dfnref' href='#dfn-iterator-state'>iterator state</a>.</li>
+                <li>If the <a class='dfnref' href='#dfn-iterator-behavior'>iterator behavior</a> <a class='dfnref' href='#dfn-iteration-return-no-value'>returned no value</a>,
+                  then <a href='#ecmascript-throw' class='dfnref external'>throw <span class='estype'>StopIteration</span></a>.</li>
+                <li>Return <var>value</var>.</li>
+              </ol>
+              <p>
+                The <a class='dfnref' href='#dfn-class-string'>class string</a> of an
+                <a class='dfnref' href='#dfn-iterator-prototype-object'>iterator prototype object</a>
+                for a given <a class='dfnref' href='#dfn-interface'>interface</a>
+                is the result of concatenting the <a class='dfnref' href='#dfn-identifier'>identifier</a>
+                of the <a class='dfnref' href='#dfn-interface'>interface</a> and
+                the string “Iterator”.
+              </p>
+            </div>
+
+            <div id='es-iterator-object-interfaces' class='section'>
+              <h5>Iterator object interfaces</h5>
+
+              <p>
+                The <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype object</a>
+                for an <a class='dfnref' href='#dfn-iterator-object-interface'>iterator object interface</a>
+                <span class='rfc211'>MUST</span> have a property named “next” with
+                attributes <span class='descriptor'>{ [[Writable]]: <span class='esvalue'>true</span>, [[Enumerable]]: <span class='esvalue'>true</span>, [[Configurable]]: <span class='esvalue'>true</span> }</span>
+                and whose value is a <a class='dfnref' href='#dfn-function-object'>function object</a>
+                that behaves as follows:
+              </p>
+              <ol class='algorithm'>
+                <li>Let <var>interface</var> be the <a class='dfnref' href='#dfn-iterator-object-interface'>iterator object interface</a>.</li>
+                <li>Let <var>object</var> be the result of calling <a href='http://people.mozilla.org/~jorendorff/es6-draft.html#sec-9.1.9' class='dfnref external'>ToObject</a> on the <span class='esvalue'>this</span> value.</li>
+                <li>If <var>object</var> is not a <a class='dfnref' href='#dfn-platform-object'>platform object</a> that implements <var>interface</var>,
+                  then <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>TypeError</span></a>.</li>
+                <li>Let <var>value</var> be the result of performing the steps listed as the <a class='dfnref' href='#dfn-iterator-object-behavior'>iterator object behavior</a>
+                  of the <a class='dfnref' href='#dfn-interface'>interface</a> for <var>object</var>.</li>
+                <li>If the <a class='dfnref' href='#dfn-iterator-object-behavior'>iterator object behavior</a> returned <a class='dfnref' href='#dfn-iteration-return-no-value'>returned no value</a>,
+                  then <a href='#ecmascript-throw' class='dfnref external'>throw <span class='estype'>StopIteration</span></a>.</li>
+                <li>Return <var>value</var>.</li>
+              </ol>
+              <p>
+                The value of the <span class='estype'>Function</span> object’s “length”
+                property is the <span class='estype'>Number</span> value <span class='esvalue'>0</span>.
+              </p>
+            </div>
+          </div>
         </div>
 
         <div id='es-implements-statements' class='section'>
@@ -11511,6 +12064,7 @@ d.type = et;
           Ms2ger,
           Andrew Oakley,
           岡坂 史紀 (Shiki Okasaka),
+          Jason Orendorff,
           Olli Pettay,
           Simon Pieters,
           Andrei Popescu,
@@ -11635,7 +12189,7 @@ d.type = et;
           <prod nt='PartialDefinition'>PartialInterface | PartialDictionary</prod>
           <prod nt='PartialInterface'>"interface" identifier "{" InterfaceMembers "}" ";"</prod>
           <prod nt='InterfaceMembers'>ExtendedAttributeList InterfaceMember InterfaceMembers | ε</prod>
-          <prod nt='InterfaceMember'>Const | AttributeOrOperation</prod>
+          <prod nt='InterfaceMember'>Const | AttributeOrOperationOrIterator</prod>
           <prod nt='Dictionary'>"dictionary" identifier Inheritance "{" DictionaryMembers "}" ";"</prod>
           <prod nt='DictionaryMembers'>ExtendedAttributeList DictionaryMember DictionaryMembers | ε</prod>
           <prod nt='DictionaryMember'>Type identifier Default ";"</prod>
@@ -11655,7 +12209,7 @@ d.type = et;
           <prod nt='ConstValue'>BooleanLiteral | FloatLiteral | integer | "null"</prod>
           <prod nt='BooleanLiteral'>"true" | "false"</prod>
           <prod nt='FloatLiteral'>float | "-" "Infinity" | "Infinity" | "NaN"</prod>
-          <prod nt='AttributeOrOperation'>Serializer | Qualifier AttributeOrOperationRest | Attribute | Operation</prod>
+          <prod nt='AttributeOrOperationOrIterator'>Serializer | Qualifier AttributeOrOperationRest | Attribute | OperationOrIterator</prod>
           <prod nt='Serializer'>"serializer" SerializerRest</prod>
           <prod nt='SerializerRest'>OperationRest | "=" SerializationPattern | ε</prod>
           <prod nt='SerializationPattern'>"{" SerializationPatternMap "}" | "[" SerializationPatternList "]" | identifier</prod>
@@ -11679,13 +12233,18 @@ d.type = et;
           <prod nt='GetRaises'>"getraises" ExceptionList | ε</prod>
           <prod nt='SetRaises'>"setraises" ExceptionList | ε</prod>
           -->
-          <prod nt='Operation'>Specials OperationRest</prod>
+          <prod nt='OperationOrIterator'>ReturnType OperationOrIteratorRest | SpecialOperation</prod>
+          <prod nt='SpecialOperation'>Special Specials ReturnType OperationRest</prod>
           <prod nt='Specials'>Special Specials | ε</prod>
           <prod nt='Special'>"getter" | "setter" | "creator" | "deleter" | "legacycaller"</prod>
           <!--
           <prod nt='OperationRest'>ReturnType OptionalIdentifier "(" ArgumentList ")" Raises ";"</prod>
           -->
-          <prod nt='OperationRest'>ReturnType OptionalIdentifier "(" ArgumentList ")" ";"</prod>
+          <prod nt='OperationOrIteratorRest'>IteratorRest | OperationRest</prod>
+          <prod nt='IteratorRest'>"iterator" OptionalIteratorInterfaceOrObject ";"</prod>
+          <prod nt='OptionalIteratorInterfaceOrObject'>OptionalIteratorInterface | "object"</prod>
+          <prod nt='OptionalIteratorInterface'>"=" identifier | ε</prod>
+          <prod nt='OperationRest'>OptionalIdentifier "(" ArgumentList ")" ";"</prod>
           <prod nt='OptionalIdentifier'>identifier | ε</prod>
           <!--
           <prod nt='Raises'>"raises" ExceptionList | ε</prod>
@@ -12009,6 +12568,11 @@ d.type = et;
           <dt>Current editor’s draft</dt>
           <dd>
             <ul>
+              <li>
+                <p>
+                  Added iterators that can be declared on interfaces.
+                </p>
+              </li>
               <li>
                 <p>
                   Added an <code>iterator</code> method to objects with indexed
