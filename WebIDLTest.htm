@@ -117,8 +117,7 @@
    <section>
       <h2>Testable assertions visualizer</h2>
       <p>This section hosts the WebIDL specification and is used for identifying testable assertions in that spec according to the list of assertions defined in this document.</p>
-      <p></p>
-      <iframe src="v1.html" onload="oniframeload()"></iframe>
+      <div id="loadIframeHere"><button onclick="injectIframe()">Load the WebIDL spec</button></div>
    </section>
    <section>
       <h2>This section shows the testable assertions that are currently visible in the above iframe</h2>
@@ -194,30 +193,33 @@
          return initPayload;
       }
 
-      function oniframeload() {
-         // Respec will cause the iframe to be reloaded when it moves the iframe around. Set this value to true when publishing without Respec.
-         if (!isSecondOnloadAfterRespec) {
-            isSecondOnloadAfterRespec = true;
-            return;
-         }
-         // Inject the testing companion into the WebIDL spec
-         iframeWindow = document.querySelector("iframe").contentWindow;
-         var scriptToInject = iframeWindow.document.createElement("script");
-         scriptToInject.src = SPEC_TESTING_COMPANION_URL;
-         iframeWindow.document.body.appendChild(scriptToInject);
+      // Load asserts
+      document.addEventListener("DOMContentLoaded", function () {
          // Request the assertions for WebIDL...
          var xhr = new XMLHttpRequest();
          xhr.open("get", WEBIDL_ASSERTIONS_URL);
          xhr.onload = function () {
             if (this.status != 404) {
                existingAssertMap = JSON.parse(this.responseText);
-               setTimeout(function () {
-                  ie9CompatMessageEncoder({ message: "init", data: prepAsserts() });
-                  ie9CompatMessageEncoder({ message: "notify" });
-               }, 1000); // Give the prior testing companion script a few seconds to load--this facilitates cold-site visits where the script isn't in the cache.
             }
          }
          xhr.send();
+      });
+
+      function injectIframe() {
+         document.getElementById("loadIframeHere").innerHTML = "<iframe src='v1.html' onload='oniframeload()'></iframe>"
+      }
+
+      function oniframeload() {
+         // Inject the testing companion into the WebIDL spec
+         iframeWindow = document.querySelector("iframe").contentWindow;
+         var scriptToInject = iframeWindow.document.createElement("script");
+         scriptToInject.src = SPEC_TESTING_COMPANION_URL;
+         iframeWindow.document.body.appendChild(scriptToInject);
+
+         ie9CompatMessageEncoder({ message: "init", data: prepAsserts() });
+         ie9CompatMessageEncoder({ message: "notify" });
+
          // Show the create button if this UA supports exporting the created assertions...
          if (window.Blob && navigator.msSaveOrOpenBlob)
             document.getElementById("markNew").style.display = "";
