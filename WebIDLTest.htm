@@ -175,7 +175,16 @@
       var WEBIDL_ASSERTIONS_URL = "testable_assertions.txt";
       var isSecondOnloadAfterRespec = false;
 
-      addEventListener("message", message);
+      addEventListener("message", ie9CompatMessageDecoder);
+
+      // IE9 can't sent complex objects (structured clone algorithm) through postMessage. Works in IE10
+      function ie9CompatMessageDecoder(messageString) {
+         messageString.data2 = JSON.parse(messageString.data);
+         message(messageString);
+      }
+      function ie9CompatMessageEncoder(messageObject) {
+         iframeWindow.postMessage(JSON.stringify(messageObject), "/");
+      }
 
       function prepAsserts() {
          var initPayload = [];
@@ -203,8 +212,8 @@
             if (this.status != 404) {
                existingAssertMap = JSON.parse(this.responseText);
                setTimeout(function () {
-                  iframeWindow.postMessage({ message: "init", data: prepAsserts() }, "/");
-                  iframeWindow.postMessage({ message: "notify" }, "/");
+                  ie9CompatMessageEncoder({ message: "init", data: prepAsserts() });
+                  ie9CompatMessageEncoder({ message: "notify" });
                }, 1000); // Give the prior testing companion script a few seconds to load--this facilitates cold-site visits where the script isn't in the cache.
             }
          }
@@ -215,17 +224,18 @@
       }
 
       function message(e) {
-         if ((typeof e.data == "object") && (e.data != null)) {
-            if (e.data.message == "initialized") {
-               //alert("spec testing companion initialized:\n\n" + JSON.stringify(e.data.data));
-               replicateAssertsTo(e.data.data.matched, "matching_asserts");
-               replicateAssertsTo(e.data.data.unmatched, "unmatched_asserts");
+         var d = e.data2;
+         if ((typeof d == "object") && (d != null)) {
+            if (d.message == "initialized") {
+               //alert("spec testing companion initialized:\n\n" + JSON.stringify(d.data));
+               replicateAssertsTo(d.data.matched, "matching_asserts");
+               replicateAssertsTo(d.data.unmatched, "unmatched_asserts");
             }
-            if (e.data.message == "assert")
-               document.getElementById("A_specRef").value = e.data.data;
-            if (e.data.message == "asserts-in-view") {
+            if (d.message == "assert")
+               document.getElementById("A_specRef").value = d.data;
+            if (d.message == "asserts-in-view") {
                document.getElementById("dynamic_asserts").innerHTML = ""; // Clear it out...
-               replicateAssertsTo(e.data.data, "dynamic_asserts");
+               replicateAssertsTo(d.data, "dynamic_asserts");
             }
          }
       }
@@ -235,7 +245,7 @@
          // Set the companion in the identify mode...(asnyc)
          if (iframeWindow == null)
             return; // Not ready yet...
-         iframeWindow.postMessage({ message: "identify" }, "/");
+         ie9CompatMessageEncoder({ message: "identify" });
          // Hide the new button
          document.getElementById("addPanel").style.display = "none";
          // Show the form
@@ -326,7 +336,7 @@
 
 
       function click_showAssert() {
-         iframeWindow.postMessage({ message: "show", data: this.privId }, "/");
+         ie9CompatMessageEncoder({ message: "show", data: this.privId });
       }
 
       function click_goToTest() {
