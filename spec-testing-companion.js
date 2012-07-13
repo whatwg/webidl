@@ -170,7 +170,7 @@
                 searchIndex = matchingIndex - 1; // Prepare for backward search...
                 if (searchIndex >= 0) {
                     item = this.topSortedPosition[searchIndex];
-                    while ((item.top >= top) && (searchIndex >= 0)) {
+                    while ((searchIndex >= 0) && (item.top >= top)) {
                         topMatches.push(item);
                         allmatches.push(new AssertResult(item.assertId, item.top, item.bottom));
                         item.seen = true;
@@ -180,7 +180,7 @@
                 searchIndex = matchingIndex + 1; // Prepare for the forward search...
                 if (searchIndex < maxLength) {
                     item = this.topSortedPosition[searchIndex];
-                    while ((item.top <= bottom) && (searchIndex < maxLength)) {
+                    while ((searchIndex < maxLength) && (item.top <= bottom)) {
                         topMatches.push(item);
                         allmatches.push(new AssertResult(item.assertId, item.top, item.bottom));
                         item.seen = true;
@@ -198,7 +198,7 @@
                 searchIndex = matchingIndex - 1; // Prepare for backward search...
                 if (searchIndex >= 0) {
                     item = this.bottomSortedPosition[searchIndex];
-                    while ((item.bottom >= top) && (searchIndex >= 0)) {
+                    while ((searchIndex >= 0) && (item.bottom >= top)) {
                         if (!item.relatedTopItem.seen)
                             allmatches.push(new AssertResult(item.assertId, item.top, item.bottom));
                         item = this.bottomSortedPosition[--searchIndex];
@@ -207,7 +207,7 @@
                 searchIndex = matchingIndex + 1; // Prepare for the forward search...
                 if (searchIndex < maxLength) {
                     item = this.bottomSortedPosition[searchIndex];
-                    while ((item.bottom <= bottom) && (searchIndex < maxLength)) {
+                    while ((searchIndex < maxLength) && (item.bottom <= bottom)) {
                         if (!item.relatedTopItem.seen)
                             allmatches.push(new AssertResult(item.assertId, item.top, item.bottom));
                         item = this.bottomSortedPosition[++searchIndex];
