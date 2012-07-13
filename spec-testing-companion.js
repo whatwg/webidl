@@ -82,14 +82,23 @@
     var postToHost = null;
     var origin = null;
 
-    window.addEventListener("message", handleMessage);
+    window.addEventListener("message", ie9CompatMessageDecoder);
     window.addEventListener("unload", function () {
-        // Don't accept any new incoming messages (work around an IE-behavior).
-        window.removeEventListener("message", handleMessage);
+        // Don't accept any new incoming messages (work around an IE-particular).
+        window.removeEventListener("message", ie9CompatMessageDecoder);
     });
 
-    function handleMessage(messageEvent) {
-        var d = messageEvent.data;
+    // IE9 can't sent complex objects (structured clone algorithm) through postMessage. Works in IE10
+    function ie9CompatMessageDecoder(messageString) {
+        messageString.data2 = JSON.parse(messageString.data);
+        handleMessageData(messageString);
+    }
+    function ie9CompatMessageEncoder(messageObject) {
+        postToHost(JSON.stringify(messageObject), origin);
+    }
+
+    function handleMessageData(messageEvent) {
+        var d = messageEvent.data2;
         if (validObject(d)) {
             if ((d.message == "init") && !initialized)
                 handleInitialize(d.data, messageEvent.origin, messageEvent.source); // Set the "initialized" flag to true only after this is truely initialized -- otherwise early failures won't allow you to try initializing again.
@@ -267,7 +276,7 @@
         asserts.finalize();
         postToHost = postBackObj.postMessage.bind(postBackObj);
         origin = originStr;
-        postToHost({ message: "initialized", data: { matched: matchingAsserts, unmatched: nonMatchingAsserts } }, origin);
+        ie9CompatMessageEncoder({ message: "initialized", data: { matched: matchingAsserts, unmatched: nonMatchingAsserts } });
     }
 
 
@@ -300,7 +309,7 @@
 
     function doNotify() {
         // { message: "asserts-in-view", data: [ { assertId: "1", clientTop: 1, clientBottom: 1 } ] }
-        postToHost({ message: "asserts-in-view", data: asserts.findAssertsInViewportRange(pageYOffset, pageYOffset + innerHeight) }, origin);
+        ie9CompatMessageEncoder({ message: "asserts-in-view", data: asserts.findAssertsInViewportRange(pageYOffset, pageYOffset + innerHeight) });
     }
 
     function handleIdentifyModeStart() {
@@ -355,7 +364,7 @@
         // Take the last element in the cache (if there is one)
         if (highlightElementCache != null) {
             // Package this one...
-            postToHost({ message: "assert", data: getSelectorStringFromElement(highlightElementCache, "") }, origin);
+            ie9CompatMessageEncoder({ message: "assert", data: getSelectorStringFromElement(highlightElementCache, "") });
         }
         // Stop identifying mode...
         handleIdentifyModeEnd();
