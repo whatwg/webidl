@@ -15,7 +15,7 @@
   <head>
     <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'/>
     <title>Web IDL</title>
-    <meta name='revision' content='$Id: v1.xml,v 1.28 2012-11-28 22:47:53 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: v1.xml,v 1.29 2012-12-06 05:11:52 cmccorma Exp $'/>
     <link rel='stylesheet' href='WebIDL.css' type='text/css'/>
     <script src='section-links.js' type='application/ecmascript'/>
     <script src='dfn.js' type='application/ecmascript'/>
@@ -3430,9 +3430,11 @@ exception <i>Derived</i> : <em>Base</em> {
             Exceptions can be <dfn id='dfn-throw'>thrown</dfn>, optionally with a specific
             <a class='dfnref' href='#dfn-exception-message'>message</a> and
             <a class='dfnref' href='#dfn-exception-name'>name</a>,
-            the behavior of which again is language binding-specific.  If a name
-            is not specified, it is assumed to be the same as the
+            and with a set of values to assign to the exception’s
+            <a class='dfnref' href='#dfn-exception-field'>fields</a>.
+            If a name is not specified, it is assumed to be the same as the
             <a class='dfnref' href='#dfn-identifier'>identifier</a> of the exception.
+            The resulting behavior from throwing an exception is language binding-specific.  
           </p>
           <div class='note'>
             <p>
@@ -10630,8 +10632,12 @@ interface
             When an IDL <a class='dfnref' href='#dfn-exception'>exception</a> or
             <a class='dfnref' href='#dfn-predefined-exception'>predefined exception</a>
             <var>E</var> is to be <a class='dfnref' href='#dfn-throw'>thrown</a>,
-            with optional name <var>N</var> and optional message <var>M</var>, the following steps
-            <span class='rfc2119'>MUST</span> be followed:
+            with optional name <var>N</var>, optional message <var>M</var> and,
+            if the exception is not a <a class='dfnref' href='#dfn-predefined-exception'>predefined exception</a>,
+            a required specification on the values to assign to the exception’s
+            <a class='dfnref' href='#dfn-exception-field'>fields</a> (both inherited
+            and those specified on the exception itself),
+            the following steps <span class='rfc2119'>MUST</span> be followed:
           </p>
           <ol class='algorithm'>
             <li>Let <var>args</var> be a list of ECMAScript
@@ -10655,7 +10661,7 @@ interface
             </li>
 
             <li>Let <var>O</var> be the result of calling <var>X</var> as a function
-              with <var>args</var> as the argument list.</li>
+            with <var>args</var> as the argument list.</li>
 
             <li>If the optional name <var>N</var> was specified, then
             call the <span class='prop'>[[DefineOwnProperty]]</span> internal method of <var>O</var> passing
@@ -10663,6 +10669,9 @@ interface
             [[Writable]]: <span class='esvalue'>true</span>, [[Enumerable]]: <span class='esvalue'>true</span>,
             [[Configurable]]: <span class='esvalue'>true</span> }</span>, and <span class='esvalue'>false</span>
             as arguments.</li>
+
+            <li>Set the exception fields of <var>O</var> to be as specified in the
+            invocation of this algorithm.</li>
 
             <li>Throw <var>O</var>.</li>
           </ol>
@@ -11406,6 +11415,12 @@ d.type = et;
           <dt>Current editor’s draft</dt>
           <dd>
             <ul>
+              <li>
+                <p>
+                  Added a requirement to state what the values of an exception’s fields are
+                  when throwing it.
+                </p>
+              </li>
               <li>
                 <p>
                   Changed the “length” property on <span class='estype'>Function</span>
