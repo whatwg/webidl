@@ -138,6 +138,29 @@
             </xsl:for-each>
           </xsl:if>
         </xsl:if>
+        <xsl:variable name='list' select='$options/x:participate/x:mailing-list/@email'/>
+        <xsl:variable name='bugzilla' select='$options/x:participate/x:bugzilla'/>
+        <xsl:if test='$list or $bugzilla'>
+          <dt>Participate:</dt>
+          <dd>
+            <xsl:if test='$list'>
+              Send feedback to <a href='mailto:{$list}'><xsl:value-of select='$list'/></a>
+            </xsl:if>
+            <xsl:if test='$bugzilla'>
+              <xsl:choose>
+                <xsl:when test='$list'>
+                  <xsl:text> or </xsl:text>
+                  <a href='{$bugzilla/@file}'>file a bug</a>
+                </xsl:when>
+                <xsl:otherwise>
+                  <a href='{$bugzilla/@file}'>File a bug</a>
+                </xsl:otherwise>
+              </xsl:choose>
+              <xsl:text> (</xsl:text>
+              <a href='{$bugzilla/@open}'>open bugs</a>)
+            </xsl:if>
+          </dd>
+        </xsl:if>
         <dt>Editor<xsl:if test='count($options/x:editors/x:person) &gt; 1'>s</xsl:if>:</dt>
         <xsl:for-each select='$options/x:editors/x:person'>
           <dd>
@@ -181,6 +204,7 @@
       <p class="copyright"><a href="http://www.w3.org/Consortium/Legal/ipr-notice#Copyright">Copyright</a><xsl:text disable-output-escaping='yes'> &amp;copy; </xsl:text><xsl:value-of select='concat($year, " ")'/><a href="http://www.w3.org/"><abbr title="World Wide Web Consortium">W3C</abbr></a><sup><xsl:text disable-output-escaping='yes'>&amp;reg;</xsl:text></sup> (<a href="http://www.csail.mit.edu/"><abbr title="Massachusetts Institute of Technology">MIT</abbr></a>, <a href="http://www.ercim.eu/"><abbr title="European Research Consortium for Informatics and Mathematics">ERCIM</abbr></a>, <a href="http://www.keio.ac.jp/">Keio</a>), All Rights Reserved. W3C <a href="http://www.w3.org/Consortium/Legal/ipr-notice#Legal_Disclaimer">liability</a>, <a href="http://www.w3.org/Consortium/Legal/ipr-notice#W3C_Trademarks">trademark</a> and <a href="http://www.w3.org/Consortium/Legal/copyright-documents">document use</a> rules apply.</p>
     </div>
     <hr/>
+    <script async="" src="file-bug.js"/>
   </xsl:template>
 
   <xsl:template name='date'>
