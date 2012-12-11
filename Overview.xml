@@ -15,7 +15,7 @@
   <head>
     <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'/>
     <title>Web IDL (Second Edition)</title>
-    <meta name='revision' content='$Id: Overview.xml,v 1.588 2012-12-11 03:54:23 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: Overview.xml,v 1.589 2012-12-11 05:27:06 cmccorma Exp $'/>
     <link rel='stylesheet' href='WebIDL.css' type='text/css'/>
     <script src='section-links.js' type='application/ecmascript'/>
     <script src='dfn.js' type='application/ecmascript'/>
@@ -7022,6 +7022,7 @@ iframe.appendChild instanceof w.Function;  <span class='comment'>// Evaluates to
             </p>
             <ol class='algorithm'>
               <li>If <a href='http://people.mozilla.org/~jorendorff/es6-draft.html#sec-8' class='dfnref external'>Type</a>(<var>V</var>) is not Undefined, Null or Object, then <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>TypeError</span></a>.</li>
+              <li>If <var>V</var> is a native <span class='estype'>Date</span> object or a native <span class='estype'>RegExp</span> object, then <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>TypeError</span></a>.</li>
               <li>Let <var>dict</var> be an empty dictionary value of type <var>D</var>;
               every <a class='dfnref' href='#dfn-dictionary-member'>dictionary member</a>
               is initially considered to be <a class='dfnref' href='#dfn-present'>not present</a>.</li>
@@ -7132,7 +7133,8 @@ iframe.appendChild instanceof w.Function;  <span class='comment'>// Evaluates to
               by running the following algorithm:
             </p>
             <ol class='algorithm'>
-              <li>If <var>V</var> is not a <span class='estype'>Function</span> object, then <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='esvalue'>TypeError</span></a>.</li>
+              <li>If the result of calling IsCallable(<var>V</var>) is <span class='esvalue'>false</span>, then
+              then <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='esvalue'>TypeError</span></a>.</li>
               <li>Return the IDL <a href='#idl-callback-function'>callback function type</a> value that represents a reference to that <span class='estype'>Function</span> object.</li>
             </ol>
             <p>
@@ -7847,23 +7849,7 @@ results.numbers.length;       <span class='comment'>// So this still evaluates t
                 </ol>
               </li>
               <li>
-                If <var>V</var> is a <a class='dfnref' href='#dfn-platform-array-object'>platform array object</a>,
-                a native <span class='estype'>Array</span> object, or
-                a <a class='dfnref' href='#dfn-platform-object'>platform object</a> that
-                <a class='dfnref' href='#dfn-support-indexed-properties'>supports indexed properties</a>, then:
-                <ol>
-                  <li>If <var>types</var> includes an <a href='#idl-array'>array type</a>, then return the result of
-                    <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a>
-                    <var>V</var> to that type.</li>
-                  <li>If <var>types</var> includes a <a href='#idl-sequence'>sequence type</a>, then return the result of
-                    <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a>
-                    <var>V</var> to that type.</li>
-                  <li>If <var>types</var> includes <span class='idltype'>object</span>, then return the IDL value
-                    that is a reference to the object <var>V</var>.</li>
-                </ol>
-              </li>
-              <li>
-                If <var>V</var> is a <span class='estype'>Date</span> object, then:
+                If <var>V</var> is a native <span class='estype'>Date</span> object, then:
                 <ol>
                   <li>If <var>types</var> includes <a class='idltype' href='#idl-Date'>Date</a>, then return the
                     result of <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a>
@@ -7873,7 +7859,7 @@ results.numbers.length;       <span class='comment'>// So this still evaluates t
                 </ol>
               </li>
               <li>
-                If <var>V</var> is a <span class='estype'>RegExp</span> object, then:
+                If <var>V</var> is a native <span class='estype'>RegExp</span> object, then:
                 <ol>
                   <li>If <var>types</var> includes <a class='idltype' href='#idl-RegExp'>RegExp</a>, then return the
                     result of <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a>
@@ -7883,8 +7869,17 @@ results.numbers.length;       <span class='comment'>// So this still evaluates t
                 </ol>
               </li>
               <li>
-                If <var>V</var> is any other type of object, then:
+                If <var>V</var> is any kind of object except for
+                a native <span class='estype'>Date</span> object or
+                a native <span class='estype'>RegExp</span> object, and
+                there is an entry in <var>S</var> that has one of the following types at position <var>i</var> of its type list,
                 <ol>
+                  <li>If <var>types</var> includes an <a href='#idl-array'>array type</a>, then return the result of
+                    <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a>
+                    <var>V</var> to that type.</li>
+                  <li>If <var>types</var> includes a <a href='#idl-sequence'>sequence type</a>, then return the result of
+                    <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a>
+                    <var>V</var> to that type.</li>
                   <li>If <var>types</var> includes a <a class='dfnref' href='#dfn-callback-interface'>callback interface</a>
                     type, then return the result of
                     <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a>
@@ -9053,7 +9048,7 @@ window.abc;    <span class='comment'>// Evaluates to 1.</span>
               then it indicates that any value assigned to an <a class='dfnref' href='#dfn-attribute'>attribute</a>
               whose type is a <a class='dfnref' href='#dfn-nullable-type'>nullable</a>
               <a class='dfnref' href='#dfn-callback-function'>callback function</a>
-              that is not a callable object will be converted to
+              that is not a <a href='http://people.mozilla.org/~jorendorff/es6-draft.html#sec-9.2.2' class='dfnref external'>callable</a> object will be converted to
               the <span class='idlvalue'>null</span> value.
             </p>
             <div class='warning'>
@@ -9639,28 +9634,13 @@ system.loginTime;  <span class='comment'>// So this now evaluates to forgedLogin
                     </li>
 
                     <li>
-                      Otherwise: if <var>V</var> is any kind of object except for
-                      a native <span class='estype'>Date</span> object or
+                      Otherwise: if <var>V</var> is any kind of non-platform object except for
+                      a native <span class='estype'>Date</span> object,
                       a native <span class='estype'>RegExp</span> object, and
                       there is an entry in <var>S</var> that has one of the following types at position <var>i</var> of its type list,
                       <ul>
                         <li>an <a href='#idl-array'>array type</a></li>
                         <li>a <a href='#idl-sequence'>sequence type</a></li>
-                        <li><span class='idltype'>object</span></li>
-                        <li>a <a class='dfnref' href='#dfn-nullable-type'>nullable</a> version of any of the above types</li>
-                        <li>a <a class='dfnref' href='#dfn-union-type'>union type</a> or <a class='dfnref' href='#dfn-nullable-type'>nullable</a> union type
-                           that has one of the above types in its <a class='dfnref' href='#dfn-flattened-union-member-types'>flattened member types</a></li>
-                      </ul>
-                      then remove from <var>S</var> all other entries.
-                    </li>
-
-                    <li>
-                      Otherwise: if <var>V</var> is any kind of non-platform object except for
-                      a native <span class='estype'>Date</span> object,
-                      a native <span class='estype'>RegExp</span> object or
-                      a native <span class='estype'>Array</span> object, and
-                      there is an entry in <var>S</var> that has one of the following types at position <var>i</var> of its type list,
-                      <ul>
                         <li>a <a class='dfnref' href='#dfn-callback-interface'>callback interface</a> type</li>
                         <li>a <a class='dfnref' href='#dfn-callback-function'>callback function</a> type</li>
                         <li>a <a href='#idl-dictionary'>dictionary type</a></li>
@@ -10557,7 +10537,7 @@ interface
                   Let <var>F</var> be the result of invoking the <span class='prop'>[[Get]]</span> method of object
                   <var>O</var> with <var>P</var> as the argument.
                 </li>
-                <li>If <var>F</var> is not callable, <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>TypeError</span></a>.</li>
+                <li>If <var>F</var> is not <a href='http://people.mozilla.org/~jorendorff/es6-draft.html#sec-9.2.2' class='dfnref external'>callable</a>, <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>TypeError</span></a>.</li>
                 <li>Let <var>V</var> be the result of invoking the <span class='prop'>[[Call]]</span> method of <var>F</var>,
                   using <var>O</var> as the <span class='esvalue'>this</span> value
                   and passing no arguments.</li>
@@ -10596,7 +10576,7 @@ interface
                   Let <var>F</var> be the result of invoking the <span class='prop'>[[Get]]</span> method of object
                   <var>O</var> with <var>P</var> as the argument.
                 </li>
-                <li>If <var>F</var> is not callable, <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>TypeError</span></a>.</li>
+                <li>If <var>F</var> is not <a href='http://people.mozilla.org/~jorendorff/es6-draft.html#sec-9.2.2' class='dfnref external'>callable</a>, <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>TypeError</span></a>.</li>
                 <li>Let <var>V</var> be the result of invoking the <span class='prop'>[[Call]]</span> method of <var>F</var>,
                   using <var>O</var> as the <span class='esvalue'>this</span> value
                   and passing no arguments.</li>
@@ -11483,17 +11463,14 @@ interface
           <ul>
             <li>
               If the interface is a <a class='dfnref' href='#dfn-single-operation-interface'>single operation interface</a>
-              (defined below)
-              then any object whose internal <span class='prop'>[[NativeBrand]]</span> property
-              is “Function” is not present, and which is not a <a class='dfnref' href='#dfn-platform-object'>platform object</a>,
-              is considered to implement that interface.
+              (defined below) then any object is considered to implement the interface.
               The implementation of the operation (or set of overloaded operations) is
               as follows:
               <ul>
-                <li>If the object is a <span class='estype'>Function</span> object,
+                <li>If the object is <a href='http://people.mozilla.org/~jorendorff/es6-draft.html#sec-9.2.2' class='dfnref external'>callable</a>,
                 then the implementation of the operation (or set of overloaded operations) is
-                the <span class='estype'>Function</span> object itself.</li>
-                <li>Otherwise, the object is not a <span class='estype'>Function</span> object.
+                the <a href='http://people.mozilla.org/~jorendorff/es6-draft.html#sec-9.2.2' class='dfnref external'>callable</a> object itself.</li>
+                <li>Otherwise, the object is not <a href='http://people.mozilla.org/~jorendorff/es6-draft.html#sec-9.2.2' class='dfnref external'>callable</a>.
                 The implementation of the operation (or set of overloaded operations) is
                 the result of invoking the internal <span class='prop'>[[Get]]</span> method
                 on the object with a property name that is the <a class='dfnref' href='#dfn-identifier'>identifier</a>
@@ -11502,9 +11479,9 @@ interface
             </li>
             <li>
               Otherwise, the interface is not a <a class='dfnref' href='#dfn-single-operation-interface'>single operation interface</a>.
-              Any object whose internal <span class='prop'>[[NativeBrand]]</span> property
-              is “Function” or not present, and which is not a <a class='dfnref' href='#dfn-platform-object'>platform object</a>,
-              is considered to implement the interface.
+              Any object that is not a <a class='dfnref' href='#dfn-platform-object'>platform object</a>
+              and which is not a native <span class='estype'>Date</span> object or a native
+              <span class='estype'>RegExp</span> object is considered to implement the interface.
               For each operation declared on the interface with a given <a class='dfnref' href='#dfn-identifier'>identifier</a>, the implementation
               is the result of invoking <span class='prop'>[[Get]]</span> on the object with a
               property name that is that identifier.
@@ -11534,11 +11511,11 @@ interface
           </p>
           <ol class='algorithm'>
             <li>Let <var>O</var> be the object that is the <a class='dfnref' href='#dfn-user-object'>user object</a> implementing the <a class='dfnref' href='#dfn-interface'>interface</a>.</li>
-            <li>Let <var>X</var> be the implementation of the operation.  If <var>O</var> is a <span class='estype'>Function</span> object that itself is
-              considered to be the implementation of the operation, then <var>X</var> is <var>O</var>.  Otherwise, <var>X</var> is the result of calling
+            <li>Let <var>X</var> be the implementation of the operation.  If <var>O</var> is <a href='http://people.mozilla.org/~jorendorff/es6-draft.html#sec-9.2.2' class='dfnref external'>callable</a>, then <var>X</var> is <var>O</var>.
+              Otherwise, <var>X</var> is the result of calling
               the internal <span class='prop'>[[Get]]</span> method of <var>O</var> with the identifier of the operation as the property name.</li>
             <li>If <a href='http://people.mozilla.org/~jorendorff/es6-draft.html#sec-8' class='dfnref external'>Type</a>(<var>X</var>) is not Object, <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>TypeError</span></a> exception.</li>
-            <li>If <var>X</var> does not implement the internal <span class='prop'>[[Call]]</span> method, <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>TypeError</span></a> exception.</li>
+            <li>If <var>X</var> is not <a href='http://people.mozilla.org/~jorendorff/es6-draft.html#sec-9.2.2' class='dfnref external'>callable</a>, then <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>TypeError</span></a> exception.</li>
             <li>
               Let <var>arg</var><sub>0..<var>n</var>−1</sub> be a list of
               ECMAScript values, where <var>arg</var><sub><var>i</var></sub> is the result
@@ -11590,11 +11567,11 @@ interface
           <h3>Invoking callback functions</h3>
 
           <p>
-            An ECMAScript <span class='estype'>Function</span> object that is being
+            An ECMAScript <a href='http://people.mozilla.org/~jorendorff/es6-draft.html#sec-9.2.2' class='dfnref external'>callable</a> object that is being
             used as a <a class='dfnref' href='#dfn-callback-function'>callback function</a> value is
             called in a manner similar to how <a class='dfnref' href='#dfn-operation'>operations</a>
             on <a class='dfnref' href='#dfn-user-object'>user objects</a> are called (as
-            described in the previous section).  The <span class='estype'>Function</span> object
+            described in the previous section).  The <a href='http://people.mozilla.org/~jorendorff/es6-draft.html#sec-9.2.2' class='dfnref external'>callable</a> object
             is called with a list of IDL argument values
             <var>idlarg</var><sub>0..<var>n</var>−1</sub> by
             following the algorithm below.  By default, the <a class='dfnref' href='#dfn-callback-this-value'>callback this value</a>
@@ -11602,7 +11579,7 @@ interface
             is <span class='esvalue'>null</span>, unless overridden by other specifications.
           </p>
           <ol class='algorithm'>
-            <li>Let <var>F</var> be the <span class='estype'>Function</span> object that is the <a class='dfnref' href='#dfn-callback-function'>callback function</a> value.</li>
+            <li>Let <var>F</var> be the <a href='http://people.mozilla.org/~jorendorff/es6-draft.html#sec-9.2.2' class='dfnref external'>callable</a> object that is the <a class='dfnref' href='#dfn-callback-function'>callback function</a> value.</li>
             <li>
               Let <var>arg</var><sub>0..<var>n</var>−1</sub> be a list of
               ECMAScript values, where <var>arg</var><sub><var>i</var></sub> is the result
