@@ -11,7 +11,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <title>Web IDL (Second Edition)</title>
-    <meta name="revision" content="$Id: Overview.html,v 1.589 2012-12-13 05:52:13 cmccorma Exp $" />
+    <meta name="revision" content="$Id: Overview.html,v 1.590 2012-12-13 06:11:02 cmccorma Exp $" />
     <link rel="stylesheet" href="WebIDL.css" type="text/css" />
     <script src="section-links.js" type="application/ecmascript"></script>
     <script src="dfn.js" type="application/ecmascript"></script>
@@ -5857,7 +5857,9 @@ interface Person {
             <p>
               The <a class="dfnref" href="#dfn-number-of-nullable-member-types">number of nullable member types</a>
               of a <a class="dfnref" href="#dfn-union-type">union type</a> <span class="rfc2119">MUST</span>
-              be 0 or 1.
+              be 0 or 1, and if it is 1 then the union type <span class="rfc2119">MUST</span> also not have
+              a <a class="dfnref" href="#idl-dictionary">dictionary type</a> in its
+              <a class="dfnref" href="#dfn-flattened-union-member-types">flattened member types</a>.
             </p>
             <p>
               A type <dfn id="dfn-includes-a-nullable-type">includes a nullable type</dfn> if:
@@ -8097,11 +8099,20 @@ results.numbers.length;       <span class="comment">// So this still evaluates t
                     that is a reference to the object <var>V</var>.</li>
                 </ol>
               </li>
+              <li>If <var>V</var> is <span class="esvalue">null</span> or <span class="esvalue">undefined</span>
+                or is any kind of object except for
+                a native <span class="estype">Date</span> object or
+                a native <span class="estype">RegExp</span> object, then:
+                <ol>
+                  <li>If <var>types</var> includes a <a href="#idl-dictionary">dictionary type</a>, then return the
+                    result of <a class="dfnref" href="#dfn-convert-ecmascript-to-idl-value">converting</a>
+                    <var>V</var> to that dictionary type.</li>
+                </ol>
+              </li>
               <li>
                 If <var>V</var> is any kind of object except for
                 a native <span class="estype">Date</span> object or
-                a native <span class="estype">RegExp</span> object, and
-                there is an entry in <var>S</var> that has one of the following types at position <var>i</var> of its type list,
+                a native <span class="estype">RegExp</span> object, then:
                 <ol>
                   <li>If <var>types</var> includes an <a href="#idl-array">array type</a>, then return the result of
                     <a class="dfnref" href="#dfn-convert-ecmascript-to-idl-value">converting</a>
@@ -8113,9 +8124,6 @@ results.numbers.length;       <span class="comment">// So this still evaluates t
                     type, then return the result of
                     <a class="dfnref" href="#dfn-convert-ecmascript-to-idl-value">converting</a>
                     <var>V</var> to that interface type.</li>
-                  <li>If <var>types</var> includes a <a href="#idl-dictionary">dictionary type</a>, then return the
-                    result of <a class="dfnref" href="#dfn-convert-ecmascript-to-idl-value">converting</a>
-                    <var>V</var> to that dictionary type.</li>
                   <li>If <var>types</var> includes <a class="idltype" href="#idl-object">object</a>, then return the IDL value
                     that is a reference to the object <var>V</var>.</li>
                 </ol>
@@ -9806,10 +9814,16 @@ system.loginTime;  <span class="comment">// So this now evaluates to forgedLogin
                       <div class="note"><div class="noteHeader">Note</div><p>This is the argument that will be used to resolve which overload is selected.</p></div></li>
 
                     <li>If <var>V</var> is <span class="esvalue">null</span> or <span class="esvalue">undefined</span>,
-                      and any entry in <var>S</var> has a <a class="dfnref" href="#dfn-nullable-type">nullable type</a>,
-                      a <a class="dfnref" href="#dfn-union-type">union type</a> that <a class="dfnref" href="#dfn-includes-a-nullable-type">includes a nullable type</a>
-                      or a <a href="#idl-dictionary">dictionary type</a>
-                      at position <var>i</var> of its type list, then remove from <var>S</var> all other entries.</li>
+                      and there is an entry in <var>S</var> that has one of the following types at position <var>i</var> of it type list,
+                      <ul>
+                        <li>a <a class="dfnref" href="#dfn-nullable-type">nullable type</a></li>
+                        <li>a <a href="#idl-dictionary">dictionary type</a></li>
+                        <li>a <a class="dfnref" href="#dfn-union-type">union type</a> that
+                          <a class="dfnref" href="#dfn-includes-a-nullable-type">includes a nullable type</a> or that
+                          has a <a href="#idl-dictionary">dictionary type</a> in its <a class="dfnref" href="#dfn-flattened-union-members">flattened members</a></li>
+                      </ul>
+                      then remove from <var>S</var> all other entries.
+                    </li>
 
                     <li>
                       Otherwise: if <var>V</var> is a <a class="dfnref" href="#dfn-platform-object">platform object</a> – but not a
@@ -12984,6 +12998,12 @@ d.type = et;
               <li>
                 <p>
                   Added static attributes.
+                </p>
+              </li>
+              <li>
+                <p>
+                  Further tweaked the overload resolution algorithm and union type conversion
+                  algorithm for consistency.
                 </p>
               </li>
               <li>
