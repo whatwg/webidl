@@ -367,16 +367,14 @@ table.simple {
            iframeWindow = document.querySelector("iframe").contentWindow;
            var scriptToInject = iframeWindow.document.createElement("script");
            scriptToInject.src = SPEC_TESTING_COMPANION_URL;
+           scriptToInject.onload = function () {
+               requestAssertions(function () {
+                   // Assertions loaded...
+                   ie9CompatMessageEncoder({ message: "init", data: prepAsserts() });
+                   ie9CompatMessageEncoder({ message: "notify" });
+               });
+           };
            iframeWindow.document.body.appendChild(scriptToInject);
-           // ...script runs...
-           requestAssertions(function () {
-               // Assertions loaded...
-               ie9CompatMessageEncoder({ message: "init", data: prepAsserts() });
-               ie9CompatMessageEncoder({ message: "notify" });
-           });
-           // Show the create button if this UA supports exporting the created assertions...
-           if (window.Blob && navigator.msSaveOrOpenBlob)
-               document.getElementById("markNew").style.display = "";
        }
 
        function message(e) {
@@ -447,9 +445,18 @@ table.simple {
        });
 
        document.getElementById("exportNew").addEventListener('click', function () {
-           // Create a Blob with the JSON content in it.
-           var exportBlob = new Blob([JSON.stringify(newAssertsMap, null, "  ")], "text/json");
-           navigator.msSaveOrOpenBlob(exportBlob, "NewTestableAssertions.json");
+           var rawOutput = JSON.stringify(newAssertsMap, null, "  ");
+           if (navigator.msSaveOrOpenBlob) {
+               // Create a Blob with the JSON content in it.
+               var exportBlob = new Blob([rawOutput], "text/json");
+               navigator.msSaveOrOpenBlob(exportBlob, "NewTestableAssertions.json");
+           }
+           else {
+               var newWin = open("about:blank");
+               var pre = newWin.document.createElement("pre");
+               newWin.document.body.appendChild(pre);
+               pre.innerHTML = rawOutput;
+           }
        });
 
        function replicateAssertsTo(assertIdList, targetId) {
