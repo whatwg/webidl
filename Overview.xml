@@ -15,7 +15,7 @@
   <head>
     <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'/>
     <title>Web IDL (Second Edition)</title>
-    <meta name='revision' content='$Id: Overview.xml,v 1.610 2013-01-13 23:50:08 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: Overview.xml,v 1.611 2013-01-24 07:14:05 cmccorma Exp $'/>
     <link rel='stylesheet' href='WebIDL.css' type='text/css'/>
     <script src='section-links.js' type='application/ecmascript'/>
     <script src='dfn.js' type='application/ecmascript'/>
@@ -3110,7 +3110,8 @@ partial interface A {
               <li>For each operation, extended attribute or callback function <var>X</var> in <var>F</var>:
                 <ol>
                   <li>Let <var>n</var> be the number of arguments <var>X</var> is declared to take.</li>
-                  <li>Let <var>t</var><sub>0..<var>n</var>−1</sub> be the types of the arguments <var>X</var> is defined to take.</li>
+                  <li>Let <var>t</var><sub>0..<var>n</var>−1</sub> be a list of types, where <var>t</var><sub><var>i</var></sub>
+                    is the type of <var>X</var>’s argument at index <var>i</var>.</li>
                   <li>Add to <var>S</var> the pair &lt;<var>X</var>, <var>t</var><sub>0..<var>n</var>−1</sub>>.</li>
                   <li>If <var>n</var> > 0 and <var>X</var> is declared to be <a class='dfnref' href='#dfn-variadic'>variadic</a>, then:
                     <ol>
@@ -7276,7 +7277,8 @@ iframe.appendChild instanceof w.Function;  <span class='comment'>// Evaluates to
                   <dd>
                     <ol>
                       <li>Let <var>n</var> be the length of the <a class='dfnref' href='#dfn-platform-array-object'>platform array object</a>.</li>
-                      <li>Initialize <var>S</var><sub>0..<var>n</var>−1</sub> to be an IDL sequence with elements of type <var>T</var>, where each element is uninitialized.</li>
+                      <li>Initialize <var>S</var><sub>0..<var>n</var>−1</sub> to be a list of IDL values of type <var>T</var>,
+                        where each element of the list is uninitialized.</li>
                       <li>While <var>i</var> &lt; <var>n</var>:
                         <ol>
                           <li>Let <var>E</var> be the result of <a class='dfnref' href='#dfn-convert-idl-to-ecmascript-value'>converting</a>
@@ -7287,7 +7289,8 @@ iframe.appendChild instanceof w.Function;  <span class='comment'>// Evaluates to
                           <li>Set <var>i</var> to <var>i</var> + 1.</li>
                         </ol>
                       </li>
-                      <li>Return <var>S</var>.</li>
+                      <li>Return an IDL sequence value of type <a class='idltype' href='#idl-sequence'>sequence&lt;<var>T</var>></a>
+                        of length <var>n</var>, where the value of the element at index <var>j</var> is <var>S</var><sub><var>j</var></sub>.</li>
                     </ol>
                   </dd>
                   <dt>Any kind of object except for a native <span class='estype'>Date</span> object or
@@ -7296,7 +7299,8 @@ iframe.appendChild instanceof w.Function;  <span class='comment'>// Evaluates to
                     <ol>
                       <li>Let <var>length</var> be one greater than <var>V</var>’s maximum indexed property index, if <var>V</var> is a platform object that <a class='dfnref' href='#dfn-support-indexed-properties'>supports indexed properties</a>, or the result of calling <span class='prop'>[[Get]]</span> on <var>V</var> with property name “length” otherwise.</li>
                       <li>Let <var>n</var> be the result of calling <a href='http://people.mozilla.org/~jorendorff/es6-draft.html#sec-9.1.6' class='dfnref external'>ToUint32</a>(<var>length</var>).</li>
-                      <li>Initialize <var>S</var><sub>0..<var>n</var>−1</sub> to be an IDL sequence with elements of type <var>T</var>, where each element is uninitialized.</li>
+                      <li>Initialize <var>S</var><sub>0..<var>n</var>−1</sub> to be a list of IDL values of type <var>T</var>,
+                        where each element of the list is uninitialized.</li>
                       <li>While <var>i</var> &lt; <var>n</var>:
                         <ol>
                           <li>Let <var>P</var> be the result of calling <a href='http://people.mozilla.org/~jorendorff/es6-draft.html#sec-9.1.8' class='dfnref external'>ToString</a>(<var>i</var>).</li>
@@ -7306,7 +7310,8 @@ iframe.appendChild instanceof w.Function;  <span class='comment'>// Evaluates to
                           <li>Set <var>i</var> to <var>i</var> + 1.</li>
                         </ol>
                       </li>
-                      <li>Return <var>S</var>.</li>
+                      <li>Return an IDL sequence value of type <a class='idltype' href='#idl-sequence'>sequence&lt;<var>T</var>></a>
+                        of length <var>n</var>, where the value of the element at index <var>j</var> is <var>S</var><sub><var>j</var></sub>.</li>
                     </ol>
                   </dd>
                   <dt>Otherwise</dt>
@@ -7319,18 +7324,20 @@ iframe.appendChild instanceof w.Function;  <span class='comment'>// Evaluates to
               </li>
             </ol>
             <p>
-              An IDL sequence value <var>S</var><sub>0..<var>n</var>−1</sub> of type
+              An IDL sequence value <var>S</var> of type
               <a class='idltype' href='#idl-sequence'>sequence&lt;<var>T</var>></a> is
               <a class='dfnref' href='#dfn-convert-idl-to-ecmascript-value'>converted</a>
               to an ECMAScript <span class='estype'>Array</span> object as follows:
             </p>
             <ol class='algorithm'>
+              <li>Let <var>n</var> be the length of <var>S</var>.</li>
               <li>Let <var>A</var> be a new <span class='estype'>Array</span> object created as if by the expression <code>[]</code>.</li>
               <li>Initialize <var>i</var> to be 0.</li>
               <li>While <var>i</var> &lt; <var>n</var>:
                 <ol>
+                  <li>Let <var>V</var> be the value in <var>S</var> at index <var>i</var>.</li>
                   <li>Let <var>E</var> be the result of <a class='dfnref' href='#dfn-convert-idl-to-ecmascript-value'>converting</a>
-                    <var>S</var><sub><var>i</var></sub> to an ECMAScript value.</li>
+                    <var>V</var> to an ECMAScript value.</li>
                   <li>Let <var>P</var> be the result of calling <a href='http://people.mozilla.org/~jorendorff/es6-draft.html#sec-9.1.8' class='dfnref external'>ToString</a>(<var>i</var>).</li>
                   <li>Call the <span class='prop'>[[DefineOwnProperty]]</span> internal method on <var>A</var> with property name <var>P</var>,
                     descriptor <span class='descriptor'>{ [[Writable]]: <span class='esvalue'>true</span>, [[Enumerable]]: <span class='esvalue'>true</span>, [[Configurable]]: <span class='esvalue'>true</span>, [[Value]]: <var>E</var> }</span>
