@@ -96,7 +96,10 @@
       <h2>
         <xsl:text>W3C </xsl:text>
         <xsl:choose>
-          <xsl:when test='$options/x:maturity="WD" or $options/x:maturity="FPWD" or $options/x:maturity="LCWD" or $options/x:maturity="FPWDLC"'>Working Draft</xsl:when>
+          <xsl:when test='$options/x:maturity="FPWD"'>First Public Working Draft</xsl:when>
+          <xsl:when test='$options/x:maturity="FPLCWD"'>First Public and Last Call Working Draft</xsl:when>
+          <xsl:when test='$options/x:maturity="LCWD"'>and Last Call Working Draft</xsl:when>
+          <xsl:when test='$options/x:maturity="WD"'>Working Draft</xsl:when>
           <xsl:when test='$options/x:maturity="CR"'>Candidate Recommendation</xsl:when>
           <xsl:when test='$options/x:maturity="PR"'>Proposed Recommendation</xsl:when>
           <xsl:when test='$options/x:maturity="PER"'>Proposed Edited Recommendation</xsl:when>
@@ -231,7 +234,7 @@
     <xsl:choose>
       <xsl:when test='$options/x:maturity="FPWD"'>First Public Working Draft</xsl:when>
       <xsl:when test='$options/x:maturity="LCWD"'>Last Call Working Draft</xsl:when>
-      <xsl:when test='$options/x:maturity="FPWDLC"'>First Public Working Draft and Last Call Working Draft</xsl:when>
+      <xsl:when test='$options/x:maturity="FPWDLC"'>First Public and Last Call Working Draft</xsl:when>
       <xsl:when test='$options/x:maturity="WD"'>Working Draft</xsl:when>
       <xsl:when test='$options/x:maturity="CR"'>Candidate Recommendation</xsl:when>
       <xsl:when test='$options/x:maturity="PR"'>Proposed Recommendation</xsl:when>
