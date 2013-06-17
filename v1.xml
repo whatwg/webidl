@@ -15,7 +15,7 @@
   <head>
     <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'/>
     <title>Web IDL</title>
-    <meta name='revision' content='$Id: v1.xml,v 1.73 2013-05-13 04:18:18 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: v1.xml,v 1.74 2013-06-17 06:36:02 cmccorma Exp $'/>
     <link rel='stylesheet' href='WebIDL.css' type='text/css'/>
     <script src='section-links.js' type='application/ecmascript'/>
     <script src='dfn.js' type='application/ecmascript'/>
@@ -9337,9 +9337,18 @@ interface
                 The <dfn id='dfn-attribute-getter'>attribute getter</dfn> is a <span class='estype'>Function</span>
                 object whose behavior when invoked is as follows:
                 <ol class='algorithm'>
+                  <li>Let <var>I</var> be the <a class='dfnref' href='#dfn-interface'>interface</a>
+                    whose <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype object</a>
+                    this property corresponding to the attribute appears on.
+                    <div class='note'>
+                      <p>This means that even if an implements statement was used to make
+                      an attribute available on the interface, <var>I</var> is the interface
+                      on the left hand side of the implements statement, and not the one
+                      that the attribute was originally declared on.</p>
+                    </div>
+                  </li>
                   <li>Let <var>O</var> be the <strong>this</strong> value.</li>
-                  <li>If <var>O</var> is not a <a class='dfnref' href='#dfn-platform-object'>platform object</a> that implements the <a class='dfnref' href='#dfn-interface'>interface</a>
-                    on which the attribute was declared, then:
+                  <li>If <var>O</var> is not a <a class='dfnref' href='#dfn-platform-object'>platform object</a> that implements <var>I</var>, then:
                     <ol>
                       <li>If the <a class='dfnref' href='#dfn-attribute'>attribute</a> was specified with the
                         <a class='xattr' href='#LenientThis'>[LenientThis]</a> <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>,
@@ -9372,11 +9381,13 @@ interface
                 <ol class='algorithm'>
                   <li>If no arguments were passed to the <span class='estype'>Function</span>, then
                     <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>TypeError</span></a>.</li>
+                  <li>Let <var>I</var> be the <a class='dfnref' href='#dfn-interface'>interface</a>
+                    whose <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype object</a>
+                    this property corresponding to the attribute appears on.</li>
                   <li>Let <var>O</var> be the <strong>this</strong> value.</li>
                   <li>Let <var>validThis</var> be <span class='esvalue'>true</span> if <var>O</var> is a
-                    <a class='dfnref' href='#dfn-platform-object'>platform object</a> that implements the
-                    <a class='dfnref' href='#dfn-interface'>interface</a> on which the attribute was declared, or
-                    <span class='esvalue'>false</span> otherwise.</li>
+                    <a class='dfnref' href='#dfn-platform-object'>platform object</a> that implements <var>I</var>,
+                    or <span class='esvalue'>false</span> otherwise.</li>
                   <li>If <var>validThis</var> is <span class='esvalue'>false</span> and the
                     <a class='dfnref' href='#dfn-attribute'>attribute</a> was not specified with the
                     <a class='xattr' href='#LenientThis'>[LenientThis]</a> <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>,
@@ -9478,9 +9489,20 @@ interface
                 assuming <var>id</var> is the
                 <a class='dfnref' href='#dfn-identifier'>identifier</a>,
                 <var>arg</var><sub>0..<var>n</var>−1</sub> is the list
-                of argument values passed to the function
-                and <var>I</var> is the <a class='dfnref' href='#dfn-interface'>interface</a>:
+                of argument values passed to the function:
                 <ol class="algorithm">
+                  <li>
+                    Let <var>I</var> be the <a class='dfnref' href='#dfn-interface'>interface</a>
+                    whose <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype object</a>
+                    (or <a class='dfnref' href='#dfn-interface-object'>interface object</a>, for a static
+                    operation) this property corresponding to the operation appears on.
+                    <div class='note'>
+                      <p>This means that even if an implements statement was used to make
+                      an operation available on the interface, <var>I</var> is the interface
+                      on the left hand side of the implements statement, and not the one
+                      that the operation was originally declared on.</p>
+                    </div>
+                  </li>
                   <li>
                     Let <var>O</var> be a value determined as follows:
                     <ul>
@@ -9624,7 +9646,51 @@ interface
             <a class='dfnref' href='#dfn-operation'>operations</a> that exist on
             all of the interface prototype objects of <var>A</var>’s
             <a class='dfnref' href='#dfn-consequential-interfaces'>consequential interfaces</a>.
+            For operations, where the property is a data property with a <span class='estype'>Function</span>
+            object value, each copy of the property <span class='rfc2119'>MUST</span> have
+            distinct <span class='estype'>Function</span> objects.  For attributes, each
+            copy of the accessor property <span class='rfc2119'>MUST</span> have
+            distinct <span class='estype'>Function</span> objects for their getters,
+            and similarly with their setters.
           </p>
+          <div class='note'>
+            <p>
+              When invoking an <a class='dfnref' href='#dfn-operation'>operation</a> by calling
+              a <span class='estype'>Function</span> object that is the value of one of the copies that exists
+              due to an implements statement, the <span class='esvalue'>this</span> value is
+              checked to ensure that it is an object that implements the
+              <a class='dfnref' href='#dfn-interface'>interface</a> corresponding to the
+              <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype object</a>
+              that the property is on.
+            </p>
+            <p>
+              For example, consider the following IDL:
+            </p>
+            <x:codeblock language='idl'>interface A {
+  void f();
+};
+
+interface B { };
+B implements A;
+
+interface C { };
+C implements A;</x:codeblock>
+            <p>
+              Attempting to call <code>B.prototype.f</code> on an object that implements
+              <span class='idltype'>A</span> (but not <span class='idltype'>B</span>) or one
+              that implements <span class='idltype'>C</span> will result in a
+              <span class='idltype'>TypeError</span> being thrown.  However, calling
+              calling <code>A.prototype.f</code> on an object that implements
+              <span class='idltype'>B</span> or one that implements <span class='idltype'>C</span>
+              would succeed.  This is handled by the algorithm in <a href='#es-operations'>section <?sref es-operations?></a>
+              that defines how IDL operation invocation works in ECMAScript.
+            </p>
+            <p>
+              Similar behavior is required for the getter and setter <span class='estype'>Function</span>
+              objects that correspond to an IDL <a class='dfnref' href='#dfn-attribute'>attributes</a>,
+              and this is handled in <a href='#es-attributes'>section <?sref es-attributes?></a>.
+            </p>
+          </div>
         </div>
 
         <div id='es-platform-objects' class='section'>
@@ -11492,6 +11558,22 @@ d.type = et;
           <dt>Current editor’s draft</dt>
           <dd>
             <ul>
+              <li>
+                <p>
+                  Clarified that <span class='estype'>Function</span> objects for
+                  operations and attribute getters and setters are distinct on each
+                  interface they are mixed in to using an implements statement,
+                  and that each copy of the <span class='estype'>Function</span> works
+                  only on objects that implement the interface whose interface
+                  prototype object the <span class='estype'>Function</span> object
+                  is on.
+                </p>
+              </li>
+              <li>
+                <p>
+                  Mention the named properties object in the list of initial objects.
+                </p>
+              </li>
               <li>
                 <p>
                   Added back a custom [[HasInstance]] on interface objects to allow objects
