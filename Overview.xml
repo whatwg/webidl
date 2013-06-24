@@ -15,7 +15,7 @@
   <head>
     <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'/>
     <title>Web IDL (Second Edition)</title>
-    <meta name='revision' content='$Id: Overview.xml,v 1.628 2013-06-23 22:47:15 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: Overview.xml,v 1.629 2013-06-24 07:48:23 cmccorma Exp $'/>
     <link rel='stylesheet' href='WebIDL.css' type='text/css'/>
     <script src='section-links.js' type='application/ecmascript'/>
     <script src='dfn.js' type='application/ecmascript'/>
@@ -1640,10 +1640,8 @@ s.union(1, 4, 7);         <span class='comment'>// Passing three arguments corre
               The final argument of a <a class='dfnref' href='#dfn-variadic'>variadic</a> operation
               is also considered to be an optional argument. Declaring an argument
               to be optional indicates that the argument value can be omitted
-              when the operation is invoked. An argument <span class='rfc2119'>MUST NOT</span>
-              be declared to be optional unless all subsequent arguments to the
-              operation are also optional.  Also, the final argument in an
-              operation <span class='rfc2119'>MUST NOT</span> be declared to be
+              when the operation is invoked.  The final argument in an
+              operation <span class='rfc2119'>MUST NOT</span> explicitly be declared to be
               optional if the operation is <a class='dfnref' href='#dfn-variadic'>variadic</a>.
             </p>
             <pre class='syntax'><i>return-type</i> <i>identifier</i>(<i>type</i> <i>identifier</i>, optional <i>type</i> <i>identifier</i>);</pre>
@@ -1660,15 +1658,11 @@ s.union(1, 4, 7);         <span class='comment'>// Passing three arguments corre
             </p>
             <pre class='syntax'><i>return-type</i> <i>identifier</i>(<i>type</i> <i>identifier</i>, optional <i>type</i> <i>identifier</i> = <i>value</i>);</pre>
             <p>
-              If an optional argument has a default value, then all preceding
-              optional arguments <span class='rfc2119'>MUST</span> also have a default value.
-            </p>
-            <p>
               If the type of an argument is a <a href='#idl-dictionary'>dictionary type</a>
               or a <a class='dfnref' href='#dfn-union-type'>union type</a> that has a
               dictionary type as one of its <a class='dfnref' href='#dfn-flattened-union-member-types'>flattened member types</a>,
-              and this argument is either the final argument or is followed by an
-              <a class='dfnref' href='#dfn-optional-argument'>optional argument</a>, then
+              and this argument is either the final argument or is followed only be
+              <a class='dfnref' href='#dfn-optional-argument'>optional arguments</a>, then
               the argument <span class='rfc2119'>MUST</span> be specified as optional.
               Such arguments are always considered to have a
               <a class='dfnref' href='#dfn-default-value'>default value</a> of an empty dictionary,
@@ -1710,23 +1704,6 @@ s.union(1, 4, 7);         <span class='comment'>// Passing three arguments corre
               <a class='dfnref' href='#dfn-optional-argument-default-value'>default value</a> if specified <span class='rfc2119'>MUST</span>
               be one of the <a class='dfnref' href='#dfn-enumeration-value'>enumeration’s values</a>.
             </p>
-
-            <p>
-              Web IDL operations do not support being called with omitted optional arguments
-              unless all subsequent optional arguments are also omitted.  Bindings for
-              languages that do support function calling in this way will fail such
-              calls in a language binding specific manner.
-            </p>
-            <div class='note'>
-              <p>
-                <!--JAVA
-                ECMAScript and Java, the two language for which bindings are specified
-                in this document, do not support function calling like this.
-                -->
-                ECMAScript, the only language for which bindings are specified
-                in this document, does not support function calling like this.
-              </p>
-            </div>
 
             <div class='example'>
               <p>
@@ -3006,13 +2983,15 @@ partial interface A {
               overloaded operations, constructors and callers specified on an interface.
             </p>
             <p>
-              The elements of an effective overload set are pairs of the form
-              &lt;<var>callable</var>, <var>type list</var>>.  If the effective overload
+              The elements of an effective overload set are tuples of the form
+              &lt;<var>callable</var>, <var>type list</var>, <var>optional list</var>>.  If the effective overload
               set is for regular operations, static operations or legacy callers, then <var>callable</var> is an operation;
               if it is for constructors or named constructors, then <var>callable</var> is an
               extended attribute; and if it is for callback functions, then <var>callable</var>
               is the callback function itself.  In all cases, <var>type list</var> is a list
-              of IDL types.  Each pair represents an allowable invocation of the operation,
+              of IDL types, and <var>optional list</var> is a list of booleans indicating whether
+              the argument at a given index was declared as being <a class='dfnref' href='#dfn-optional-argument'>optional</a>.
+              Each tuple represents an allowable invocation of the operation,
               constructor, legacy caller or callback function with an argument value list of the given types.
               Due to the use of <a class='dfnref' href='#dfn-optional-argument'>optional arguments</a>
               and <a class='dfnref' href='#dfn-variadic'>variadic</a> operations
@@ -3112,24 +3091,30 @@ partial interface A {
                   <li>Let <var>n</var> be the number of arguments <var>X</var> is declared to take.</li>
                   <li>Let <var>t</var><sub>0..<var>n</var>−1</sub> be a list of types, where <var>t</var><sub><var>i</var></sub>
                     is the type of <var>X</var>’s argument at index <var>i</var>.</li>
-                  <li>Add to <var>S</var> the pair &lt;<var>X</var>, <var>t</var><sub>0..<var>n</var>−1</sub>>.</li>
+                  <li>Let <var>o</var><sub>0..<var>n</var>−1</sub> be a list of booleans, where <var>o</var><sub><var>i</var></sub>
+                    is true if <var>X</var>’s argument at index <var>i</var> is optional, and false otherwise.</li>
+                  <li>Add to <var>S</var> the tuple &lt;<var>X</var>, <var>t</var><sub>0..<var>n</var>−1</sub>, <var>o</var><sub>0..<var>n</var>−1</sub>>.</li>
                   <li>If <var>n</var> > 0 and <var>X</var> is declared to be <a class='dfnref' href='#dfn-variadic'>variadic</a>, then:
                     <ol>
-                      <li>Add to <var>S</var> the pair &lt;<var>X</var>, <var>t</var><sub>0..<var>n</var>−2</sub>>.</li>
+                      <li>Add to <var>S</var> the tuple &lt;<var>X</var>, <var>t</var><sub>0..<var>n</var>−2</sub>, <var>o</var><sub>0..<var>n</var>−2</sub>>.</li>
                       <li>For every integer <var>i</var>, such that <var>n</var> ≤ <var>i</var> ≤ <var>m</var>−1:
                         <ol>
                           <li>Let <var>u</var><sub>0..<var>i</var></sub> be a list of types, where <var>u</var><sub>j</sub> = <var>t</var><sub>j</sub> (for <var>j</var> &lt; <var>n</var>) and <var>u</var><sub>j</sub> = <var>t</var><sub><var>n</var>−1</sub> (for <var>j</var> ≥ <var>n</var>).</li>
-                          <li>Add to <var>S</var> the pair &lt;<var>X</var>, <var>u</var><sub>0..<var>i</var></sub>>.</li>
+                          <li>Let <var>p</var><sub>0..<var>i</var></sub> be a list of booleans, where <var>p</var><sub>j</sub> = <var>o</var><sub>j</sub> (for <var>j</var> &lt; <var>n</var>) and <var>p</var><sub>j</sub> = true (for <var>j</var> ≥ <var>n</var>).</li>
+                          <li>Add to <var>S</var> the tuple &lt;<var>X</var>, <var>u</var><sub>0..<var>i</var></sub>, <var>p</var><sub>0..<var>i</var></sub>>.</li>
                         </ol>
                       </li>
                     </ol>
                   </li>
-                  <li>For every integer <var>i</var>, such that 0 &lt; <var>i</var> &lt; <var>n</var>:
+                  <li>Initialize <var>i</var> to <var>n</var>−1.</li>
+                  <li>While <var>i</var> ≥ 0:
                     <ol>
-                      <li>If argument <var>i</var> of <var>X</var> is <a class='dfnref' href='#dfn-optional-argument'>optional</a>, then add to <var>S</var> the pair &lt;<var>X</var>, <var>t</var><sub>0..<var>i−1</var></sub>>.</li>
+                      <li>If argument <var>i</var> of <var>X</var> is not <a class='dfnref' href='#dfn-optional-argument'>optional</a>, then break this loop.</li>
+                      <li>Otherwise, add to <var>S</var> the tuple &lt;<var>X</var>, <var>t</var><sub>0..<var>i−1</var></sub>, <var>o</var><sub>0..<var>i−1</var></sub>>.</li>
+                      <li>Set <var>i</var> to <var>i</var>−1.</li>
                     </ol>
                   </li>
-                  <li>If <var>n</var> > 0 and the first argument of <var>X</var> is optional, then add to <var>S</var> the pair &lt;<var>X</var>, ()> (where “()” represents the empty list).</li>
+                  <li>If <var>n</var> > 0 and all arguments of <var>X</var> are optional, then add to <var>S</var> the tuple &lt;<var>X</var>, (), ()> (where “()” represents the empty list).</li>
                 </ol>
               </li>
               <li>
@@ -3154,14 +3139,14 @@ partial interface A {
                 identifier <code>f</code> and argument count 4 is:
               </p>
               <div class='set'>
-                { &lt;f1, (DOMString)>,<br/>
-                  &lt;f2, (Node, DOMString)>,<br/>
-                  &lt;f2, (Node, DOMString, float)>,<br/>
-                  &lt;f2, (Node, DOMString, float, float)>,<br/>
-                  &lt;f3, ()>,<br/>
-                  &lt;f4, (Event, DOMString)>,<br/>
-                  &lt;f4, (Event, DOMString, DOMString)>,<br/>
-                  &lt;f4, (Event, DOMString, DOMString, float)> }
+                { &lt;f1, (DOMString), (false)>,<br/>
+                  &lt;f2, (Node, DOMString), (false, false)>,<br/>
+                  &lt;f2, (Node, DOMString, float), (false, false, true)>,<br/>
+                  &lt;f2, (Node, DOMString, float, float), (false, false, true, true)>,<br/>
+                  &lt;f3, (), ()>,<br/>
+                  &lt;f4, (Event, DOMString), (false, false)>,<br/>
+                  &lt;f4, (Event, DOMString, DOMString), (false, false, true)>,<br/>
+                  &lt;f4, (Event, DOMString, DOMString, float), (false, false, true, true)> }
               </div>
             </div>
             <!--
@@ -3450,7 +3435,9 @@ partial interface A {
               In addition, for each index <var>j</var>, where <var>j</var> is less than the
               <a class='dfnref' href='#dfn-distinguishing-argument-index'>distinguishing argument index</a>
               for a given type list length, the types at index <var>j</var> in
-              all of the entries’ type lists <span class='rfc2119'>MUST</span> be the same.
+              all of the entries’ type lists <span class='rfc2119'>MUST</span> be the same
+              and the booleans in the corresponding list indicating argument optionality <span class='rfc2119'>MUST</span>
+              be the same.
             </p>
             <div class='example'>
               <p>The following is invalid:</p>
@@ -3463,9 +3450,9 @@ partial interface A {
                 For argument count 4, the effective overload set is:
               </p>
               <div class='set'>
-                { &lt;f1, (DOMString)>,<br/>
-                  &lt;f2, (long, float, Node, Node)>,<br/>
-                  &lt;f3, (float, float, DOMString, Node)> }
+                { &lt;f1, (DOMString), (false)>,<br/>
+                  &lt;f2, (long, float, Node, Node), (false, false, false, false)>,<br/>
+                  &lt;f3, (float, float, DOMString, Node), (false, false, false, false)> }
               </div>
               <p>
                 Looking at entries with type list length 4, the
@@ -9256,10 +9243,7 @@ d.isMemberOfBreed(null);  <span class='comment'>// This passes the string "" to 
             <p>
               The <a class='xattr' href='#TreatUndefinedAs'>[TreatUndefinedAs]</a>
               <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
-              has two uses.
-            </p>
-            <p>
-              The first use is to control how the <span class='esvalue'>undefined</span>
+              is used to control how the <span class='esvalue'>undefined</span>
               value is converted into a <span class='idltype'>DOMString</span>.
               If the extended attribute
               appears on an <a class='dfnref' href='#dfn-attribute'>attribute</a>
@@ -9296,14 +9280,6 @@ d.isMemberOfBreed(null);  <span class='comment'>// This passes the string "" to 
               and attributes, as above.
             </p>
             <p>
-              The second use for <a class='xattr' href='#TreatUndefinedAs'>[TreatUndefinedAs]</a>
-              is to control how <span class='esvalue'>undefined</span> values passed
-              to a function corresponding to an <a class='dfnref' href='#dfn-operation'>operation</a>
-              are treated.  If it is specified as <code>[TreatUndefinedAs=Missing]</code> on
-              an <a class='dfnref' href='#dfn-optional-argument'>optional</a> operation argument, then an explicit <span class='esvalue'>undefined</span> value
-              will cause the function call to be treated as if the argument had been omitted.
-            </p>
-            <p>
               The <a class='xattr' href='#TreatUndefinedAs'>[TreatUndefinedAs]</a>
               extended attribute <span class='rfc2119'>MUST</span> <a class='dfnref' href='#dfn-xattr-identifier'>take an identifier</a>:
               <code>EmptyString</code>, <code>Null</code> or <code>Missing</code>.
@@ -9323,29 +9299,12 @@ d.isMemberOfBreed(null);  <span class='comment'>// This passes the string "" to 
               a non-callback interface.
             </p>
             <p>
-              <code>[TreatUndefinedAs=Missing]</code> <span class='rfc2119'>MUST NOT</span>
-              be specified on an operation itself and <span class='rfc2119'>MUST NOT</span> be
-              specified on a non-optional operation argument.  When specified on an operation argument,
-              then any following arguments <span class='rfc2119'>MUST</span> also be annotated with
-              <code>[TreatUndefinedAs=Missing]</code>.
-            </p>
-            <div class='warning'>
-              <p>
-                Specifications <span class='rfc2119'>SHOULD NOT</span> use <code>[TreatUndefinedAs=Missing]</code>
-                unless required for compatibility reasons.  Specification authors who
-                wish to use this feature are strongly advised to discuss this on the 
-                <a href='mailto:public-script-coord@w3.org'>public-script-coord@w3.org</a>
-                mailing list before proceeding.
-              </p>
-            </div>
-            <p>
               See <a href='#es-DOMString'>section <?sref es-DOMString?></a>
               and <a href='#es-nullable-type'>section <?sref es-nullable-type?></a>
               for the specific requirements that the use of
               <code>[TreatUndefinedAs=Null]</code>
               and <code>[TreatUndefinedAs=EmptyString]</code>
-              entails.  See the <a class='dfnref' href='#dfn-overload-resolution-algorithm'>overload resolution algorithm</a>
-              for how <code>[TreatUndefinedAs=Missing]</code> is handled.
+              entails.
             </p>
             <div class='example'>
               <p>
@@ -9379,19 +9338,6 @@ c.owner = undefined;           <span class='comment'>// This assigns the null va
 
 c.isMemberOfBreed(undefined);  <span class='comment'>// This passes the string "" to the</span>
                                <span class='comment'>// isMemberOfBreed function.</span></x:codeblock>
-            </div>
-            <div class='example'>
-              <p>
-                The following <a class='dfnref' href='#dfn-idl-fragment'>IDL fragment</a> defines an interface with
-                an operation that uses <code>[TreatUndefinedAs=Missing]</code>.
-              </p>
-              <x:codeblock language='es'>interface A {
-  void f(float x, [TreatUndefinedAs=Missing] optional float y);
-};</x:codeblock>
-              <p>
-                If f is called as <code>f(1, undefined)</code> then it will have the same behavior
-                as if it were called as <code>f(1)</code>.
-              </p>
             </div>
           </div>
 
@@ -9586,38 +9532,15 @@ system.loginTime;  <span class='comment'>// So this now evaluates to forgedLogin
                 <var>S</var>, and a list of ECMAScript values, <var>arg</var><sub>0..<var>n</var>−1</sub>.
                 Its output is a pair consisting of the <a class='dfnref' href='#dfn-operation'>operation</a> or
                 <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a> of one of <var>S</var>’s entries
-                and a list of IDL values.  The algorithm behaves as follows:
+                and a list of IDL values or the special value “missing”.  The algorithm behaves as follows:
               </p>
               <ol class='algorithm'>
                 <li>Let <var>maxarg</var> be the length of the longest type list of the entries in <var>S</var>.</li>
                 <li>Initialize <var>argcount</var> to be min(<var>maxarg</var>, <var>n</var>).</li>
 
-                <li>Initialize <var>j</var> to <var>n</var>−1.</li>
-                <li>While <var>j</var> ≥ 0 and <var>arg</var><sub><var>j</var></sub> is <span class='estype'>undefined</span>:
-                  <ol>
-                    <li>If <var>S</var> has one or more entries whose type list is of length <var>j</var>, then:
-                      <ol>
-                        <li>If <var>S</var> has one or more entries whose type list is longer than <var>j</var>,
-                          and at least one of those entries has the <code>[TreatUndefinedAs=Missing]</code>
-                          <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
-                          on its arguments at indices <var>j</var> and above, then set <var>argcount</var> to <var>j</var>.</li>
-                      </ol>
-                    </li>
-                    <li>Set <var>j</var> to <var>j</var>−1.</li>
-                  </ol>
-                </li>
-
-                <li>Initialize <var>k</var> to <var>argcount</var>.</li>
-
                 <li>Remove from <var>S</var> all entries whose type list is not of length <var>argcount</var>.</li>
 
                 <li>If <var>S</var> is empty, then <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>TypeError</span></a>.</li>
-
-                <!--
-                <li>Initialize <var>i</var> to be the lowest type list index of the entries in <var>S</var> for which all
-                  types at that index are <a class='dfnref' href='#dfn-exactly-matchable-types'>exactly matchable</a>, or
-                  −1 if there is no such index.</li>
-                  -->
 
                 <li>Initialize <var>d</var> to −1.</li>
 
@@ -9625,7 +9548,7 @@ system.loginTime;  <span class='comment'>// So this now evaluates to forgedLogin
                   <var>d</var> to be the <a class='dfnref' href='#dfn-distinguishing-argument-index'>distinguishing argument index</a>
                   for the entries of <var>S</var>.</li>
 
-                <li>Initialize <var>values</var> to be an empty list of IDL values.</li>
+                <li>Initialize <var>values</var> to be an empty list, where each entry will be either an IDL value or the special value “missing”.</li>
 
                 <li>Initialize <var>i</var> to 0.</li>
 
@@ -9633,8 +9556,17 @@ system.loginTime;  <span class='comment'>// So this now evaluates to forgedLogin
                   <ol>
                     <li>Let <var>V</var> be <var>arg</var><sub><var>i</var></sub>.</li>
                     <li>Let <var>type</var> be the type at index <var>i</var> in the type list of any entry in <var>S</var>.
-                      <div class='note'><p>All entries in <var>S</var> at this point have the same type at index <var>i</var>.</p></div></li>
-                    <li>Append to <var>values</var> the result of <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a>
+                      <div class='note'><p>All entries in <var>S</var> at this point have the same type and boolean value (indicating argument optionality) at index <var>i</var>.</p></div>
+                    </li>
+                    <li>Let <var>optional</var> be the boolean at index <var>i</var> in the list of booleans of any entry in <var>S</var>.</li>
+                    <li>If <var>optional</var> is true and <var>V</var> is <span class='esvalue'>undefined</span>, then:
+                      <ol>
+                        <li>If the argument at index <var>i</var> is declared with a <a class='dfnref' href='#dfn-optional-argument-default-value'>default value</a>,
+                          then append to <var>values</var> that default value.</li>
+                        <li>Otherwise, append to <var>values</var> the special value “missing”.</li>
+                      </ol>
+                    </li>
+                    <li>Otherwise, append to <var>values</var> the result of <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a>
                       <var>V</var> to IDL type <var>type</var>.</li>
                     <li>Set <var>i</var> to <var>i</var> + 1.</li>
                   </ol>
@@ -9645,7 +9577,11 @@ system.loginTime;  <span class='comment'>// So this now evaluates to forgedLogin
                     <li>Let <var>V</var> be <var>arg</var><sub><var>i</var></sub>.
                       <div class='note'><p>This is the argument that will be used to resolve which overload is selected.</p></div></li>
 
-                    <li>If <var>V</var> is <span class='esvalue'>null</span> or <span class='esvalue'>undefined</span>,
+                    <li>If <var>V</var> is <span class='esvalue'>undefined</span>, and there is an entry in <var>S</var>
+                      whose list of booleans indicating argument optionality is true at index <var>i</var>,
+                      then remove from <var>S</var> all other entries.</li>
+
+                    <li>Otherwise, if <var>V</var> is <span class='esvalue'>null</span> or <span class='esvalue'>undefined</span>,
                       and there is an entry in <var>S</var> that has one of the following types at position <var>i</var> of it type list,
                       <ul>
                         <li>a <a class='dfnref' href='#dfn-nullable-type'>nullable type</a></li>
@@ -9765,26 +9701,34 @@ system.loginTime;  <span class='comment'>// So this now evaluates to forgedLogin
                   </ol>
                 </li>
 
+                <li>Let <var>callable</var> be the <a class='dfnref' href='#dfn-operation'>operation</a> or <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
+                  of the single entry in <var>S</var>.</li>
+
                 <li>
                   While <var>i</var> &lt; <var>argcount</var>:
                   <ol>
-                    <li>Let <var>V</var> be <var>arg</var><sub><var>i</var></sub>.</li>
-                    <li>Let <var>type</var> be the type at index <var>i</var> in the type list of the single entry in <var>S</var>.</li>
-                    <li>Append to <var>values</var> the result of <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a>
+                    <li>Let <var>type</var> be the type at index <var>i</var> in the type list of the remaining entry in <var>S</var>.</li>
+                    <li>Let <var>optional</var> be the boolean at index <var>i</var> in the list of booleans of the remaining entry in <var>S</var>.</li>
+                    <li>If <var>optional</var> is true and <var>V</var> is <span class='esvalue'>undefined</span>, then:
+                      <ol>
+                        <li>If <var>i</var> is less than the number of arguments <var>callable</var> is declared to take,
+                          and the argument at index <var>i</var> is declared with a <a class='dfnref' href='#dfn-optional-argument-default-value'>default value</a>,
+                          then append to <var>values</var> that default value.</li>
+                        <li>Otherwise, append to <var>values</var> the special value “missing”.</li>
+                      </ol>
+                    </li>
+                    <li>Otherwise, append to <var>values</var> the result of <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a>
                       <var>V</var> to IDL type <var>type</var>.</li>
                     <li>Set <var>i</var> to <var>i</var> + 1.</li>
                   </ol>
                 </li>
 
-                <li>Let <var>callable</var> be the <a class='dfnref' href='#dfn-operation'>operation</a> or <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
-                  of the single entry in <var>S</var>.</li>
-
-                <li>
-                  While <var>i</var> is less than the length of the number of arguments <var>callable</var> is declared to take,
-                    and the argument at index <var>i</var> is declared with a <a class='dfnref' href='#dfn-optional-argument-default-value'>default value</a>:
+                <li>While <var>i</var> is less than the number of arguments <var>callable</var> is declared to take:
                   <ol>
-                    <li>Append to <var>values</var> that <a class='dfnref' href='#dfn-optional-argument-default-value'>default value</a>.</li>
-                    <li>Set <var>i</var> to be <var>i</var> + 1.</li>
+                    <li>If <var>callable</var>’s argument at index <var>i</var> is declared with a <a class='dfnref' href='#dfn-optional-argument-default-value'>default value</a>,
+                      then append to <var>values</var> that default value.</li>
+                    <li>Otherwise, append to <var>values</var> the special value “missing”.</li>
+                    <li>Set <var>i</var> to <var>i</var> + 1.</li>
                   </ol>
                 </li>
 
@@ -9802,9 +9746,6 @@ system.loginTime;  <span class='comment'>// So this now evaluates to forgedLogin
                 <ul>
                   <li>If there are more arguments passed in than the longest
                     overload argument list, then they are ignored.</li>
-                  <li>Any trailing <span class='esvalue'>undefined</span> values
-                    are ignored if there is an overload that has
-                    <code>[TreatUndefinedAs=Missing]</code> on the corresponding argument.</li>
                   <li>After ignoring these trailing arguments, only overloads
                     that can take this exact number of arguments are considered.
                     If there are none, then a <span class='estype'>TypeError</span> is thrown.</li>
@@ -9816,36 +9757,30 @@ system.loginTime;  <span class='comment'>// So this now evaluates to forgedLogin
                   be one position in the argument list that will be used to
                   distinguish which overload we will finally select; this is
                   the <a class='dfnref' href='#dfn-distinguishing-argument-index'>distinguishing
-                    argument index</a>.  All arguments
-                  to the left of this one, in all the overloads we are still considering
-                  at this point, will have the same type at a given argument index.</p>
-                <p>So we convert all of the arguments from index 0 up to the
-                  distinguishing argument index.  Once we come to the distinguishing
-                  argument index, we inspect the type of the ECMAScript value
-                  that is passed in to determine which IDL type it may correspond to.
+                    argument index</a>.</p>
+                <p>We first convert the arguments to the left of the distinguishing
+                  argument.  (There is a requirement that an arguments to the left of
+                  the distinguishing argument index has the same type as in the other
+                  overloads, at the same index.) Then we inspect the type of the
+                  ECMAScript value that is passed in at the distinguishing argument
+                  index to determine which IDL type it may correspond to.
                   This allows us to select the final overload that will
-                  be invoked.  If there is no valid overload for the type of
+                  be invoked.  If the value passed in is <span class='esvalue'>undefined</span>
+                  and there is an overload with an optional argument at this position, then
+                  we will choose that overload.  If there is no valid overload for the type of
                   value passed in here, then we throw a <span class='estype'>TypeError</span>.
-                  The inspection of the value does not have any side effects;
+                  The inspection of the value at the distinguishing argument index does not have any side effects;
                   the only side effects that come from running the overload resolution
                   algorithm are those that come from converting the ECMAScript values
-                  to IDL values. After this, we convert the remaining argument values, still
-                  from left to right.</p>
-                <p>If at the end of this process, we have selected an overload
-                  that has <a class='dfnref' href='#dfn-optional-argument-default-value'>optional argument default values</a>
-                  for arguments that follow the explicit arguments that we have
-                  just converted, then we include those default values in
-                  the list of argument values we return from the algorithm.</p>
-              </div>
-              <div class='note'>
-                <p>
-                  In general, an explicit <span class='esvalue'>undefined</span> passed to an operation 
-                  is not treated the same as a missing optional argument (unless <code>[TreatUndefinedAs=Missing]</code>
-                  is specified in the IDL).  This is inline with the current
-                  proposed behavior for parameter default values in ECMAScript 6th edition.  However,
-                  there is a possibility that ES6 will change, in which case the treatment of <span class='esvalue'>undefined</span>
-                  might be revisited.
-                </p>
+                  to IDL values.</p>
+                <p>At this point, we have determined which overload to use.  We now
+                  convert the remaining arguments, from the distinguishing argument onwards,
+                  again ignoring any additional arguments that were ignored due to being passed
+                  after the last possible argument.</p>
+                <p>When converting an optional argument’s ECMAScript value to its equivalent IDL value,
+                  <span class='esvalue'>undefined</span> will be converted into
+                  the <a class='dfnref' href='#dfn-optional-argument-default-value'>optional argument’s default value</a>,
+                  if it has one, or a special value “missing” otherwise.</p>
               </div>
               <p>
                 The internal <span class='prop'>[[Call]]</span> method
@@ -13013,6 +12948,17 @@ d.type = et;
                 </p>
               </li>
               <!-- below are changes in v1 too -->
+              <li>
+                <p>
+                  Allowed all operation arguments to be specified as being optional and
+                  changed back to the behavior of <span class='esvalue'>undefined</span>
+                  being treated as a missing optional argument value.  Modified the
+                  effective overload set and overload resolution algorithms to
+                  take this into account, as well as allowing an <span class='esvalue'>undefined</span>
+                  value passed as the argument value at the distinguishing index to select the overload
+                  with an optional argument at that index.
+                </p>
+              </li>
               <li>
                 <p>
                   Changed the ECMAScript to IDL dictionary conversion algorithm
