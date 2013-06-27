@@ -15,7 +15,7 @@
   <head>
     <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'/>
     <title>Web IDL (Second Edition)</title>
-    <meta name='revision' content='$Id: Overview.xml,v 1.630 2013-06-24 07:52:29 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: Overview.xml,v 1.631 2013-06-27 09:23:13 cmccorma Exp $'/>
     <link rel='stylesheet' href='WebIDL.css' type='text/css'/>
     <script src='section-links.js' type='application/ecmascript'/>
     <script src='dfn.js' type='application/ecmascript'/>
@@ -913,6 +913,7 @@ partial interface <em>SomeInterface</em> {
             <!--JAVA
             <a class='xattr' href='#JavaPackage'>[JavaPackage]</a>,
             -->
+            <a class='xattr' href='#MapClass'>[MapClass]</a>,
             <a class='xattr' href='#NamedConstructor'>[NamedConstructor]</a>,
             <a class='xattr' href='#NoInterfaceObject'>[NoInterfaceObject]</a>.
           </p>
@@ -954,6 +955,7 @@ partial interface <em>SomeInterface</em> {
             <!--JAVA
             <a class='xattr' href='#JavaPackage'>[JavaPackage]</a>,
             -->
+            <a class='xattr' href='#MapClass'>[MapClass]</a>,
             <a class='xattr' href='#NamedConstructor'>[NamedConstructor]</a>,
             <a class='xattr' href='#NamedPropertiesObject'>[NamedPropertiesObject]</a>,
             <a class='xattr' href='#NoInterfaceObject'>[NoInterfaceObject]</a>,
@@ -5832,6 +5834,17 @@ interface Person {
                 <code>[PutForwards=name]</code>
               </td>
             </tr>
+            <tr>
+              <td>
+                <a class='sym' href='#prod-ExtendedAttributeTypePair'>ExtendedAttributeTypePair</a>
+              </td>
+              <td>
+                <dfn id='dfn-xattr-type-pair'>takes a type pair</dfn>
+              </td>
+              <td>
+                <code>[MapClass(DOMString, object)]</code>
+              </td>
+            </tr>
             <!--JAVA
             <tr>
               <td>
@@ -5857,7 +5870,7 @@ interface Person {
             are ambiguous, no extended attribute defined in this document takes both of those forms.-->
           </p>
 
-          <?productions grammar ExtendedAttributeList ExtendedAttribute ExtendedAttributes ExtendedAttributeRest ExtendedAttributeInner Other OtherOrComma ExtendedAttributeNoArgs ExtendedAttributeArgList ExtendedAttributeIdent ExtendedAttributeNamedArgList ExtendedAttributeDottedName?>
+          <?productions grammar ExtendedAttributeList ExtendedAttribute ExtendedAttributes ExtendedAttributeRest ExtendedAttributeInner Other OtherOrComma ExtendedAttributeNoArgs ExtendedAttributeArgList ExtendedAttributeIdent ExtendedAttributeNamedArgList ExtendedAttributeTypePair?>
 
         </div>
       </div>
@@ -5995,6 +6008,7 @@ interface Person {
             <li><a href='#es-stringifier'>the <span class='estype'>Function</span> objects that correspond to stringifiers</a></li>
             <li><a href='#es-serializer'>the <span class='estype'>Function</span> objects that correspond to serializers</a></li>
             <li><a href='#es-iterators'>the <span class='estype'>Function</span> objects that correspond to iterators</a></li>
+            <li><a class='dfnref' href='#dfn-map-size-getter'>map size getters</a></li>
             <li><a class='dfnref' href='#dfn-exception-interface-object'>exception interface objects</a></li>
             <li><a class='dfnref' href='#dfn-exception-interface-prototype-object'>exception interface prototype objects</a></li>
             <li><a class='dfnref' href='#dfn-exception-field-getter'>exception field getters</a></li>
@@ -8011,7 +8025,9 @@ results.numbers.length;       <span class='comment'>// So this still evaluates t
               The <a class='xattr' href='#ArrayClass'>[ArrayClass]</a> extended attribute
               <span class='rfc2119'>MUST</span> <a class='dfnref' href='#dfn-xattr-no-arguments'>take no arguments</a>.
               It <span class='rfc2119'>MUST NOT</span> be used on an interface that
-              has any <a class='dfnref' href='#dfn-inherited-interfaces'>inherited interfaces</a>.
+              has any <a class='dfnref' href='#dfn-inherited-interfaces'>inherited interfaces</a>,
+              or which is declared with the <a class='xattr' href='#MapClass'>[MapClass]</a>
+              extended attribute.
             </p>
             <div class='note'>
               <p>
@@ -8459,6 +8475,134 @@ Example.prototype.x;
 
 <span class='comment'>// Throws a TypeError, since Example.prototype is not an Example object.</span>
 Example.prototype.y;</x:codeblock>
+            </div>
+          </div>
+
+          <div id='MapClass' class='section'>
+            <h4>[MapClass]</h4>
+            <p>
+              If the <a class='xattr' href='#MapClass'>[MapClass]</a>
+              <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
+              appears on an <a class='dfnref' href='#dfn-interface'>interface</a>
+              that is not defined to <a class='dfnref' href='#dfn-inherit'>inherit</a>
+              from another, it indicates that objects implementing the
+              interface are “map-like”, and expose a set of optionally
+              modifiable key–value pairs, where keys are unique.
+            </p>
+            <p>
+              Any object that implements an interface declared with the 
+              <a class='xattr' href='#MapClass'>[MapClass]</a> extended attribute
+              <span class='rfc2119'>MUST</span> define what the list of
+              <dfn id='dfn-map-entries'>map entries</dfn> for the object are
+              at any given time.  Each map entry is a key–value pair, where
+              the keys and values are IDL values.  The list of map entries
+              for an object is ordered.
+            </p>
+            <p>
+              The <a class='xattr' href='#MapClass'>[MapClass]</a> extended attribute
+              <span class='rfc2119'>MUST</span> <a class='dfnref' href='#dfn-xattr-type-pair'>take a type pair</a>.
+              The first type listed is the interface’s <dfn id='dfn-map-key-type'>map key type</dfn>,
+              and the second type is its <dfn id='dfn-map-value-type'>map value type</dfn>.
+              Each of the object’s <a class='dfnref' href='#dfn-map-entries'>map entries</a>
+              <span class='rfc2119'>MUST</span> be defined to have a key whose type is
+              the <a class='dfnref' href='#dfn-map-key-type'>map key type</a> and a value whose
+              type is the <a class='dfnref' href='#dfn-map-value-type'>map value type</a>.
+            </p>
+            <p>
+              The keys in a given object’s <a class='dfnref' href='#dfn-map-entries'>map entries</a>
+              <span class='rfc2119'>MUST</span> be unique on that object.
+            </p>
+            <p>
+              The <a class='xattr' href='#MapClass'>[MapClass]</a> extended attribute
+              <span class='rfc2119'>MUST NOT</span> be used on an interface that
+              has any <a class='dfnref' href='#dfn-inherited-interfaces'>inherited interfaces</a>
+              or which is declared with the <a class='xattr' href='#ArrayClass'>[ArrayClass]</a>
+              extended attribute.
+            </p>
+            <p>
+              If an interface has been declared with the <a class='xattr' href='#MapClass'>[MapClass]</a>
+              extended attribute, then the internal <span class='prop'>[[Prototype]]</span>
+              property of its <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype object</a>
+              will be the <span class='estype'>Map</span> prototype object rather than
+              the <span class='estype'>Object</span> prototype object.
+            </p>
+            <div class='note'>
+              <p>This allows for two things.  First, it allows generic <span class='estype'>Map</span>
+              methods to work on objects implementing the interface.  Second,
+              it allows objects implementing the interface to test
+              <code>instanceof Map</code>.</p>
+            </div>
+            <p>
+              The <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype object</a>
+              for an interface that has been declared with the <a class='xattr' href='#MapClass'>[MapClass]</a>
+              extended attribute will gain properties that mimic those available on
+              a native <span class='estype'>Map</span> object, unless <a class='dfnref' href='#dfn-interface-member'>interface members</a>
+              with the same name are declared on the interface.
+            </p>
+            <p>
+              If an interface member with the <a class='dfnref' href='#dfn-identifier'>identifier</a>
+              “clear”,
+              “delete”,
+              “forEach”,
+              “get”,
+              “has” or
+              “set”
+              is declared on the interface or any of its <a class='dfnref' href='#dfn-consequential-interface'>consequential interfaces</a>,
+              then it <span class='rfc2119'>MUST</span> be defined as in the IDL fragment below,
+              where <var>Interface</var> is the interface,
+              <var>KeyType</var> is the interface’s <a class='dfnref' href='#dfn-map-key-type'>map key type</a>
+              and <var>ValueType</var> is the interface’s <a class='dfnref' href='#dfn-map-key-type'>map value type</a>:
+            </p>
+            <x:codeblock language='idl'>void clear();
+boolean delete(<var>KeyType</var> key);
+void forEach(<var>CallbackType</var> callbackFn, any thisArg);
+<var>ValueType</var> get(<var>KeyType</var> key);
+boolean has(<var>KeyType</var> key);
+<var>Interface</var> set(<var>KeyType</var> key, <var>ValueType</var> value);</x:codeblock>
+            <p>
+              If a “forEach” <a class='dfnref' href='#dfn-operation'>operation</a> is defined,
+              then <var>CallbackType</var> <span class='rfc2119'>MUST</span> be a
+              <a class='dfnref' href='#dfn-callback-function'>callback function</a> defined
+              as follows:
+            </p>
+            <x:codeblock language='idl'>callback <var>CallbackType</var>(<var>KeyType</var> key, <var>ValueType</var> value, any thisArg);</x:codeblock>
+            <div class='ednote'>
+              <p>Instead of using <span class='idltype'>any</span> for the thisArg, we could
+              just require it to be consistent with that used by set().</p>
+            </div>
+            <div class='note'>
+              <p>
+                Although default implementations of the above operations will be supplied if
+                not defined on the interface, specification authors can provide their own
+                definitions as they may be able to provide versions of them with better
+                performance characteristics than the default implementations or to provide
+                some additional behavior.
+              </p>
+            </div>
+            <p>
+              An interface that is declared with the <a class='xattr' href='#MapClass'>[MapClass]</a>
+              extended attribute <span class='rfc2119'>MUST NOT</span> have any
+              <a class='dfnref' href='#dfn-interface-member'>interface member</a> declared on it
+              or any of its <a class='dfnref' href='#dfn-consequential-interface'>consequential interfaces</a>
+              with the <a class='dfnref' href='#dfn-identifier'>identifier</a>
+              “size”, “entries”, “keys” or “values”.
+            </p>
+            <div class='note'>
+              <p>
+                The interface prototype object of a <a class='xattr' href='#MapClass'>[MapClass]</a> interface
+                will gain an accessor property named “size”, and <span class='estype'>Function</span> object
+                valued data properties named “entries”, “keys” and “values”, all of which mimic those
+                available on a native <span class='estype'>Map</span> object.
+              </p>
+            </div>
+            <p>
+              See <a href='#interface-prototype-object'>section <?sref interface-prototype-object?></a>
+              and <a href='#es-map-members'>section <?sref es-map-members?></a> for the
+              specific requirements that the use of <a class='xattr' href='#MapClass'>[MapClass]</a>
+              entails.
+            </p>
+            <div class='ednote'>
+              <p>Add an example.</p>
             </div>
           </div>
 
@@ -10094,16 +10238,22 @@ system.loginTime;  <span class='comment'>// So this now evaluates to forgedLogin
               <var>A</var> is the <a class='dfnref' href='#dfn-named-properties-object'>named properties object</a>
               for <var>A</var>, as defined in <a href='#named-properties-object'>section <?sref named-properties-object?></a>
               <?sdir named-properties-object?>.</li>
-              <li>Otherwise, if <var>A</var> is not declared to inherit from another interface, then the
-              value of the internal <span class='prop'>[[Prototype]]</span> property
-              of <var>A</var> is the <a class="external" href="http://people.mozilla.org/~jorendorff/es6-draft.html#sec-15.4.4"><span class='estype'>Array</span> prototype object</a>
-              (<a href="#ref-ECMA-262">[ECMA-262]</a>, section 15.4.4) if the interface
-              was declared with <a class='xattr' href='#ArrayClass'>[ArrayClass]</a>,
-              or the <a class="external" href="http://people.mozilla.org/~jorendorff/es6-draft.html#sec-15.2.4"><span class='estype'>Object</span> prototype object</a> otherwise
-              (<a href="#ref-ECMA-262">[ECMA-262]</a>, section 15.2.4).</li>
-              <li>Otherwise, the value of the internal <span class='prop'>[[Prototype]]</span> property of <var>A</var> is the
+              <li>Otherwise, if <var>A</var> is declared to inherit from another
+              interface, then the value of the internal
+              <span class='prop'>[[Prototype]]</span> property of <var>A</var> is the
               <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype object</a>
               for the inherited interface.</li>
+              <li>Otherwise, if <var>A</var> is declared with the <a class='xattr' href='#ArrayClass'>[ArrayClass]</a>
+              extended attribute, then the value of the internal <span class='prop'>[[Prototype]]</span> property
+              of <var>A</var> is the <a class="external" href="http://people.mozilla.org/~jorendorff/es6-draft.html#sec-15.4.4"><span class='estype'>Array</span> prototype object</a>
+              (<a href="#ref-ECMA-262">[ECMA-262]</a>, section 15.4.4).</li>
+              <li>Otherwise, if <var>A</var> is declared with the <a class='xattr' href='#MapClass'>[MapClass]</a>
+              extended attribute, then the value of the internal <span class='prop'>[[Prototype]]</span> property
+              of <var>A</var> is the <a class="external" href="http://people.mozilla.org/~jorendorff/es6-draft.html#sec-15.14.4"><span class='estype'>Map</span> prototype object</a>
+              (<a href="#ref-ECMA-262">[ECMA-262]</a>, section 15.14.4).</li>
+              <li>Otherwise, the value of the internal <span class='prop'>[[Prototype]]</span> property
+              of <var>A</var> is the <a class="external" href="http://people.mozilla.org/~jorendorff/es6-draft.html#sec-15.2.4"><span class='estype'>Object</span> prototype object</a>.
+              (<a href="#ref-ECMA-262">[ECMA-262]</a>, section 15.2.4).</li>
             </ol>
             <div class='note'>
               <p>
@@ -10170,18 +10320,21 @@ partial interface Window {
               <span class='prop'>[[Prototype]]</span> property whose value is as follows:
             </p>
             <ol class='algorithm'>
-              <li>If <var>A</var> is not declared to inherit from another interface, then the
-              value of the internal <span class='prop'>[[Prototype]]</span> property
-              of <var>A</var> is the <a class="external" href="http://people.mozilla.org/~jorendorff/es6-draft.html#sec-15.4.4"><span class='estype'>Array</span> prototype object</a>
-              (<a href="#ref-ECMA-262">[ECMA-262]</a>, section 15.4.4) if the interface
-              was declared with <a class='xattr' href='#ArrayClass'>[ArrayClass]</a>,
-              or the <a class="external" href="http://people.mozilla.org/~jorendorff/es6-draft.html#sec-15.2.4"><span class='estype'>Object</span> prototype object</a> otherwise
-              (<a href="#ref-ECMA-262">[ECMA-262]</a>, section 15.2.4).</li>
-              <li>Otherwise, <var>A</var> does <a class='dfnref' href='#dfn-inherit'>inherit</a> from another
-              interface.
-              The value of the internal <span class='prop'>[[Prototype]]</span> property of <var>A</var> is the
+              <li>If <var>A</var> is declared to inherit from another interface, then the value of the internal
+              <span class='prop'>[[Prototype]]</span> property of the named properties object is the
               <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype object</a>
               for the inherited interface.</li>
+              <li>Otherwise, if <var>A</var> is declared with the <a class='xattr' href='#ArrayClass'>[ArrayClass]</a>
+              extended attribute, then the value of the internal <span class='prop'>[[Prototype]]</span> property
+              of the named properties object is the <a class="external" href="http://people.mozilla.org/~jorendorff/es6-draft.html#sec-15.4.4"><span class='estype'>Array</span> prototype object</a>
+              (<a href="#ref-ECMA-262">[ECMA-262]</a>, section 15.4.4).</li>
+              <li>Otherwise, if <var>A</var> is declared with the <a class='xattr' href='#MapClass'>[MapClass]</a>
+              extended attribute, then the value of the internal <span class='prop'>[[Prototype]]</span> property
+              of the named properties object is the <a class="external" href="http://people.mozilla.org/~jorendorff/es6-draft.html#sec-15.14.4"><span class='estype'>Map</span> prototype object</a>
+              (<a href="#ref-ECMA-262">[ECMA-262]</a>, section 15.14.4).</li>
+              <li>Otherwise, the value of the internal <span class='prop'>[[Prototype]]</span> property
+              of the named properties object is the <a class="external" href="http://people.mozilla.org/~jorendorff/es6-draft.html#sec-15.2.4"><span class='estype'>Object</span> prototype object</a>.
+              (<a href="#ref-ECMA-262">[ECMA-262]</a>, section 15.2.4).</li>
             </ol>
             <p>
               The <a class='dfnref' href='#dfn-class-string'>class string</a> of a
@@ -10942,6 +11095,324 @@ interface
                 The value of the <span class='estype'>Function</span> object’s “length”
                 property is the <span class='estype'>Number</span> value <span class='esvalue'>0</span>.
               </p>
+            </div>
+          </div>
+
+          <div id='es-map-members' class='section'>
+            <h4>Map members</h4>
+
+            <p>
+              If an <a class='dfnref' href='#dfn-interface'>interface</a> <var>A</var> is declared with
+              the <a class='xattr' href='#MapClass'>[MapClass]</a>
+              <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>, then
+              there exists a number of additional properties on <var>A</var>’s
+              <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype object</a>.
+              These additional properties are described in the sub-sections below.
+            </p>
+
+            <div id='es-map-size' class='section'>
+              <h5>size</h5>
+
+              <p>
+                There <span class='rfc2119'>MUST</span> exist a property named “size” on
+                <var>A</var>’s <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype object</a>
+                with the following characteristics:
+              </p>
+              <ul>
+                <li>The property has attributes <span class='descriptor'>{ [[Get]]: <var>G</var>, [[Enumerable]]: <span class='esvalue'>false</span>, [[Configurable]]: <span class='esvalue'>true</span> }</span>,
+                  where <var>G</var> is the interface’s <dfn id='dfn-map-size-getter'>map size getter</dfn>,
+                  defined below.</li>
+                <li><p>The <a class='dfnref' href='#dfn-map-size-getter'>map size getter</a> is
+                  a <span class='estype'>Function</span> object whose
+                  behavior when invoked is as follows:</p>
+                  <ol class='algorithm'>
+                    <li>Let <var>O</var> be the <span class='esvalue'>this</span> value.</li>
+                    <li>If <var>O</var> is not an object that implements <var>A</var>, then <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>TypeError</span></a>.</li>
+                    <li>Return the <span class='estype'>Number</span> value that represents the number of <a class='dfnref' href='#dfn-map-entries'>map entries</a> that <var>O</var> has.</li>
+                  </ol>
+                  <p>The value of the <span class='estype'>Function</span> object’s “length” property is the <span class='estype'>Number</span> value <span class='esvalue'>0</span>.</p>
+                </li>
+              </ul>
+            </div>
+
+            <div id='es-map-entries' class='section'>
+              <h5>entries</h5>
+
+              <p>
+                There <span class='rfc2119'>MUST</span> exist a property named “entries” on
+                <var>A</var>’s <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype object</a>
+                with the following characteristics:
+              </p>
+              <ul>
+                <li>The property has attributes <span class='descriptor'>{ [[Writable]]: <span class='esvalue'>true</span>, [[Enumerable]]: <span class='esvalue'>false</span>, [[Configurable]]: <span class='esvalue'>true</span> }</span>.</li>
+                <li>The value of the property is a <span class='estype'>Function</span> object behavior when invoked is as follows:
+                  <ol class='algorithm'>
+                    <!--
+                    <li>Let <var>O</var> be the <span class='esvalue'>this</span> value.</li>
+                    <li>If <var>O</var> is not an object that implements <var>A</var>, then <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>TypeError</span></a>.</li>
+                    -->
+                    <li>
+                      <div class='ednote'>
+                        <p>Define an iterator that yields map key–value pairs.</p>
+                      </div>
+                    </li>
+                  </ol>
+                  <p>The value of the <span class='estype'>Function</span> object’s “length” property is the <span class='estype'>Number</span> value <span class='esvalue'>0</span>.</p>
+                </li>
+              </ul>
+            </div>
+
+            <div id='es-map-keys' class='section'>
+              <h5>keys</h5>
+
+              <p>
+                There <span class='rfc2119'>MUST</span> exist a property named “keys” on
+                <var>A</var>’s <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype object</a>
+                with the following characteristics:
+              </p>
+              <ul>
+                <li>The property has attributes <span class='descriptor'>{ [[Writable]]: <span class='esvalue'>true</span>, [[Enumerable]]: <span class='esvalue'>false</span>, [[Configurable]]: <span class='esvalue'>true</span> }</span>.</li>
+                <li>The value of the property is a <span class='estype'>Function</span> object behavior when invoked is as follows:
+                  <ol class='algorithm'>
+                    <!--
+                    <li>Let <var>O</var> be the <span class='esvalue'>this</span> value.</li>
+                    <li>If <var>O</var> is not an object that implements <var>A</var>, then <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>TypeError</span></a>.</li>
+                    -->
+                    <li>
+                      <div class='ednote'>
+                        <p>Define an iterator that yields map entry keys.</p>
+                      </div>
+                    </li>
+                  </ol>
+                  <p>The value of the <span class='estype'>Function</span> object’s “length” property is the <span class='estype'>Number</span> value <span class='esvalue'>0</span>.</p>
+                </li>
+              </ul>
+            </div>
+
+            <div id='es-map-values' class='section'>
+              <h5>values</h5>
+
+              <p>
+                There <span class='rfc2119'>MUST</span> exist a property named “values” on
+                <var>A</var>’s <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype object</a>
+                with the following characteristics:
+              </p>
+              <ul>
+                <li>The property has attributes <span class='descriptor'>{ [[Writable]]: <span class='esvalue'>true</span>, [[Enumerable]]: <span class='esvalue'>false</span>, [[Configurable]]: <span class='esvalue'>true</span> }</span>.</li>
+                <li>The value of the property is a <span class='estype'>Function</span> object behavior when invoked is as follows:
+                  <ol class='algorithm'>
+                    <!--
+                    <li>Let <var>O</var> be the <span class='esvalue'>this</span> value.</li>
+                    <li>If <var>O</var> is not an object that implements <var>A</var>, then <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>TypeError</span></a>.</li>
+                    -->
+                    <li>
+                      <div class='ednote'>
+                        <p>Define an iterator that yields map entry values.</p>
+                      </div>
+                    </li>
+                  </ol>
+                  <p>The value of the <span class='estype'>Function</span> object’s “length” property is the <span class='estype'>Number</span> value <span class='esvalue'>0</span>.</p>
+                </li>
+              </ul>
+            </div>
+
+            <div id='es-map-clear' class='section'>
+              <h5>clear</h5>
+
+              <p>
+                If <var>A</var> and <var>A</var>’s
+                <a class='dfnref' href='#dfn-consequential-interface'>consequential interfaces</a>
+                do not declare an <a class='dfnref' href='#dfn-interface-member'>interface member</a>
+                with the identifier “clear”, then a property with that name and the following characteristics
+                <span class='rfc2119'>MUST</span> exist on <var>A</var>’s
+                <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype object</a>:
+              </p>
+              <ul>
+                <li>The property has attributes <span class='descriptor'>{ [[Writable]]: <span class='esvalue'>true</span>, [[Enumerable]]: <span class='esvalue'>false</span>, [[Configurable]]: <span class='esvalue'>true</span> }</span>.</li>
+                <li>
+                  <p>The value of the property is a <span class='estype'>Function</span> object behavior when invoked is as follows:</p>
+                  <ul>
+                    <!--
+                    <li>Let <var>O</var> be the <span class='esvalue'>this</span> value.</li>
+                    <li>If <var>O</var> is not an object that implements <var>A</var>, then <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>TypeError</span></a>.</li>
+                    -->
+                    <li>
+                      <div class='ednote'>
+                        <p>Define this to behave like:</p>
+                        <x:codeblock language='es'>for (let k of [...this.keys()])
+  this.delete(k);</x:codeblock>
+                      </div>
+                    </li>
+                  </ul>
+                  <p>The value of the <span class='estype'>Function</span> object’s “length” property is the <span class='estype'>Number</span> value <span class='esvalue'>0</span>.</p>
+                </li>
+              </ul>
+            </div>
+
+            <div id='es-map-delete' class='section'>
+              <h5>delete</h5>
+
+              <p>
+                If <var>A</var> and <var>A</var>’s
+                <a class='dfnref' href='#dfn-consequential-interface'>consequential interfaces</a>
+                do not declare an <a class='dfnref' href='#dfn-interface-member'>interface member</a>
+                with the identifier “delete”, then a property with that name and the following characteristics
+                <span class='rfc2119'>MUST</span> exist on <var>A</var>’s
+                <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype object</a>:
+              </p>
+              <ul>
+                <li>The property has attributes <span class='descriptor'>{ [[Writable]]: <span class='esvalue'>true</span>, [[Enumerable]]: <span class='esvalue'>false</span>, [[Configurable]]: <span class='esvalue'>true</span> }</span>.</li>
+                <li>
+                  <p>The value of the property is a <span class='estype'>Function</span> object behavior when invoked is as follows:</p>
+                  <ol class='algorithm'>
+                    <li>Let <var>O</var> be the <span class='esvalue'>this</span> value.</li>
+                    <li>If <var>O</var> is not an object that implements <var>A</var>, then <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>TypeError</span></a>.</li>
+                    <li>Let <var>arg</var> be the first argument passed to the function, or <span class='esvalue'>undefined</span> if one was not passed.</li>
+                    <li>Let <var>key</var> be the result of <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a> <var>arg</var>
+                      to an IDL value of the <a class='dfnref' href='#dfn-map-key-type'>map key type</a>.</li>
+                    <li>If <var>O</var> has no <a class='dfnref' href='#dfn-map-entries'>map entry</a> with key <var>key</var>, then return
+                      the <span class='estype'>Boolean</span> value <span class='esvalue'>false</span>.</li>
+                    <li>Remove <var>O</var>’s <a class='dfnref' href='#dfn-map-entries'>map entry</a> whose key is <var>key</var>.</li>
+                    <li>Return the <span class='estype'>Boolean</span> value <span class='esvalue'>true</span>.</li>
+                  </ol>
+                  <p>The value of the <span class='estype'>Function</span> object’s “length” property is the <span class='estype'>Number</span> value <span class='esvalue'>1</span>.</p>
+                </li>
+              </ul>
+            </div>
+
+            <div id='es-map-forEach' class='section'>
+              <h5>forEach</h5>
+
+              <p>
+                If <var>A</var> and <var>A</var>’s
+                <a class='dfnref' href='#dfn-consequential-interface'>consequential interfaces</a>
+                do not declare an <a class='dfnref' href='#dfn-interface-member'>interface member</a>
+                with the identifier “forEach”, then a property with that name and the following characteristics
+                <span class='rfc2119'>MUST</span> exist on <var>A</var>’s
+                <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype object</a>:
+              </p>
+              <ul>
+                <li>The property has attributes <span class='descriptor'>{ [[Writable]]: <span class='esvalue'>true</span>, [[Enumerable]]: <span class='esvalue'>false</span>, [[Configurable]]: <span class='esvalue'>true</span> }</span>.</li>
+                <li>
+                  <p>The value of the property is a <span class='estype'>Function</span> object behavior when invoked is as follows:</p>
+                  <ul>
+                    <!--
+                    <li>Let <var>O</var> be the <span class='esvalue'>this</span> value.</li>
+                    <li>If <var>O</var> is not an object that implements <var>A</var>, then <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>TypeError</span></a>.</li>
+                    -->
+                    <li>
+                      <div class='ednote'>
+                        <p>Define this to behave like:</p>
+                        <x:codeblock language='es'>for (let [k, v] of this)
+  callbackFn.call(thisArg, v, k, this);</x:codeblock>
+                      </div>
+                    </li>
+                  </ul>
+                  <p>The value of the <span class='estype'>Function</span> object’s “length” property is the <span class='estype'>Number</span> value <span class='esvalue'>1</span>.</p>
+                </li>
+              </ul>
+            </div>
+
+            <div id='es-map-get' class='section'>
+              <h5>get</h5>
+
+              <p>
+                If <var>A</var> and <var>A</var>’s
+                <a class='dfnref' href='#dfn-consequential-interface'>consequential interfaces</a>
+                do not declare an <a class='dfnref' href='#dfn-interface-member'>interface member</a>
+                with the identifier “get”, then a property with that name and the following characteristics
+                <span class='rfc2119'>MUST</span> exist on <var>A</var>’s
+                <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype object</a>:
+              </p>
+              <ul>
+                <li>The property has attributes <span class='descriptor'>{ [[Writable]]: <span class='esvalue'>true</span>, [[Enumerable]]: <span class='esvalue'>false</span>, [[Configurable]]: <span class='esvalue'>true</span> }</span>.</li>
+                <li>
+                  <p>The value of the property is a <span class='estype'>Function</span> object behavior when invoked is as follows:</p>
+                  <ol class='algorithm'>
+                    <li>Let <var>O</var> be the <span class='esvalue'>this</span> value.</li>
+                    <li>If <var>O</var> is not an object that implements <var>A</var>, then <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>TypeError</span></a>.</li>
+                    <li>Let <var>arg</var> be the first argument passed to the function, or <span class='esvalue'>undefined</span> if one was not passed.</li>
+                    <li>Let <var>key</var> be the result of <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a> <var>arg</var>
+                      to an IDL value of the <a class='dfnref' href='#dfn-map-key-type'>map key type</a>.</li>
+                    <li>If <var>O</var> has a <a class='dfnref' href='#dfn-map-entries'>map entry</a> with key <var>key</var>,
+                      then return the result of <a class='dfnref' href='#dfn-convert-idl-to-ecmascript-value'>converting</a>
+                      that entry’s value to an ECMAScript value.</li>
+                    <li>Returrn <span class='esvalue'>undefined</span>.</li>
+                  </ol>
+                  <p>The value of the <span class='estype'>Function</span> object’s “length” property is the <span class='estype'>Number</span> value <span class='esvalue'>1</span>.</p>
+                </li>
+              </ul>
+
+              <div class='ednote'>
+                <p>Although the default implementation of get can return <span class='esvalue'>undefined</span>,
+                  if an operation named “get” is defined then that cannot return <span class='esvalue'>undefined</span>.
+                  How should we resolve this?</p>
+              </div>
+            </div>
+
+            <div id='es-map-has' class='section'>
+              <h5>has</h5>
+
+              <p>
+                If <var>A</var> and <var>A</var>’s
+                <a class='dfnref' href='#dfn-consequential-interface'>consequential interfaces</a>
+                do not declare an <a class='dfnref' href='#dfn-interface-member'>interface member</a>
+                with the identifier “has”, then a property with that name and the following characteristics
+                <span class='rfc2119'>MUST</span> exist on <var>A</var>’s
+                <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype object</a>:
+              </p>
+              <ul>
+                <li>The property has attributes <span class='descriptor'>{ [[Writable]]: <span class='esvalue'>true</span>, [[Enumerable]]: <span class='esvalue'>false</span>, [[Configurable]]: <span class='esvalue'>true</span> }</span>.</li>
+                <li>
+                  <p>The value of the property is a <span class='estype'>Function</span> object behavior when invoked is as follows:</p>
+                  <ol class='algorithm'>
+                    <li>Let <var>O</var> be the <span class='esvalue'>this</span> value.</li>
+                    <li>If <var>O</var> is not an object that implements <var>A</var>, then <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>TypeError</span></a>.</li>
+                    <li>Let <var>arg</var> be the first argument passed to the function, or <span class='esvalue'>undefined</span> if one was not passed.</li>
+                    <li>Let <var>key</var> be the result of <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a> <var>arg</var>
+                      to an IDL value of the <a class='dfnref' href='#dfn-map-key-type'>map key type</a>.</li>
+                    <li>If <var>O</var> has a <a class='dfnref' href='#dfn-map-entries'>map entry</a> with key <var>key</var>,
+                      then return the <span class='estype'>Boolean</span> value <span class='esvalue'>true</span>
+                      Otherwise, return the <span class='estype'>Boolean</span> value <span class='esvalue'>false</span>.</li>
+                  </ol>
+                  <p>The value of the <span class='estype'>Function</span> object’s “length” property is the <span class='estype'>Number</span> value <span class='esvalue'>1</span>.</p>
+                </li>
+              </ul>
+            </div>
+
+            <div id='es-map-set' class='section'>
+              <h5>set</h5>
+
+              <p>
+                If <var>A</var> and <var>A</var>’s
+                <a class='dfnref' href='#dfn-consequential-interface'>consequential interfaces</a>
+                do not declare an <a class='dfnref' href='#dfn-interface-member'>interface member</a>
+                with the identifier “set”, then a property with that name and the following characteristics
+                <span class='rfc2119'>MUST</span> exist on <var>A</var>’s
+                <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype object</a>:
+              </p>
+              <ul>
+                <li>The property has attributes <span class='descriptor'>{ [[Writable]]: <span class='esvalue'>true</span>, [[Enumerable]]: <span class='esvalue'>false</span>, [[Configurable]]: <span class='esvalue'>true</span> }</span>.</li>
+                <li>
+                  <p>The value of the property is a <span class='estype'>Function</span> object behavior when invoked is as follows:</p>
+                  <ol class='algorithm'>
+                    <li>Let <var>O</var> be the <span class='esvalue'>this</span> value.</li>
+                    <li>If <var>O</var> is not an object that implements <var>A</var>, then <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>TypeError</span></a>.</li>
+                    <li>Let <var>arg1</var> be the first argument passed to the function, or <span class='esvalue'>undefined</span> if one was not passed.</li>
+                    <li>Let <var>arg2</var> be the second argument passed to the function, or <span class='esvalue'>undefined</span> if one was not passed.</li>
+                    <li>Let <var>key</var> be the result of <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a> <var>arg1</var>
+                      to an IDL value of the <a class='dfnref' href='#dfn-map-key-type'>map key type</a>.</li>
+                    <li>Let <var>value</var> be the result of <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a> <var>arg2</var>
+                      to an IDL value of the <a class='dfnref' href='#dfn-map-value-type'>map value type</a>.</li>
+                    <li>If <var>O</var> has a <a class='dfnref' href='#dfn-map-entries'>map entry</a> with key <var>key</var>,
+                      then update it in place to have a value of <var>value</var>.</li>
+                    <li>Otherwise, <var>O</var> does not have a <a class='dfnref' href='#dfn-map-entries'>map entry</a> with key <var>key</var>.
+                      Append a new entry to <var>O</var>’s list of <a class='dfnref' href='#dfn-map-entries'>map entries</a>
+                      with key <var>key</var> and value <var>value</var>.</li>
+                  </ol>
+                  <p>The value of the <span class='estype'>Function</span> object’s “length” property is the <span class='estype'>Number</span> value <span class='esvalue'>2</span>.</p>
+                </li>
+              </ul>
             </div>
           </div>
         </div>
@@ -12646,13 +13117,14 @@ d.type = et;
           <!--prod nt='IdentifierList'>identifier Identifiers</prod>
           <prod nt='Identifiers'>"," identifier Identifiers | ε</prod-->
 
-          <!-- These four productions aren't referenced from any of the
+          <!-- These five productions aren't referenced from any of the
                other productions; they're just mentioned from the
                #idl-extended-attributes section. -->
           <prod nt='ExtendedAttributeNoArgs'>identifier</prod>
           <prod nt='ExtendedAttributeArgList'>identifier "(" ArgumentList ")"</prod>
           <prod nt='ExtendedAttributeIdent'>identifier "=" identifier</prod>
           <prod nt='ExtendedAttributeNamedArgList'>identifier "=" identifier "(" ArgumentList ")"</prod>
+          <prod nt='ExtendedAttributeTypePair'>"(" Type "," Type ")"</prod>
 
           <!--prod nt='Keyword'>"any" | "attribute" | "boolean" | "byte" | "const" | "double" | "exception" | "float" | "getraises" | "in" | "interface" | "long" | "Object" | "octet" | "raises" | "readonly" | "sequence" | "setraises" | "short" | "typedef" | "unsigned | "void"</prod-->
           <!-- the following are the remaining OMG IDL 3 keywords:
@@ -12903,6 +13375,11 @@ d.type = et;
           <dt>Current editor’s draft</dt>
           <dd>
             <ul>
+              <li>
+                <p>
+                  Added the <span class='xattr'>[MapClass]</span> extended attribute.
+                </p>
+              </li>
               <li>
                 <p>
                   Allowed <span class='xattr'>[Constructor]</span> to be specified
