@@ -15,7 +15,7 @@
   <head>
     <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'/>
     <title>Web IDL</title>
-    <meta name='revision' content='$Id: v1.xml,v 1.84 2013-07-19 04:19:47 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: v1.xml,v 1.85 2013-07-22 07:09:10 cmccorma Exp $'/>
     <link rel='stylesheet' href='WebIDL.css' type='text/css'/>
     <script src='section-links.js' type='application/ecmascript'/>
     <script src='dfn.js' type='application/ecmascript'/>
@@ -924,8 +924,8 @@ partial interface <em>SomeInterface</em> {
             <p>The above list of <a class='dfnref' href='#dfn-extended-attribute'>extended attributes</a>
               is all of those defined in this document that are applicable to
               <a class='dfnref' href='#dfn-interface'>interfaces</a> except for
-              <a class='xattr' href='#OverrideBuiltins'>[OverrideBuiltins]</a>,
-              <a class='xattr' href='#NamedPropertiesObject'>[NamedPropertiesObject]</a> and
+              <a class='xattr' href='#Global'>[Global]</a>,
+              <a class='xattr' href='#OverrideBuiltins'>[OverrideBuiltins]</a> and
               <a class='xattr' href='#Unforgeable'>[Unforgeable]</a>.</p>
           </div>
           <p>
@@ -955,12 +955,12 @@ partial interface <em>SomeInterface</em> {
             The following extended attributes are applicable to interfaces:
             <a class='xattr' href='#ArrayClass'>[ArrayClass]</a>,
             <a class='xattr' href='#Constructor'>[Constructor]</a>,
+            <a class='xattr' href='#Global'>[Global]</a>,
             <a class='xattr' href='#ImplicitThis'>[ImplicitThis]</a>,
             <!--JAVA
             <a class='xattr' href='#JavaPackage'>[JavaPackage]</a>,
             -->
             <a class='xattr' href='#NamedConstructor'>[NamedConstructor]</a>,
-            <a class='xattr' href='#NamedPropertiesObject'>[NamedPropertiesObject]</a>,
             <a class='xattr' href='#NoInterfaceObject'>[NoInterfaceObject]</a>,
             <a class='xattr' href='#OverrideBuiltins'>[OverrideBuiltins]</a>,
             <a class='xattr' href='#Unforgeable'>[Unforgeable]</a>.
@@ -2227,7 +2227,7 @@ omittable deleter <i>type</i> <i>identifier</i>(unsigned long <i>identifier</i>)
                 </p>
                 <x:codeblock language='es'>var a = getA();
 
-a.toWord(0);  <span class='comment'>// Evalutes to "zero".</span>
+a.toWord(0);  <span class='comment'>// Evaluates to "zero".</span>
 a[0];         <span class='comment'>// Also evaluates to "zero".</span>
 
 a.toWord(5);  <span class='comment'>// Evaluates to "five".</span>
@@ -7384,6 +7384,170 @@ context.setColorEnforcedRange(-1, 255, 256);</x:codeblock>
             </div>
           </div>
 
+          <div id='Global' class='section'>
+            <h4>[Global]</h4>
+
+            <p>
+              If the <a class='xattr' href='#Global'>[Global]</a>
+              <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
+              appears on an <a class='dfnref' href='#dfn-interface'>interface</a>,
+              it indicates that objects implementing this interface can
+              be used as the global object in an ECMAScript environment,
+              and that the structure of the prototype chain and how
+              properties corresponding to <a class='dfnref' href='#dfn-interface-member'>interface members</a>
+              will be reflected on the prototype objects will be different from other
+              interfaces.  Specifically:
+            </p>
+            <ol>
+              <li>Any <a href='#idl-named-properties'>named properties</a>
+              will be exposed on an object in the prototype chain – the
+              <a class='dfnref' href='#dfn-named-properties-object'>named properties object</a> –
+              rather than on the object itself.</li>
+              <li><a class='dfnref' href='#dfn-interface-member'>Interface members</a> from the
+              <a class='dfnref' href='#dfn-interface'>interface</a> (or
+              <a class='dfnref' href='#dfn-consequential-interface'>consequential interfaces</a>)
+              will correspond to properties on the object itself rather than on
+              <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype objects</a>.</li>
+            </ol>
+            <div class='note'>
+              <p>
+                Placing named properties on an object in the prototype chain
+                is done so that variable declarations and bareword assignments
+                will shadow the named property with a property on the global
+                object itself.
+              </p>
+              <p>
+                Placing properties corresponding to interface members on
+                the object itself will mean that common feature detection
+                methods like the following will work:
+              </p>
+              <x:codeblock language='es'>var indexedDB = window.indexedDB || window.webkitIndexedDB ||
+                window.mozIndexedDB || window.msIndexedDB;
+
+var requestAnimationFrame = window.requestAnimationFrame ||
+                            window.mozRequestAnimationFrame || ...;</x:codeblock>
+              <p>
+                Because of the way variable declarations are handled in
+                ECMAScript, the code above would result in the <code>window.indexedDB</code>
+                and <code>window.requestAnimationFrame</code> evaluating
+                to <code>undefined</code>, as the shadowing variable
+                property would already have been created before the
+                assignment is evaluated.
+              </p>
+            </div>
+            <p>
+              The <a class='xattr' href='#Global'>[Global]</a>
+              extended attribute <span class='rfc2119'>MUST</span>
+              <a class='dfnref' href='#dfn-xattr-no-arguments'>take no arguments</a>.
+            </p>
+            <p>
+              If the <a class='xattr' href='#Global'>[Global]</a>
+              <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
+              is used on an <a class='dfnref' href='#dfn-interface'>interface</a>, then:
+            </p>
+            <ul>
+              <li>The interface <span class='rfc2119'>MUST NOT</span> define a <a class='dfnref' href='#dfn-named-property-setter'>named property setter</a>,
+                <a class='dfnref' href='#dfn-named-property-creator'>creator</a> or <a class='dfnref' href='#dfn-named-property-deleter'>deleter</a>.</li>
+              <li>The interface <span class='rfc2119'>MUST NOT</span> also be declared with the <a class='xattr' href='#OverrideBuiltins'>[OverrideBuiltins]</a>
+                extended attribute.</li>
+              <li>The interface <span class='rfc2119'>MUST NOT</span> <a class='dfnref' href='#dfn-inherit'>inherit</a> from another interface with the
+                <a class='xattr' href='#OverrideBuiltins'>[OverrideBuiltins]</a> extended attribute.</li>
+              <li>Any other interface <span class='rfc2119'>MUST NOT</span> <a class='dfnref' href='#dfn-inherit'>inherit</a> from it.</li>
+            </ul>
+            <p>
+              If <a class='xattr' href='#Global'>[Global]</a> is specified on
+              a <a class='dfnref' href='#dfn-partial-interface'>partial interface</a>
+              definition, then that partial interface definition <span class='rfc2119'>MUST</span>
+              be the part of the interface definition that defines
+              the <a class='dfnref' href='#dfn-named-property-getter'>named property getter</a>.
+            </p>
+            <p>
+              The <a class='xattr' href='#Global'>[Global]</a>
+              <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a> <span class='rfc2119'>MUST NOT</span>
+              be used on an <a class='dfnref' href='#dfn-interface'>interface</a> that can have more
+              than one object implementing it in the same ECMAScript global environment.
+            </p>
+            <div class='note'>
+              <p>This is because the <a class='dfnref' href='#dfn-named-properties-object'>named properties object</a>,
+                which exposes the named properties, is in the prototype chain, and it would not make
+                sense for more than one object’s named properties to be exposed on an object that
+                all of those objects inherit from.</p>
+            </div>
+            <p>
+              If an interface is declared with the <a class='xattr' href='#Global'>[Global]</a>
+              <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>, then
+              there <span class='rfc2119'>MUST NOT</span> be more than one
+              <a class='dfnref' href='#dfn-interface-member'>interface member</a> across
+              the interface and its <a class='dfnref' href='#dfn-consequential-interface'>consequential interfaces</a>
+              with the same <a class='dfnref' href='#dfn-identifier'>identifier</a>.
+              There also <span class='rfc2119'>MUST NOT</span> be more than
+              <a class='dfnref' href='#dfn-stringifier'>stringifier</a> across those
+              interfaces.
+            </p>
+            <div class='note'>
+              <p>This is because all of the members of the interface and its consequential
+              interfaces get flattened down on to the object that implements the interface.</p>
+            </div>
+            <p>
+              See <a href='#named-properties-object'>section <?sref named-properties-object?></a>,
+              <a href='#getownproperty'>section <?sref getownproperty?></a> and
+              <a href='#defineownproperty'>section <?sref defineownproperty?></a>
+              for the specific requirements that the use of
+              <a class='xattr' href='#Global'>[Global]</a> entails for named properties,
+              and <a href='#es-constants'>section <?sref es-constants?></a>,
+              <a href='#es-attributes'>section <?sref es-attributes?></a> and
+              <a href='#es-operations'>section <?sref es-operations?></a>
+              for the requirements relating to the location of properties
+              corresponding to <a class='dfnref' href='#dfn-interface-member'>interface members</a>.
+            </p>
+            <div class='example'>
+              <p>
+                This <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a> is intended
+                to be used by the <span class='idltype'>Window</span> interface as defined in
+                HTML5 (<a href='#ref-HTML5'>[HTML5]</a>, section 5.2). The interface exposes frames as properties on the <span class='idltype'>Window</span>
+                object.  Since the <span class='idltype'>Window</span> object also serves as the
+                ECMAScript global object, variable declarations or assignments to the named properties
+                will result in them being replaced by the new value.  Variable declarations for
+                attributes will not create a property that replaces the existing one.
+              </p>
+              <x:codeblock language='idl'>[Global]
+interface Window {
+  getter any (DOMString name);
+  attribute DOMString name; 
+  // ...
+};</x:codeblock>
+              <p>
+                The following HTML document illustrates how the named properties on the
+                <span class='idltype'>Window</span> object can be shadowed, and how
+                the property for an attribute will not be replaced when declaring
+                a variable of the same name:
+              </p>
+              <x:codeblock language='html'>&lt;!DOCTYPE html>
+&lt;title>Variable declarations and assignments on Window&lt;/title>
+&lt;iframe name=abc>&lt;/iframe>
+<span class='comment'>&lt;!-- Shadowing named properties --&gt;</span>
+&lt;script>
+  window.abc;    <span class='comment'>// Evaluates to the iframe's Window object.</span>
+  abc = 1;       <span class='comment'>// Shadows the named property.</span>
+  window.abc;    <span class='comment'>// Evaluates to 1.</span>
+&lt;/script>
+
+<span class='comment'>&lt;!-- Preserving properties for IDL attributes --&gt;</span>
+&lt;script>
+  Window.prototype.def = 2;         <span class='comment'>// Places a property on the prototype.</span>
+  window.hasOwnProperty("length");  <span class='comment'>// Evaluates to true.</span>
+  length;                           <span class='comment'>// Evaluates to 1.</span>
+  def;                              <span class='comment'>// Evaluates to 2.</span>
+&lt;/script>
+&lt;script>
+  var length;                       <span class='comment'>// Variable declaration leaves existing property.</span>
+  length;                           <span class='comment'>// Evaluates to 1.</span>
+  var def;                          <span class='comment'>// Variable declaration creates shadowing property.</span>
+  def;                              <span class='comment'>// Evaluates to undefined.</span>
+&lt;/script></x:codeblock>
+            </div>
+          </div>
+
           <div id='ImplicitThis' class='section'>
             <h4>[ImplicitThis]</h4>
             <p>
@@ -7686,7 +7850,7 @@ var fn = Query.prototype.lookupEntry;  <span class='comment'>// exception, Query
               <a class='dfnref' href='#dfn-xattr-no-arguments'>take no arguments</a>
               and <span class='rfc2119'>MUST NOT</span> appear on an interface
               that does not define a <a class='dfnref' href='#dfn-named-property-getter'>named property getter</a>
-              or that also is declared with the <a class='xattr' href='#NamedPropertiesObject'>[NamedPropertiesObject]</a>
+              or that also is declared with the <a class='xattr' href='#Global'>[Global]</a>
               extended attribute.  If the extended attribute is specified on
               a <a class='dfnref' href='#dfn-partial-interface'>partial interface</a>
               definition, then that partial interface definition <span class='rfc2119'>MUST</span>
@@ -8016,102 +8180,6 @@ counter.value;                                           <span class='comment'>/
 
 delete counter.value;                                    <span class='comment'>// Reveals the original property.</span>
 counter.value;                                           <span class='comment'>// Evaluates to 3.</span></x:codeblock>
-            </div>
-          </div>
-
-          <div id='NamedPropertiesObject' class='section'>
-            <h4>[NamedPropertiesObject]</h4>
-
-            <p>
-              If the <a class='xattr' href='#NamedPropertiesObject'>[NamedPropertiesObject]</a>
-              <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
-              appears on an <a class='dfnref' href='#dfn-interface'>interface</a>,
-              then for objects that <a class='dfnref' href='#dfn-support-named-properties'>support named properties</a>
-              these properties will be exposed on an object in the prototype chain
-              rather than on the object itself, which is the normal behavior.  The result of this
-              is that the named properties will appear to be replaceable.
-            </p>
-            <div class='warning'>
-              <p>
-                Specifications <span class='rfc2119'>SHOULD NOT</span> use <a href='#NamedPropertiesObject' class='xattr'>[NamedPropertiesObject]</a>
-                unless required for compatibility reasons.  Specification authors who
-                wish to use this feature are strongly advised to discuss this on the 
-                <a href='mailto:public-script-coord@w3.org'>public-script-coord@w3.org</a>
-                mailing list before proceeding.
-              </p>
-            </div>
-            <p>
-              The <a class='xattr' href='#NamedPropertiesObject'>[NamedPropertiesObject]</a>
-              extended attribute <span class='rfc2119'>MUST</span>
-              <a class='dfnref' href='#dfn-xattr-no-arguments'>take no arguments</a>.
-            </p>
-            <p>
-              If the <a class='xattr' href='#NamedPropertiesObject'>[NamedPropertiesObject]</a>
-              <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
-              is used on an <a class='dfnref' href='#dfn-interface'>interface</a>, then:
-            </p>
-            <ul>
-              <li>The interface <span class='rfc2119'>MUST</span> define a <a class='dfnref' href='#dfn-named-property-getter'>named property getter</a>.</li>
-              <li>The interface <span class='rfc2119'>MUST NOT</span> define a <a class='dfnref' href='#dfn-named-property-setter'>named property setter</a>,
-                <a class='dfnref' href='#dfn-named-property-creator'>creator</a> or <a class='dfnref' href='#dfn-named-property-deleter'>deleter</a>.</li>
-              <li>The interface <span class='rfc2119'>MUST NOT</span> also be declared with the <a class='xattr' href='#OverrideBuiltins'>[OverrideBuiltins]</a>
-                extended attribute.</li>
-              <li>The interface <span class='rfc2119'>MUST NOT</span> <a class='dfnref' href='#dfn-inherit'>inherit</a> from another interface with the
-                <a class='xattr' href='#NamedPropertiesObject'>[NamedPropertiesObject]</a> or <a class='xattr' href='#OverrideBuiltins'>[OverrideBuiltins]</a>
-                extended attribute.</li>
-            </ul>
-            <p>
-              If <a class='xattr' href='#NamedPropertiesObject'>[NamedPropertiesObject]</a> is specified on
-              a <a class='dfnref' href='#dfn-partial-interface'>partial interface</a>
-              definition, then that partial interface definition <span class='rfc2119'>MUST</span>
-              be the part of the interface definition that defines
-              the <a class='dfnref' href='#dfn-named-property-getter'>named property getter</a>.
-            </p>
-            <p>
-              The <a class='xattr' href='#NamedPropertiesObject'>[NamedPropertiesObject]</a>
-              <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a> <span class='rfc2119'>MUST NOT</span>
-              be used on an <a class='dfnref' href='#dfn-interface'>interface</a> that can have more
-              than one object implementing it in the same ECMAScript global environment.
-            </p>
-            <div class='note'>
-              <p>This is because the <a class='dfnref' href='#dfn-named-properties-object'>named properties object</a>,
-                which exposes the named properties, is in the prototype chain, and it would not make
-                sense for more than one object’s named properties to be exposed on an object that
-                all of those objects inherit from.</p>
-            </div>
-            <p>
-              See <a href='#named-properties-object'>section <?sref named-properties-object?></a>,
-              <a href='#getownproperty'>section <?sref getownproperty?></a> and
-              <a href='#defineownproperty'>section <?sref defineownproperty?></a>
-              for the specific requirements that the use of
-              <a class='xattr' href='#NamedPropertiesObject'>[NamedPropertiesObject]</a> entails.
-            </p>
-            <div class='example'>
-              <p>
-                This <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a> is intended
-                to be used by the <span class='idltype'>Window</span> interface as defined in
-                HTML5 (<a href='#ref-HTML5'>[HTML5]</a>, section 5.2). The interface exposes frames as properties on the <span class='idltype'>Window</span>
-                object.  Since the <span class='idltype'>Window</span> object also serves as the
-                ECMAScript global object, variable declarations or assignments to the named properties
-                will result in them being replaced by the new value.
-              </p>
-              <x:codeblock language='idl'>[NamedPropertiesObject]
-interface Window {
-  getter any (DOMString name);
-  // ...
-};</x:codeblock>
-              <p>
-                The following HTML document illustrates how the named properties on the
-                <span class='idltype'>Window</span> object can be shadowed:
-              </p>
-              <x:codeblock language='html'>&lt;!DOCTYPE html>
-&lt;title>Shadowing named properties on Window&lt;/title>
-&lt;iframe name=abc>&lt;/iframe>
-&lt;script>
-window.abc;    <span class='comment'>// Evaluates to the iframe's Window object.</span>
-abc = 1;       <span class='comment'>// Shadows the named property.</span>
-window.abc;    <span class='comment'>// Evaluates to 1.</span>
-&lt;/script></x:codeblock>
             </div>
           </div>
 
@@ -9141,7 +9209,7 @@ system.loginTime;  <span class='comment'>// So this now evaluates to forgedLogin
               <span class='prop'>[[Prototype]]</span> property whose value is as follows:
             </p>
             <ol class='algorithm'>
-              <li>If <var>A</var> is declared with the <a class='xattr' href='#NamedPropertiesObject'>[NamedPropertiesObject]</a>
+              <li>If <var>A</var> is declared with the <a class='xattr' href='#Global'>[Global]</a>
               <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>, then
               the value of the internal <span class='prop'>[[Prototype]]</span> property of
               <var>A</var> is the <a class='dfnref' href='#dfn-named-properties-object'>named properties object</a>
@@ -9208,7 +9276,7 @@ partial interface Window {
 
             <p>
               For every <a class='dfnref' href='#dfn-interface'>interface</a> declared with the
-              <a class='xattr' href='#NamedPropertiesObject'>[NamedPropertiesObject]</a> <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>,
+              <a class='xattr' href='#Global'>[Global]</a> <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>,
               there <span class='rfc2119'>MUST</span> exists an object known as the
               <dfn id='dfn-named-properties-object'>named properties object</dfn> for that
               interface.
@@ -9353,18 +9421,30 @@ interface
             <p>
               For each <a class='dfnref' href='#dfn-constant'>constant</a> defined on
               an <a class='dfnref' href='#dfn-interface'>interface</a> <var>A</var>, there
-              <span class='rfc2119'>MUST</span> be a corresponding property on
-              the <a class='dfnref' href='#dfn-interface-object'>interface object</a>,
-              if it exists.  The property has the following characteristics:
+              <span class='rfc2119'>MUST</span> be a corresponding property.
+              The property has the following characteristics:
             </p>
             <ul>
               <li>The name of the property is the <a class='dfnref' href='#dfn-identifier'>identifier</a> of the <a class='dfnref' href='#dfn-constant'>constant</a>.</li>
+              <li>
+                The location of the property is determined as follows:
+                <ul>
+                  <li>If the interface was declared with the <a class='xattr' href='#Global'>[Global]</a> extended attribute,
+                  then the property exists on the single object that implements the interface.</li>
+                  <li>Otherwise, if the interface is a <a class='dfnref' href='#dfn-consequential-interface'>consequential interface</a>
+                  of a <a class='xattr' href='#Global'>[Global]</a>-annotated interface, then
+                  the property exists on the single object that implements the <a class='xattr' href='#Global'>[Global]</a>-annotated interface as well as on
+                  the consequential interface’s <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype object</a>.</li>
+                  <li>Otherwise, the property exists solely on the interface’s <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype object</a>.</li>
+                </ul>
+              </li>
               <li>The value of the property is that which is obtained by <a class='dfnref' href='#dfn-convert-idl-to-ecmascript-value'>converting</a> the <a class='dfnref' href='#dfn-constant'>constant</a>’s IDL value to an ECMAScript value.</li>
               <li>The property has attributes <span class='descriptor'>{ [[Writable]]: <span class='esvalue'>false</span>, [[Enumerable]]: <span class='esvalue'>true</span>, [[Configurable]]: <span class='esvalue'>false</span> }</span>.</li>
             </ul>
             <p>
               In addition, a property with the same characteristics <span class='rfc2119'>MUST</span>
-              exist on the <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype object</a>.
+              exist on the <a class='dfnref' href='#dfn-interface-object'>interface object</a>, if
+              that object exists.
             </p>
           </div>
 
@@ -9384,9 +9464,17 @@ interface
                 The name of the property is the <a class='dfnref' href='#dfn-identifier'>identifier</a> of the <a class='dfnref' href='#dfn-attribute'>attribute</a>.
               </li>
               <li>
-                If the attribute is <a class='dfnref' href='#dfn-unforgeable-on-an-interface'>unforgeable</a> on
-                the interface, then the property exists on every object that implements the interface.
-                Otherwise, it exists on the interface’s <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype object</a>.
+                The location of the property is determined as follows:
+                <ul>
+                  <li>If the attribute is <a class='dfnref' href='#dfn-unforgeable-on-an-interface'>unforgeable</a> on
+                  the interface or if the interface was declared with the <a class='xattr' href='#Global'>[Global]</a> extended attribute,
+                  then the property exists on every object that implements the interface.</li>
+                  <li>Otherwise, if the interface is a <a class='dfnref' href='#dfn-consequential-interface'>consequential interface</a>
+                  of a <a class='xattr' href='#Global'>[Global]</a>-annotated interface, then
+                  the property exists on the single object that implements the <a class='xattr' href='#Global'>[Global]</a>-annotated interface as well as on
+                  the consequential interface’s <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype object</a>.</li>
+                  <li>Otherwise, the property exists solely on the interface’s <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype object</a>.</li>
+                </ul>
               </li>
               <li>
                 The property has attributes <span class='descriptor'>{ [[Get]]: <var>G</var>, [[Set]]: <var>S</var>, [[Enumerable]]: <span class='esvalue'>true</span>, [[Configurable]]: <var>configurable</var> }</span>,
@@ -9538,11 +9626,19 @@ interface
             <ul>
               <li>The name of the property is the <a class='dfnref' href='#dfn-identifier'>identifier</a>.</li>
               <li>
-                If the operation is <a class='dfnref' href='#dfn-unforgeable-on-an-interface'>unforgeable</a> on
-                the interface, then the property exists on every object that implements the interface.
-                Otherwise, if the operation is <a class='dfnref' href='#dfn-static-operation'>static</a>, then
-                it exists on the <a class='dfnref' href='#dfn-interface-object'>interface object</a>.
-                Otherwise, it exists on the interface’s <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype object</a>.
+                The location of the property is determined as follows:
+                <ul>
+                  <li>If the operation is <a class='dfnref' href='#dfn-static-operation'>static</a>, then
+                  the property exists on the <a class='dfnref' href='#dfn-interface-object'>interface object</a>.</li>
+                  <li>Otherwise, if the operation is <a class='dfnref' href='#dfn-unforgeable-on-an-interface'>unforgeable</a> on
+                  the interface or if the interface was declared with the <a class='xattr' href='#Global'>[Global]</a> extended attribute,
+                  then the property exists on every object that implements the interface.</li>
+                  <li>Otherwise, if the interface is a <a class='dfnref' href='#dfn-consequential-interface'>consequential interface</a>
+                  of a <a class='xattr' href='#Global'>[Global]</a>-annotated interface, then
+                  the property exists on the single object that implements the <a class='xattr' href='#Global'>[Global]</a>-annotated interface as well as on
+                  the consequential interface’s <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype object</a>.</li>
+                  <li>Otherwise, the property exists solely on the interface’s <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype object</a>.</li>
+                </ul>
               </li>
               <li>
                 The property has attributes
@@ -9657,7 +9753,8 @@ interface
             <ul>
               <li>The name of the property is “toString”.</li>
               <li>If the <a class='dfnref' href='#dfn-stringifier'>stringifier</a> is
-                <a class='dfnref' href='#dfn-unforgeable-on-an-interface'>unforgeable</a> on the interface,
+                <a class='dfnref' href='#dfn-unforgeable-on-an-interface'>unforgeable</a> on the interface
+                or if the interface was declared with the <a class='xattr' href='#Global'>[Global]</a> extended attribute,
                 then the property exists on every object that implements the interface.
                 Otherwise, the property exists on the <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype object</a>.</li>
               <li>The property has attributes <span class='descriptor'>{ [[Writable]]: <var>B</var>, [[Enumerable]]: <span class='esvalue'>true</span>, [[Configurable]]: <var>B</var> }</span>,
@@ -9962,7 +10059,7 @@ C implements A;</x:codeblock>
               by the <span class='prop'>[[GetOwnProperty]]</span> internal method.
             </p>
             <p>
-              However, when the <a class='xattr' href='#NamedPropertiesObject'>[NamedPropertiesObject]</a>
+              However, when the <a class='xattr' href='#Global'>[Global]</a>
               <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a> has been used,
               named properties are not exposed on the object but on the <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype object</a>
               itself.
@@ -9993,7 +10090,7 @@ C implements A;</x:codeblock>
               or <code>Object.preventExtensions</code> is called on one of these objects, the function
               <span class='rfc2119'>MUST</span> <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>TypeError</span></a>.
               Similarly, an <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype object</a>
-              that exposes named properties due to the use of <a class='xattr' href='#NamedPropertiesObject'>[NamedPropertiesObject]</a>
+              that exposes named properties due to the use of <a class='xattr' href='#Global'>[Global]</a>
               also <span class='rfc2119'>MUST</span> <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>TypeError</span></a>
               if one of the three functions above is called on it.
             </p>
@@ -10147,7 +10244,7 @@ C implements A;</x:codeblock>
               </li>
 
               <li>If <var>O</var> <a class='dfnref' href='#dfn-support-named-properties'>supports named properties</a>, <var>O</var> does not
-                implement an <a class='dfnref' href='#dfn-interface'>interface</a> with the <a class='xattr' href='#NamedPropertiesObject'>[NamedPropertiesObject]</a>
+                implement an <a class='dfnref' href='#dfn-interface'>interface</a> with the <a class='xattr' href='#Global'>[Global]</a>
                 <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>, the result of running the <a class='dfnref' href='#dfn-named-property-visibility'>named property visibility algorithm</a> with
                 property name <var>P</var> and object <var>O</var> is true, and <var>ignore</var> is false, then:
                 <ol>
@@ -10165,7 +10262,7 @@ C implements A;</x:codeblock>
                   <li>Set <var>desc</var>.<span class='prop'>[[Value]]</span> to the result of <a class='dfnref' href='#dfn-convert-idl-to-ecmascript-value'>converting</a>
                     <var>value</var> to an ECMAScript value.</li>
                   <li>If <var>O</var> implements an interface with a <a class='dfnref' href='#dfn-named-property-setter'>named property setter</a><!-- and
-                    <var>O</var> does not implement an interface with the <a class='xattr' href='#NamedPropertiesObject'>[NamedPropertiesObject]</a>
+                    <var>O</var> does not implement an interface with the <a class='xattr' href='#Global'>[Global]</a>
                     <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>-->, then set
                     <var>desc</var>.<span class='prop'>[[Writable]]</span> to <span class='esvalue'>true</span>, otherwise set it to
                     <span class='esvalue'>false</span>.</li>
@@ -10226,13 +10323,13 @@ C implements A;</x:codeblock>
               <li>
                 If <var>O</var> <a class='dfnref' href='#dfn-support-named-properties'>supports named properties</a>,
                 <var>O</var> does not implement an <a class='dfnref' href='#dfn-interface'>interface</a> with the
-                <a class='xattr' href='#NamedPropertiesObject'>[NamedPropertiesObject]</a> <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
+                <a class='xattr' href='#Global'>[Global]</a> <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
                 and <var>P</var> is not an <a class='dfnref' href='#dfn-unforgeable-property-name'>unforgeable property name</a>
                 on <var>O</var>, then:
                 <ol>
                   <li>Let <var>creating</var> be true if <var>P</var> is not a <a class='dfnref' href='#dfn-supported-property-names'>supported property name</a>, and false otherwise.</li>
                   <!--
-                  <li>If <var>creating</var> is false and <var>O</var> implements an interface with the <a class='xattr' href='#NamedPropertiesObject'>[NamedPropertiesObject]</a>
+                  <li>If <var>creating</var> is false and <var>O</var> implements an interface with the <a class='xattr' href='#Global'>[Global]</a>
                     <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>, then:
                     <ol>
                       <li>If the result of calling <a href='http://es5.github.com/#x8.10.1' class='dfnref external'>IsAccessorDescriptor</a>(<var>Desc</var>) is <span class='esvalue'>true</span>, then:
@@ -10335,7 +10432,7 @@ C implements A;</x:codeblock>
               <li>
                 If <var>O</var> <a class='dfnref' href='#dfn-support-named-properties'>supports named properties</a>,
                 <var>O</var> does not implement an <a class='dfnref' href='#dfn-interface'>interface</a> with the
-                <a class='xattr' href='#NamedPropertiesObject'>[NamedPropertiesObject]</a> <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
+                <a class='xattr' href='#Global'>[Global]</a> <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
                 and the result of calling the <a class='dfnref' href='#dfn-named-property-visibility'>named property visibility algorithm</a>
                 with property name <var>P</var> and object <var>O</var> is true, then:
                 <ol>
@@ -11686,6 +11783,14 @@ d.type = et;
           <dt>Current editor’s draft</dt>
           <dd>
             <ul>
+              <li>
+                <p>
+                  Renamed <span class='xattr'>[NamedPropertiesObject]</span> to
+                  <span class='xattr'>[Global]</span>, which now also causes
+                  properties for interface members to appear on the object
+                  itself rather than on the interface prototype object.
+                </p>
+              </li>
               <li>
                 <p>
                   Split out <span class='idltype'>boolean</span> from the other
