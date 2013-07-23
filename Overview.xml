@@ -15,7 +15,7 @@
   <head>
     <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'/>
     <title>Web IDL (Second Edition)</title>
-    <meta name='revision' content='$Id: Overview.xml,v 1.646 2013-07-23 07:32:55 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: Overview.xml,v 1.647 2013-07-23 08:40:14 cmccorma Exp $'/>
     <link rel='stylesheet' href='WebIDL.css' type='text/css'/>
     <script src='section-links.js' type='application/ecmascript'/>
     <script src='dfn.js' type='application/ecmascript'/>
@@ -1395,6 +1395,7 @@ attribute <i>type</i> <i>identifier</i> inherits getter setraises(<i>scoped-name
               are applicable to regular and static attributes:
               <a class='xattr' href='#Clamp'>[Clamp]</a>,
               <a class='xattr' href='#EnforceRange'>[EnforceRange]</a>,
+              <a class='xattr' href='#EnsureUTF16'>[EnsureUTF16]</a>,
               <a class='xattr' href='#SameObject'>[SameObject]</a>,
               <a class='xattr' href='#TreatNullAs'>[TreatNullAs]</a>,
               <a class='xattr' href='#TreatUndefinedAs'>[TreatUndefinedAs]</a>.
@@ -1766,6 +1767,7 @@ s.union(1, 4, 7);         <span class='comment'>// Passing three arguments corre
               The following extended attributes are applicable to operation arguments:
               <a class='xattr' href='#Clamp'>[Clamp]</a>,
               <a class='xattr' href='#EnforceRange'>[EnforceRange]</a>,
+              <a class='xattr' href='#EnsureUTF16'>[EnsureUTF16]</a>,
               <a class='xattr' href='#TreatNullAs'>[TreatNullAs]</a>,
               <a class='xattr' href='#TreatUndefinedAs'>[TreatUndefinedAs]</a>.
             </p>
@@ -6933,6 +6935,26 @@ iframe.appendChild instanceof w.Function;  <span class='comment'>// Evaluates to
                 value that represents the empty string.
               </li>
               <li>Let <var>x</var> be <a href='http://people.mozilla.org/~jorendorff/es6-draft.html#sec-9.1.8' class='dfnref external'>ToString</a>(<var>V</var>).</li>
+              <li>If the conversion to an IDL value is being performed due to any of the following:
+                <ul>
+                  <li>
+                    <var>V</var> is being passed as an <a class='dfnref' href='#dfn-operation'>operation</a>
+                    argument that is annotated with the <a class='xattr' href='#EnsureUTF16'>[EnsureUTF16]</a>, or
+                  </li>
+                  <li>
+                    <var>V</var> is being assigned to an <a class='dfnref' href='#dfn-attribute'>attribute</a>
+                    annotated with <a class='xattr' href='#EnsureUTF16'>[EnsureUTF16]</a>,
+                  </li>
+                </ul>
+                then:
+                <ol>
+                  <li>Let <var>characters</var> be the result of passing <var>x</var> to the
+                    <a class='dfnref' href='#dfn-obtain-unicode'>DOMString to sequence of Unicode characters conversion algorithm</a>.</li>
+                  <li>Set <var>x</var> to the <span class='idltype'>DOMString</span> value
+                    that represents the sequence of characters in <var>characters</var>
+                    in UTF-16.</li>
+                </ol>
+              </li>
               <li>Return the IDL <a class='idltype' href='#idl-DOMString'>DOMString</a> value that represents the same sequence of code units as the one the ECMAScript <span class='estype'>String</span> value <var>x</var> represents.</li>
             </ol>
             <p>
@@ -8421,6 +8443,53 @@ context.setColorEnforcedRange(-0.9, 255, 255.2);
 // The following will cause a TypeError to be thrown, since even after
 // rounding the first and third argument values are out of range.
 context.setColorEnforcedRange(-1, 255, 256);</x:codeblock>
+            </div>
+          </div>
+
+          <div id='EnsureUTF16' class='section'>
+            <h4>[EnsureUTF16]</h4>
+            <p>
+              If the <a class='xattr' href='#EnsureUTF16'>[EnsureUTF16]</a>
+              <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
+              appears on an <a class='dfnref' href='#dfn-operation'>operation</a>
+              argument or writable <a class='dfnref' href='#dfn-attribute'>attribute</a>
+              whose type is <span class='idltype'>DOMString</span>, it indicates that
+              any ECMAScript <span class='estype'>String</span> value passed in
+              will modified to ensure that it is valid UTF-16.  That is,
+              it will replace any invalid surrogate code units with a
+              <span class='char'>U+FFFD REPLACEMENT CHARACTER</span>
+              by passing it through the <a href="#dfn-obtain-unicode">DOMString to
+              sequence of Unicode characters conversion algorithm</a>.
+            </p>
+            <p>
+              The <a class='xattr' href='#EnsureUTF16'>[EnsureUTF16]</a>
+              extended attribute <span class='rfc2119'>MUST</span>
+              <a class='dfnref' href='#dfn-xattr-no-arguments'>take no arguments</a>.
+            </p>
+            <p>
+              See <a href='#es-DOMString'>section <?sref es-DOMString?></a>
+              for the specific requirements that the use of
+              <a class='xattr' href='#EnsureUTF16'>[EnsureUTF16]</a> entails.
+            </p>
+            <div class='example'>
+              <p>
+                Consider the following IDL fragment, where the behavior
+                of the operation is simply to return the value that is passed to it.
+              </p>
+              <x:codeblock language='idl'>interface StringSanitizer {
+  static DOMString sanitize([EnsureUTF16] DOMString s);
+};</x:codeblock>
+              <p>
+                Due to the use of <a class='xattr' href='#EnsureUTF16'>[EnsureUTF16]</a>,
+                invalid UTF-16 surrogate code units will be replaced.
+              </p>
+              <x:codeblock language='es'>function show(s) {
+  return s.split("").map(function(c) { return c.charCodeAt(0); });
+}
+
+var s = "\uDC00\uD800\uDC00\uD800";  <span class='comment'>// The first and last code units are invalid surrogates.</span>
+show(s);                             <span class='comment'>// Evaluates to [0xdc00, 0xd800, 0xdc00, 0xd800].</span>
+show(StringSanitizer.sanitizer(s));  <span class='comment'>// Evaluates to [0xfffd, 0xd800, 0xdc00, 0xfffd].</span></x:codeblock>
             </div>
           </div>
 
@@ -13858,6 +13927,11 @@ d.type = et;
           <dt>Current editor’s draft</dt>
           <dd>
             <ul>
+              <li>
+                <p>
+                  Added the <span class='xattr'>[EnsureUTF16]</span> extended attribute.
+                </p>
+              </li>
               <li>
                 <p>
                   Added the <span class='xattr'>[NewObject]</span> and
