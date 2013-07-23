@@ -11,7 +11,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <title>Web IDL (Second Edition)</title>
-    <meta name="revision" content="$Id: Overview.html,v 1.641 2013-07-23 06:07:51 cmccorma Exp $" />
+    <meta name="revision" content="$Id: Overview.html,v 1.642 2013-07-23 07:32:55 cmccorma Exp $" />
     <link rel="stylesheet" href="WebIDL.css" type="text/css" />
     <script src="section-links.js" type="application/ecmascript"></script>
     <script src="dfn.js" type="application/ecmascript"></script>
@@ -9153,14 +9153,14 @@ var a2 = new Audio('a.flac');   <span class="comment">// Creates an HTMLAudioEle
             <div class="example"><div class="exampleHeader">Example</div>
               <p>
                 As an example, this extended attribute is suitable for use on
-                the <a href="http://dom.spec.whatwg.org/#dom-document-getelementsbytagname">getElementsByTagName</a>
+                the <a href="http://dom.spec.whatwg.org/#dom-document-createelement">createElement</a>
                 attribute on the <a href="http://dom.spec.whatwg.org/#document"><span class="idltype">Document</span></a>
                 interface (<a href="#ref-DOM">[DOM]</a>, section 6.5),
                 since a new object should always be returned when
                 it is called.
               </p>
               <div class="block"><div class="blockTitleDiv"><span class="blockTitle">IDL</span></div><div class="blockContent"><pre class="code"><code class="idl-code">interface Document : Node {
-  [NewObject] HTMLCollection getElementsByTagName(DOMString localName);
+  [NewObject] Element createElement(DOMString localName);
   ...
 };</code></pre></div></div>
             </div>
@@ -12896,27 +12896,36 @@ C implements A;</code></pre></div></div>
             called in a manner similar to how <a class="dfnref" href="#dfn-operation">operations</a>
             on <a class="dfnref" href="#dfn-user-object">user objects</a> are called (as
             described in the previous section).  The <a href="http://people.mozilla.org/~jorendorff/es6-draft.html#sec-9.2.2" class="dfnref external">callable</a> object
-            is called with a list of IDL argument values
-            <var>idlarg</var><sub>0..<var>n</var>−1</sub> by
+            is called with a list of values
+            <var>arg</var><sub>0..<var>n</var>−1</sub>,
+            each of which is either an IDL value of the special value “missing” (representing
+            a missing optional argument), by
             following the algorithm below.  By default, the <a class="dfnref" href="#dfn-callback-this-value">callback this value</a>
             when invoking a <a class="dfnref" href="#dfn-callback-function">callback function</a>
             is <span class="esvalue">null</span>, unless overridden by other specifications.
           </p>
           <ol class="algorithm">
             <li>Let <var>F</var> be the <a href="http://people.mozilla.org/~jorendorff/es6-draft.html#sec-9.2.2" class="dfnref external">callable</a> object that is the <a class="dfnref" href="#dfn-callback-function">callback function</a> value.</li>
-            <li>
-              Let <var>arg</var><sub>0..<var>n</var>−1</sub> be a list of
-              ECMAScript values, where <var>arg</var><sub><var>i</var></sub> is the result
-              of <a class="dfnref" href="#dfn-convert-idl-to-ecmascript-value">converting</a>
-              <var>idlarg</var><sub><var>i</var></sub> to an ECMAScript value.
+            <li>Initialize <var>values</var> to be an empty list of ECMAScript values.</li>
+            <li>Initialize <var>count</var> to 0.</li>
+            <li>Initialize <var>i</var> to 0.</li>
+            <li>While <var>i</var> &lt; <var>n</var>:
+              <ol>
+                <li>If <var>arg</var><sub><var>i</var></sub> is the special value “missing”, then append to <var>values</var> the ECMAScript <span class="estype">undefined</span> value.</li>
+                <li>Otherwise, <var>arg</var><sub><var>i</var></sub> is an IDL value.  Append to <var>values</var> the result of
+                  <a class="dfnref" href="#dfn-convert-idl-to-ecmascript-value">converting</a> <var>arg</var><sub><var>i</var></sub> to an ECMAScript value,
+                  and set <var>count</var> to <var>i</var> + 1.</li>
+                <li>Set <var>i</var> to <var>i</var> + 1.</li>
+              </ol>
             </li>
-            <li>Let <var>R</var> be the result of invoking the <span class="prop">[[Call]]</span> method of <var>F</var>, providing the <a class="dfnref" href="#dfn-callback-this-value">callback this value</a> as the <span class="esvalue">this</span> value and <var>arg</var><sub>0..<var>n</var>−1</sub> as the argument values.</li>
+            <li>Truncate <var>values</var> to have length <var>count</var>.</li>
+            <li>Let <var>R</var> be the result of invoking the <span class="prop">[[Call]]</span> method of <var>F</var>, providing the <a class="dfnref" href="#dfn-callback-this-value">callback this value</a> as the <span class="esvalue">this</span> value and <var>values</var> as the argument values.</li>
             <li>
               If the callback function’s return type is <a class="idltype" href="#idl-void">void</a>, return.
             </li>
             <li>
               Return the result of <a class="dfnref" href="#dfn-convert-ecmascript-to-idl-value">converting</a>
-              <var>R</var> to an IDL value of the same type as the operation’s return type.
+              <var>R</var> to an IDL value of the same type as the callback function’s return type.
             </li>
           </ol>
         </div>
@@ -14113,6 +14122,12 @@ d.type = et;
                 </p>
               </li>
               <!-- below are changes in v1 too -->
+              <li>
+                <p>
+                  Changed how callback functions are invoked to support missing
+                  optional arguments.
+                </p>
+              </li>
               <li>
                 <p>
                   Renamed <span class="xattr">[NamedPropertiesObject]</span> to
