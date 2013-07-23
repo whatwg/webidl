@@ -15,7 +15,7 @@
   <head>
     <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'/>
     <title>Web IDL (Second Edition)</title>
-    <meta name='revision' content='$Id: Overview.xml,v 1.642 2013-07-23 02:03:31 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: Overview.xml,v 1.643 2013-07-23 05:35:02 cmccorma Exp $'/>
     <link rel='stylesheet' href='WebIDL.css' type='text/css'/>
     <script src='section-links.js' type='application/ecmascript'/>
     <script src='dfn.js' type='application/ecmascript'/>
@@ -1393,6 +1393,7 @@ attribute <i>type</i> <i>identifier</i> inherits getter setraises(<i>scoped-name
               are applicable to regular and static attributes:
               <a class='xattr' href='#Clamp'>[Clamp]</a>,
               <a class='xattr' href='#EnforceRange'>[EnforceRange]</a>,
+              <a class='xattr' href='#SameObject'>[SameObject]</a>,
               <a class='xattr' href='#TreatNullAs'>[TreatNullAs]</a>,
               <a class='xattr' href='#TreatUndefinedAs'>[TreatUndefinedAs]</a>.
             </p>
@@ -1757,6 +1758,7 @@ s.union(1, 4, 7);         <span class='comment'>// Passing three arguments corre
             <p>
               The following extended attributes
               are applicable to operations:
+              <a class='xattr' href='#NewObject'>[NewObject]</a>,
               <a class='xattr' href='#TreatNullAs'>[TreatNullAs]</a>,
               <a class='xattr' href='#TreatUndefinedAs'>[TreatUndefinedAs]</a>,
               <a class='xattr' href='#Unforgeable'>[Unforgeable]</a>.
@@ -8906,6 +8908,49 @@ var a2 = new Audio('a.flac');   <span class='comment'>// Creates an HTMLAudioEle
             </div>
           </div>
 
+          <div id='NewObject' class='section'>
+            <h4>[NewObject]</h4>
+
+            <p>
+              If the <a class='xattr' href='#NewObject'>[NewObject]</a>
+              <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
+              appears on a <a class='dfnref' href='#dfn-regular-operation'>regular</a>
+              or <a class='dfnref' href='#dfn-static-operation'>static</a>
+              <a class='dfnref' href='#dfn-operation'>operation</a>,
+              then it indicates that when calling the operation,
+              a reference to a newly created object
+              <span class='rfc2119'>MUST</span> always be returned.
+            </p>
+            <p>
+              The <a class='xattr' href='#NewObject'>[NewObject]</a>
+              extended attribute <span class='rfc2119'>MUST</span>
+              <a class='dfnref' href='#dfn-xattr-no-arguments'>take no arguments</a>.
+            </p>
+            <p>
+              The <a class='xattr' href='#NewObject'>[NewObject]</a>
+              extended attribute <span class='rfc2119'>MUST NOT</span>
+              be used on anything other than a <a class='dfnref' href='#dfn-regular-operation'>regular</a>
+              or <a class='dfnref' href='#dfn-static-operation'>static</a>
+              <a class='dfnref' href='#dfn-operation'>operation</a>
+              whose <a class='dfnref' href='#dfn-return-type'>return type</a>
+              is an <a href='#idl-interface'>interface type</a>.
+            </p>
+            <div class='example'>
+              <p>
+                As an example, this extended attribute is suitable for use on
+                the <a href='http://dom.spec.whatwg.org/#dom-document-getelementsbytagname'>getElementsByTagName</a>
+                attribute on the <a href='http://dom.spec.whatwg.org/#document'><span class='idltype'>Document</span></a>
+                interface (<a href='#ref-DOM'>[DOM]</a>, section 6.5),
+                since a new object should always be returned when
+                it is called.
+              </p>
+              <x:codeblock language='idl'>interface Document : Node {
+  [NewObject] HTMLCollection getElementsByTagName(DOMString localName);
+  ...
+};</x:codeblock>
+            </div>
+          </div>
+
           <div id='NoInterfaceObject' class='section'>
             <h4>[NoInterfaceObject]</h4>
 
@@ -9358,6 +9403,46 @@ counter.value;                                           <span class='comment'>/
 
 delete counter.value;                                    <span class='comment'>// Reveals the original property.</span>
 counter.value;                                           <span class='comment'>// Evaluates to 3.</span></x:codeblock>
+            </div>
+          </div>
+
+          <div id='SameObject' class='section'>
+            <h4>[SameObject]</h4>
+
+            <p>
+              If the <a class='xattr' href='#SameObject'>[SameObject]</a>
+              <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
+              appears on a <a class='dfnref' href='#dfn-read-only'>read only</a>
+              <a class='dfnref' href='#dfn-attribute'>attribute</a>, then it
+              indicates that when getting the value of the attribute on a given
+              object, the same value <span class='rfc2119'>MUST</span> always
+              be returned.
+            </p>
+            <p>
+              The <a class='xattr' href='#SameObject'>[SameObject]</a>
+              extended attribute <span class='rfc2119'>MUST</span>
+              <a class='dfnref' href='#dfn-xattr-no-arguments'>take no arguments</a>.
+            </p>
+            <p>
+              The <a class='xattr' href='#SameObject'>[SameObject]</a>
+              extended attribute <span class='rfc2119'>MUST NOT</span>
+              be used on anything other than a <a class='dfnref' href='#dfn-read-only'>read only</a>
+              <a class='dfnref' href='#dfn-attribute'>attribute</a>
+              whose type is an <a href='#idl-interface'>interface type</a>.
+            </p>
+            <div class='example'>
+              <p>
+                As an example, this extended attribute is suitable for use on
+                the <a href='http://dom.spec.whatwg.org/#dom-document-implementation'>implementation</a>
+                attribute on the <a href='http://dom.spec.whatwg.org/#document'><span class='idltype'>Document</span></a>
+                interface (<a href='#ref-DOM'>[DOM]</a>, section 6.5),
+                since the same object is always returned for a given
+                <span class='idltype'>Document</span> object.
+              </p>
+              <x:codeblock language='idl'>interface Document : Node {
+  [SameObject] readonly attribute DOMImplementation implementation;
+  ...
+};</x:codeblock>
             </div>
           </div>
 
@@ -13642,6 +13727,12 @@ d.type = et;
           <h3>Informative references</h3>
 
           <dl>
+            <dt id='ref-DOM'>[DOM]</dt>
+            <dd>
+              <cite><a href='http://dom.spec.whatwg.org/'>DOM Standard</a></cite>.
+              A. van Kesteren, A. Gregor and Ms2ger, Editors.  WHATWG, 22 July 2013.
+              <span class="print"><br/>Available at http://dom.spec.whatwg.org/.</span>
+            </dd>
             <dt id='ref-DOM3CORE'>[DOM3CORE]</dt>
             <dd>
               <cite><a href='http://www.w3.org/TR/2004/REC-DOM-Level-3-Core-20040407/'>Document Object Model (DOM) Level 3 Core Specification</a></cite>.
@@ -13759,6 +13850,12 @@ d.type = et;
           <dt>Current editor’s draft</dt>
           <dd>
             <ul>
+              <li>
+                <p>
+                  Added the <span class='xattr'>[NewObject]</span> and
+                  <span class='xattr'>[SameObject]</span> extended attributes.
+                </p>
+              </li>
               <li>
                 <p>
                   Added the <span class='xattr'>[MapClass]</span> extended attribute.
