@@ -11,7 +11,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <title>Web IDL</title>
-    <meta name="revision" content="$Id: v1.html,v 1.89 2013-07-30 23:40:33 cmccorma Exp $" />
+    <meta name="revision" content="$Id: v1.html,v 1.90 2013-07-31 07:21:32 cmccorma Exp $" />
     <link rel="stylesheet" href="WebIDL.css" type="text/css" />
     <script src="section-links.js" type="application/ecmascript"></script>
     <script src="dfn.js" type="application/ecmascript"></script>
@@ -4659,6 +4659,22 @@ interface Person {
               implement that interface.
             </p>
             <p>
+              For non-callback interfaces, an IDL value of the interface type is represented just
+              by an object reference.  For <a class="dfnref" href="#dfn-callback-interface">callback interfaces</a>, an IDL value of the interface type
+              is represented by a tuple of an object reference and a <dfn id="dfn-callback-context">callback context</dfn>.
+              The <a class="dfnref" href="#dfn-callback-context">callback context</a> is a language
+              binding specific value, and is used to store information about the execution context at
+              the time the language binding specific object reference is converted to an IDL value.
+            </p>
+            <div class="note"><div class="noteHeader">Note</div>
+              <p>For ECMAScript objects, the <a class="dfnref" href="#dfn-callback-context">callback context</a> is used
+              to hold a reference to the
+              <a class="dfnref external" href="http://www.whatwg.org/specs/web-apps/current-work/multipage/webappapis.html#incumbent-script">incumbent script</a>
+              <a href="#ref-HTML">[HTML]</a> at the time the <span class="estype">Object</span> value
+              is converted to an IDL callback interface type value.  See
+              <a href="#es-interface">section 4.2.18</a> below.</p>
+            </div>
+            <p>
               There is no way to represent a constant object reference value for
               a particular interface type in IDL.
             </p>
@@ -4722,6 +4738,18 @@ interface Person {
               a <a class="dfnref" href="#dfn-callback-function">callback function</a> is used to refer to
               a type whose values are references to objects that are functions with the given signature.
             </p>
+            <p>
+              An IDL value of the callback function type is represented by a tuple of an object
+              reference and a <a class="dfnref" href="#dfn-callback-context">callback context</a>.
+            </p>
+            <div class="note"><div class="noteHeader">Note</div>
+              <p>As with <a href="#idl-interface">callback interface types</a>, the <a class="dfnref" href="#dfn-callback-context">callback context</a> is used
+              to hold a reference to the
+              <a class="dfnref external" href="http://www.whatwg.org/specs/web-apps/current-work/multipage/webappapis.html#incumbent-script">incumbent script</a>
+              <a href="#ref-HTML">[HTML]</a> at the time an ECMAScript <span class="estype">Object</span> value
+              is converted to an IDL callback function type value.  See
+              <a href="#es-interface">section 4.2.21</a> below.</p>
+            </div>
             <p>
               There is no way to represent a constant <a class="dfnref" href="#dfn-callback-function">callback function</a>
               value in IDL.
@@ -6274,7 +6302,12 @@ iframe.appendChild instanceof w.Function;  <span class="comment">// Evaluates to
             <ol class="algorithm">
               <li>If <a href="http://es5.github.com/#x8" class="dfnref external">Type</a>(<var>V</var>) is not Object, then <a href="#ecmascript-throw" class="dfnref external">throw a <span class="estype">TypeError</span></a>.</li>
               <li>If <var>V</var> is a <a class="dfnref" href="#dfn-platform-object">platform object</a> that implements <var>I</var>, then return the IDL <a href="#idl-interface">interface type</a> value that represents a reference to that platform object.</li>
-              <li>If <var>V</var> is a <a class="dfnref" href="#dfn-user-object">user object</a> that is considered to implement <var>I</var> according to the rules in <a href="#es-user-objects">section 4.7</a>, then return the IDL <a href="#idl-interface">interface type</a> value that represents a reference to that user object.</li>
+              <li>If <var>V</var> is a <a class="dfnref" href="#dfn-user-object">user object</a>
+                that is considered to implement <var>I</var> according to the rules in
+                <a href="#es-user-objects">section 4.7</a>,
+                then return the IDL <a href="#idl-interface">interface type</a> value that represents a reference to that user object,
+                with the <a class="dfnref external" href="http://www.whatwg.org/specs/web-apps/current-work/multipage/webappapis.html#incumbent-script">incumbent script</a>
+                as the <a class="dfnref" href="#dfn-callback-context">callback context</a>. <a href="#ref-HTML">[HTML]</a></li>
               <li><a href="#ecmascript-throw" class="dfnref external">Throw a <span class="esvalue">TypeError</span></a>.</li>
             </ol>
             <p>
@@ -6421,7 +6454,9 @@ iframe.appendChild instanceof w.Function;  <span class="comment">// Evaluates to
             <ol class="algorithm">
               <li>If the result of calling IsCallable(<var>V</var>) is <span class="esvalue">false</span>, then
               then <a href="#ecmascript-throw" class="dfnref external">throw a <span class="esvalue">TypeError</span></a>.</li>
-              <li>Return the IDL <a href="#idl-callback-function">callback function type</a> value that represents a reference to that <span class="estype">Function</span> object.</li>
+              <li>Return the IDL <a href="#idl-callback-function">callback function type</a> value that represents a reference to that <span class="estype">Function</span> object,
+                with the <a class="dfnref external" href="http://www.whatwg.org/specs/web-apps/current-work/multipage/webappapis.html#incumbent-script">incumbent script</a>
+                as the <a class="dfnref" href="#dfn-callback-context">callback context</a>. <a href="#ref-HTML">[HTML]</a></li>
             </ol>
             <p>
               The result of <a class="dfnref" href="#dfn-convert-idl-to-ecmascript-value">converting</a>
@@ -10788,7 +10823,9 @@ C implements A;</code></pre></div></div>
             specifications.
           </p>
           <ol class="algorithm">
-            <li>Let <var>O</var> be the object that is the <a class="dfnref" href="#dfn-user-object">user object</a> implementing the <a class="dfnref" href="#dfn-interface">interface</a>.</li>
+            <li>Let <var>V</var> be the IDL <a class="dfnref" href="#idl-interface">callback interface type</a> value
+              that represents the <a class="dfnref" href="#dfn-user-object">user object</a> implementing the <a class="dfnref" href="#dfn-interface">interface</a>.</li>
+            <li>Let <var>O</var> be the ECMAScript object corresponding to <var>V</var>.</li>
             <li>Let <var>X</var> be the implementation of the operation.  If the interface is a <a class="dfnref" href="#dfn-single-operation-interface">single operation interface</a> and <var>O</var> is <a href="http://es5.github.com/#x9.11" class="dfnref external">callable</a>, then <var>X</var> is <var>O</var>.
               Otherwise, <var>X</var> is the result of calling
               the internal <span class="prop">[[Get]]</span> method of <var>O</var> with the identifier of the operation as the property name.</li>
@@ -10802,10 +10839,20 @@ C implements A;</code></pre></div></div>
               of <a class="dfnref" href="#dfn-convert-idl-to-ecmascript-value">converting</a>
               <var>idlarg</var><sub><var>i</var></sub> to an ECMAScript value.
             </li>
-            <li>Let <var>R</var> be the result of invoking the <span class="prop">[[Call]]</span> method of <var>X</var>, providing <var>this</var> as the <span class="esvalue">this</span> value and <var>arg</var><sub>0..<var>n</var>−1</sub> as the argument values.</li>
-            <li>
-              If the operation’s return type is <a class="idltype" href="#idl-void">void</a>, return.
+            <li>Let <var>script</var> be the <a class="dfnref" href="#dfn-callback-context">callback context</a> associated with <var>V</var>.</li>
+            <li>Push <var>script</var> on to the <a class="dfnref external" href="http://www.whatwg.org/specs/web-apps/current-work/multipage/webappapis.html">stack of incumbent scripts</a>. <a href="#ref-HTML">[HTML]</a></li>
+            <li>Let <var>R</var> be an uninitialized variable.</li>
+            <li>Try running the following step:
+              <ol>
+                <li>Set <var>R</var> to the result of invoking the <span class="prop">[[Call]]</span> method of <var>X</var>, providing <var>this</var> as the <span class="esvalue">this</span> value and <var>arg</var><sub>0..<var>n</var>−1</sub> as the argument values.</li>
+              </ol>
+              And then, whether or not an exception was thrown:
+              <ol>
+                <li>Pop <var>script</var> off the <a class="dfnref external" href="http://www.whatwg.org/specs/web-apps/current-work/multipage/webappapis.html">stack of incumbent scripts</a>.</li>
+                <li>If an exception was thrown, end these steps, and allow it to propagate.</li>
+              </ol>
             </li>
+            <li>If the operation’s return type is <a class="idltype" href="#idl-void">void</a>, return.</li>
             <li>
               Return the result of <a class="dfnref" href="#dfn-convert-ecmascript-to-idl-value">converting</a>
               <var>R</var> to an IDL value of the same type as the operation’s return type.
@@ -10824,9 +10871,23 @@ C implements A;</code></pre></div></div>
             following algorithm:
           </p>
           <ol class="algorithm">
-            <li>Let <var>O</var> be the object that is the <a class="dfnref" href="#dfn-user-object">user object</a> implementing the <a class="dfnref" href="#dfn-interface">interface</a>.</li>
+            <li>Let <var>V</var> be the IDL <a class="dfnref" href="#idl-interface">callback interface type</a> value
+              that represents the <a class="dfnref" href="#dfn-user-object">user object</a> implementing the <a class="dfnref" href="#dfn-interface">interface</a>.</li>
+            <li>Let <var>O</var> be the ECMAScript object corresponding to <var>V</var>.</li>
             <li>Let <var>P</var> be the <a class="dfnref" href="#dfn-identifier">identifier</a> of the attribute.</li>
-            <li>Let <var>R</var> be the result of invoking the <span class="prop">[[Get]]</span> method of <var>O</var> with property name <var>P</var>.</li>
+            <li>Let <var>script</var> be the <a class="dfnref" href="#dfn-callback-context">callback context</a> associated with <var>V</var>.</li>
+            <li>Push <var>script</var> on to the <a class="dfnref external" href="http://www.whatwg.org/specs/web-apps/current-work/multipage/webappapis.html">stack of incumbent scripts</a>. <a href="#ref-HTML">[HTML]</a></li>
+            <li>Let <var>R</var> be an uninitialized variable.</li>
+            <li>Try running the following step:
+              <ol>
+                <li>Set <var>R</var> to the result of invoking the <span class="prop">[[Get]]</span> method of <var>O</var> with property name <var>P</var>.</li>
+              </ol>
+              And then, whether or not an exception was thrown:
+              <ol>
+                <li>Pop <var>script</var> off the <a class="dfnref external" href="http://www.whatwg.org/specs/web-apps/current-work/multipage/webappapis.html">stack of incumbent scripts</a>.</li>
+                <li>If an exception was thrown, end these steps, and allow it to propagate.</li>
+              </ol>
+            </li>
             <li>Return the result of <a class="dfnref" href="#dfn-convert-ecmascript-to-idl-value">converting</a> <var>R</var> to an IDL value of the same type as the attribute’s type.</li>
           </ol>
           <p>
@@ -10835,11 +10896,24 @@ C implements A;</code></pre></div></div>
             following algorithm:
           </p>
           <ol class="algorithm">
-            <li>Let <var>O</var> be the object that is the <a class="dfnref" href="#dfn-user-object">user object</a> implementing the <a class="dfnref" href="#dfn-interface">interface</a>.</li>
+            <li>Let <var>V</var> be the IDL <a class="dfnref" href="#idl-interface">callback interface type</a> value
+              that represents the <a class="dfnref" href="#dfn-user-object">user object</a> implementing the <a class="dfnref" href="#dfn-interface">interface</a>.</li>
+            <li>Let <var>O</var> be the ECMAScript object corresponding to <var>V</var>.</li>
             <li>Let <var>P</var> be the <a class="dfnref" href="#dfn-identifier">identifier</a> of the attribute.</li>
             <li>Let <var>V</var> be the IDL value to be assigned to the attribute.</li>
             <li>Let <var>W</var> be the result of <a class="dfnref" href="#dfn-convert-idl-to-ecmascript-value">converting</a> <var>V</var> to an ECMAScript value.</li>
-            <li>Invoke the <span class="prop">[[Put]]</span> method of <var>O</var> with property name <var>P</var> and value <var>W</var>.</li>
+            <li>Let <var>script</var> be the <a class="dfnref" href="#dfn-callback-context">callback context</a> associated with <var>V</var>.</li>
+            <li>Push <var>script</var> on to the <a class="dfnref external" href="http://www.whatwg.org/specs/web-apps/current-work/multipage/webappapis.html">stack of incumbent scripts</a>. <a href="#ref-HTML">[HTML]</a></li>
+            <li>Try running the following step:
+              <ol>
+                <li>Invoke the <span class="prop">[[Put]]</span> method of <var>O</var> with property name <var>P</var> and value <var>W</var>.</li>
+              </ol>
+              And then, whether or not an exception was thrown:
+              <ol>
+                <li>Pop <var>script</var> off the <a class="dfnref external" href="http://www.whatwg.org/specs/web-apps/current-work/multipage/webappapis.html">stack of incumbent scripts</a>.</li>
+                <li>If an exception was thrown, end these steps, and allow it to propagate.</li>
+              </ol>
+            </li>
           </ol>
         </div>
 
@@ -10859,7 +10933,8 @@ C implements A;</code></pre></div></div>
             is <span class="esvalue">null</span>, unless overridden by other specifications.
           </p>
           <ol class="algorithm">
-            <li>Let <var>F</var> be the <a href="http://es5.github.com/#x9.11" class="dfnref external">callable</a> object that is the <a class="dfnref" href="#dfn-callback-function">callback function</a> value.</li>
+            <li>Let <var>V</var> be the IDL <a class="dfnref" href="#idl-callback-function">callback function type</a> value.</li>
+            <li>Let <var>F</var> be the ECMAScript <a href="http://es5.github.com/#x9.11" class="dfnref external">callable</a> object corresponding to <var>V</var>.</li>
             <li>Initialize <var>values</var> to be an empty list of ECMAScript values.</li>
             <li>Initialize <var>count</var> to 0.</li>
             <li>Initialize <var>i</var> to 0.</li>
@@ -10873,10 +10948,20 @@ C implements A;</code></pre></div></div>
               </ol>
             </li>
             <li>Truncate <var>values</var> to have length <var>count</var>.</li>
-            <li>Let <var>R</var> be the result of invoking the <span class="prop">[[Call]]</span> method of <var>F</var>, providing the <a class="dfnref" href="#dfn-callback-this-value">callback this value</a> as the <span class="esvalue">this</span> value and <var>values</var> as the argument values.</li>
-            <li>
-              If the callback function’s return type is <a class="idltype" href="#idl-void">void</a>, return.
+            <li>Let <var>script</var> be the <a class="dfnref" href="#dfn-callback-context">callback context</a> associated with <var>V</var>.</li>
+            <li>Push <var>script</var> on to the <a class="dfnref external" href="http://www.whatwg.org/specs/web-apps/current-work/multipage/webappapis.html">stack of incumbent scripts</a>. <a href="#ref-HTML">[HTML]</a></li>
+            <li>Let <var>R</var> be an uninitialized variable.</li>
+            <li>Try running the following step:
+              <ol>
+                <li>Set <var>R</var> to the result of invoking the <span class="prop">[[Call]]</span> method of <var>F</var>, providing the <a class="dfnref" href="#dfn-callback-this-value">callback this value</a> as the <span class="esvalue">this</span> value and <var>values</var> as the argument values.</li>
+              </ol>
+              And then, whether or not an exception was thrown:
+              <ol>
+                <li>Pop <var>script</var> off the <a class="dfnref external" href="http://www.whatwg.org/specs/web-apps/current-work/multipage/webappapis.html">stack of incumbent scripts</a>.</li>
+                <li>If an exception was thrown, end these steps, and allow it to propagate.</li>
+              </ol>
             </li>
+            <li>If the callback function’s return type is <a class="idltype" href="#idl-void">void</a>, return.</li>
             <li>
               Return the result of <a class="dfnref" href="#dfn-convert-ecmascript-to-idl-value">converting</a>
               <var>R</var> to an IDL value of the same type as the callback function’s return type.
@@ -11826,6 +11911,12 @@ d.type = et;
               <span class="print"><br />Available at http://www.ecma-international.org/publications/standards/Ecma-262.htm.</span>
               <br />Unofficial HTML version available at <a href="http://es5.github.com/">http://es5.github.com/</a>.
             </dd>
+            <dt id="ref-HTML">[HTML]</dt>
+            <dd>
+              <cite><a href="http://www.whatwg.org/specs/web-apps/current-work/multipage/">HTML</a></cite>,
+              I. Hickson, Editor. WHATWG, 30 July 2013.
+              <span class="print"><br />Available at http://www.whatwg.org/specs/web-apps/current-work/multipage/.</span>
+            </dd>
             <dt id="ref-IEEE-754">[IEEE-754]</dt>
             <dd>
               <cite>IEEE Standard for Binary Floating-Point Arithmetic (ANSI/IEEE Std 754-1985)</cite>.
@@ -11974,6 +12065,11 @@ d.type = et;
           <dt>Current editor’s draft</dt>
           <dd>
             <ul>
+              <li>
+                <p>
+                  Defined how callbacks influence the incumbent script.
+                </p>
+              </li>
               <li>
                 <p>
                   Changed how callback functions are invoked to support missing
