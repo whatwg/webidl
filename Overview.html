@@ -11,7 +11,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <title>Web IDL (Second Edition)</title>
-    <meta name="revision" content="$Id: Overview.html,v 1.659 2013-08-03 05:43:15 cmccorma Exp $" />
+    <meta name="revision" content="$Id: Overview.html,v 1.660 2013-08-03 07:32:48 cmccorma Exp $" />
     <link rel="stylesheet" href="WebIDL.css" type="text/css" />
     <script src="section-links.js" type="application/ecmascript"></script>
     <script src="dfn.js" type="application/ecmascript"></script>
@@ -11509,9 +11509,7 @@ interface
                   <a class="dfnref" href="#dfn-unforgeable-on-an-interface">unforgeable</a> on the interface,
                   and <span class="esvalue">true</span> otherwise.</li>
                 <li>
-                  <p>The value of the property is a <span class="estype">Function</span> object.  If <code>stringifier</code>
-                  was specified on an <a class="dfnref" href="#dfn-attribute">attribute</a> <var>A</var>, then the
-                  function behaves as follows:</p>
+                  <p>The value of the property is a <span class="estype">Function</span> object, which behaves as follows:</p>
                   <ol class="algorithm">
                     <li>Let <var>O</var> be the result of calling <a href="http://people.mozilla.org/~jorendorff/es6-draft.html#sec-9.1.9" class="dfnref external">ToObject</a> on the <span class="esvalue">this</span> value.</li>
                     <li>If <var>O</var> is a <a class="dfnref" href="#dfn-platform-object">platform object</a>,
@@ -11519,49 +11517,25 @@ interface
                       with the ECMAScript global environment associated with this <span class="estype">Function</span> that
                       implements the <a class="dfnref" href="#dfn-stringifier">stringifier</a>.</li>
                     <li>If <var>O</var> is not an object that implements the <a class="dfnref" href="#dfn-interface">interface</a>
-                      on which <var>A</var> was declared, then <a href="#ecmascript-throw" class="dfnref external">throw a <span class="estype">TypeError</span></a>.</li>
-                    <li>
-                      Let <var>V</var> be the result of invoking the <span class="prop">[[Get]]</span> method of <var>O</var>
-                      with <var>P</var> as the argument.
+                      on which the stringifier was declared, then <a href="#ecmascript-throw" class="dfnref external">throw a <span class="estype">TypeError</span></a>.</li>
+                    <li>Let <var>V</var> be an uninitialized variable.</li>
+                    <li>Depending on where <code>stringifier</code> was specified:
+                      <dl class="switch">
+                        <dt>on an <a class="dfnref" href="#dfn-attribute">attribute</a></dt>
+                        <dd>Set <var>V</var> to the result of performing the actions listed in the description of the attribute that occur when getting
+                          (or those listed in the description of the inherited attribute, if this attribute is declared to
+                          <a class="dfnref" href="#dfn-inherit-getter">inherit its getter</a>),
+                          with <var>O</var> as the object.</dd>
+                        <dt>on an <a class="dfnref" href="#dfn-operation">operation</a> with an identifier</dt>
+                        <dd>Set <var>V</var> to the result of performing the actions listed in the description
+                          of the operation, using <var>O</var> as the <span class="esvalue">this</span> value
+                          and passing no arguments.</dd>
+                        <dt>on an <a class="dfnref" href="#dfn-operation">operation</a> with no identifier</dt>
+                        <dd>Set <var>V</var> to the result of performing the <a class="dfnref" href="#dfn-stringification-behavior">stringification behavior</a>
+                          of the interface.</dd>
+                      </dl>
                     </li>
                     <li>Return <a href="http://people.mozilla.org/~jorendorff/es6-draft.html#sec-9.1.8" class="dfnref external">ToString</a>(<var>V</var>).</li>
-                  </ol>
-                  <p>
-                    Otherwise, if <code>stringifier</code>
-                    was specified on an <a class="dfnref" href="#dfn-operation">operation</a>
-                    with an identifier <var>P</var>, then
-                    the function <span class="rfc2119">MUST</span> behave as follows:
-                  </p>
-                  <ol class="algorithm">
-                    <li>Let <var>O</var> be the result of calling <a href="http://people.mozilla.org/~jorendorff/es6-draft.html#sec-9.1.9" class="dfnref external">ToObject</a> on the <span class="esvalue">this</span> value.</li>
-                    <li>If <var>O</var> is a <a class="dfnref" href="#dfn-platform-object">platform object</a>,
-                      then <a class="dfnref" href="#dfn-perform-a-security-check">perform a security check</a> on <var>O</var>
-                      with the ECMAScript global environment associated with this <span class="estype">Function</span> that
-                      implements the <a class="dfnref" href="#dfn-stringifier">stringifier</a>.</li>
-                    <li>
-                      Let <var>F</var> be the result of invoking the <span class="prop">[[Get]]</span> method of object
-                      <var>O</var> with <var>P</var> as the argument.
-                    </li>
-                    <li>If <var>F</var> is not <a href="http://people.mozilla.org/~jorendorff/es6-draft.html#sec-9.2.2" class="dfnref external">callable</a>, <a href="#ecmascript-throw" class="dfnref external">throw a <span class="estype">TypeError</span></a>.</li>
-                    <li>Let <var>V</var> be the result of invoking the <span class="prop">[[Call]]</span> method of <var>F</var>,
-                      using <var>O</var> as the <span class="esvalue">this</span> value
-                      and passing no arguments.</li>
-                    <li>Return <a href="http://people.mozilla.org/~jorendorff/es6-draft.html#sec-9.1.8" class="dfnref external">ToString</a>(<var>V</var>).</li>
-                  </ol>
-                  <p>
-                    Otherwise, the <code>stringifier</code>
-                    was specified on an <a class="dfnref" href="#dfn-operation">operation</a>
-                    with no identifier.  The behavior of the function
-                    is as follows:
-                  </p>
-                  <ol class="algorithm">
-                    <li>Let <var>O</var> be the result of calling <a href="http://people.mozilla.org/~jorendorff/es6-draft.html#sec-9.1.9" class="dfnref external">ToObject</a> on the <span class="esvalue">this</span> value.</li>
-                    <li>If <var>O</var> is a <a class="dfnref" href="#dfn-platform-object">platform object</a>,
-                      then <a class="dfnref" href="#dfn-perform-a-security-check">perform a security check</a> on <var>O</var>
-                      with the ECMAScript global environment associated with this <span class="estype">Function</span> that
-                      implements the <a class="dfnref" href="#dfn-stringifier">stringifier</a>.</li>
-                    <li>Return the result of performing the <a class="dfnref" href="#dfn-stringification-behavior">stringification behavior</a>
-                      of the interface, as described in the prose for the interface.</li>
                   </ol>
                   <p>The value of the <span class="estype">Function</span> object’s “length”
                     property is the <span class="estype">Number</span> value <span class="esvalue">0</span>.</p>
@@ -11594,10 +11568,7 @@ interface
                 <li>Otherwise, the property exists solely on the interface’s <a class="dfnref" href="#dfn-interface-prototype-object">interface prototype object</a>.</li>
               </ul>
               <p>
-                If <code>serializer</code>
-                was specified on an <a class="dfnref" href="#dfn-operation">operation</a>
-                with an identifier <var>P</var>, then
-                the property’s <span class="estype">Function</span> object, when invoked,
+                The property’s <span class="estype">Function</span> object, when invoked,
                 <span class="rfc2119">MUST</span> behave as follows:
               </p>
               <ol class="algorithm">
@@ -11606,32 +11577,29 @@ interface
                   then <a class="dfnref" href="#dfn-perform-a-security-check">perform a security check</a> on <var>O</var>
                   with the ECMAScript global environment associated with this <span class="estype">Function</span> that
                   implements the <a class="dfnref" href="#dfn-serializer">serializer</a>.</li>
-                <li>
-                  Let <var>F</var> be the result of invoking the <span class="prop">[[Get]]</span> method of object
-                  <var>O</var> with <var>P</var> as the argument.
+                <li>If <var>O</var> is not an object that implements the <a class="dfnref" href="#dfn-interface">interface</a>
+                  on which the serializer was declared, then <a href="#ecmascript-throw" class="dfnref external">throw a <span class="estype">TypeError</span></a>.</li>
+                <li>Depending on how <code>serializer</code> was specified:
+                  <dl class="switch">
+                    <dt>on an <a class="dfnref" href="#dfn-operation">operation</a> with an identifier</dt>
+                    <dd>
+                      <ol class="algorithm">
+                        <li>Return the result of performing the actions listed in the description of the
+                          operation, using <var>O</var> as the <span class="esvalue">this</span> value
+                          and passing no arguments.</li>
+                      </ol>
+                    </dd>
+                    <dt>as a keyword, either with or without a <a class="dfnref" href="#dfn-serialization-pattern">serialization pattern</a></dt>
+                    <dd>
+                      <ol class="algorithm">
+                        <li>Let <var>S</var> be the <a class="dfnref" href="#dfn-serialized-value">serialized value</a> that is the result of invoking the <a class="dfnref" href="#dfn-serialization-behavior">serialization behavior</a> of the
+                          <a class="dfnref" href="#dfn-interface">interface</a> for object <var>O</var>.</li>
+                        <li>Return the result of <a class="dfnref" href="#dfn-convert-serialized-value-to-ecmascript-value">converting</a>
+                          <var>S</var> to an ECMAScript value.</li>
+                      </ol>
+                    </dd>
+                  </dl>
                 </li>
-                <li>If <var>F</var> is not <a href="http://people.mozilla.org/~jorendorff/es6-draft.html#sec-9.2.2" class="dfnref external">callable</a>, <a href="#ecmascript-throw" class="dfnref external">throw a <span class="estype">TypeError</span></a>.</li>
-                <li>Let <var>V</var> be the result of invoking the <span class="prop">[[Call]]</span> method of <var>F</var>,
-                  using <var>O</var> as the <span class="esvalue">this</span> value
-                  and passing no arguments.</li>
-                <li>Return <var>V</var>.</li>
-              </ol>
-              <p>
-                If <code>serializer</code> was specified as a keyword, either with
-                or without a <a class="dfnref" href="#dfn-serialization-pattern">serialization pattern</a>, then
-                the function, when invoked, <span class="rfc2119">MUST</span> behave as follows:
-              </p>
-              <ol class="algorithm">
-                <li>Let <var>O</var> be the result of calling <a href="http://people.mozilla.org/~jorendorff/es6-draft.html#sec-9.1.9" class="dfnref external">ToObject</a> on the <span class="esvalue">this</span> value.</li>
-                <li>If <var>O</var> is a <a class="dfnref" href="#dfn-platform-object">platform object</a>,
-                  then <a class="dfnref" href="#dfn-perform-a-security-check">perform a security check</a> on <var>O</var>
-                  with the ECMAScript global environment associated with this <span class="estype">Function</span> that
-                  implements the <a class="dfnref" href="#dfn-serializer">serializer</a>.</li>
-                <li>Let <var>S</var> be the <a class="dfnref" href="#dfn-serialized-value">serialized value</a> that is the result of invoking the <a class="dfnref" href="#dfn-serialization-behavior">serialization behavior</a> of the
-                  <a class="dfnref" href="#dfn-interface">interface</a> for object <var>O</var>.</li>
-                <li>Let <var>V</var> be the result of <a class="dfnref" href="#dfn-convert-serialized-value-to-ecmascript-value">converting</a>
-                  <var>S</var> to an ECMAScript value.</li>
-                <li>Return <var>V</var>.</li>
               </ol>
               <p>
                 The following steps define how to <dfn id="dfn-convert-serialized-value-to-ecmascript-value">convert a serialized value to an ECMAScript value</dfn>:
@@ -14345,6 +14313,12 @@ d.type = et;
             <ul>
               <li>
                 <p>
+                  Made stringifiers not use [[Get]] or [[Call]]
+                  for the their attribute or operation delegated behavior.
+                </p>
+              </li>
+              <li>
+                <p>
                   Added the <span class="xattr">[EnsureUTF16]</span> extended attribute.
                 </p>
               </li>
@@ -14406,7 +14380,13 @@ d.type = et;
               <!-- below are changes in v1 too -->
               <li>
                 <p>
-                  Allow trailing optional comma in enum lists.
+                  Made stringifiers and serializers not use [[Get]] or [[Call]]
+                  for the their attribute or operation delegated behavior.
+                </p>
+              </li>
+              <li>
+                <p>
+                  Allowed trailing optional comma in enum lists.
                 </p>
               </li>
               <li>
@@ -14416,7 +14396,7 @@ d.type = et;
               </li>
               <li>
                 <p>
-                  Add a hook to do a security check when invoking an operation
+                  Added a hook to do a security check when invoking an operation
                   or accessing an attribute.
                 </p>
               </li>

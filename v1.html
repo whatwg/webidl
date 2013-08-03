@@ -11,7 +11,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <title>Web IDL</title>
-    <meta name="revision" content="$Id: v1.html,v 1.104 2013-08-03 06:47:53 cmccorma Exp $" />
+    <meta name="revision" content="$Id: v1.html,v 1.105 2013-08-03 07:32:48 cmccorma Exp $" />
     <link rel="stylesheet" href="WebIDL.css" type="text/css" />
     <script src="section-links.js" type="application/ecmascript"></script>
     <script src="dfn.js" type="application/ecmascript"></script>
@@ -10043,9 +10043,7 @@ interface
                 <a class="dfnref" href="#dfn-unforgeable-on-an-interface">unforgeable</a> on the interface,
                 and <span class="esvalue">true</span> otherwise.</li>
               <li>
-                <p>The value of the property is a <span class="estype">Function</span> object.  If <code>stringifier</code>
-                was specified on an <a class="dfnref" href="#dfn-attribute">attribute</a> <var>A</var>, then the
-                function behaves as follows:</p>
+                <p>The value of the property is a <span class="estype">Function</span> object, which behaves as follows:</p>
                 <ol class="algorithm">
                   <li>Let <var>O</var> be the result of calling <a href="http://es5.github.com/#x9.9" class="dfnref external">ToObject</a> on the <span class="esvalue">this</span> value.</li>
                   <li>If <var>O</var> is a <a class="dfnref" href="#dfn-platform-object">platform object</a>,
@@ -10053,47 +10051,25 @@ interface
                     with the ECMAScript global environment associated with this <span class="estype">Function</span> that
                     implements the <a class="dfnref" href="#dfn-stringifier">stringifier</a>.</li>
                   <li>If <var>O</var> is not an object that implements the <a class="dfnref" href="#dfn-interface">interface</a>
-                    on which <var>A</var> was declared, then <a href="#ecmascript-throw" class="dfnref external">throw a <span class="estype">TypeError</span></a>.</li>
-                  <li>
-                    Let <var>V</var> be the result of invoking the <span class="prop">[[Get]]</span> method of <var>O</var>
-                    with <var>P</var> as the argument.
+                    on which the stringifier was declared, then <a href="#ecmascript-throw" class="dfnref external">throw a <span class="estype">TypeError</span></a>.</li>
+                  <li>Let <var>V</var> be an uninitialized variable.</li>
+                  <li>Depending on where <code>stringifier</code> was specified:
+                    <dl class="switch">
+                      <dt>on an <a class="dfnref" href="#dfn-attribute">attribute</a></dt>
+                      <dd>Set <var>V</var> to the result of performing the actions listed in the description of the attribute that occur when getting
+                        (or those listed in the description of the inherited attribute, if this attribute is declared to
+                        <a class="dfnref" href="#dfn-inherit-getter">inherit its getter</a>),
+                        with <var>O</var> as the object.</dd>
+                      <dt>on an <a class="dfnref" href="#dfn-operation">operation</a> with an identifier</dt>
+                      <dd>Set <var>V</var> to the result of performing the actions listed in the description
+                        of the operation, using <var>O</var> as the <span class="esvalue">this</span> value
+                        and passing no arguments.</dd>
+                      <dt>on an <a class="dfnref" href="#dfn-operation">operation</a> with no identifier</dt>
+                      <dd>Set <var>V</var> to the result of performing the <a class="dfnref" href="#dfn-stringification-behavior">stringification behavior</a>
+                        of the interface.</dd>
+                    </dl>
                   </li>
                   <li>Return <a href="http://es5.github.com/#x9.8" class="dfnref external">ToString</a>(<var>V</var>).</li>
-                </ol>
-                <p>Otherwise, if <code>stringifier</code>
-                  was specified on an <a class="dfnref" href="#dfn-operation">operation</a>
-                  with an identifier <var>P</var>, then
-                  the function behaves as follows:</p>
-                <ol class="algorithm">
-                  <li>Let <var>O</var> be the result of calling <a href="http://es5.github.com/#x9.9" class="dfnref external">ToObject</a> on the <span class="esvalue">this</span> value.</li>
-                  <li>If <var>O</var> is a <a class="dfnref" href="#dfn-platform-object">platform object</a>,
-                    then <a class="dfnref" href="#dfn-perform-a-security-check">perform a security check</a> on <var>O</var>
-                    with the ECMAScript global environment associated with this <span class="estype">Function</span> that
-                    implements the <a class="dfnref" href="#dfn-stringifier">stringifier</a>.</li>
-                  <li>
-                    Let <var>F</var> be the result of invoking the <span class="prop">[[Get]]</span> method of object
-                    <var>O</var> with <var>P</var> as the argument.
-                  </li>
-                  <li>If <var>F</var> is not <a href="http://es5.github.com/#x9.11" class="dfnref external">callable</a>, <a href="#ecmascript-throw" class="dfnref external">throw a <span class="estype">TypeError</span></a>.</li>
-                  <li>Let <var>V</var> be the result of invoking the <span class="prop">[[Call]]</span> method of <var>F</var>,
-                    using <var>O</var> as the <span class="esvalue">this</span> value
-                    and passing no arguments.</li>
-                  <li>Return <a href="http://es5.github.com/#x9.8" class="dfnref external">ToString</a>(<var>V</var>).</li>
-                </ol>
-                <p>
-                  Otherwise, the <code>stringifier</code>
-                  was specified on an <a class="dfnref" href="#dfn-operation">operation</a>
-                  with no identifier.  The behavior of the function
-                  is as follows:
-                </p>
-                <ol class="algorithm">
-                  <li>Let <var>O</var> be the result of calling <a href="http://es5.github.com/#x9.9" class="dfnref external">ToObject</a> on the <span class="esvalue">this</span> value.</li>
-                  <li>If <var>O</var> is a <a class="dfnref" href="#dfn-platform-object">platform object</a>,
-                    then <a class="dfnref" href="#dfn-perform-a-security-check">perform a security check</a> on <var>O</var>
-                    with the ECMAScript global environment associated with this <span class="estype">Function</span> that
-                    implements the <a class="dfnref" href="#dfn-stringifier">stringifier</a>.</li>
-                  <li>Return the result of performing the <a class="dfnref" href="#dfn-stringification-behavior">stringification behavior</a>
-                    of the interface, as described in the prose for the interface.</li>
                 </ol>
                 <p>The value of the <span class="estype">Function</span> object’s “length”
                   property is the <span class="estype">Number</span> value <span class="esvalue">0</span>.</p>
