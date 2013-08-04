@@ -15,7 +15,7 @@
   <head>
     <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'/>
     <title>Web IDL (Second Edition)</title>
-    <meta name='revision' content='$Id: Overview.xml,v 1.679 2013-08-04 06:48:43 cmccorma Exp $'/>
+    <meta name='revision' content='$Id: Overview.xml,v 1.680 2013-08-04 07:27:57 cmccorma Exp $'/>
     <link rel='stylesheet' href='WebIDL.css' type='text/css'/>
     <script src='section-links.js' type='application/ecmascript'/>
     <script src='dfn.js' type='application/ecmascript'/>
@@ -12355,12 +12355,14 @@ C implements A;</x:codeblock>
               <li>If <var>O</var> implements an interface that has the <a class='xattr' href='#OverrideBuiltins'>[OverrideBuiltins]</a>
                 <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>, then return true.</li>
               <li>If <var>O</var> has an own property named <var>P</var>, then return false.</li>
-              <!--
-              <li>If <var>P</var> is to be <a class='dfnref' href='#dfn-resolved-before-prototype-properties'>resolved before prototype properties</a>, then return true.</li>
-              -->
-              <li>Let <var>prototype</var> be the value of the internal <span class='prop'>[[Prototype]]</span> property of <var>O</var>.</li>
-              <li>If <var>prototype</var> is <span class='esvalue'>null</span>, then return true.</li>
-              <li>If the result of calling the <span class='prop'>[[HasProperty]]</span> internal method on <var>prototype</var> with property name <var>P</var> is <span class='esvalue'>true</span>, then return false.</li>
+              <li>Initialize <var>prototype</var> to be the value of the internal <span class='prop'>[[Prototype]]</span> property of <var>O</var>.</li>
+              <li>While <var>prototype</var> is not null:
+                <ol>
+                  <li>If <var>prototype</var> is not a <a class='dfnref' href='#dfn-named-properties-object'>named properties object</a>,
+                    and <var>O</var> has an own property named <var>P</var>, then return <span class='esvalue'>false</span>.</li>
+                  <li>Set <var>prototype</var> to be the value of the internal <span class='prop'>[[Prototype]]</span> property of <var>prototype</var>.</li>
+                </ol>
+              </li>
               <li>Return true.</li>
             </ol>
             <div class='note'>
@@ -14164,6 +14166,11 @@ d.type = et;
                 </p>
               </li>
               <!-- below are changes in v1 too -->
+              <li>
+                <p>
+                  Fix infinite loop in named property visibility algorithm.
+                </p>
+              </li>
               <li>
                 <p>
                   Made stringifiers and serializers not use [[Get]] or [[Call]]
