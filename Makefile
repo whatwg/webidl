@@ -1,18 +1,18 @@
-all : Overview.html v1.html java.html
+all : index.html v1.html java.html
 
-Overview.html : Overview.xml WebIDL.xsl
-	xsltproc --nodtdattr --param now `date +%Y%m%d` WebIDL.xsl Overview.xml >Overview.html
+index.html : index.xml WebIDL.xsl
+	xsltproc --nodtdattr --param now `date +%Y%m%d` WebIDL.xsl index.xml >index.html
 
 v1.html : v1.xml WebIDL.xsl
 	xsltproc --nodtdattr --param now `date +%Y%m%d` WebIDL.xsl v1.xml >v1.html
 
-Overview.ids : Overview.xml
-	./xref.pl -d Overview.xml http://heycam.github.io/webidl/ > Overview.ids
+index.ids : index.xml
+	./xref.pl -d index.xml http://heycam.github.io/webidl/ > index.ids
 
-java.html : java.xml WebIDL.xsl Overview.ids
-	xsltproc --nodtdattr --param now `date +%Y%m%d` WebIDL.xsl java.xml | ./xref.pl -t - Overview.ids > java.html
+java.html : java.xml WebIDL.xsl index.ids
+	xsltproc --nodtdattr --param now `date +%Y%m%d` WebIDL.xsl java.xml | ./xref.pl -t - index.ids > java.html
 
 clean :
-	rm -f Overview.html v1.html java.html Overview.ids
+	rm -f index.html v1.html java.html index.ids
 
 .PHONY : all clean

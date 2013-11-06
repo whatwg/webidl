@@ -24,10 +24,10 @@
     <xsl:text>&#xa;</xsl:text>
     <xsl:if test='$options/x:maturity="ED"'>
       <xsl:comment>
-  Overview.html
+  index.html
   Web IDL
 
-  Note: This file is generated from Overview.xml.  Run "make" to regenerate it.
+  Note: This file is generated from index.xml.  Run "make" to regenerate it.
   </xsl:comment>
       <xsl:text>&#xa;</xsl:text>
     </xsl:if>
