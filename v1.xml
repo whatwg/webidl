@@ -3733,7 +3733,7 @@ meal.type == "noodles";              <span class='comment'>// Evaluates to true.
           </p>
           <p>
             The following extended attribute is applicable to callback functions:
-            <a class='xattr' href='#TreatNonCallableAsNull'>[TreatNonCallableAsNull]</a>.
+            <a class='xattr' href='#TreatNonObjectAsNull'>[TreatNonObjectAsNull]</a>.
           </p>
 
           <?productions grammar CallbackOrInterface CallbackRestOrInterface CallbackRest?>
@@ -6263,7 +6263,9 @@ iframe.appendChild instanceof w.Function;  <span class='comment'>// Evaluates to
 
             <p>
               IDL <a href='#idl-callback-function'>callback function types</a> are represented by ECMAScript <span class='estype'>Function</span>
-              objects.
+              objects, except in the <a class='xattr'
+              href='#TreatNonObjectAsNull'>[TreatNonObjectAsNull]</a> case,
+              when they can be any object.
             </p>
             <p>
               An ECMAScript value <var>V</var> is
@@ -6272,9 +6274,17 @@ iframe.appendChild instanceof w.Function;  <span class='comment'>// Evaluates to
               by running the following algorithm:
             </p>
             <ol class='algorithm'>
-              <li>If the result of calling IsCallable(<var>V</var>) is <span class='esvalue'>false</span>,
+              <li>If the result of calling <a class="external" href="http://es5.github.io/#x9.11">IsCallable</a>(<var>V</var>) is <span
+              class='esvalue'>false</span> and the conversion to an IDL value
+              is not being performed due
+                to <var>V</var> being assigned to an <a class='dfnref' href='#dfn-attribute'>attribute</a>
+                whose type is a <a class='dfnref' href='#dfn-nullable-type'>nullable</a>
+                <a class='dfnref' href='#dfn-callback-function'>callback function</a>
+                that is annotated with <a class='xattr' href='#TreatNonObjectAsNull'>[TreatNonObjectAsNull]</a>,
               then <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='esvalue'>TypeError</span></a>.</li>
-              <li>Return the IDL <a href='#idl-callback-function'>callback function type</a> value that represents a reference to that <span class='estype'>Function</span> object,
+              <li>Return the IDL <a href='#idl-callback-function'>callback
+              function type</a> value that represents a reference to the same
+              object that <var>V</var> represents,
                 with the <a class='dfnref external' href='http://www.whatwg.org/specs/web-apps/current-work/multipage/webappapis.html#incumbent-script'>incumbent script</a>
                 as the <a class='dfnref' href='#dfn-callback-context'>callback context</a>. <a href='#ref-HTML'>[HTML]</a></li>
             </ol>
@@ -6339,12 +6349,14 @@ iframe.appendChild instanceof w.Function;  <span class='comment'>// Evaluates to
                 </ol>
               </li>
               <li>
-                Otherwise, if the result of calling IsCallable(<var>V</var>) is <span class='esvalue'>false</span>, and
+                Otherwise, if <a
+                href='http://es5.github.io/#Type'
+                class='dfnref external'>Type</a>(<var>V</var>) is not Object, and
                 the conversion to an IDL value is being performed due
                 to <var>V</var> being assigned to an <a class='dfnref' href='#dfn-attribute'>attribute</a>
                 whose type is a <a class='dfnref' href='#dfn-nullable-type'>nullable</a>
                 <a class='dfnref' href='#dfn-callback-function'>callback function</a>
-                that is annotated with <a class='xattr' href='#TreatNonCallableAsNull'>[TreatNonCallableAsNull]</a>,
+                that is annotated with <a class='xattr' href='#TreatNonObjectAsNull'>[TreatNonObjectAsNull]</a>,
                 then return the IDL
                 <a class='dfnref' href='#dfn-nullable-type'>nullable type</a> <span class='idltype'><var>T</var>?</span>
                 value <span class='idlvalue'>null</span>.
@@ -8239,28 +8251,28 @@ counter.value;                                           <span class='comment'>/
             </div>
           </div>
 
-          <div id='TreatNonCallableAsNull' class='section'>
-            <h4>[TreatNonCallableAsNull]</h4>
+          <div id='TreatNonObjectAsNull' class='section'>
+            <h4>[TreatNonObjectAsNull]</h4>
 
             <p>
-              If the <a class='xattr' href='#TreatNonCallableAsNull'>[TreatNonCallableAsNull]</a>
+              If the <a class='xattr' href='#TreatNonObjectAsNull'>[TreatNonObjectAsNull]</a>
               <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
               appears on a <a class='dfnref' href='#dfn-callback-function'>callback function</a>,
               then it indicates that any value assigned to an <a class='dfnref' href='#dfn-attribute'>attribute</a>
               whose type is a <a class='dfnref' href='#dfn-nullable-type'>nullable</a>
               <a class='dfnref' href='#dfn-callback-function'>callback function</a>
-              that is not a <a href='http://es5.github.com/#x9.11' class='dfnref external'>callable</a> object will be converted to
+              that is not an object will be converted to
               the <span class='idlvalue'>null</span> value.
             </p>
             <div class='warning'>
               <p>
-                Specifications <span class='rfc2119'>SHOULD NOT</span> use <a href='#TreatNonCallableAsNull' class='xattr'>[TreatNonCallableAsNull]</a>
+                Specifications <span class='rfc2119'>SHOULD NOT</span> use <a href='#TreatNonObjectAsNull' class='xattr'>[TreatNonObjectAsNull]</a>
                 unless required to specify the behavior of legacy APIs or for consistency with these
                 APIs.  Specification authors who
                 wish to use this feature are strongly advised to discuss this on the
                 <a href='mailto:public-script-coord@w3.org'>public-script-coord@w3.org</a>
                 mailing list before proceeding.  At the time of writing, the only known
-                valid use of <a href='#TreatNonCallableAsNull' class='xattr'>[TreatNonCallableAsNull]</a>
+                valid use of <a href='#TreatNonNonObjectAsNull' class='xattr'>[TreatNonObjectAsNull]</a>
                 is for the <a class='dfnref' href='#dfn-callback-function'>callback functions</a> used as the type
                 of <a href='http://www.w3.org/TR/2011/WD-html5-20110525/webappapis.html#event-handler-attributes'>event handler IDL attributes</a>
                 (<a href='#ref-HTML5'>[HTML5]</a>, section 6.1.6.1)
@@ -8270,16 +8282,16 @@ counter.value;                                           <span class='comment'>/
             <p>
               See <a href='#es-nullable-type'>section <?sref es-nullable-type?></a>
               for the specific requirements that the use of
-              <a class='xattr' href='#TreatNonCallableAsNull'>[TreatNonCallableAsNull]</a> entails.
+              <a class='xattr' href='#TreatNonObjectAsNull'>[TreatNonObjectAsNull]</a> entails.
             </p>
             <div class='example'>
               <p>
                 The following <a class='dfnref' href='#dfn-idl-fragment'>IDL fragment</a> defines an interface that has one
-                attribute whose type is a <a class='xattr' href='#TreatNonCallableAsNull'>[TreatNonCallableAsNull]</a>-annotated
+                attribute whose type is a <a class='xattr' href='#TreatNonObjectAsNull'>[TreatNonObjectAsNull]</a>-annotated
                 <a class='dfnref' href='#dfn-callback-function'>callback function</a> and another whose type is a
                 <a class='dfnref' href='#dfn-callback-function'>callback function</a> without the <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>:
               </p>
-              <x:codeblock language='idl'>[TreatNonCallableAsNull]
+              <x:codeblock language='idl'>[TreatNonObjectAsNull]
 callback OccurrenceHandler = void (DOMString details);
 
 callback ErrorHandler = void (DOMString details);
@@ -8290,7 +8302,7 @@ interface Manager {
 };</x:codeblock>
               <p>
                 In an ECMAScript implementation, assigning a value that is not
-                <a href='http://es5.github.com/#x9.11' class='dfnref external'>callable</a> (such as a <span class='estype'>Number</span> value)
+                an object (such as a <span class='estype'>Number</span> value)
                 to handler1 will have different behavior from that when assigning
                 to handler2:
               </p>
@@ -10822,7 +10834,11 @@ C implements A;</x:codeblock>
           </p>
           <ol class='algorithm'>
             <li>Let <var>V</var> be the IDL <a class='dfnref' href='#idl-callback-function'>callback function type</a> value.</li>
-            <li>Let <var>F</var> be the ECMAScript <a href='http://es5.github.com/#x9.11' class='dfnref external'>callable</a> object corresponding to <var>V</var>.</li>
+            <li>Let <var>F</var> be the ECMAScript object corresponding to <var>V</var>.</li>
+            <li>Let <var>R</var> be an uninitialized variable.</li>
+            <li>If <a class='dnref external' href='http://es5.github.io/#x9.11'>IsCallable</a>(<var>F</var>) is false, then set <var>R</var> to the value <span class='estype'>undefined</span>.</li>
+            <li>Otherwise,
+            <ol>
             <li>Initialize <var>values</var> to be an empty list of ECMAScript values.</li>
             <li>Initialize <var>count</var> to 0.</li>
             <li>Initialize <var>i</var> to 0.</li>
@@ -10838,7 +10854,6 @@ C implements A;</x:codeblock>
             <li>Truncate <var>values</var> to have length <var>count</var>.</li>
             <li>Let <var>script</var> be the <a class='dfnref' href='#dfn-callback-context'>callback context</a> associated with <var>V</var>.</li>
             <li>Push <var>script</var> on to the <a class='dfnref external' href='http://www.whatwg.org/specs/web-apps/current-work/multipage/webappapis.html'>stack of incumbent scripts</a>. <a href='#ref-HTML'>[HTML]</a></li>
-            <li>Let <var>R</var> be an uninitialized variable.</li>
             <li>Try running the following step:
               <ol>
                 <li>Set <var>R</var> to the result of invoking the <span class='prop'>[[Call]]</span> method of <var>F</var>, providing the <a class='dfnref' href='#dfn-callback-this-value'>callback this value</a> as the <span class='esvalue'>this</span> value and <var>values</var> as the argument values.</li>
@@ -10848,6 +10863,8 @@ C implements A;</x:codeblock>
                 <li>Pop <var>script</var> off the <a class='dfnref external' href='http://www.whatwg.org/specs/web-apps/current-work/multipage/webappapis.html'>stack of incumbent scripts</a>.</li>
                 <li>If an exception was thrown, end these steps, and allow it to propagate.</li>
               </ol>
+            </li>
+            </ol>
             </li>
             <li>If the callback function’s return type is <span class='idltype'>void</span>, return.</li>
             <li>
@@ -11979,6 +11996,15 @@ d.type = et;
           <dt>Current editor’s draft</dt>
           <dd>
             <ul>
+              <li>
+                <p>
+                  Renamed [TreatNonCallableAsNull] to [TreatNonObjectAsNull]
+                  and changed its semantics to allow any object.  Changed
+                  callback function invocation to be a no-op when the object is
+                  not callable, which can now happen in the
+                  [TreatNonObjectAsNull] case.
+                </p>
+              </li>
               <li>
                 <p>
                   Changed the default this value for callbacks from null to undefined.
