@@ -72,6 +72,24 @@
     </xsl:choose>
   </xsl:template>
 
+  <xsl:template match='h:a[not(@href) and contains(@class, "external")]'>
+    <xsl:variable name='name' select='string(.)'/>
+    <xsl:variable name='term' select='$options/x:external-links/x:term[@name=$name]'/>
+    <xsl:if test='not($term)'>
+      <xsl:message terminate='yes'>unknown term '<xsl:value-of select='$name'/>'</xsl:message>
+    </xsl:if>
+    <xsl:variable name='ref' select='$term/@ref'/>
+    <xsl:variable name='section' select='$term/@section'/>
+    <a class='{@class}' href='{$term/@href}'><xsl:apply-templates/></a>
+    <xsl:if test='not(contains(@class, "nocite"))'>
+      <xsl:text> (</xsl:text>
+      <a href='#ref-{$ref}'>[<xsl:value-of select='$ref'/>]</a>
+      <xsl:text>, section </xsl:text>
+      <xsl:value-of select='$section'/>
+      <xsl:text>)</xsl:text>
+    </xsl:if>
+  </xsl:template>
+
   <xsl:template name='monthName'>
     <xsl:param name='n' select='1'/>
     <xsl:param name='s' select='"January February March April May June July August September October November December "'/>
