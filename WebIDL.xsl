@@ -81,12 +81,16 @@
     <xsl:variable name='ref' select='$term/@ref'/>
     <xsl:variable name='section' select='$term/@section'/>
     <a class='{@class}' href='{$term/@href}'><xsl:apply-templates/></a>
-    <xsl:if test='not(contains(@class, "nocite"))'>
-      <xsl:text> (</xsl:text>
+    <xsl:if test='not(contains(@class, "nocite")) and $ref'>
+      <xsl:if test='$section'>
+        <xsl:text> (</xsl:text>
+      </xsl:if>
       <a href='#ref-{$ref}'>[<xsl:value-of select='$ref'/>]</a>
-      <xsl:text>, section </xsl:text>
-      <xsl:value-of select='$section'/>
-      <xsl:text>)</xsl:text>
+      <xsl:if test='$section'>
+        <xsl:text>, section </xsl:text>
+        <xsl:value-of select='$section'/>
+        <xsl:text>)</xsl:text>
+      </xsl:if>
     </xsl:if>
   </xsl:template>
 
