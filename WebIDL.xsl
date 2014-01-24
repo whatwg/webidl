@@ -72,16 +72,27 @@
     </xsl:choose>
   </xsl:template>
 
-  <xsl:template match='h:a[not(@href) and contains(@class, "external")]'>
+  <xsl:template match='h:a[not(@href)]'>
     <xsl:variable name='name' select='string(.)'/>
-    <xsl:variable name='term' select='$options/x:external-links/x:term[@name=$name]'/>
+    <xsl:variable name='a-class' select='@class'/>
+    <xsl:variable name='term' select='$options/x:links/x:term[@name=$name]'/>
     <xsl:if test='not($term)'>
       <xsl:message terminate='yes'>unknown term '<xsl:value-of select='$name'/>'</xsl:message>
     </xsl:if>
     <xsl:variable name='ref' select='$term/@ref'/>
     <xsl:variable name='section' select='$term/@section'/>
-    <a class='{@class}' href='{$term/@href}'><xsl:apply-templates/></a>
-    <xsl:if test='not(contains(@class, "nocite")) and $ref'>
+    <xsl:variable name='term-class' select='$term/@class'/>
+    <xsl:variable name='final-class'>
+      <xsl:value-of select='$a-class'/>
+      <xsl:if test='$a-class and $term-class'>
+        <xsl:text> </xsl:text>
+      </xsl:if>
+      <xsl:value-of select='$term-class'/>
+    </xsl:variable>
+    <a class="{$final-class}" href='{$term/@href}'>
+      <xsl:apply-templates/>
+    </a>
+    <xsl:if test='not(contains($a-class, "nocite")) and $ref'>
       <xsl:if test='$section'>
         <xsl:text> (</xsl:text>
       </xsl:if>
