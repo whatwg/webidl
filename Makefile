@@ -1,4 +1,4 @@
-all : index.html v1.html java.html
+all : index.html v1.html
 
 index.html : index.xml WebIDL.xsl
 	xsltproc --nodtdattr --param now `date +%Y%m%d` WebIDL.xsl index.xml >index.html
