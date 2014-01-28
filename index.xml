@@ -80,6 +80,7 @@
         <term name='%ErrorPrototype%' class='external' href='http://people.mozilla.org/~jorendorff/es6-draft.html#sec-well-known-intrinsic-objects' ref='ECMA-262' section='6.1.7.4'/>
         <term name='%FunctionPrototype%' class='external' href='http://people.mozilla.org/~jorendorff/es6-draft.html#sec-well-known-intrinsic-objects' ref='ECMA-262' section='6.1.7.4'/>
         <term name='%ObjProto_toString%' class='external' href='http://people.mozilla.org/~jorendorff/es6-draft.html#sec-well-known-intrinsic-objects' ref='ECMA-262' section='6.1.7.4'/>
+        <term name='%Promise%' class='external' href='http://people.mozilla.org/~jorendorff/es6-draft.html#sec-well-known-intrinsic-objects' ref='ECMA-262' section='6.1.7.4'/>
         <term name='Property Descriptor' class='external' href='http://people.mozilla.org/~jorendorff/es6-draft.html#sec-property-descriptor-specification-type' ref='ECMA-262' section='6.2.4'/>
         <term name='array index' class='external' href='http://people.mozilla.org/~jorendorff/es6-draft.html#sec-array-exotic-objects' ref='ECMA-262' section='9.4.2'/>
         <term name='default [[GetOwnProperty]] internal method' class='external' href='http://people.mozilla.org/~jorendorff/es6-draft.html#sec-ordinary-object-internal-methods-and-internal-slots-getownproperty-p' ref='ECMA-262' section='9.1.5'/>
@@ -2050,6 +2051,10 @@ omittable legacycaller <i>return-type</i> <i>identifier</i>(<i>arguments…</i>)
                 is used to determine which legacy caller is invoked when the object is called
                 as if it were a function.
               </p>
+              <p>
+                Legacy callers <span class='rfc2119'>MUST NOT</span> be defined to return a
+                <a href='#idl-promise'>promise type</a>.
+              </p>
               <div class='warning'>
                 <p>
                   Legacy callers are universally recognised as an undesirable feature.  They exist
@@ -3494,6 +3499,10 @@ partial interface A {
                 is distinguishable with each member type of the other.
               </li>
             </ol>
+            <div class='note'>
+              <p><a href='#idl-promise'>Promise types</a> do not appear in the above table, and as a consequence
+              are not distinguishable with any other type.</p>
+            </div>
             <p>
               If there is more than one entry in an <a class='dfnref' href='#dfn-effective-overload-set'>effective overload set</a>
               that has a given type list length, then for those entries there
@@ -5706,6 +5715,27 @@ interface Person {
             </div>
           </div>
 
+          <div id='idl-promise' class='section'>
+            <h4>Promise types — Promise&lt;<var>T</var>&gt;</h4>
+
+            <p>
+              A <dfn id='dfn-promise-type'>promise type</dfn> is a parameterized type
+              whose values are references to objects that “is used as a place holder
+              for the eventual results of a deferred (and possibly asynchromous) computation
+              result of an asynchronous operation” <a href='#ref-ECMA-262'>[ECMA-262]</a>.
+              See <a href="http://people.mozilla.org/~jorendorff/es6-draft.html#sec-promise-objects">section 25.4</a>
+              of the ECMAScript specification for details on the semantics of promise objects.
+            </p>
+            <p>
+              There is no way to represent a promise value in IDL.
+            </p>
+            <p>
+              The <a class='dfnref' href='#dfn-type-name'>type name</a> of a promise type
+              is the concatenation of the type name for <var>T</var> and
+              the string “Promise”.
+            </p>
+          </div>
+
           <div id='idl-union' class='section'>
             <h4>Union types</h4>
 
@@ -6125,8 +6155,6 @@ interface Person {
             is one.
           </p>
         </div>
-        <p>
-        </p>
 
         <div id='es-environment' class='section'>
           <h3>ECMAScript environment</h3>
@@ -7919,6 +7947,80 @@ results.numbers.length;       <span class='comment'>// So this still evaluates t
               </ol>
             </div>
 
+          </div>
+
+          <div id='es-promise' class='section'>
+            <h4>Promise types — Promise&lt;<var>T</var>&gt;</h4>
+
+            <p>
+              IDL <a href='#idl-promise'>promise type</a> values are
+              represented by ECMAScript <span class='estype'>Promise</span>
+              objects.
+            </p>
+            <p>
+              An ECMAScript value <var>V</var> is
+              <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converted</a>
+              to an IDL <a class='idltype' href='#idl-promise'>promise&lt;<var>T</var>&gt;</a> value as follows:
+            </p>
+            <ol class='algorithm'>
+              <li>Let <var>cast</var> be the original value of <a class='nocite'>%Promise%</a>.cast.
+                <div class='ednote'>
+                  <p>ECMAScript should grow a %Promise_cast% well-known intrinsic object that can be referenced here.</p>
+                </div>
+              </li>
+              <li>Let <var>promise</var> be the result of calling <var>cast</var> with <a class='nocite'>%Promise%</a>
+                as the <span class='esvalue'>this</span> value and <var>V</var> as the single argument value.</li>
+              <li>Return the IDL <a href='#idl-promise'>promise type</a> value that is a reference to the
+                same object as <var>promise</var>.</li>
+            </ol>
+            <p>
+              The result of <a class='dfnref' href='#dfn-convert-idl-to-ecmascript-value'>converting</a>
+              an IDL <a href='#idl-promise'>promise type</a> value to an ECMAScript
+              value is the <span class='estype'>Promise</span> value that represents a reference to the same object that the
+              IDL <a href='#idl-promise'>promise type</a> represents.
+            </p>
+            <p>
+              One can <dfn id='dfn-perform-steps-once-promise-is-settled'>perform some steps once a promise is settled</dfn>.
+              There can be one or two sets of steps to perform, covering when the promise is fulfilled, rejected, or both.
+              When a specification says to perform some steps once a promise is settled, the following steps
+              <span class='rfc2119'>MUST</span> be followed:
+            </p>
+            <ol class='algorithm'>
+              <li>Let <var>promise</var> be the promise object of type <a class='idltype' href='#idl-promise'>promise&lt;<var>T</var>&gt;</a>.</li>
+              <li>
+                Let <var>onFulfilled</var> be a new <a class='dfnref' href='#dfn-function-object'>function object</a> whose
+                behavior when invoked is as follows:
+                <ol>
+                  <li>Let <var>V</var> be the first argument to <var>onFulfilled</var>.</li>
+                  <li>Let <var>value</var> be the result of <a class='dfnref' href='#dfn-convert-ecmascript=to-idl-value'>converting</a>
+                    <var>V</var> to an IDL value of type <var>T</var>.</li>
+                  <li>If there are no steps that are required to be run if the promise was fulfilled, then
+                    return <span class='esvalue'>undefined</span>.</li>
+                  <li>Otherwise, return the result of performing any steps that were required to be run if the promise was fulfilled,
+                    with <var>value</var> as the promise’s value.</li>
+                </ol>
+              </li>
+              <li>
+                Let <var>onRejected</var> be a new <a class='dfnref' href='#dfn-function-object'>function object</a> whose
+                behavior when invoked is as follows:
+                <ol>
+                  <li>Let <var>R</var> be the first argument to <var>onRejected</var>.</li>
+                  <li>Let <var>reason</var> be the result of <a class='dfnref' href='#dfn-convert-ecmascript=to-idl-value'>converting</a>
+                    <var>R</var> to an IDL value of type <span class='idltype'>any</span>.</li>
+                  <li>If there are no steps that are required to be run if the promise was rejected, then
+                    return <span class='esvalue'>undefined</span>.</li>
+                  <li>Otherwise, return the result of performing any steps that were required to be run if the promise was rejected,
+                    with <var>reason</var> as the rejection reason.</li>
+                </ol>
+              </li>
+              <li>Let <var>then</var> be the result of calling the internal <span class='prop'>[[Get]]</span> method of <var>promise</var> with property name “then”.</li>
+              <li>If <var>then</var> is not <a>callable</a>, then <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>TypeError</span></a>.</li>
+              <li>Return the result of calling <var>then</var> with <var>promise</var> as the <span class='esvalue'>this</span> value and <var>onFulfilled</var> and <var>onRejected</var>
+                as its two arguments.</li>
+            </ol>
+            <div class='ednote'>
+              <p>Include an example of how to write spec text using this term.</p>
+            </div>
           </div>
 
           <div id='es-union' class='section'>
@@ -11284,73 +11386,91 @@ interface
                 of argument values passed to the function:
                 <ol class="algorithm">
                   <li>
-                    Let <var>I</var> be the <a class='dfnref' href='#dfn-interface'>interface</a>
-                    whose <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype object</a>
-                    (or <a class='dfnref' href='#dfn-interface-object'>interface object</a>, for a static
-                    operation) this property corresponding to the operation appears on.
-                    <div class='note'>
-                      <p>This means that even if an implements statement was used to make
-                      an operation available on the interface, <var>I</var> is the interface
-                      on the left hand side of the implements statement, and not the one
-                      that the operation was originally declared on.</p>
-                    </div>
-                  </li>
-                  <li>
-                    Let <var>O</var> be a value determined as follows:
-                    <ul>
+                    Try running the following steps:
+                    <ol>
                       <li>
-                        If the operation is a static operation, then <var>O</var> is <span class='esvalue'>null</span>.
+                        Let <var>I</var> be the <a class='dfnref' href='#dfn-interface'>interface</a>
+                        whose <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype object</a>
+                        (or <a class='dfnref' href='#dfn-interface-object'>interface object</a>, for a static
+                        operation) this property corresponding to the operation appears on.
+                        <div class='note'>
+                          <p>This means that even if an implements statement was used to make
+                          an operation available on the interface, <var>I</var> is the interface
+                          on the left hand side of the implements statement, and not the one
+                          that the operation was originally declared on.</p>
+                        </div>
                       </li>
                       <li>
-                        Otherwise, if the <a class='dfnref' href='#dfn-interface'>interface</a> on which the
-                        <a class='dfnref' href='#dfn-operation'>operation</a> appears has an
-                        <a class='xattr' href='#ImplicitThis'>[ImplicitThis]</a> <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>,
-                        and the <span class='esvalue'>this</span> value is <span class='esvalue'>null</span>
-                        or <span class='esvalue'>undefined</span>, then <var>O</var> is
-                        the ECMAScript global object associated with the <span class='estype'>Function</span> object.
+                        Let <var>O</var> be a value determined as follows:
+                        <ul>
+                          <li>
+                            If the operation is a static operation, then <var>O</var> is <span class='esvalue'>null</span>.
+                          </li>
+                          <li>
+                            Otherwise, if the <a class='dfnref' href='#dfn-interface'>interface</a> on which the
+                            <a class='dfnref' href='#dfn-operation'>operation</a> appears has an
+                            <a class='xattr' href='#ImplicitThis'>[ImplicitThis]</a> <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>,
+                            and the <span class='esvalue'>this</span> value is <span class='esvalue'>null</span>
+                            or <span class='esvalue'>undefined</span>, then <var>O</var> is
+                            the ECMAScript global object associated with the <span class='estype'>Function</span> object.
+                          </li>
+                          <li>
+                            Otherwise, if the <span class='esvalue'>this</span> value is not <span class='esvalue'>null</span>,
+                            then <var>O</var> is the <span class='esvalue'>this</span> value.
+                          </li>
+                          <li>
+                            Otherwise, <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>TypeError</span></a>.
+                          </li>
+                        </ul>
+                      </li>
+                      <li>If <var>O</var> is a <a class='dfnref' href='#dfn-platform-object'>platform object</a>,
+                        then <a class='dfnref' href='#dfn-perform-a-security-check'>perform a security check</a> on <var>O</var>
+                        with the ECMAScript global environment associated with this <span class='estype'>Function</span> that
+                        implements the <a class='dfnref' href='#dfn-operation'>operation</a>.</li>
+                      <li>
+                        If <var>O</var> is not <span class='esvalue'>null</span> and is also not a <a class='dfnref' href='#dfn-platform-object'>platform object</a>
+                        that implements interface <var>I</var>, <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>TypeError</span></a>.
                       </li>
                       <li>
-                        Otherwise, if the <span class='esvalue'>this</span> value is not <span class='esvalue'>null</span>,
-                        then <var>O</var> is the <span class='esvalue'>this</span> value.
+                        Initialize <var>S</var> to the
+                        <a class='dfnref' href='#dfn-effective-overload-set'>effective overload set</a>
+                        for <a class='dfnref' href='#dfn-regular-operation'>regular operations</a>
+                        (if the operation is a regular operation) or for
+                        <a class='dfnref' href='#dfn-static-operation'>static operations</a>
+                        (if the operation is a static operation) with
+                        <a class='dfnref' href='#dfn-identifier'>identifier</a>
+                        <var>id</var> on <a class='dfnref' href='#dfn-interface'>interface</a>
+                        <var>I</var> and with argument count <var>n</var>.
                       </li>
                       <li>
-                        Otherwise, <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>TypeError</span></a>.
+                        Let &lt;<var>operation</var>, <var>values</var>> be the result of passing <var>S</var> and
+                        <var>arg</var><sub>0..<var>n</var>−1</sub> to the
+                        <a class='dfnref' href='#dfn-overload-resolution-algorithm'>overload resolution algorithm</a>.
                       </li>
-                    </ul>
-                  </li>
-                  <li>If <var>O</var> is a <a class='dfnref' href='#dfn-platform-object'>platform object</a>,
-                    then <a class='dfnref' href='#dfn-perform-a-security-check'>perform a security check</a> on <var>O</var>
-                    with the ECMAScript global environment associated with this <span class='estype'>Function</span> that
-                    implements the <a class='dfnref' href='#dfn-operation'>operation</a>.</li>
-                  <li>
-                    If <var>O</var> is not <span class='esvalue'>null</span> and is also not a <a class='dfnref' href='#dfn-platform-object'>platform object</a>
-                    that implements interface <var>I</var>, <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>TypeError</span></a>.
-                  </li>
-                  <li>
-                    Initialize <var>S</var> to the
-                    <a class='dfnref' href='#dfn-effective-overload-set'>effective overload set</a>
-                    for <a class='dfnref' href='#dfn-regular-operation'>regular operations</a>
-                    (if the operation is a regular operation) or for
-                    <a class='dfnref' href='#dfn-static-operation'>static operations</a>
-                    (if the operation is a static operation) with
-                    <a class='dfnref' href='#dfn-identifier'>identifier</a>
-                    <var>id</var> on <a class='dfnref' href='#dfn-interface'>interface</a>
-                    <var>I</var> and with argument count <var>n</var>.
-                  </li>
-                  <li>
-                    Let &lt;<var>operation</var>, <var>values</var>> be the result of passing <var>S</var> and
-                    <var>arg</var><sub>0..<var>n</var>−1</sub> to the
-                    <a class='dfnref' href='#dfn-overload-resolution-algorithm'>overload resolution algorithm</a>.
-                  </li>
-                  <li>
-                    Let <var>R</var> be the result of performing (on <var>O</var>, if the operation
-                    is not a static operation) the actions listed in the description of
-                    <var>operation</var> with <var>values</var> as the argument values.
-                  </li>
-                  <li>
-                    Return the result of <a class='dfnref' href='#dfn-convert-idl-to-ecmascript-value'>converting</a>
-                    <var>R</var> to an ECMAScript value of
-                    the type <var>op</var> is declared to return.
+                      <li>
+                        Let <var>R</var> be the result of performing (on <var>O</var>, if the operation
+                        is not a static operation) the actions listed in the description of
+                        <var>operation</var> with <var>values</var> as the argument values.
+                      </li>
+                      <li>
+                        Return the result of <a class='dfnref' href='#dfn-convert-idl-to-ecmascript-value'>converting</a>
+                        <var>R</var> to an ECMAScript value of
+                        the type <var>op</var> is declared to return.
+                      </li>
+                    </ol>
+                    And then, if an exception was thrown:
+                    <ol>
+                      <li>If <var>O</var> has a <a class='dfnref' href='#dfn-return-type'>return type</a>
+                        that is a <a href='#idl-promise'>promise type</a>, then:
+                        <ol>
+                          <li>Let <var>reject</var> be the initial value of <a class='nocite'>%Promise%</a>.reject.</li>
+                          <li>Return the result of calling <var>reject</var> with <a class='nocite'>%Promise%</a> as the
+                            <span class='esvalue'>this</span> object and the exception as the single
+                            argument value.</li>
+                        </ol>
+                      </li>
+                      <li>Otherwise, end these steps and allow the exception to propagate.</li>
+                    </ol>
                   </li>
                 </ol>
               </li>
@@ -12034,6 +12154,11 @@ interface
                 <p>Although the default implementation of get can return <span class='esvalue'>undefined</span>,
                   if an operation named “get” is defined then that cannot return <span class='esvalue'>undefined</span>.
                   How should we resolve this?</p>
+              </div>
+
+              <div class='ednote'>
+                <p>We should handle exceptions in get if the value type is a promise type, and convert them into
+                  a rejected promise.</p>
               </div>
             </div>
 
@@ -12919,40 +13044,54 @@ C implements A;</x:codeblock>
             specifications.
           </p>
           <ol class='algorithm'>
-            <li>Let <var>V</var> be the IDL <a class='dfnref' href='#idl-interface'>callback interface type</a> value
-              that represents the <a class='dfnref' href='#dfn-user-object'>user object</a> implementing the <a class='dfnref' href='#dfn-interface'>interface</a>.</li>
-            <li>Let <var>O</var> be the ECMAScript object corresponding to <var>V</var>.</li>
-            <li>Let <var>X</var> be the implementation of the operation.  If the interface is a <a class='dfnref' href='#dfn-single-operation-callback-interface'>single operation callback interface</a> and <a>IsCallable</a>(<var>O</var>) is true, then <var>X</var> is <var>O</var>.
-              Otherwise, <var>X</var> is the result of calling
-              the internal <span class='prop'>[[Get]]</span> method of <var>O</var> with the identifier of the operation as the property name.</li>
-            <li>If <a>Type</a>(<var>X</var>) is not Object, <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>TypeError</span></a> exception.</li>
-            <li>If <a>IsCallable</a>(<var>X</var>) is false, then <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>TypeError</span></a> exception.</li>
-            <li>Let <var>this</var> be <var>O</var> if the interface is not a <a class='dfnref' href='#dfn-single-operation-callback-interface'>single operation callback interface</a>
-              or if <a>IsCallable</a>(<var>O</var>) is false,
-              and the <a class='dfnref' href='#dfn-callback-this-value'>callback this value</a> otherwise.</li>
-            <li>
-              Let <var>arg</var><sub>0..<var>n</var>−1</sub> be a list of
-              ECMAScript values, where <var>arg</var><sub><var>i</var></sub> is the result
-              of <a class='dfnref' href='#dfn-convert-idl-to-ecmascript-value'>converting</a>
-              <var>idlarg</var><sub><var>i</var></sub> to an ECMAScript value.
-            </li>
-            <li>Let <var>script</var> be the <a class='dfnref' href='#dfn-callback-context'>callback context</a> associated with <var>V</var>.</li>
-            <li>Push <var>script</var> on to the <a class='dfnref external' href='http://www.whatwg.org/specs/web-apps/current-work/multipage/webappapis.html'>stack of incumbent scripts</a>. <a href='#ref-HTML'>[HTML]</a></li>
-            <li>Let <var>R</var> be an uninitialized variable.</li>
-            <li>Try running the following step:
+            <li>Try running the following steps:
               <ol>
-                <li>Set <var>R</var> to the result of invoking the <span class='prop'>[[Call]]</span> method of <var>X</var>, providing <var>this</var> as the <span class='esvalue'>this</span> value and <var>arg</var><sub>0..<var>n</var>−1</sub> as the argument values.</li>
+                <li>Let <var>V</var> be the IDL <a class='dfnref' href='#idl-interface'>callback interface type</a> value
+                  that represents the <a class='dfnref' href='#dfn-user-object'>user object</a> implementing the <a class='dfnref' href='#dfn-interface'>interface</a>.</li>
+                <li>Let <var>O</var> be the ECMAScript object corresponding to <var>V</var>.</li>
+                <li>Let <var>X</var> be the implementation of the operation.  If the interface is a <a class='dfnref' href='#dfn-single-operation-callback-interface'>single operation callback interface</a> and <a>IsCallable</a>(<var>O</var>) is true, then <var>X</var> is <var>O</var>.
+                  Otherwise, <var>X</var> is the result of calling
+                  the internal <span class='prop'>[[Get]]</span> method of <var>O</var> with the identifier of the operation as the property name.</li>
+                <li>If <a>Type</a>(<var>X</var>) is not Object, <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>TypeError</span></a> exception.</li>
+                <li>If <a>IsCallable</a>(<var>X</var>) is false, then <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>TypeError</span></a> exception.</li>
+                <li>Let <var>this</var> be <var>O</var> if the interface is not a <a class='dfnref' href='#dfn-single-operation-callback-interface'>single operation callback interface</a>
+                  or if <a>IsCallable</a>(<var>O</var>) is false,
+                  and the <a class='dfnref' href='#dfn-callback-this-value'>callback this value</a> otherwise.</li>
+                <li>
+                  Let <var>arg</var><sub>0..<var>n</var>−1</sub> be a list of
+                  ECMAScript values, where <var>arg</var><sub><var>i</var></sub> is the result
+                  of <a class='dfnref' href='#dfn-convert-idl-to-ecmascript-value'>converting</a>
+                  <var>idlarg</var><sub><var>i</var></sub> to an ECMAScript value.
+                </li>
+                <li>Let <var>script</var> be the <a class='dfnref' href='#dfn-callback-context'>callback context</a> associated with <var>V</var>.</li>
+                <li>Push <var>script</var> on to the <a class='dfnref external' href='http://www.whatwg.org/specs/web-apps/current-work/multipage/webappapis.html'>stack of incumbent scripts</a>. <a href='#ref-HTML'>[HTML]</a></li>
+                <li>Let <var>R</var> be an uninitialized variable.</li>
+                <li>Try running the following step:
+                  <ol>
+                    <li>Set <var>R</var> to the result of invoking the <span class='prop'>[[Call]]</span> method of <var>X</var>, providing <var>this</var> as the <span class='esvalue'>this</span> value and <var>arg</var><sub>0..<var>n</var>−1</sub> as the argument values.</li>
+                  </ol>
+                  And then, whether or not an exception was thrown:
+                  <ol>
+                    <li>Pop <var>script</var> off the <a class='dfnref external' href='http://www.whatwg.org/specs/web-apps/current-work/multipage/webappapis.html'>stack of incumbent scripts</a>.</li>
+                    <li>If an exception was thrown, end these steps, and allow it to propagate.</li>
+                  </ol>
+                </li>
+                <li>If the operation’s return type is <span class='idltype'>void</span>, return.</li>
+                <li>
+                  Return the result of <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a>
+                  <var>R</var> to an IDL value of the same type as the operation’s return type.
+                </li>
               </ol>
-              And then, whether or not an exception was thrown:
+              And then, if an exception was thrown:
               <ol>
-                <li>Pop <var>script</var> off the <a class='dfnref external' href='http://www.whatwg.org/specs/web-apps/current-work/multipage/webappapis.html'>stack of incumbent scripts</a>.</li>
-                <li>If an exception was thrown, end these steps, and allow it to propagate.</li>
+                <li>If the operation has a <a class='dfnref' href='#dfn-return-type'>return type</a> that is a <a href='#idl-promise'>promise type</a>, then:
+                  <ol>
+                    <li>Let <var>reject</var> be the initial value of <a class='nocite'>%Promise%</a>.reject.</li>
+                    <li>Return the result of calling <var>reject</var> with <a class='nocite'>%Promise%</a> as the <span class='esvalue'>this</span> object and the exception as the single argument value.</li>
+                  </ol>
+                </li>
+                <li>Otherwise, end these steps and allow the exception to propagate.</li>
               </ol>
-            </li>
-            <li>If the operation’s return type is <span class='idltype'>void</span>, return.</li>
-            <li>
-              Return the result of <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a>
-              <var>R</var> to an IDL value of the same type as the operation’s return type.
             </li>
           </ol>
           <p>
@@ -12968,24 +13107,38 @@ C implements A;</x:codeblock>
             following algorithm:
           </p>
           <ol class='algorithm'>
-            <li>Let <var>V</var> be the IDL <a class='dfnref' href='#idl-interface'>callback interface type</a> value
-              that represents the <a class='dfnref' href='#dfn-user-object'>user object</a> implementing the <a class='dfnref' href='#dfn-interface'>interface</a>.</li>
-            <li>Let <var>O</var> be the ECMAScript object corresponding to <var>V</var>.</li>
-            <li>Let <var>P</var> be the <a class='dfnref' href='#dfn-identifier'>identifier</a> of the attribute.</li>
-            <li>Let <var>script</var> be the <a class='dfnref' href='#dfn-callback-context'>callback context</a> associated with <var>V</var>.</li>
-            <li>Push <var>script</var> on to the <a class='dfnref external' href='http://www.whatwg.org/specs/web-apps/current-work/multipage/webappapis.html'>stack of incumbent scripts</a>. <a href='#ref-HTML'>[HTML]</a></li>
-            <li>Let <var>R</var> be an uninitialized variable.</li>
-            <li>Try running the following step:
+            <li>Try running the following steps:
               <ol>
-                <li>Set <var>R</var> to the result of invoking the <span class='prop'>[[Get]]</span> method of <var>O</var> with property name <var>P</var>.</li>
+                <li>Let <var>V</var> be the IDL <a class='dfnref' href='#idl-interface'>callback interface type</a> value
+                  that represents the <a class='dfnref' href='#dfn-user-object'>user object</a> implementing the <a class='dfnref' href='#dfn-interface'>interface</a>.</li>
+                <li>Let <var>O</var> be the ECMAScript object corresponding to <var>V</var>.</li>
+                <li>Let <var>P</var> be the <a class='dfnref' href='#dfn-identifier'>identifier</a> of the attribute.</li>
+                <li>Let <var>script</var> be the <a class='dfnref' href='#dfn-callback-context'>callback context</a> associated with <var>V</var>.</li>
+                <li>Push <var>script</var> on to the <a class='dfnref external' href='http://www.whatwg.org/specs/web-apps/current-work/multipage/webappapis.html'>stack of incumbent scripts</a>. <a href='#ref-HTML'>[HTML]</a></li>
+                <li>Let <var>R</var> be an uninitialized variable.</li>
+                <li>Try running the following step:
+                  <ol>
+                    <li>Set <var>R</var> to the result of invoking the <span class='prop'>[[Get]]</span> method of <var>O</var> with property name <var>P</var>.</li>
+                  </ol>
+                  And then, whether or not an exception was thrown:
+                  <ol>
+                    <li>Pop <var>script</var> off the <a class='dfnref external' href='http://www.whatwg.org/specs/web-apps/current-work/multipage/webappapis.html'>stack of incumbent scripts</a>.</li>
+                    <li>If an exception was thrown, end these steps, and allow it to propagate.</li>
+                  </ol>
+                </li>
+                <li>Return the result of <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a> <var>R</var> to an IDL value of the same type as the attribute’s type.</li>
               </ol>
-              And then, whether or not an exception was thrown:
+              And then, if an exception was thrown:
               <ol>
-                <li>Pop <var>script</var> off the <a class='dfnref external' href='http://www.whatwg.org/specs/web-apps/current-work/multipage/webappapis.html'>stack of incumbent scripts</a>.</li>
-                <li>If an exception was thrown, end these steps, and allow it to propagate.</li>
+                <li>If the operation has a <a class='dfnref' href='#dfn-return-type'>return type</a> that is a <a href='#idl-promise'>promise type</a>, then:
+                  <ol>
+                    <li>Let <var>reject</var> be the initial value of <a class='nocite'>%Promise%</a>.reject.</li>
+                    <li>Return the result of calling <var>reject</var> with <a class='nocite'>%Promise%</a> as the <span class='esvalue'>this</span> object and the exception as the single argument value.</li>
+                  </ol>
+                </li>
+                <li>Otherwise, end these steps and allow the exception to propagate.</li>
               </ol>
             </li>
-            <li>Return the result of <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a> <var>R</var> to an IDL value of the same type as the attribute’s type.</li>
           </ol>
           <p>
             The value of a <a class='dfnref' href='#dfn-user-object'>user object</a>’s
@@ -13032,43 +13185,57 @@ C implements A;</x:codeblock>
             is <span class='esvalue'>undefined</span>, unless overridden by other specifications.
           </p>
           <ol class='algorithm'>
-            <li>Let <var>V</var> be the IDL <a class='dfnref' href='#idl-callback-function'>callback function type</a> value.</li>
-            <li>Let <var>F</var> be the ECMAScript object corresponding to <var>V</var>.</li>
-            <li>Let <var>R</var> be an uninitialized variable.</li>
-            <li>If <a>IsCallable</a>(<var>F</var>) is false, then set <var>R</var> to the value <span class='estype'>undefined</span>.</li>
-            <li>Otherwise,
-            <ol>
-            <li>Initialize <var>values</var> to be an empty list of ECMAScript values.</li>
-            <li>Initialize <var>count</var> to 0.</li>
-            <li>Initialize <var>i</var> to 0.</li>
-            <li>While <var>i</var> &lt; <var>n</var>:
+            <li>Try running the following steps:
               <ol>
-                <li>If <var>arg</var><sub><var>i</var></sub> is the special value “missing”, then append to <var>values</var> the ECMAScript <span class='estype'>undefined</span> value.</li>
-                <li>Otherwise, <var>arg</var><sub><var>i</var></sub> is an IDL value.  Append to <var>values</var> the result of
-                  <a class='dfnref' href='#dfn-convert-idl-to-ecmascript-value'>converting</a> <var>arg</var><sub><var>i</var></sub> to an ECMAScript value,
-                  and set <var>count</var> to <var>i</var> + 1.</li>
-                <li>Set <var>i</var> to <var>i</var> + 1.</li>
+                <li>Let <var>V</var> be the IDL <a class='dfnref' href='#idl-callback-function'>callback function type</a> value.</li>
+                <li>Let <var>F</var> be the ECMAScript object corresponding to <var>V</var>.</li>
+                <li>Let <var>R</var> be an uninitialized variable.</li>
+                <li>If <a>IsCallable</a>(<var>F</var>) is false, then set <var>R</var> to the value <span class='estype'>undefined</span>.</li>
+                <li>Otherwise,
+                <ol>
+                <li>Initialize <var>values</var> to be an empty list of ECMAScript values.</li>
+                <li>Initialize <var>count</var> to 0.</li>
+                <li>Initialize <var>i</var> to 0.</li>
+                <li>While <var>i</var> &lt; <var>n</var>:
+                  <ol>
+                    <li>If <var>arg</var><sub><var>i</var></sub> is the special value “missing”, then append to <var>values</var> the ECMAScript <span class='estype'>undefined</span> value.</li>
+                    <li>Otherwise, <var>arg</var><sub><var>i</var></sub> is an IDL value.  Append to <var>values</var> the result of
+                      <a class='dfnref' href='#dfn-convert-idl-to-ecmascript-value'>converting</a> <var>arg</var><sub><var>i</var></sub> to an ECMAScript value,
+                      and set <var>count</var> to <var>i</var> + 1.</li>
+                    <li>Set <var>i</var> to <var>i</var> + 1.</li>
+                  </ol>
+                </li>
+                <li>Truncate <var>values</var> to have length <var>count</var>.</li>
+                <li>Let <var>script</var> be the <a class='dfnref' href='#dfn-callback-context'>callback context</a> associated with <var>V</var>.</li>
+                <li>Push <var>script</var> on to the <a class='dfnref external' href='http://www.whatwg.org/specs/web-apps/current-work/multipage/webappapis.html'>stack of incumbent scripts</a>. <a href='#ref-HTML'>[HTML]</a></li>
+                <li>Try running the following step:
+                  <ol>
+                    <li>Set <var>R</var> to the result of invoking the <span class='prop'>[[Call]]</span> method of <var>F</var>, providing the <a class='dfnref' href='#dfn-callback-this-value'>callback this value</a> as the <span class='esvalue'>this</span> value and <var>values</var> as the argument values.</li>
+                  </ol>
+                  And then, whether or not an exception was thrown:
+                  <ol>
+                    <li>Pop <var>script</var> off the <a class='dfnref external' href='http://www.whatwg.org/specs/web-apps/current-work/multipage/webappapis.html'>stack of incumbent scripts</a>.</li>
+                    <li>If an exception was thrown, end these steps, and allow it to propagate.</li>
+                  </ol>
+                </li>
+                </ol>
+                </li>
+                <li>If the callback function’s return type is <span class='idltype'>void</span>, return.</li>
+                <li>
+                  Return the result of <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a>
+                  <var>R</var> to an IDL value of the same type as the callback function’s return type.
+                </li>
               </ol>
-            </li>
-            <li>Truncate <var>values</var> to have length <var>count</var>.</li>
-            <li>Let <var>script</var> be the <a class='dfnref' href='#dfn-callback-context'>callback context</a> associated with <var>V</var>.</li>
-            <li>Push <var>script</var> on to the <a class='dfnref external' href='http://www.whatwg.org/specs/web-apps/current-work/multipage/webappapis.html'>stack of incumbent scripts</a>. <a href='#ref-HTML'>[HTML]</a></li>
-            <li>Try running the following step:
+              And then, if an exception was thrown:
               <ol>
-                <li>Set <var>R</var> to the result of invoking the <span class='prop'>[[Call]]</span> method of <var>F</var>, providing the <a class='dfnref' href='#dfn-callback-this-value'>callback this value</a> as the <span class='esvalue'>this</span> value and <var>values</var> as the argument values.</li>
+                <li>If the callback function has a <a class='dfnref' href='#dfn-return-type'>return type</a> that is a <a href='#idl-promise'>promise type</a>, then:
+                  <ol>
+                    <li>Let <var>reject</var> be the initial value of <a class='nocite'>%Promise%</a>.reject.</li>
+                    <li>Return the result of calling <var>reject</var> with <a class='nocite'>%Promise%</a> as the <span class='esvalue'>this</span> object and the exception as the single argument value.</li>
+                  </ol>
+                </li>
+                <li>Otherwise, end these steps and allow the exception to propagate.</li>
               </ol>
-              And then, whether or not an exception was thrown:
-              <ol>
-                <li>Pop <var>script</var> off the <a class='dfnref external' href='http://www.whatwg.org/specs/web-apps/current-work/multipage/webappapis.html'>stack of incumbent scripts</a>.</li>
-                <li>If an exception was thrown, end these steps, and allow it to propagate.</li>
-              </ol>
-            </li>
-            </ol>
-            </li>
-            <li>If the callback function’s return type is <span class='idltype'>void</span>, return.</li>
-            <li>
-              Return the result of <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a>
-              <var>R</var> to an IDL value of the same type as the callback function’s return type.
             </li>
           </ol>
         </div>
@@ -13282,6 +13449,10 @@ C implements A;</x:codeblock>
                     Return <var>V</var>.
                   </li>
                 </ol>
+                <div class='ednote'>
+                  <p>This technically needs to wrap up exceptions in a rejected promise, if the
+                    exception field is declared to be a promise type.  But exceptions are going away.</p>
+                </div>
                 The value of the <span class='estype'>Function</span> object’s “length”
                 property is the <span class='estype'>Number</span> value <span class='esvalue'>0</span>.
               </li>
@@ -14226,6 +14397,11 @@ d.type = et;
           <dt>Current editor’s draft</dt>
           <dd>
             <ul>
+              <li>
+                <p>
+                  Added promise types.
+                </p>
+              </li>
               <li>
                 <p>
                   Added the <span class='xattr'>[EnsureUTF16]</span> extended attribute.
