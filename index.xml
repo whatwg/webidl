@@ -8704,11 +8704,11 @@ show(StringSanitizer.sanitizer(s));  <span class='comment'>// Evaluates to [0xff
               is <dfn id='dfn-exposed'>exposed</dfn> in a given ECMAScript global environment if:
             </p>
             <ul>
-              <li>the interface or dictionary was declared with an <a class='xattr' href='#Exposed'>[Exposed]</a> 
+              <li>the interface or dictionary was declared with an <a class='xattr' href='#Exposed'>[Exposed]</a>
               extended attribute, and the ECMAScript global object implements an interface
               that has a <a class='dfnref' href='#dfn-global-name'>global name</a> that is in the
               extended attribute's identifier list; or</li>
-              <li>the interface or dictionary was not declared with an <a class='xattr' href='#Exposed'>[Exposed]</a> 
+              <li>the interface or dictionary was not declared with an <a class='xattr' href='#Exposed'>[Exposed]</a>
               extended attribute, and the ECMAScript global object implements
               the <a class='dfnref' href='#dfn-primary-global-interface'>primary global interface</a>.</li>
             </ul>
@@ -8719,12 +8719,12 @@ show(StringSanitizer.sanitizer(s));  <span class='comment'>// Evaluates to [0xff
             </p>
             <ul>
               <li>the interface member – or a partial interface definition the interface member
-              was declared on – was declared with an <a class='xattr' href='#Exposed'>[Exposed]</a> 
+              was declared on – was declared with an <a class='xattr' href='#Exposed'>[Exposed]</a>
               extended attribute, and the ECMAScript global object implements an interface
               that has a <a class='dfnref' href='#dfn-global-name'>global name</a> that is in the
               extended attribute's identifier list; or</li>
               <li>the interface member – or a partial interface definition the interface member
-              was declared on – was not declared with an <a class='xattr' href='#Exposed'>[Exposed]</a> 
+              was declared on – was not declared with an <a class='xattr' href='#Exposed'>[Exposed]</a>
               extended attribute, and the ECMAScript global object implements
               the <a class='dfnref' href='#dfn-primary-global-interface'>primary global interface</a>.</li>
             </ul>
@@ -8961,7 +8961,7 @@ var requestAnimationFrame = window.requestAnimationFrame ||
             </p>
             <p>
               If the <a class='xattr' href='#Global'>[Global]</a> or
-              <a class='xattr' href='#PrimaryGlobal'>[PrimaryGlobal]</a> 
+              <a class='xattr' href='#PrimaryGlobal'>[PrimaryGlobal]</a>
               <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
               is declared with an identifier list argument, then those identifiers are the interface’s
               <dfn id='dfn-global-name'>global names</dfn>; otherwise, the interface has
@@ -11690,7 +11690,7 @@ interface
 
             <p>
               If the <a class='dfnref' href='#dfn-interface'>interface</a>
-              has an <a class='dfnref' href='#dfn-exposed'>exposed</a> 
+              has an <a class='dfnref' href='#dfn-exposed'>exposed</a>
               <a class='dfnref' href='#dfn-iterator'>iterator</a> or
               if the interface defines an <a class='dfnref' href='#dfn-indexed-property-getter'>indexed property getter</a>, then
               a property <span class='rfc2119'>MUST</span> exist
@@ -11904,6 +11904,54 @@ interface
                 property is the <span class='estype'>Number</span> value <span class='esvalue'>0</span>.
               </p>
             </div>
+          </div>
+
+          <div id='initializing-objects-from-iterables' class='section'>
+            <h4>Initializing objects from iterables</h4>
+
+            <p>
+              Some objects, which are attempting to emulate map- and set-like interfaces, will want to accept iterables
+              as constructor parameters and initialize themselves in this way. Here we provide some algorithms that can
+              be invoked in order to do so in the same way as in the ECMAScript spec, so that those objects behave
+              the same as the built-in <span class='estype'>Map</span> and <span class='estype'>Set</span> objects.
+            </p>
+
+            <p>
+              To <dfn id='add-map-elements-from-iterable'>add map elements from an iterable</dfn> <var>iterable</var> to
+              an object <var>destination</var> with adder method name <var>adder</var>, perform the following steps:
+            </p>
+            <ol class='algorithm'>
+              <li>If <a class='external' href='http://people.mozilla.org/~jorendorff/es6-draft.html#sec-ecmascript-data-types-and-values'>Type</a>(<var>destination</var>) is not Object, then, <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>TypeError</span> exception</a>.</li>
+              <li>If <var>iterable</var> is not present, let <var>iterable</var> be <span class='esvalue'>undefined</span>.</li>
+              <li>If <var>iterable</var> is either <span class='esvalue'>undefined</span> or <span class='esvalue'>null</span>, then let <var>iter</var> be <span class='esvalue'>undefined</span>.</li>
+              <li>Else,
+                <ol>
+                  <li>Let <var>adder</var> be the result of <a class='external' href='http://people.mozilla.org/~jorendorff/es6-draft.html#sec-get-o-p'>Get</a>(<var>destination</var>, <var>adder</var>).</li>
+                  <li><a class='external' href='http://people.mozilla.org/~jorendorff/es6-draft.html#sec-returnifabrupt'>ReturnIfAbrupt</a>(<var>adder</var>).</li>
+                  <li>If <a class='external' href='http://people.mozilla.org/~jorendorff/es6-draft.html#sec-iscallable'>IsCallable</a>(<var>adder</var>) is <span class='esvalue'>false</span>, <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>TypeError</span> exception</a>.</li>
+                  <li>Let <var>iter</var> be the result of <a class='external' href='http://people.mozilla.org/~jorendorff/es6-draft.html#sec-getiterator'>GetIterator</a>(<var>iterable</var>).</li>
+                  <li><a class='external' href='http://people.mozilla.org/~jorendorff/es6-draft.html#sec-returnifabrupt'>ReturnIfAbrupt</a>(<var>iter</var>).</li>
+                </ol>
+              </li>
+              <li>If <var>iter</var> is <span class='esvalue'>undefined</span>, then return.</li>
+              <li>Repeat
+                <ol>
+                  <li>Let <var>next</var> be the result of <a class='external' href='http://people.mozilla.org/~jorendorff/es6-draft.html#sec-iteratorstep'>IteratorStep</a>(<var>iter</var>).</li>
+                  <li><a class='external' href='http://people.mozilla.org/~jorendorff/es6-draft.html#sec-returnifabrupt'>ReturnIfAbrupt</a>(<var>next</var>).</li>
+                  <li>If <var>next</var> is <span class='esvalue'>false</span>, then return <a class='external' href='http://people.mozilla.org/~jorendorff/es6-draft.html#sec-normalcompletion'>NormalCompletion</a>(<var>destination</var>).</li>
+                  <li>Let <var>nextItem</var> be <a class='external' href='http://people.mozilla.org/~jorendorff/es6-draft.html#sec-iteratorvalue'>IteratorValue</a>(<var>next</var>).</li>
+                  <li><a class='external' href='http://people.mozilla.org/~jorendorff/es6-draft.html#sec-returnifabrupt'>ReturnIfAbrupt</a>(<var>nextItem</var>).</li>
+                  <li>If <a class='external' href='http://people.mozilla.org/~jorendorff/es6-draft.html#sec-ecmascript-data-types-and-values'>Type</a>(<var>nextItem</var>) is not Object, then <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>TypeError</span> exception</a>.</li>
+                  <li>Let <var>k</var> be the result of <a class='external' href='http://people.mozilla.org/~jorendorff/es6-draft.html#sec-get-o-p'>Get</a>(<var>nextItem</var>, <code>'0'</code>).</li>
+                  <li><a class='external' href='http://people.mozilla.org/~jorendorff/es6-draft.html#sec-returnifabrupt'>ReturnIfAbrupt</a>(<var>k</var>).</li>
+                  <li>Let <var>v</var> be the result of <a class='external' href='http://people.mozilla.org/~jorendorff/es6-draft.html#sec-get-o-p'>Get</a>(<var>nextItem</var>, <code>'1'</code>).</li>
+                  <li><a class='external' href='http://people.mozilla.org/~jorendorff/es6-draft.html#sec-returnifabrupt'>ReturnIfAbrupt</a>(<var>v</var>).</li>
+                  <li>Let <var>status</var> be the result of calling the [[Call]] internal method of <var>adder</var> with <var>destination</var> as
+                      <var>thisArgument</var> and (<var>k</var>, <var>v</var>) as <var>argumentsList</var>.</li>
+                  <li><a class='external' href='http://people.mozilla.org/~jorendorff/es6-draft.html#sec-returnifabrupt'>ReturnIfAbrupt</a>(<var>status</var>).</li>
+                </ol>
+              </li>
+            </ol>
           </div>
 
           <div id='es-map-members' class='section'>
