@@ -8677,13 +8677,39 @@ show(StringSanitizer.sanitizer(s));  <span class='comment'>// Evaluates to [0xff
               extended attribute <span class='rfc2119'>MUST</span> either
               <a class='dfnref' href='#dfn-xattr-identifier'>take an identifier</a> or
               <a class='dfnref' href='#dfn-xattr-identifier-list'>take an identifier list</a>.
-              Each identifier mentioned <span class='rfc2119'>MUST</span>
+              The set of identifiers mentioned is called the <dfn id="dfn-exposure-set">exposure set</dfn>
+              for the <a class='dfnref' href='#dfn-definition'>definition</a> or
+              <a class='dfnref' href='#dfn-interface-member'>interface member</a>,
+              and each of the identifiers <span class='rfc2119'>MUST</span>
               be a <a class='dfnref' href='#dfn-global-name'>global name</a>.
-              An interface or interface member the extended attribute applies to
-              will be exposed only on objects associated with ECMAScript global
-              environments whose global object implements an interface that
-              has a matching <a class='dfnref' href='#dfn-global-name'>global name</a>.
+              An interface, interface member or dictionary the extended
+              attribute applies to will be exposed only on objects associated
+              with ECMAScript global environments whose global object implements
+              an interface that has a matching
+              <a class='dfnref' href='#dfn-global-name'>global name</a>.
             </p>
+            <p>
+              If the <a class='xattr' href='#Exposed'>[Exposed]</a>
+              extended attribute does not appear on a construct, then its
+              <a class='dfnref' href='#dfn-exposure-set'>exposure set</a> is defined
+              implicitly:
+            </p>
+            <dl class='switch'>
+              <dt>interface</dt>
+              <dt>dictionary</dt>
+              <dd>The <a class='dfnref' href='#dfn-exposure-set'>exposure set</a> of the interface
+              or dictionary is the single value that is the
+              <a class='dfnref' href='#dfn-identifier'>identifier</a> of the
+              <a class='dfnref' href='#dfn-primary-global-interface'>primary global interface</a>.</dd>
+              <dt>partial interface</dt>
+              <dd>The <a class='dfnref' href='#dfn-exposure-set'>exposure set</a> of the partial
+              interface is the <a class='dfnref' href='#dfn-exposure-set'>exposure set</a> of the original
+              interface definition.</dd>
+              <dt>interface member</dt>
+              <dd>The <a class='dfnref' href='#dfn-exposure-set'>exposure set</a> of the interface member
+              is the <a class='dfnref' href='#dfn-exposure-set'>exposure set</a> of the interface or
+              partial interface the member is declared on.</dd>
+            </dl>
             <p>
               If <a class='xattr' href='#Exposed'>[Exposed]</a> appears on an
               <a class='dfnref' href='#dfn-overloaded'>overloaded</a> <a class='dfnref' href='#dfn-operation'>operation</a>,
@@ -8695,39 +8721,31 @@ show(StringSanitizer.sanitizer(s));  <span class='comment'>// Evaluates to [0xff
               member and a partial interface definition the interface member is declared on.
             </p>
             <p>
+              If <a class='xattr' href='#Exposed'>[Exposed]</a> appears on both an interface
+              and one of its interface members, then the interface member's
+              <a class='dfnref' href='#dfn-exposure-set'>exposure set</a>
+              <span class='rfc2119'>MUST</span> be a subset of the interface's
+              <a class='dfnref' href='#dfn-exposure-set'>exposure set</a>.
+              An interface's <a class='dfnref' href='#dfn-exposure-set'>exposure set</a>
+              <span class='rfc2119'>MUST</span> also be a subset of the
+              <a class='dfnref' href='#dfn-exposure-set'>exposure set</a> of all
+              of the interface's <a class='dfnref' href='#dfn-consequential-interface'>consequential interfaces</a>.
+            </p>
+            <p>
               The <a class='xattr' href='#Exposed'>[Exposed]</a> extended attribute
               <span class='rfc2119'>MUST NOT</span> be specified on a <a class='dfnref' href='#dfn-dictionary'>dictionary</a>
               that does not also have a <a class='xattr' href='#Constructor'>[Constructor]</a> extended attribute.
             </p>
             <p>
-              An <a class='dfnref' href='#dfn-interface'>interface</a> or <a class='dfnref' href='#dfn-dictionary'>dictionary</a>
-              is <dfn id='dfn-exposed'>exposed</dfn> in a given ECMAScript global environment if:
+              An <a class='dfnref' href='#dfn-interface'>interface</a>,
+              <a class='dfnref' href='#dfn-interface-member'>interface member</a> or
+              <a class='dfnref' href='#dfn-dictionary'>dictionary</a>
+              is <dfn id='dfn-exposed'>exposed</dfn> in a given ECMAScript global environment if
+              the ECMAScript global object implements an interface that has a
+              <a class='dfnref' href='#dfn-global-name'>global name</a> that is in the
+              interface, interface member or dictionary's
+              <a class='dfnref' href='#dfn-exposure-set'>exposure set</a>.
             </p>
-            <ul>
-              <li>the interface or dictionary was declared with an <a class='xattr' href='#Exposed'>[Exposed]</a>
-              extended attribute, and the ECMAScript global object implements an interface
-              that has a <a class='dfnref' href='#dfn-global-name'>global name</a> that is in the
-              extended attribute's identifier list; or</li>
-              <li>the interface or dictionary was not declared with an <a class='xattr' href='#Exposed'>[Exposed]</a>
-              extended attribute, and the ECMAScript global object implements
-              the <a class='dfnref' href='#dfn-primary-global-interface'>primary global interface</a>.</li>
-            </ul>
-            <p>
-              An <a class='dfnref' href='#dfn-interface-member'>interface member</a>
-              is <a class='dfnref' href='#dfn-exposed'>exposed</a> in a given
-              ECMAScript global environment if:
-            </p>
-            <ul>
-              <li>the interface member – or a partial interface definition the interface member
-              was declared on – was declared with an <a class='xattr' href='#Exposed'>[Exposed]</a>
-              extended attribute, and the ECMAScript global object implements an interface
-              that has a <a class='dfnref' href='#dfn-global-name'>global name</a> that is in the
-              extended attribute's identifier list; or</li>
-              <li>the interface member – or a partial interface definition the interface member
-              was declared on – was not declared with an <a class='xattr' href='#Exposed'>[Exposed]</a>
-              extended attribute, and the ECMAScript global object implements
-              the <a class='dfnref' href='#dfn-primary-global-interface'>primary global interface</a>.</li>
-            </ul>
             <p>
               See
               <a href='#es-interfaces'>section <?sref es-interfaces?></a>,
