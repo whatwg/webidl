@@ -47,10 +47,10 @@
       <xsl:apply-templates select='node()'/>
       <xsl:choose>
         <xsl:when test='$options/x:maturity="FPWD" or $options/x:maturity="LCWD" or $options/x:maturity="FPWDLC"'>
-          <link rel='stylesheet' href='http://www.w3.org/StyleSheets/TR/W3C-WD' type='text/css'/>
+          <link rel='stylesheet' href='https://www.w3.org/StyleSheets/TR/W3C-WD' type='text/css'/>
         </xsl:when>
         <xsl:otherwise>
-          <link rel='stylesheet' href='http://www.w3.org/StyleSheets/TR/W3C-{$options/x:maturity}' type='text/css'/>
+          <link rel='stylesheet' href='https://www.w3.org/StyleSheets/TR/W3C-{$options/x:maturity}' type='text/css'/>
         </xsl:otherwise>
       </xsl:choose>
     </head>
@@ -124,7 +124,7 @@
 
   <xsl:template match='processing-instruction("top")'>
     <div class='head'>
-      <div><a href="http://www.w3.org/"><img src="http://www.w3.org/Icons/w3c_home" width="72" height="48" alt="W3C"></img></a></div>
+      <div><a href="http://www.w3.org/"><img src="https://www.w3.org/Icons/w3c_home" width="72" height="48" alt="W3C"></img></a></div>
       <h1><xsl:value-of select='/*/h:head/h:title'/></h1>
       <h2>
         <xsl:text>W3C </xsl:text>
