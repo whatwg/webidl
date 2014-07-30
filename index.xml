@@ -7973,7 +7973,7 @@ results.numbers.length;       <span class='comment'>// So this still evaluates t
             <p>
               An ECMAScript value <var>V</var> is
               <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converted</a>
-              to an IDL <a class='idltype' href='#idl-promise'>promise&lt;<var>T</var>&gt;</a> value as follows:
+              to an IDL <a class='idltype' href='#idl-promise'>Promise&lt;<var>T</var>&gt;</a> value as follows:
             </p>
             <ol class='algorithm'>
               <li>Let <var>resolve</var> be the original value of <a class='nocite'>%Promise%</a>.resolve.
@@ -7999,18 +7999,24 @@ results.numbers.length;       <span class='comment'>// So this still evaluates t
               <span class='rfc2119'>MUST</span> be followed:
             </p>
             <ol class='algorithm'>
-              <li>Let <var>promise</var> be the promise object of type <a class='idltype' href='#idl-promise'>promise&lt;<var>T</var>&gt;</a>.</li>
+              <li>Let <var>promise</var> be the promise object of type <a class='idltype' href='#idl-promise'>Promise&lt;<var>T</var>&gt;</a>.</li>
               <li>
                 Let <var>onFulfilled</var> be a new <a class='dfnref' href='#dfn-function-object'>function object</a> whose
                 behavior when invoked is as follows:
                 <ol>
-                  <li>Let <var>V</var> be the first argument to <var>onFulfilled</var>.</li>
-                  <li>Let <var>value</var> be the result of <a class='dfnref' href='#dfn-convert-ecmascript=to-idl-value'>converting</a>
-                    <var>V</var> to an IDL value of type <var>T</var>.</li>
-                  <li>If there are no steps that are required to be run if the promise was fulfilled, then
-                    return <span class='esvalue'>undefined</span>.</li>
-                  <li>Otherwise, return the result of performing any steps that were required to be run if the promise was fulfilled,
-                    with <var>value</var> as the promise’s value.</li>
+                  <li>If <var>T</var> is <span class='idltype'>void</span>, then:
+                    <ol><li>Return the result of performing any steps that were required to be run if the promise was fulfilled.</li></ol></li>
+                  <li>Otherwise, <var>T</var> is a type other than <span class='idltype'>void</span>:
+                    <ol>
+                      <li>Let <var>V</var> be the first argument to <var>onFulfilled</var>.</li>
+                      <li>Let <var>value</var> be the result of <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a>
+                        <var>V</var> to an IDL value of type <var>T</var>.</li>
+                      <li>If there are no steps that are required to be run if the promise was fulfilled, then
+                        return <span class='esvalue'>undefined</span>.</li>
+                      <li>Otherwise, return the result of performing any steps that were required to be run if the promise was fulfilled,
+                        with <var>value</var> as the promise’s value.</li>
+                    </ol>
+                  </li>
                 </ol>
               </li>
               <li>
@@ -8018,7 +8024,7 @@ results.numbers.length;       <span class='comment'>// So this still evaluates t
                 behavior when invoked is as follows:
                 <ol>
                   <li>Let <var>R</var> be the first argument to <var>onRejected</var>.</li>
-                  <li>Let <var>reason</var> be the result of <a class='dfnref' href='#dfn-convert-ecmascript=to-idl-value'>converting</a>
+                  <li>Let <var>reason</var> be the result of <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a>
                     <var>R</var> to an IDL value of type <span class='idltype'>any</span>.</li>
                   <li>If there are no steps that are required to be run if the promise was rejected, then
                     return <span class='esvalue'>undefined</span>.</li>
@@ -14209,7 +14215,7 @@ d.type = et;
           <prod nt='UnionType'>"(" UnionMemberType "or" UnionMemberType UnionMemberTypes ")"</prod>
           <prod nt='UnionMemberType'>NonAnyType | UnionType TypeSuffix | "any" "[" "]" TypeSuffix</prod>
           <prod nt='UnionMemberTypes'>"or" UnionMemberType UnionMemberTypes | ε</prod>
-          <prod nt='NonAnyType'>PrimitiveType TypeSuffix | "ByteString" TypeSuffix | "DOMString" TypeSuffix | identifier TypeSuffix | "sequence" "&lt;" Type ">" Null | "object" TypeSuffix | "Date" TypeSuffix | "RegExp" TypeSuffix</prod>
+          <prod nt='NonAnyType'>PrimitiveType TypeSuffix | PromiseType Null | "ByteString" TypeSuffix | "DOMString" TypeSuffix | identifier TypeSuffix | "sequence" "&lt;" Type ">" Null | "object" TypeSuffix | "Date" TypeSuffix | "RegExp" TypeSuffix</prod>
           <prod nt='ConstType'>PrimitiveType Null | identifier Null</prod>
           <prod nt='PrimitiveType'>UnsignedIntegerType | UnrestrictedFloatType | "boolean" | "byte" | "octet"</prod>
           <prod nt='UnrestrictedFloatType'>"unrestricted" FloatType | FloatType</prod>
@@ -14217,7 +14223,7 @@ d.type = et;
           <prod nt='UnsignedIntegerType'>"unsigned" IntegerType | IntegerType</prod>
           <prod nt='IntegerType'>"short" | "long" OptionalLong</prod>
           <prod nt='OptionalLong'>"long" | ε</prod>
-          <prod nt='PromiseType'>"Promise" "&lt;" Type "&gt;"</prod>
+          <prod nt='PromiseType'>"Promise" "&lt;" ReturnType "&gt;"</prod>
           <prod nt='TypeSuffix'>"[" "]" TypeSuffix | "?" TypeSuffixStartingWithArray | ε</prod>
           <prod nt='TypeSuffixStartingWithArray'>"[" "]" TypeSuffix | ε</prod>
           <prod nt='Null'>"?" | ε</prod>
@@ -14492,7 +14498,8 @@ d.type = et;
             <ul>
               <li>
                 <p>
-                  Added grammar production for <span class='idltype'>Promise&lt;<var>T</var>&gt;</span> types.
+                  Added grammar production for <span class='idltype'>Promise&lt;<var>T</var>&gt;</span> types
+                  and allowed <var>T</var> to be <span class='idltype'>void</span>.
                 </p>
               </li>
               <li>
