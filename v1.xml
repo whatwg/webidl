@@ -3186,7 +3186,8 @@ dictionary <i>Derived</i> : <em>Base</em> {
             A dictionary value of type <var>D</var> can have key–value pairs corresponding
             to the dictionary members defined on <var>D</var> and on any of <var>D</var>’s
             <a class='dfnref' href='#dfn-inherited-dictionaries'>inherited dictionaries</a>.
-            On a given dictionary value, the presence of each dictionary member is optional.
+            On a given dictionary value, the presence of each dictionary member
+            is optional, unless that member is specified as required.
             When specified in the dictionary value, a dictionary member is said to be
             <dfn id='dfn-present'>present</dfn>, otherwise it is <a class='dfnref' href='#dfn-present'>not present</a>.
             Dictionary members can also optionally have a <dfn id='dfn-dictionary-member-default-value'>default value</dfn>, which is
@@ -3241,6 +3242,17 @@ dictionary <i>Derived</i> : <em>Base</em> {
             <a class='dfnref' href='#dfn-dictionary-member-default-value'>default value</a> if specified <span class='rfc2119'>MUST</span>
             be one of the <a class='dfnref' href='#dfn-enumeration-value'>enumeration’s values</a>.
           </p>
+          <p>
+            If the type of the dictionary member is preceded by the
+            <code>required</code> keyword, the member is considered a
+            <dfn id="required-dictionary-member">required dictionary member</dfn>
+            and must be present on the dictionary.  A
+            <a class='dfnref' href='#required-dictionary-member'>required dictionary
+            member</a> <span class="rfc2119">MUST NOT</span> have a default value.
+          </p>
+          <pre class='syntax'>dictionary <i>identifier</i> {
+  required <i>type</i> <i>identifier</i>;
+};</pre>
           <p>
             The type of a dictionary member <span class='rfc2119'>MUST NOT</span> include
             the dictionary it appears on.  A type includes a dictionary <var>D</var>
@@ -6201,6 +6213,15 @@ iframe.appendChild instanceof w.Function;  <span class='comment'>// Evaluates to
                           <li>Let <var>idlValue</var> be the dictionary member’s default value.</li>
                           <li>Set the dictionary member on <var>dict</var> with key name <var>key</var> to the value <var>idlValue</var>.  This dictionary member is considered to be <a class='dfnref' href='#dfn-present'>present</a>.</li>
                         </ol>
+                      </li>
+                      <li>
+                        Otherwise, if <var>value</var> is
+                        <span class='esvalue'>undefined</span> and the
+                        <a class='dfnref' href='#dfn-dictionary-member'>dictionary
+                        member</a> is a
+                        <a class='dfnref'
+                           href='#required-dictionary-member'>required dictionary
+                        member</a>, then throw a <span class='estype'>TypeError</span>.
                       </li>
                     </ol>
                   </li>
@@ -11713,7 +11734,8 @@ d.type = et;
           <prod nt='InterfaceMember'>Const | AttributeOrOperation</prod>
           <prod nt='Dictionary'>"dictionary" identifier Inheritance "{" DictionaryMembers "}" ";"</prod>
           <prod nt='DictionaryMembers'>ExtendedAttributeList DictionaryMember DictionaryMembers | ε</prod>
-          <prod nt='DictionaryMember'>Type identifier Default ";"</prod>
+          <prod nt='DictionaryMember'>Required Type identifier Default ";"</prod>
+          <prod nt='Required'>"required" | ε</prod>
           <prod nt='PartialDictionary'>"dictionary" identifier "{" DictionaryMembers "}" ";"</prod>
           <prod nt='Default'>"=" DefaultValue | ε</prod>
           <prod nt='DefaultValue'>ConstValue | string</prod>
@@ -11736,7 +11758,9 @@ d.type = et;
           <!--
           <prod nt='Attribute'>ReadOnly "attribute" AttributeType identifier Get SetRaises ";"</prod>
           -->
-          <prod nt='Attribute'>Inherit ReadOnly "attribute" Type identifier ";"</prod>
+          <prod nt='Attribute'>Inherit ReadOnly "attribute" Type AttributeName ";"</prod>
+          <prod nt='AttributeName'>AttributeNameKeyword | identifier</prod>
+          <prod nt='AttributeNameKeyword'>"required"</prod>
           <prod nt='Inherit'>"inherit" | ε</prod>
           <prod nt='ReadOnly'>"readonly" | ε</prod>
           <!--
@@ -11795,7 +11819,7 @@ d.type = et;
           <prod nt='ArgumentNameKeyword'>
               "attribute" | "callback" | "const" | "creator" | "deleter" | "dictionary"
             | "enum" | "exception" | "getter" | "implements" | "inherit" | "interface"
-            | "legacycaller" | "partial" | "setter" | "static" | "stringifier" | "typedef"
+            | "legacycaller" | "partial" | "required" | "setter" | "static" | "stringifier" | "typedef"
             | "unrestricted"
           </prod>
           <prod nt='OtherOrComma'>Other | ","</prod>
@@ -12068,6 +12092,11 @@ d.type = et;
           <dt>Current editor’s draft</dt>
           <dd>
             <ul>
+              <li>
+                <p>
+                  Added a way to mark dictionary members as required.
+                </p>
+              </li>
               <li>
                 <p>
                   Allowed hyphens in identifiers after the first character.
