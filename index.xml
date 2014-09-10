@@ -7426,59 +7426,38 @@ iframe.appendChild instanceof w.Function;  <span class='comment'>// Evaluates to
               to an IDL <a class='idltype' href='#idl-sequence'>sequence&lt;<var>T</var>></a> value as follows:
             </p>
             <ol class='algorithm'>
-              <li>Initialize <var>i</var> to be 0.</li>
-              <li>Depending on the type of <var>V</var>:
-                <dl class='switch'>
-                  <dt>A <a class='dfnref' href='#dfn-platform-array-object'>platform array object</a></dt>
-                  <dd>
-                    <ol>
-                      <li>Let <var>n</var> be the length of the <a class='dfnref' href='#dfn-platform-array-object'>platform array object</a>.</li>
-                      <li>Initialize <var>S</var><sub>0..<var>n</var>−1</sub> to be a list of IDL values of type <var>T</var>,
-                        where each element of the list is uninitialized.</li>
-                      <li>While <var>i</var> &lt; <var>n</var>:
-                        <ol>
-                          <li>Let <var>E</var> be the result of <a class='dfnref' href='#dfn-convert-idl-to-ecmascript-value'>converting</a>
-                            the <a class='dfnref' href='#dfn-platform-array-object'>platform array object</a> element at index <var>i</var>
-                            to an ECMAScript value.</li>
-                          <li>Set <var>S</var><sub><var>i</var></sub> to the result of <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a>
-                            <var>E</var> to an IDL value of type <var>T</var>.</li>
-                          <li>Set <var>i</var> to <var>i</var> + 1.</li>
-                        </ol>
-                      </li>
-                      <li>Return an IDL sequence value of type <a class='idltype' href='#idl-sequence'>sequence&lt;<var>T</var>></a>
-                        of length <var>n</var>, where the value of the element at index <var>j</var> is <var>S</var><sub><var>j</var></sub>.</li>
-                    </ol>
-                  </dd>
-                  <dt>Any kind of object except for a native <span class='estype'>Date</span> object or
-                  a native <span class='estype'>RegExp</span> object</dt>
-                  <dd>
-                    <ol>
-                      <li>Let <var>length</var> be one greater than <var>V</var>’s maximum indexed property index, if <var>V</var> is a platform object that <a class='dfnref' href='#dfn-support-indexed-properties'>supports indexed properties</a>, or the result of calling <span class='prop'>[[Get]]</span> on <var>V</var> with property name “length” otherwise.</li>
-                      <li>Let <var>n</var> be the result of calling <a>ToUint32</a>(<var>length</var>).</li>
-                      <li>Initialize <var>S</var><sub>0..<var>n</var>−1</sub> to be a list of IDL values of type <var>T</var>,
-                        where each element of the list is uninitialized.</li>
-                      <li>While <var>i</var> &lt; <var>n</var>:
-                        <ol>
-                          <li>Let <var>P</var> be the result of calling <a>ToString</a>(<var>i</var>).</li>
-                          <li>Let <var>E</var> be the result of calling <span class='prop'>[[Get]]</span> on <var>V</var> with property name <var>P</var>.</li>
-                          <li>Set <var>S</var><sub><var>i</var></sub> to the result of <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a>
-                            <var>E</var> to an IDL value of type <var>T</var>.</li>
-                          <li>Set <var>i</var> to <var>i</var> + 1.</li>
-                        </ol>
-                      </li>
-                      <li>Return an IDL sequence value of type <a class='idltype' href='#idl-sequence'>sequence&lt;<var>T</var>></a>
-                        of length <var>n</var>, where the value of the element at index <var>j</var> is <var>S</var><sub><var>j</var></sub>.</li>
-                    </ol>
-                  </dd>
-                  <dt>Otherwise</dt>
-                  <dd>
-                    <ol>
-                      <li><a href='#ecmascript-throw' class='dfnref external'>Throw a <span class='estype'>TypeError</span></a>.</li>
-                    </ol>
-                  </dd>
-                </dl>
+              <li>
+                If <var>V</var> is not an object,
+                <a href='#ecmascript-throw' class='dfnref external'>throw a
+                <span class='estype'>TypeError</span></a>.
+              </li>
+              <li>
+                If <var>V</var> is a native <span class='estype'>Date</span> object or
+                a native <span class='estype'>RegExp</span> object,
+                <a href='#ecmascript-throw' class='dfnref external'>throw a
+                <span class='estype'>TypeError</span></a>.
+              </li>
+              <li>
+                Let <var>method</var> be the result of
+                <a>CheckIterable</a>(<var>V</var>).
+              </li>
+              <li>
+                <a>ReturnIfAbrupt</a>(<var>method</var>).
+              </li>
+              <li>
+                If <var>method</var> is <span class="esvalue">undefined</span>,
+                <a href='#ecmascript-throw' class='dfnref external'>throw a
+                <span class='estype'>TypeError</span></a>.
+              </li>
+              <li>
+                Return the result of
+                <a class='dfnref'
+                   href='#create-sequence-from-iterable'>creating a sequence
+                of type <span class="idltype">sequence&lt;<var>T</var>></span>
+                from <var>V</var> and <var>method</var></a>.
               </li>
             </ol>
+
             <p>
               An IDL sequence value <var>S</var> of type
               <a class='idltype' href='#idl-sequence'>sequence&lt;<var>T</var>></a> is
@@ -7503,6 +7482,53 @@ iframe.appendChild instanceof w.Function;  <span class='comment'>// Evaluates to
               </li>
               <li>Return <var>A</var>.</li>
             </ol>
+
+            <div id='create-sequence-from-iterable' class='section'>
+              <h5>Creating a sequence from an iterable</h5>
+              <p>
+                To create an IDL value of type <a class='idltype'
+                href='#idl-sequence'>sequence&lt;<var>T</var>></a> given an
+                iterable <var>iterable</var> and an iterator getter
+                <var>method</var>, perform the following steps:
+              </p>
+              <ol class='algorithm'>
+                <li>
+                  Let <var>iter</var> be
+                  <a>GetIterator</a>(<var>iterable</var>, <var>method</var>).
+                </li>
+                <li>
+                  <a>ReturnIfAbrupt</a>(<var>iter</var>).
+                </li>
+                <li>Initialize <var>i</var> to be 0.</li>
+                <li>Repeat
+                <ol>
+                  <li>
+                    Let <var>next</var> be <a>IteratorStep</a>(<var>iter</var>).
+                  </li>
+                  <li><a>ReturnIfAbrupt</a>(<var>next</var>).</li>
+                  <li>
+                    If <var>next</var> is <span class='esvalue'>false</span>,
+                    then return an IDL sequence value of type
+                    <a class='idltype' href='#idl-sequence'>sequence&lt;<var>T</var>></a>
+                    of length <var>i</var>, where the value of the element
+                    at index <var>j</var> is
+                    <var>S</var><sub><var>j</var></sub>.
+                  </li>
+                  <li>
+                    Let <var>nextItem</var> be
+                    <a>IteratorValue</a>(<var>next</var>).
+                  </li>
+                  <li><a>ReturnIfAbrupt</a>(<var>nextItem</var>).</li>
+                  <li>
+                    Initialize <var>S</var><sub><var>i</var></sub> to the result of
+                    <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a>
+                    <var>nextItem</var> to an IDL value of type <var>T</var>.
+                  </li>
+                  <li>Set <var>i</var> to <var>i</var> + 1.</li>
+                </ol>
+                </li>
+              </ol>
+            </div>
             <div class='example'>
               <p>
                 The following <a class='dfnref' href='#dfn-interface'>interface</a> defines
@@ -8155,9 +8181,27 @@ results.numbers.length;       <span class='comment'>// So this still evaluates t
                   <li>If <var>types</var> includes an <a href='#idl-array'>array type</a>, then return the result of
                     <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a>
                     <var>V</var> to that type.</li>
-                  <li>If <var>types</var> includes a <a href='#idl-sequence'>sequence type</a>, then return the result of
-                    <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a>
-                    <var>V</var> to that type.</li>
+                  <li>
+                    If <var>types</var> includes a <a href='#idl-sequence'>sequence type</a>, then
+                    <ol>
+                      <li>
+                        Let <var>method</var> be the result of
+                        <a>CheckIterable</a>(<var>V</var>).
+                      </li>
+                      <li>
+                        <a>ReturnIfAbrupt</a>(<var>method</var>).
+                      </li>
+                      <li>
+                        If <var>method</var> is not
+                        <span class="esvalue">undefined</span>,
+                        return the result of
+                        <a class='dfnref'
+                           href='#create-sequence-from-iterable'>creating a
+                        sequence of that type from <var>V</var> and
+                        <var>method</var></a>.
+                      </li>
+                    </ol>
+                  </li>
                   <li>If <var>types</var> includes a <a class='dfnref' href='#dfn-callback-interface'>callback interface</a>
                     type, then return the result of
                     <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a>
@@ -10387,6 +10431,11 @@ system.loginTime;  <span class='comment'>// So this now evaluates to forgedLogin
 
                 <li>Initialize <var>d</var> to −1.</li>
 
+                <li>
+                  Initialize <var>method</var> to
+                  <span class='esvalue'>undefined</span>.
+                </li>
+
                 <li>If there is more than one entry in <var>S</var>, then set
                   <var>d</var> to be the <a class='dfnref' href='#dfn-distinguishing-argument-index'>distinguishing argument index</a>
                   for the entries of <var>S</var>.</li>
@@ -10493,10 +10542,37 @@ system.loginTime;  <span class='comment'>// So this now evaluates to forgedLogin
                       Otherwise: if <var>V</var> is any kind of object except for
                       a native <span class='estype'>Date</span> object,
                       a native <span class='estype'>RegExp</span> object, and
+                      there is an entry in <var>S</var> that has one of the
+                      following types at position <var>i</var> of its type list,
+                      <ul>
+                        <li>a <a href='#idl-sequence'>sequence type</a></li>
+                        <li>a <a class='dfnref' href='#dfn-nullable-type'>nullable</a> <a href='#idl-sequence'>sequence type</a></li>
+                        <li>a <a class='dfnref' href='#dfn-union-type'>union type</a> or <a class='dfnref' href='#dfn-nullable-type'>nullable</a> union type
+                           that has one of the above types in its <a class='dfnref' href='#dfn-flattened-union-member-types'>flattened member types</a></li>
+
+                      </ul>
+                      and after performing the following steps,
+                      <ol>
+                        <li>
+                          Let <var>method</var> be the result of
+                          <a>CheckIterable</a>(<var>V</var>).
+                        </li>
+                        <li>
+                          <a>ReturnIfAbrupt</a>(<var>method</var>).
+                        </li>
+                      </ol>
+                      <var>method</var> is not <span
+                      class='esvalue'>undefined</span>, then remove from <var>S</var> all
+                      other entries.
+                    </li>
+
+                    <li>
+                      Otherwise: if <var>V</var> is any kind of object except for
+                      a native <span class='estype'>Date</span> object,
+                      a native <span class='estype'>RegExp</span> object, and
                       there is an entry in <var>S</var> that has one of the following types at position <var>i</var> of its type list,
                       <ul>
                         <li>an <a href='#idl-array'>array type</a></li>
-                        <li>a <a href='#idl-sequence'>sequence type</a></li>
                         <li>a <a class='dfnref' href='#dfn-callback-interface'>callback interface</a> type</li>
                         <li>a <a href='#idl-dictionary'>dictionary type</a></li>
                         <li><span class='idltype'>object</span></li>
@@ -10581,6 +10657,30 @@ system.loginTime;  <span class='comment'>// So this now evaluates to forgedLogin
 
                 <li>Let <var>callable</var> be the <a class='dfnref' href='#dfn-operation'>operation</a> or <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
                   of the single entry in <var>S</var>.</li>
+
+                <li>
+                  If <var>i</var> = <var>d</var> and <var>method</var> is not <span
+                  class='esvalue'>undefined</span>, then
+                  <ol>
+                    <li>
+                      Let <var>V</var> be <var>arg</var><sub><var>i</var></sub>.
+                    </li>
+                    <li>
+                      Let <var>T</var> be the type at index <var>i</var> in the
+                      type list of the remaining entry in <var>S</var>.
+                    </li>
+                    <li>
+                      Append to <var>values</var> the result of
+                      <a class='dfnref'
+                         href='#create-sequence-from-iterable'>creating a sequence
+                      of type <var>T</var> from
+                      <var>V</var> and <var>method</var></a>.
+                    </li>
+                    <li>
+                      Set <var>i</var> to <var>i</var> + 1.
+                    </li>
+                  </ol>
+                </li>
 
                 <li>
                   While <var>i</var> &lt; <var>argcount</var>:
@@ -12284,7 +12384,7 @@ interface
                     <li>If <var>O</var> has a <a class='dfnref' href='#dfn-map-entries'>map entry</a> with key <var>key</var>,
                       then return the result of <a class='dfnref' href='#dfn-convert-idl-to-ecmascript-value'>converting</a>
                       that entry’s value to an ECMAScript value.</li>
-                    <li>Returrn <span class='esvalue'>undefined</span>.</li>
+                    <li>Return <span class='esvalue'>undefined</span>.</li>
                   </ol>
                   <p>The value of the <span class='estype'>Function</span> object’s “length” property is the <span class='estype'>Number</span> value <span class='esvalue'>1</span>.</p>
                 </li>
@@ -14544,6 +14644,12 @@ d.type = et;
           <dt>Current editor’s draft</dt>
           <dd>
             <ul>
+              <li>
+                <p>
+                  Rewrote ES to IDL sequence conversion so that any iterable is
+                  convertible to a sequence.
+                </p>
+              </li>
               <li>
                 <p>
                   Added grammar production for <span class='idltype'>Promise&lt;<var>T</var>&gt;</span> types
