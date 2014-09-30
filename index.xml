@@ -3724,7 +3724,8 @@ interface Session {
                   is as follows:
                 </p>
                 <ol class='algorithm'>
-                  <li>Let <var>sessions</var> be a list of open sessions sorted by username.</li>
+                  <li>Let <var>sessions</var> be a list of open <span class='idltype'>Session</span> objects
+                    on the <span class='idltype'>SessionManager</span> sorted by username.</li>
                   <li>If <var>sessions</var> is empty, then return <a class='dfnref' href='#dfn-iteration-return-no-value'>no value</a>.</li>
                   <li>Let <var>state</var> be the current <a class='dfnref' href='#dfn-iterator-state'>iterator state</a>.</li>
                   <li>If <var>state</var> is <a class='dfnref' href='#dfn-uninitialized-iterator-state'>uninitialized</a>, then:
@@ -3961,6 +3962,43 @@ for (let session of sm) {
 }</x:codeblock>
             </div>
             -->
+
+            <p>
+              As a convenience, the <a class='dfnref' href='#dfn-iterator-behavior'>iterator behavior</a> for
+              any interface defined to <dfn id='dfn-iterate-a-list-of-values'>iterate a list of values</dfn>
+              obtained in a specified way is as follows:
+            </p>
+            <ol class='algorithm'>
+              <li>Let <var>state</var> be the current <a class='dfnref' href='#dfn-iterator-state'>iterator state</a>.</li>
+              <li>If <var>state</var> is uninitialized, then set state to a tuple of two values, consisting
+                of an index, set to 0, and the list of IDL values to the result of obtaining the list of values
+                for the object.</li>
+              <li>Let <var>index</var> be <var>state</var>’s index, and <var>values</var> be
+                <var>state</var>’s list of values.</li>
+              <li>If <var>index</var> is equal to the length of <var>values</var>, then return
+                <a class='dfnref' href='#dfn-iteration-return-no-value'>no value</a>.</li>
+              <li>Otherwise:
+                <ol>
+                  <li>Let <var>value</var> be the item in <var>values</var> at index <var>index</var>.</li>
+                  <li>Set <var>index</var> to <var>index</var> + 1.</li>
+                  <li>Set the <a class='dfnref' href='#dfn-iterator-state'>iterator state</a> to
+                    a tuple of two values, consisting of index <var>index</var> and list of values <var>values</var>.</li>
+                  <li>Return <var>value</var>.</li>
+                </ol>
+              </li>
+            </ol>
+
+            <div class='example'>
+              <p>The <span class='idltype'>SessionManager</span> example can be rewritten to iterate over
+                a snapshot of the current sessions like this:</p>
+              <blockquote>
+                <p>The <a class='dfnref' href='#dfn-iterator-behavior'>iterator behavior</a> of the
+                  <span class='idltype'>SessionManager</span> interface is to
+                  <a class='dfnref' href='#dfn-iterate-a-list-of-values'>iterate the list of values</a>
+                  obtained by getting the list of open <span class='idltype'>Session</span> objects
+                  on the <span class='idltype'>SessionManager</span> sorted by username.</p>
+              </blockquote>
+            </div>
 
             <p>
               Amongst an <a class='dfnref' href='#dfn-interface'>interface</a> and its
