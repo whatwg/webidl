@@ -98,6 +98,8 @@
               href='http://people.mozilla.org/~jorendorff/es6-draft.html#sec-iteratorvalue'/>
         <term name='@@iterator' class='external'
               href='https://people.mozilla.org/~jorendorff/es6-draft.html#sec-well-known-symbols'/>
+        <term name='@@toStringTag' class='external'
+              href='https://people.mozilla.org/~jorendorff/es6-draft.html#sec-well-known-symbols'/>
         <term name='@@unscopeables' class='external'
               href='https://people.mozilla.org/~jorendorff/es6-draft.html#sec-well-known-symbols'/>
         <term name='CreateArrayIterator' class='external'
@@ -6109,24 +6111,19 @@ interface Person {
           <span class="prop">[[HasInstance]]</span>.
         </p>
         <p>
-          To influence the result of calling Object.prototype.toString on an object, a
-          <dfn id='dfn-class-string'>class string</dfn> is defined for some objects.
-        </p>
-        <div class='note'>
-          <p>
-            <a href='#es-environment'>Section <?sref es-environment?></a>
-            <?sdir es-environment?> describes how Object.prototype.toString takes
-            an object’s <a class='dfnref' href='#dfn-class-string'>class string</a>
-            into account.
-          </p>
-        </div>
-        <p>
           Unless otherwise specified, the <span class='prop'>[[Extensible]]</span> internal property
           of objects defined in this section has the value <span class='esvalue'>true</span>.
         </p>
         <p>
           Unless otherwise specified, the <span class='prop'>[[Prototype]]</span> internal property
           of objects defined in this section is the <span class='esvalue'>Object</span> prototype object.
+        </p>
+        <p>
+          Some objects described in this section are defined to have a <dfn id='dfn-class-string'>class string</dfn>,
+          which is the string to include in the string returned from Object.prototype.toString.
+          If an object has a class string, then the object <span class='rfc2119'>MUST</span>,
+          at the time it is created, have a property whose name is the <a>@@toStringTag</a> symbol
+          and whose value is the specified string.
         </p>
         <p>
           If an object is defined to be a <dfn id='dfn-function-object'>function object</dfn>, then
@@ -6137,7 +6134,6 @@ interface Person {
           <li>Its <span class='prop'>[[Get]]</span> internal property is set as described in <a class="external" href="http://people.mozilla.org/~jorendorff/es6-draft.html#sec-ordinary-object-internal-methods-and-internal-slots-get-p-receiver">ECMA-262 section 9.1.8</a>.</li>
           <li>Its <span class='prop'>[[Construct]]</span> internal property is set as described in <a class="external" href="http://people.mozilla.org/~jorendorff/es6-draft.html#sec-function-@@create">ECMA-262 section 19.2.2.3</a>.</li>
           <li>Its <span class='prop'>@@hasInstance</span> property is set as described in <a class="external" href="http://people.mozilla.org/~jorendorff/es6-draft.html#sec-function.prototype-@@hasinstance">ECMA-262 section 19.2.3.8</a>, unless otherwise specified.</li>
-          <li>Its <span class='prop'>[[NativeBrand]]</span> internal property is “Function”.</li>
         </ul>
         <div class='ednote'>
           <p>The list above needs updating for the latest ES6 draft.</p>
@@ -6275,46 +6271,6 @@ iframe.appendChild instanceof w.Function;  <span class='comment'>// Evaluates to
               This allows, for example, ECMAScript global environments for Web Workers to <a class='dfnref' href='#dfn-expose'>expose</a>
               different sets of supported interfaces from those exposed in environments
               for Web pages.
-            </p>
-          </div>
-          <p id="toString">
-            As soon as any ECMAScript global environment is created, the following steps <span class='rfc2119'>MUST</span>
-            be performed:
-          </p>
-          <ol class='algorithm'>
-            <li>
-              Let <var>F</var> be a <a class='dfnref' href='#dfn-function-object'>function object</a> whose
-              behavior when invoked is as follows:
-              <ol>
-                <li>If <var>O</var> is a <a class='dfnref' href='#dfn-platform-object'>platform object</a>,
-                  <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype object</a> or
-                  <a class='dfnref' href='#dfn-exception-interface-prototype-object'>exception interface prototype object</a>,
-                  then return the String value that is the result of concatenating <code>"[object "</code>,
-                  <var>O</var>’s <a class='dfnref' href='#dfn-class-string'>class string</a>, and <code>"]"</code>.</li>
-                <li>Otherwise, return the result of calling <a>%ObjProto_toString%</a> with <var>O</var>
-                  as its single argument value.</li>
-              </ol>
-            </li>
-            <li>Let <var>P</var> be the Object.prototype object.</li>
-            <li>Call the <span class='prop'>[[DefineOwnProperty]]</span> internal method on <var>P</var> with property name “toString”,
-              Property Descriptor <span class='descriptor'>{ [[Writable]]: <span class='esvalue'>true</span>, [[Enumerable]]: <span class='esvalue'>false</span>, [[Configurable]]: <span class='esvalue'>true</span>, [[Value]]: <var>F</var> }</span>
-              and Boolean flag <span class='esvalue'>false</span>.</li>
-          </ol>
-          <div class='note'>
-            <p>
-              Requiring particular behavior of a replaced Object.prototype.toString rather than
-              requiring exotic object semantics of the built-in Object.prototype.toString
-              is done to avoid making it impossible to implement APIs described
-              with Web IDL natively in ECMAScript with Proxies.
-            </p>
-            <p>
-              There is one built-in ECMAScript function that behaves differently for
-              platform objects with this custom Object.prototype.toString behavior
-              compared to the built-in Object.prototype.toString: Function.prototype.bind
-              will return a new <span class='estype'>Function</span> object with a
-              <span class='prop'>length</span> property with a non-zero value if the
-              object has a <a class='dfnref' href='#dfn-legacy-caller'>legacy caller</a>
-              that takes at least one argument.
             </p>
           </div>
         </div>
@@ -8321,7 +8277,7 @@ results.numbers.length;       <span class='comment'>// So this still evaluates t
             </p>
             <ol class='algorithm'>
               <li>If <a>Type</a>(<var>V</var>) is not Object,
-                or the value of the internal <span class='prop'>[[NativeBrand]]</span> property of <var>V</var> is not “RegExp”,
+                or <var>V</var> is not a native <span class='estype'>RegExp</span> object,
                 then set <var>V</var> to be a newly created <span class='estype'>RegExp</span> object created as if by the
                 expression <code>new RegExp(<var>V</var>)</code>, where <code>RegExp</code> is the standard built-in constructor with that name
                 from the <a class='dfnref' href='#dfn-current-global-environemnt'>current global environment</a>.
@@ -13791,11 +13747,6 @@ C implements A;</x:codeblock>
             from the global environment the exception object is associated with.
           </p>
           <p>
-            The value of the internal <span class='prop'>[[NativeBrand]]</span> property
-            of the exception object <span class='rfc2119'>MUST</span> be
-            “Error”.
-          </p>
-          <p>
             The <a class='dfnref' href='#dfn-class-string'>class string</a>
             of the exception object <span class='rfc2119'>MUST</span>
             be the <a class='dfnref' href='#dfn-identifier'>identifier</a>
@@ -14724,6 +14675,13 @@ d.type = et;
           <dt>Current editor’s draft</dt>
           <dd>
             <ul>
+              <li>
+                <p>
+                  Removed the custom Object.prototype.toString definition and instead
+                  defined class strings to influence the @@toStringTag property
+                  on objects.
+                </p>
+              </li>
               <li>
                 <p>
                   Added the <span class='xattr'>[Unscopeable]</span> extended attribute.
