@@ -12648,11 +12648,11 @@ interface
               </ul>
             </div>
 
-            <div id='es-map-entries-get-has-keys-values' class='section'>
-              <h5>entries, get, has, keys and values</h5>
+            <div id='es-map-entries-keys-values' class='section'>
+              <h5>entries, keys and values</h5>
 
               <p>
-                For each of “entries”, “get”, “has”, “keys” and “values”, there <span class='rfc2119'>MUST</span> exist a property with that name on
+                For each of “entries”, “keys” and “values”, there <span class='rfc2119'>MUST</span> exist a property with that name on
                 <var>A</var>’s <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype object</a>
                 with the following characteristics:
               </p>
@@ -12660,34 +12660,134 @@ interface
                 <li>The property has attributes <span class='descriptor'>{ [[Writable]]: <span class='esvalue'>true</span>, [[Enumerable]]: <span class='esvalue'>false</span>, [[Configurable]]: <span class='esvalue'>true</span> }</span>.</li>
                 <li>The value of the property is a <span class='estype'>Function</span> object that <a class='dfnref' href='#dfn-forwards-to-the-internal-map-object'>forwards that name to the internal map object</a>.</li>
               </ul>
-              <p>The value of the <span class='estype'>Function</span> objects’ “length” properties is a <span class='estype'>Number</span> value:
-                <span class='esvalue'>0</span> for entries, keys and values, and <span class='esvalue'>1</span> for get and has.</p>
+              <p>The value of the <span class='estype'>Function</span> objects’ “length” properties is the <span class='estype'>Number</span> value <span class='esvalue'>0</span>.</p>
             </div>
 
-            <div id='es-map-clear-delete-set' class='section'>
-              <h5>clear, delete and set</h5>
+            <div id='es-map-get-has' class='section'>
+              <h5>get and has</h5>
 
               <p>
-                For each of “clear”, “delete” and “set”, if:
+                For both of “get” and “has”, there <span class='rfc2119'>MUST</span> exist a property with that name on
+                <var>A</var>’s <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype object</a>
+                with the following characteristics:
               </p>
               <ul>
-                <li><var>A</var> and <var>A</var>’s
+                <li>The property has attributes <span class='descriptor'>{ [[Writable]]: <span class='esvalue'>true</span>, [[Enumerable]]: <span class='esvalue'>false</span>, [[Configurable]]: <span class='esvalue'>true</span> }</span>.</li>
+                <li>The value of the property is a <span class='estype'>Function</span> object that behaves as follows when invoked:
+                  <ol class='algorithm'>
+                    <li>Let <var>O</var> be the <span class='esvalue'>this</span> value.</li>
+                    <li>Let <var>name</var> be the name of the property – “get” or “has”.</li>
+                    <li>If <var>O</var> is a <a class='dfnref' href='#dfn-platform-object'>platform object</a>,
+                      then <a class='dfnref' href='#dfn-perform-a-security-check'>perform a security check</a> on <var>O</var>
+                      with the ECMAScript global environment associated with this <span class='estype'>Function</span> that
+                      implements the <code>delete</code> property.</li>
+                    <li>If <var>O</var> is not an object that implements <var>A</var>, then <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>TypeError</span></a>.</li>
+                    <li>Let <var>map</var> be the <span class='estype'>Map</span> object that is the value of <var>O</var>’s [[BackingMap]] <a>internal slot</a>.</li>
+                    <li>Let <var>keyType</var> be the key type specified in the <a class='dfnref' href='#dfn-maplike-declaration'>maplike declaration</a>.</li>
+                    <li>Let <var>function</var> be the result of calling the [[Get]] internal method of <var>O</var> passing <var>name</var> and <var>O</var> as arguments.</li>
+                    <li>Let <var>keyArg</var> be the first argument passed to this function, or <span class='esvalue'>undefined</span> if not supplied.</li>
+                    <li>Let <var>keyIDL</var> be the result of <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a> <var>keyArg</var> to an IDL value of type <var>keyType</var>.</li>
+                    <li>Let <var>key</var> be the result of <a class='dfnref' href='#dfn-convert-idl-to-ecmascript'>converting</a> <var>keyIDL</var> to an ECMAScript value.</li>
+                    <li>Return the result of calling the [[Call]] internal method of <var>function</var> with <var>map</var> as <var>thisArg</var> and the single value <var>key</var> as <var>argumentsList</var>.</li>
+                  </ol>
+                </li>
+              </ul>
+              <p>The value of the <span class='estype'>Function</span> objects’ “length” properties is the <span class='estype'>Number</span> value <span class='esvalue'>1</span>.</p>
+            </div>
+
+            <div id='es-map-clear' class='section'>
+              <h5>clear</h5>
+
+              <p>
+                If <var>A</var> and <var>A</var>’s
                 <a class='dfnref' href='#dfn-consequential-interfaces'>consequential interfaces</a>
                 do not declare an <a class='dfnref' href='#dfn-interface-member'>interface member</a>
-                with a matching identifier, and</li>
-                <li><var>A</var> was declared with a read–write maplike declaration,</li>
-              </ul>
-              <p>
-                then a property with that name and the following characteristics
+                with identifier “clear”, and
+                <var>A</var> was declared with a read–write maplike declaration,
+                then a property named “clear” and the following characteristics
                 <span class='rfc2119'>MUST</span> exist on <var>A</var>’s
                 <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype object</a>:
               </p>
               <ul>
                 <li>The property has attributes <span class='descriptor'>{ [[Writable]]: <span class='esvalue'>true</span>, [[Enumerable]]: <span class='esvalue'>false</span>, [[Configurable]]: <span class='esvalue'>true</span> }</span>.</li>
-                <li>The value of the property is a <span class='estype'>Function</span> object that <a class='dfnref' href='#dfn-forwards-to-the-internal-map-object'>forwards that name to the internal map object</a>.</li>
+                <li>The value of the property is a <span class='estype'>Function</span> object that <a class='dfnref' href='#dfn-forwards-to-the-internal-map-object'>forwards “clear” to the internal map object</a>.</li>
               </ul>
-              <p>The value of the <span class='estype'>Function</span> object’s “length” property is a <span class='estype'>Number</span> value:
-                <span class='esvalue'>0</span> for clear, <span class='esvalue'>1</span> for delete, and <span class='esvalue'>2</span> for set.</p>
+              <p>The value of the <span class='estype'>Function</span> object’s “length” property is the <span class='estype'>Number</span> value <span class='esvalue'>0</span>.</p>
+            </div>
+
+            <div id='es-map-delete' class='section'>
+              <h5>delete</h5>
+
+              <p>
+                If <var>A</var> and <var>A</var>’s
+                <a class='dfnref' href='#dfn-consequential-interfaces'>consequential interfaces</a>
+                do not declare an <a class='dfnref' href='#dfn-interface-member'>interface member</a>
+                with identifier “delete”, and
+                <var>A</var> was declared with a read–write maplike declaration,
+                then a property named “delete” and the following characteristics
+                <span class='rfc2119'>MUST</span> exist on <var>A</var>’s
+                <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype object</a>:
+              </p>
+              <ul>
+                <li>The property has attributes <span class='descriptor'>{ [[Writable]]: <span class='esvalue'>true</span>, [[Enumerable]]: <span class='esvalue'>false</span>, [[Configurable]]: <span class='esvalue'>true</span> }</span>.</li>
+                <li>The value of the property is a <span class='estype'>Function</span> object that behaves as follows when invoked:
+                  <ol class='algorithm'>
+                    <li>Let <var>O</var> be the <span class='esvalue'>this</span> value.</li>
+                    <li>If <var>O</var> is a <a class='dfnref' href='#dfn-platform-object'>platform object</a>,
+                      then <a class='dfnref' href='#dfn-perform-a-security-check'>perform a security check</a> on <var>O</var>
+                      with the ECMAScript global environment associated with this <span class='estype'>Function</span> that
+                      implements the <code>delete</code> property.</li>
+                    <li>If <var>O</var> is not an object that implements <var>A</var>, then <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>TypeError</span></a>.</li>
+                    <li>Let <var>map</var> be the <span class='estype'>Map</span> object that is the value of <var>O</var>’s [[BackingMap]] <a>internal slot</a>.</li>
+                    <li>Let <var>keyType</var> be the key type specified in the <a class='dfnref' href='#dfn-maplike-declaration'>maplike declaration</a>.</li>
+                    <li>Let <var>function</var> be the result of calling the [[Get]] internal method of <var>O</var> passing “delete” and <var>O</var> as arguments.</li>
+                    <li>Let <var>keyArg</var> be the first argument passed to this function, or <span class='esvalue'>undefined</span> if not supplied.</li>
+                    <li>Let <var>keyIDL</var> be the result of <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a> <var>keyArg</var> to an IDL value of type <var>keyType</var>.</li>
+                    <li>Let <var>key</var> be the result of <a class='dfnref' href='#dfn-convert-idl-to-ecmascript'>converting</a> <var>keyIDL</var> to an ECMAScript value.</li>
+                    <li>Return the result of calling the [[Call]] internal method of <var>function</var> with <var>map</var> as <var>thisArg</var> and the single value <var>key</var> as <var>argumentsList</var>.</li>
+                  </ol>
+                </li>
+              </ul>
+              <p>The value of the <span class='estype'>Function</span> object’s “length” property is the <span class='estype'>Number</span> value <span class='esvalue'>1</span>.</p>
+            </div>
+
+            <div id='es-map-set' class='section'>
+              <h5>set</h5>
+
+              <p>
+                If <var>A</var> and <var>A</var>’s
+                <a class='dfnref' href='#dfn-consequential-interfaces'>consequential interfaces</a>
+                do not declare an <a class='dfnref' href='#dfn-interface-member'>interface member</a>
+                with identifier “set”, and
+                <var>A</var> was declared with a read–write maplike declaration,
+                then a property named “set” and the following characteristics
+                <span class='rfc2119'>MUST</span> exist on <var>A</var>’s
+                <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype object</a>:
+              </p>
+              <ul>
+                <li>The property has attributes <span class='descriptor'>{ [[Writable]]: <span class='esvalue'>true</span>, [[Enumerable]]: <span class='esvalue'>false</span>, [[Configurable]]: <span class='esvalue'>true</span> }</span>.</li>
+                <li>The value of the property is a <span class='estype'>Function</span> object that behaves as follows when invoked:
+                  <ol class='algorithm'>
+                    <li>Let <var>O</var> be the <span class='esvalue'>this</span> value.</li>
+                    <li>If <var>O</var> is a <a class='dfnref' href='#dfn-platform-object'>platform object</a>,
+                      then <a class='dfnref' href='#dfn-perform-a-security-check'>perform a security check</a> on <var>O</var>
+                      with the ECMAScript global environment associated with this <span class='estype'>Function</span> that
+                      implements the <code>set</code> property.</li>
+                    <li>If <var>O</var> is not an object that implements <var>A</var>, then <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>TypeError</span></a>.</li>
+                    <li>Let <var>map</var> be the <span class='estype'>Map</span> object that is the value of <var>O</var>’s [[BackingMap]] <a>internal slot</a>.</li>
+                    <li>Let <var>keyType</var> and <var>valueType</var> be the key and value types specified in the <a class='dfnref' href='#dfn-maplike-declaration'>maplike declaration</a>.</li>
+                    <li>Let <var>function</var> be the result of calling the [[Get]] internal method of <var>O</var> passing “set” and <var>O</var> as arguments.</li>
+                    <li>Let <var>keyArg</var> be the first argument passed to this function, or <span class='esvalue'>undefined</span> if not supplied.</li>
+                    <li>Let <var>valueArg</var> be the second argument passed to this function, or <span class='esvalue'>undefined</span> if not supplied.</li>
+                    <li>Let <var>keyIDL</var> be the result of <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a> <var>keyArg</var> to an IDL value of type <var>keyType</var>.</li>
+                    <li>Let <var>valueIDL</var> be the result of <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a> <var>valueArg</var> to an IDL value of type <var>valueType</var>.</li>
+                    <li>Let <var>key</var> be the result of <a class='dfnref' href='#dfn-convert-idl-to-ecmascript'>converting</a> <var>keyIDL</var> to an ECMAScript value.</li>
+                    <li>Let <var>value</var> be the result of <a class='dfnref' href='#dfn-convert-idl-to-ecmascript'>converting</a> <var>valueIDL</var> to an ECMAScript value.</li>
+                    <li>Return the result of calling the [[Call]] internal method of <var>function</var> with <var>map</var> as <var>thisArg</var> and <var>key</var> and <var>value</var> as <var>argumentsList</var>.</li>
+                  </ol>
+                </li>
+              </ul>
+              <p>The value of the <span class='estype'>Function</span> object’s “length” property is the <span class='estype'>Number</span> value <span class='esvalue'>2</span>.</p>
             </div>
           </div>
 
@@ -12761,11 +12861,11 @@ interface
               </ul>
             </div>
 
-            <div id='es-set-entries-has-keys-values' class='section'>
-              <h5>entries, has, keys and values</h5>
+            <div id='es-set-entries-keys-values' class='section'>
+              <h5>entries, keys and values</h5>
 
               <p>
-                For each of “entries”, “has”, “keys” and “values”, there <span class='rfc2119'>MUST</span> exist a property with that name on
+                For each of “entries”, “keys” and “values”, there <span class='rfc2119'>MUST</span> exist a property with that name on
                 <var>A</var>’s <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype object</a>
                 with the following characteristics:
               </p>
@@ -12773,15 +12873,45 @@ interface
                 <li>The property has attributes <span class='descriptor'>{ [[Writable]]: <span class='esvalue'>true</span>, [[Enumerable]]: <span class='esvalue'>false</span>, [[Configurable]]: <span class='esvalue'>true</span> }</span>.</li>
                 <li>The value of the property is a <span class='estype'>Function</span> object that <a class='dfnref' href='#dfn-forwards-to-the-internal-set-object'>forwards that name to the internal set object</a>.</li>
               </ul>
-              <p>The value of the <span class='estype'>Function</span> objects’ “length” properties is a <span class='estype'>Number</span> value:
-                <span class='esvalue'>0</span> for entries, keys and values, and <span class='esvalue'>1</span> for has.</p>
+              <p>The value of the <span class='estype'>Function</span> objects’ “length” properties is the <span class='estype'>Number</span> value <span class='esvalue'>0</span>.</p>
             </div>
 
-            <div id='es-set-add-clear-delete' class='section'>
-              <h5>add, clear and delete</h5>
+            <div id='es-set-has' class='section'>
+              <h5>has</h5>
 
               <p>
-                For each of “add”, “clear” and “delete”, if:
+                There <span class='rfc2119'>MUST</span> exist a property with named “has” on
+                <var>A</var>’s <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype object</a>
+                with the following characteristics:
+              </p>
+              <ul>
+                <li>The property has attributes <span class='descriptor'>{ [[Writable]]: <span class='esvalue'>true</span>, [[Enumerable]]: <span class='esvalue'>false</span>, [[Configurable]]: <span class='esvalue'>true</span> }</span>.</li>
+                <li>The value of the property is a <span class='estype'>Function</span> object that behaves as follows when invoked:
+                  <ol class='algorithm'>
+                    <li>Let <var>O</var> be the <span class='esvalue'>this</span> value.</li>
+                    <li>If <var>O</var> is a <a class='dfnref' href='#dfn-platform-object'>platform object</a>,
+                      then <a class='dfnref' href='#dfn-perform-a-security-check'>perform a security check</a> on <var>O</var>
+                      with the ECMAScript global environment associated with this <span class='estype'>Function</span> that
+                      implements the <code>has</code> property.</li>
+                    <li>If <var>O</var> is not an object that implements <var>A</var>, then <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>TypeError</span></a>.</li>
+                    <li>Let <var>set</var> be the <span class='estype'>Set</span> object that is the value of <var>O</var>’s [[BackingSet]] <a>internal slot</a>.</li>
+                    <li>Let <var>type</var> be the value type specified in the <a class='dfnref' href='#dfn-setlike-declaration'>setlike declaration</a>.</li>
+                    <li>Let <var>function</var> be the result of calling the [[Get]] internal method of <var>O</var> passing “has” and <var>O</var> as arguments.</li>
+                    <li>Let <var>arg</var> be the first argument passed to this function, or <span class='esvalue'>undefined</span> if not supplied.</li>
+                    <li>Let <var>idlValue</var> be the result of <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a> <var>arg</var> to an IDL value of type <var>type</var>.</li>
+                    <li>Let <var>value</var> be the result of <a class='dfnref' href='#dfn-convert-idl-to-ecmascript'>converting</a> <var>idlValue</var> to an ECMAScript value.</li>
+                    <li>Return the result of calling the [[Call]] internal method of <var>function</var> with <var>set</var> as <var>thisArg</var> and the single value <var>value</var> as <var>argumentsList</var>.</li>
+                  </ol>
+                </li>
+              </ul>
+              <p>The value of the <span class='estype'>Function</span> object’s “length” property is a <span class='estype'>Number</span> value <span class='esvalue'>1</span>.</p>
+            </div>
+
+            <div id='es-add-delete' class='section'>
+              <h5>add and delete</h5>
+
+              <p>
+                For both of “add” and “delete”, if:
               </p>
               <ul>
                 <li><var>A</var> and <var>A</var>’s
@@ -12797,10 +12927,46 @@ interface
               </p>
               <ul>
                 <li>The property has attributes <span class='descriptor'>{ [[Writable]]: <span class='esvalue'>true</span>, [[Enumerable]]: <span class='esvalue'>false</span>, [[Configurable]]: <span class='esvalue'>true</span> }</span>.</li>
-                <li>The value of the property is a <span class='estype'>Function</span> object that <a class='dfnref' href='#dfn-forwards-to-the-internal-set-object'>forwards that name to the internal set object</a>.</li>
+                <li>The value of the property is a <span class='estype'>Function</span> object that behaves as follows when invoked:
+                  <ol class='algorithm'>
+                    <li>Let <var>O</var> be the <span class='esvalue'>this</span> value.</li>
+                    <li>Let <var>name</var> be the name of the property – “add” or “delete”.</li>
+                    <li>If <var>O</var> is a <a class='dfnref' href='#dfn-platform-object'>platform object</a>,
+                      then <a class='dfnref' href='#dfn-perform-a-security-check'>perform a security check</a> on <var>O</var>
+                      with the ECMAScript global environment associated with this <span class='estype'>Function</span> that
+                      implements the <var>name</var> property.</li>
+                    <li>If <var>O</var> is not an object that implements <var>A</var>, then <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>TypeError</span></a>.</li>
+                    <li>Let <var>set</var> be the <span class='estype'>Set</span> object that is the value of <var>O</var>’s [[BackingSet]] <a>internal slot</a>.</li>
+                    <li>Let <var>type</var> be the value type specified in the <a class='dfnref' href='#dfn-setlike-declaration'>setlike declaration</a>.</li>
+                    <li>Let <var>function</var> be the result of calling the [[Get]] internal method of <var>O</var> passing <var>name</var> and <var>O</var> as arguments.</li>
+                    <li>Let <var>arg</var> be the first argument passed to this function, or <span class='esvalue'>undefined</span> if not supplied.</li>
+                    <li>Let <var>idlValue</var> be the result of <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a> <var>arg</var> to an IDL value of type <var>type</var>.</li>
+                    <li>Let <var>value</var> be the result of <a class='dfnref' href='#dfn-convert-idl-to-ecmascript'>converting</a> <var>idlValue</var> to an ECMAScript value.</li>
+                    <li>Return the result of calling the [[Call]] internal method of <var>function</var> with <var>set</var> as <var>thisArg</var> and the single value <var>value</var> as <var>argumentsList</var>.</li>
+                  </ol>
+                </li>
               </ul>
-              <p>The value of the <span class='estype'>Function</span> object’s “length” property is a <span class='estype'>Number</span> value:
-                <span class='esvalue'>0</span> for clear, and <span class='esvalue'>1</span> for add and delete.</p>
+              <p>The value of the <span class='estype'>Function</span> object’s “length” property is the <span class='estype'>Number</span> value <span class='esvalue'>1</span>.</p>
+            </div>
+
+            <div id='es-set-clear' class='section'>
+              <h5>clear</h5>
+
+              <p>
+                If <var>A</var> and <var>A</var>’s
+                <a class='dfnref' href='#dfn-consequential-interfaces'>consequential interfaces</a>
+                do not declare an <a class='dfnref' href='#dfn-interface-member'>interface member</a>
+                with a matching identifier, and
+                <var>A</var> was declared with a read–write setlike declaration,
+                then a property named “clear” and the following characteristics
+                <span class='rfc2119'>MUST</span> exist on <var>A</var>’s
+                <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype object</a>:
+              </p>
+              <ul>
+                <li>The property has attributes <span class='descriptor'>{ [[Writable]]: <span class='esvalue'>true</span>, [[Enumerable]]: <span class='esvalue'>false</span>, [[Configurable]]: <span class='esvalue'>true</span> }</span>.</li>
+                <li>The value of the property is a <span class='estype'>Function</span> object that <a class='dfnref' href='#dfn-forwards-to-the-internal-set-object'>forwards “clear” to the internal set object</a>.</li>
+              </ul>
+              <p>The value of the <span class='estype'>Function</span> object’s “length” property is the <span class='estype'>Number</span> value <span class='esvalue'>0</span>.</p>
             </div>
           </div>
 
