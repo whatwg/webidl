@@ -3618,7 +3618,7 @@ iterable&lt;<i>key-type</i>, <i>value-type</i>&gt;;</pre>
               can change during iteration, the behaviour of an
               iterator defined to to loop through the items in order, starting
               at index 0, and advancing this index on each iteration.  Iteration ends when
-              the index has gone past the end of the list.  
+              the index has gone past the end of the list.
             </p>
             <div class="note">
               <p>This is how <a class="external" href="https://people.mozilla.org/~jorendorff/es6-draft.html#sec-array-iterator-objects">array iterator objects</a> work.
@@ -4222,7 +4222,7 @@ ctx.drawRectangle(300, 200, { fillPattern: "red", position: new Point(10, 10) })
             <span class='estype'>SyntaxError</span>, which is deliberately omitted as
             it is for use only by the ECMAScript parser).
             The meaning of
-            each <a class='dfnref' href='#dfn-simple-exception'>simple exception</a> matches 
+            each <a class='dfnref' href='#dfn-simple-exception'>simple exception</a> matches
             its corresponding <span class='estype'>Error</span> object in the
             ECMAScript specification.
           </p>
@@ -14136,7 +14136,8 @@ C implements A;</x:codeblock>
             There <span class='rfc2119'>MUST</span> exist a property on the ECMAScript global object
             whose name is “DOMException” and value is an object called the
             <dfn id='dfn-DOMException-constructor-object'>DOMException constructor object</dfn>,
-            which provides access to legacy DOMException code constants.
+            which provides access to legacy DOMException code constants and allows construction of
+            DOMException instances.
             The property has the attributes <span class='descriptor'>{ [[Writable]]: <span class='esvalue'>true</span>, [[Enumerable]]: <span class='esvalue'>false</span>, [[Configurable]]: <span class='esvalue'>true</span> }</span>.
           </p>
 
@@ -14162,31 +14163,27 @@ C implements A;</x:codeblock>
             </p>
 
             <div id='es-DOMException-call' class='section'>
-              <h5>DOMException constructor object [[Call]] method</h5>
+              <h5>DOMException(message, name)</h5>
 
-              <p>
-                The internal <span class='prop'>[[Call]]</span> method of the
-                <a class='dfnref' href='#dfn-DOMException-constructor-object'>DOMException constructor object</a>
-                <span class='rfc2119'>MUST</span> behave as follows, assuming
-                <var>arg</var><sub>0..<var>n</var>−1</sub> is the list
-                of argument values passed to the function:
-              </p>
+              <p>When the DOMException function is called with arguments <var>message</var> and <var>name</var>, the following steps are taken:</p>
+
               <ol class='algorithm'>
-                <li>Let <var>O</var> be a new object whose <span class='prop'>[[Prototype]]</span>
-                internal property is set to the <a class='dfnref' href='#dfn-DOMException-prototype-object'>DOMException prototype object</a>
-                and whose <a class='dfnref' href='#dfn-class-string'>class string</a> is “DOMException”.</li>
-                <li>If <var>n</var> > 0 and <var>arg</var><sub>0</sub> is not <span class='esvalue'>undefined</span>, then:
+                <li>Let <var>F</var> be the active function object.</li>
+                <li>If NewTarget is <span class='esvalue'>undefined</span>, let <var>newTarget</var> be <var>F</var>, else let <var>newTarget</var> be NewTarget.</li>
+                <li>Let <var>super</var> be <var>F</var>.[[GetPrototypeOf]]().</li>
+                <li><a>ReturnIfAbrupt</a>(<var>super</var>).</li>
+                <li>If <a class='external' href='https://people.mozilla.org/~jorendorff/es6-draft.html#sec-isconstructor'>IsConstructor</a>(<var>super</var>) is <span class='esvalue'>false</span>, throw a <span class='esvalue'>TypeError</span> exception.</li>
+                <li>Let <var>O</var> be <a class='external' href='https://people.mozilla.org/~jorendorff/es6-draft.html#sec-construct'>Construct</a>(<var>super</var>, «<var>‍message</var>», <var>newTarget</var>).</li>
+                <li>If <var>name</var> is not <span class='esvalue'>undefined</span>, then
                   <ol>
-                    <li>Let <var>S</var> be the result of calling <a>ToString</a>(<var>arg</var><sub>0</sub>).</li>
-                    <li>Call the <span class='prop'>[[DefineOwnProperty]]</span> internal method of <var>O</var> passing
-                    “message”, Property Descriptor <span class='descriptor'>{ [[Value]]: <var>S</var>,
-                    [[Writable]]: <span class='esvalue'>true</span>, [[Enumerable]]: <span class='esvalue'>false</span>,
-                    [[Configurable]]: <span class='esvalue'>true</span> }</span>, and <span class='esvalue'>false</span>
-                    as arguments.
-                    <div class='note'>
-                      <p>This shadows the “message” property from Error.prototype, whose initial value is the empty string.</p>
-                    </div></li>
-                  </ol></li>
+                    <li>Let <var>name</var> be <a>ToString</a>(<var>name</var>).</li>
+                    <li>Let <var>status</var> be <a class='external' href='https://people.mozilla.org/~jorendorff/es6-draft.html#sec-definepropertyorthrow'>DefinePropertyOrThrow</a>(<var>O</var>, <code>"name"</code>, PropertyDescriptor<span class='descriptor'>{[[Value]]: <var>name</var>, [[Writable]]: <span class='esvalue'>true</span>, [[Enumerable]]: <span class='esvalue'>false</span>, [[Configurable]]: <span class='esvalue'>true</span>}</span>).</li>
+                    <li><a>ReturnIfAbrupt</a>(<var>status</var>).</li>
+                    <li>Let <var>code</var> be the legacy code indicated in the <a class='dfnref' href='#dfn-error-names-table'>error names table</a> for error name <var>name</var>, or <span class='esvalue'>0</span> if there is none.</li>
+                    <li>Let <var>status</var> be <a class='external' href='https://people.mozilla.org/~jorendorff/es6-draft.html#sec-definepropertyorthrow'>DefinePropertyOrThrow</a>(<var>O</var>, <code>"code"</code>, PropertyDescriptor<span class='descriptor'>{[[Value]]: <var>code</var>, [[Writable]]: <span class='esvalue'>true</span>, [[Enumerable]]: <span class='esvalue'>false</span>, [[Configurable]]: <span class='esvalue'>true</span>}</span>).</li>
+                    <li><a>ReturnIfAbrupt</a>(<var>status</var>).</li>
+                  </ol>
+                </li>
                 <li>Return <var>O</var>.</li>
               </ol>
             </div>
@@ -14319,15 +14316,17 @@ C implements A;</x:codeblock>
             the following steps <span class='rfc2119'>MUST</span> be followed:
           </p>
           <ol class='algorithm'>
-            <li>Let <var>args</var> be a list of ECMAScript
-            values.  If the optional user agent-defined message <var>M</var> was specified, then this list
-            has a single element whose value is the result of
-            <a class='dfnref' href='#dfn-convert-idl-to-ecmascript-value'>converting</a>
-            <var>M</var> to a <span class='estype'>String</span> value.
-            Otherwise, the list is empty.</li>
-
+            <li>If <var>M</var> was not specified, let <var>M</var> be <span class='esvalue'>undefined</span>. Otherwise, let it be the result of <a class='dfnref' href='#dfn-convert-idl-to-ecmascript-value'>converting</a> <var>M</var> to a <span class='estype'>String</span> value.</li>
+            <li>Let <var>N</var> be the result of <a class='dfnref' href='#dfn-convert-idl-to-ecmascript-value'>converting</a> <var>N</var> to a <span class='estype'>String</span> value.</li>
+            <li>Let <var>args</var> be a list of ECMAScript values.
+              <dl class='switch'>
+                <dt><var>E</var> is <a class='dfnref' href='#dfn-DOMException'>DOMException</a></dt>
+                <dd><var>args</var> is (<span class='esvalue'>undefined</span>, <var>N</var>).</dd>
+                <dt><var>E</var> is a <a class='dfnref' href='#dfn-simple-exception'>simple exception</a></dt>
+                <dd><var>args</var> is (<var>M</var>)</dd>
+              </dl>
+            </li>
             <li>Let <var>G</var> be the <a class='dfnref' href='#dfn-current-global-environment'>current global environment</a>.</li>
-
             <li>Let <var>X</var> be an object determined based on the type of <var>E</var>:
               <dl class='switch'>
                 <dt><var>E</var> is <a class='dfnref' href='#dfn-DOMException'>DOMException</a></dt>
@@ -14338,29 +14337,8 @@ C implements A;</x:codeblock>
                   from the global environment <var>G</var>.</dd>
               </dl>
             </li>
-
             <li>Let <var>O</var> be the result of calling <var>X</var> as a function
             with <var>args</var> as the argument list.</li>
-
-            <li>If <var>E</var> is <a class='dfnref' href='#dfn-DOMException'>DOMException</a>, then:
-              <ol>
-                <li>Call the <span class='prop'>[[DefineOwnProperty]]</span> internal method of <var>O</var> passing
-                “name”, Property Descriptor <span class='descriptor'>{ [[Value]]: <var>N</var>,
-                [[Writable]]: <span class='esvalue'>true</span>, [[Enumerable]]: <span class='esvalue'>true</span>,
-                [[Configurable]]: <span class='esvalue'>true</span> }</span>, and <span class='esvalue'>false</span>
-                as arguments.</li>
-
-                <li>Let <var>code</var> be the legacy code indicated in the <a class='dfnref' href='#dfn-error-names-table'>error names table</a>
-                  for error name <var>N</var>, or <span class='esvalue'>0</span> if there is none.</li>
-
-                <li>Call the <span class='prop'>[[DefineOwnProperty]]</span> internal method of <var>O</var> passing
-                “code”, Property Descriptor <span class='descriptor'>{ [[Value]]: <var>code</var>,
-                [[Writable]]: <span class='esvalue'>true</span>, [[Enumerable]]: <span class='esvalue'>true</span>,
-                [[Configurable]]: <span class='esvalue'>true</span> }</span>, and <span class='esvalue'>false</span>
-                as arguments.</li>
-              </ol>
-            </li>
-
             <li>Return <var>O</var>.</li>
           </ol>
           <p>
