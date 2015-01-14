@@ -413,6 +413,44 @@
     </xsl:choose>
   </xsl:template>
 
+  <xsl:template match='processing-instruction("slink")'>
+    <xsl:variable name='id' select='string(.)'/>
+    <a href='#{$id}'>
+      <xsl:text>section </xsl:text>
+      <xsl:variable name='s' select='//*[@id=$id]/self::h:div[@class="section"]'/>
+      <xsl:choose>
+        <xsl:when test='$s'>
+          <xsl:call-template name='section-number'>
+            <xsl:with-param name='section' select='$s'/>
+          </xsl:call-template>
+        </xsl:when>
+        <xsl:otherwise>@@</xsl:otherwise>
+      </xsl:choose>
+    </a>
+    <xsl:text> </xsl:text>
+    <xsl:choose>
+      <xsl:when test='preceding::h:div[@id=$id][@class="section"]'>above</xsl:when>
+      <xsl:when test='following::h:div[@id=$id][@class="section"]'>below</xsl:when>
+      <xsl:otherwise>@@</xsl:otherwise>
+    </xsl:choose>
+  </xsl:template>
+
+  <xsl:template match='processing-instruction("slink-nodir")'>
+    <xsl:variable name='id' select='string(.)'/>
+    <a href='#{$id}'>
+      <xsl:text>section </xsl:text>
+      <xsl:variable name='s' select='//*[@id=$id]/self::h:div[@class="section"]'/>
+      <xsl:choose>
+        <xsl:when test='$s'>
+          <xsl:call-template name='section-number'>
+            <xsl:with-param name='section' select='$s'/>
+          </xsl:call-template>
+        </xsl:when>
+        <xsl:otherwise>@@</xsl:otherwise>
+      </xsl:choose>
+    </a>
+  </xsl:template>
+
   <xsl:template match='processing-instruction("revision-note")'>
     <xsl:if test='$options/x:maturity="ED"'>
       <div class='ednote'>
