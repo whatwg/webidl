@@ -2006,19 +2006,19 @@ dictionary.x = 1;                  <span class='comment'>// Invokes the property
               appear twice on an operation.
             </p>
             <p>
-              Getters, setters, creators and deleters come in two varieties: ones that
+              Getters, setters and creators come in two varieties: ones that
               take a <span class='idltype'>DOMString</span> as a property name,
               known as
               <dfn id='dfn-named-property-getter'>named property getters</dfn>,
-              <dfn id='dfn-named-property-setter'>named property setters</dfn>,
-              <dfn id='dfn-named-property-creator'>named property creators</dfn> and
-              <dfn id='dfn-named-property-deleter'>named property deleters</dfn>,
+              <dfn id='dfn-named-property-setter'>named property setters</dfn> and
+              <dfn id='dfn-named-property-creator'>named property creators</dfn>,
               and ones that take an <span class='idltype'>unsigned long</span>
               as a property index, known as
               <dfn id='dfn-indexed-property-getter'>indexed property getters</dfn>,
-              <dfn id='dfn-indexed-property-setter'>indexed property setters</dfn>,
-              <dfn id='dfn-indexed-property-creator'>indexed property creators</dfn> and
-              <dfn id='dfn-indexed-property-deleter'>indexed property deleters</dfn>.
+              <dfn id='dfn-indexed-property-setter'>indexed property setters</dfn> and
+              <dfn id='dfn-indexed-property-creator'>indexed property creators</dfn>.
+              There is only one variety of deleter:
+              <dfn id='dfn-named-property-deleter'>named property deleters</dfn>.
               See <a href='#idl-indexed-properties'>section <?sref idl-indexed-properties?></a>
               and <a href='#idl-named-properties'>section <?sref idl-named-properties?></a>
               for details.
@@ -2026,14 +2026,18 @@ dictionary.x = 1;                  <span class='comment'>// Invokes the property
             <p>
               On a given <a class='dfnref' href='#dfn-interface'>interface</a>,
               there <span class='rfc2119'>MUST</span> exist at most one
-              stringifier, at most one serializer, and at most one of each variety of getter, setter,
-              creator and deleter.  Multiple legacy callers can exist on an interface
+              stringifier, at most one serializer, at most one
+              <a class='dfnref' href='#dfn-named-property-deleter'>named property deleter</a>,
+              and at most one of each variety of getter, setter and
+              creator.  Multiple legacy callers can exist on an interface
               to specify overloaded calling behavior.
             </p>
             <p>
-              If an interface has a setter, creator or deleter of a given variety,
+              If an interface has a setter or creator of a given variety,
               then it <span class='rfc2119'>MUST</span> also have a getter of that
-              variety.
+              variety.  If it has a <a class='dfnref' href='#dfn-named-property-deleter'>named property deleter</a>,
+              then it <span class='rfc2119'>MUST</span> also have a
+              <a class='dfnref' href='#dfn-named-property-getter'>named property getter</a>.
             </p>
             <p>
               Special operations declared using operations <span class='rfc2119'>MUST NOT</span>
@@ -2599,7 +2603,7 @@ JSON.stringify(txn);</x:codeblock>
                 any given time. These indices are called the <dfn id='dfn-supported-property-indices'>supported property indices</dfn>.
               </p>
               <p>
-                Indexed property getters and deleters <span class='rfc2119'>MUST</span>
+                Indexed property getters <span class='rfc2119'>MUST</span>
                 be declared to take a single <span class='idltype'>unsigned long</span> argument.
                 Indexed property setters and creators <span class='rfc2119'>MUST</span>
                 be declared to take two arguments, where the first is an <span class='idltype'>unsigned long</span>.
@@ -2607,19 +2611,12 @@ JSON.stringify(txn);</x:codeblock>
               <pre class='syntax'>getter <i>type</i> <i>identifier</i>(unsigned long <i>identifier</i>);
 setter <i>type</i> <i>identifier</i>(unsigned long <i>identifier</i>, <i>type</i> <i>identifier</i>);
 creator <i>type</i> <i>identifier</i>(unsigned long <i>identifier</i>, <i>type</i> <i>identifier</i>);
-deleter <i>type</i> <i>identifier</i>(unsigned long <i>identifier</i>);
 
 getter <i>type</i> (unsigned long <i>identifier</i>);
 setter <i>type</i> (unsigned long <i>identifier</i>, <i>type</i> <i>identifier</i>);
-creator <i>type</i> (unsigned long <i>identifier</i>, <i>type</i> <i>identifier</i>);
-deleter <i>type</i> (unsigned long <i>identifier</i>);<!--
-
-omittable getter <i>type</i> <i>identifier</i>(unsigned long <i>identifier</i>);
-omittable setter <i>type</i> <i>identifier</i>(unsigned long <i>identifier</i>, <i>type</i> <i>identifier</i>);
-omittable creator <i>type</i> <i>identifier</i>(unsigned long <i>identifier</i>, <i>type</i> <i>identifier</i>);
-omittable deleter <i>type</i> <i>identifier</i>(unsigned long <i>identifier</i>);--></pre>
+creator <i>type</i> (unsigned long <i>identifier</i>, <i>type</i> <i>identifier</i>);</pre>
               <p>
-                The following requirements apply to the definitions of indexed property getters, setters, creators and deleters:
+                The following requirements apply to the definitions of indexed property getters, setters and creators:
               </p>
               <ul>
                 <li>
@@ -2652,23 +2649,12 @@ omittable deleter <i>type</i> <i>identifier</i>(unsigned long <i>identifier</i>)
                   by a description of how to <dfn id='dfn-set-the-value-of-a-new-indexed-property'>set the value of a new indexed property</dfn>
                   for a given property index and value.
                 </li>
-                <li>
-                  If an <a class='dfnref' href='#dfn-indexed-property-deleter'>indexed property deleter</a> was specified using an operation
-                  with an identifier,
-                  then the behavior that occurs when indexing the object for property deletion with a given supported property index
-                  is the same as if the operation is invoked, passing
-                  the index as the only argument.  If the operation used to declare the indexed property deleter
-                  did not have an identifier, then the interface definition must be accompanied
-                  by a description of how to <dfn id='dfn-delete-an-existing-indexed-property'>delete an existing indexed property</dfn>
-                  for a given property index.
-                </li>
               </ul>
 
               <div class='note'>
                 <p>
-                  Note that if an <a class='dfnref' href='#dfn-indexed-property-getter'>indexed property getter</a>,
-                  <a class='dfnref' href='#dfn-indexed-property-setter'>setter</a> or
-                  <a class='dfnref' href='#dfn-indexed-property-deleter'>deleter</a>
+                  Note that if an <a class='dfnref' href='#dfn-indexed-property-getter'>indexed property getter</a> or
+                  <a class='dfnref' href='#dfn-indexed-property-setter'>setter</a>
                   is specified using an <a class='dfnref' href='#dfn-operation'>operation</a> with an <a class='dfnref' href='#dfn-identifier'>identifier</a>,
                   then indexing an object with an integer that is not a <a class='dfnref' href='#dfn-supported-property-indices'>supported property index</a>
                   does not necessarily elicit the same behavior as invoking the operation with that index.  The actual behavior in this
@@ -2707,11 +2693,9 @@ a[5];         <span class='comment'>// Evaluates to undefined, since there is no
 
   getter any getByIndex(unsigned long index);
   setter void setByIndex(unsigned long index, any value);
-  deleter void removeByIndex(unsigned long index);
 
   getter any get(DOMString name);
   setter creator void set(DOMString name, any value);
-  deleter void remove(DOMString name);
 };</x:codeblock>
                 <p>
                   Since all of the special operations are declared using
@@ -2817,12 +2801,7 @@ deleter <i>type</i> <i>identifier</i>(DOMString <i>identifier</i>);
 getter <i>type</i> (DOMString <i>identifier</i>);
 setter <i>type</i> (DOMString <i>identifier</i>, <i>type</i> <i>identifier</i>);
 creator <i>type</i> (DOMString <i>identifier</i>, <i>type</i> <i>identifier</i>);
-deleter <i>type</i> (DOMString <i>identifier</i>);<!--
-
-omittable getter <i>type</i> <i>identifier</i>(DOMString <i>identifier</i>);
-omittable setter <i>type</i> <i>identifier</i>(DOMString <i>identifier</i>, <i>type</i> <i>identifier</i>);
-omittable creator <i>type</i> <i>identifier</i>(DOMString <i>identifier</i>, <i>type</i> <i>identifier</i>);
-omittable deleter <i>type</i> <i>identifier</i>(DOMString <i>identifier</i>);--></pre>
+deleter <i>type</i> (DOMString <i>identifier</i>);</pre>
               <p>
                 The following requirements apply to the definitions of named property getters, setters, creators and deleters:
               </p>
@@ -8675,7 +8654,6 @@ interface ItemList {
   attribute unsigned long length;
   getter object getItem(unsigned long index);
   creator setter object setItem(unsigned long index, object item);
-  deleter void removeItem(unsigned long index);
 };
 
 [ArrayClass]
@@ -8697,9 +8675,8 @@ list.unshift({ });         <span class='comment'>// Insert an item at index 0.</
               <p>
                 <span class='idltype'>ImmutableItemList</span> has a read only
                 length <a class='dfnref' href='#dfn-attribute'>attribute</a>
-                and no indexed property <a class='dfnref' href='#dfn-indexed-property-setter'>setter</a>,
-                <a class='dfnref' href='#dfn-indexed-property-creator'>creator</a> or
-                <a class='dfnref' href='#dfn-indexed-property-deleter'>deleter</a>.  The
+                and no indexed property <a class='dfnref' href='#dfn-indexed-property-setter'>setter</a> or
+                <a class='dfnref' href='#dfn-indexed-property-creator'>creator</a>.  The
                 mutating <span class='estype'>Array</span> methods will generally not
                 succeed on objects implementing <span class='idltype'>ImmutableItemList</span>.
                 The exact behavior depends on the definition of <a class="external" href="http://people.mozilla.org/~jorendorff/es6-draft.html#sec-properties-of-the-array-prototype-object">the <span class='estype'>Array</span> methods
@@ -9245,8 +9222,8 @@ var requestAnimationFrame = window.requestAnimationFrame ||
               is used on an <a class='dfnref' href='#dfn-interface'>interface</a>, then:
             </p>
             <ul>
-              <li>The interface <span class='rfc2119'>MUST NOT</span> define a <a class='dfnref' href='#dfn-named-property-setter'>named property setter</a>,
-                <a class='dfnref' href='#dfn-named-property-creator'>creator</a> or <a class='dfnref' href='#dfn-named-property-deleter'>deleter</a>.</li>
+              <li>The interface <span class='rfc2119'>MUST NOT</span> define a <a class='dfnref' href='#dfn-named-property-setter'>named property setter</a>
+                or <a class='dfnref' href='#dfn-named-property-creator'>creator</a>.</li>
               <li>The interface <span class='rfc2119'>MUST NOT</span> also be declared with the <a class='xattr' href='#OverrideBuiltins'>[OverrideBuiltins]</a>
                 extended attribute.</li>
               <li>The interface <span class='rfc2119'>MUST NOT</span> <a class='dfnref' href='#dfn-inherit'>inherit</a> from another interface with the
@@ -13342,8 +13319,7 @@ C implements A;</x:codeblock>
               that is defined on the derived-most interface that the
               platform object implements is the one that defines the behavior
               when indexing the object with an array index.  Similarly for
-              <a class='dfnref' href='#dfn-indexed-property-setter'>indexed property setters</a>,
-              <a class='dfnref' href='#dfn-indexed-property-deleter'>deleters</a> and
+              <a class='dfnref' href='#dfn-indexed-property-setter'>indexed property setters</a> and
               <a class='dfnref' href='#dfn-indexed-property-creator'>creators</a>.
               This way, the definitions of these special operations from
               ancestor interfaces can be overridden.
@@ -13457,14 +13433,11 @@ C implements A;</x:codeblock>
             <p>
               Support for <a class='dfnref' href='#dfn-getter'>getters</a> is
               handled by the <a href='#defineownproperty'>platform object [[GetOwnProperty]] method</a>
-              defined in section <?sref getownproperty?>,
+              defined in section <?sref getownproperty?>, and
               for <a class='dfnref' href='#dfn-creator'>creators</a> and
               <a class='dfnref' href='#dfn-setter'>setters</a>
               by the <a href='#defineownproperty'>platform object [[DefineOwnProperty]] method</a>
-              defined in section <?sref defineownproperty?>, and
-              for <a class='dfnref' href='#dfn-deleter'>deleters</a>
-              by the <a href='#delete'>platform object [[Delete]] method</a>
-              defined in section <?sref delete?>.
+              defined in section <?sref defineownproperty?>.
             </p>
           </div>
 
@@ -13681,24 +13654,7 @@ C implements A;</x:codeblock>
                 <ol>
                   <li>Let <var>index</var> be the result of calling <a>ToUint32</a>(<var>P</var>).</li>
                   <li>If <var>index</var> is not a <a class='dfnref' href='#dfn-supported-property-indices'>supported property index</a>, then return <span class='esvalue'>true</span>.</li>
-                  <li>If <var>O</var> does not implement an interface with an <a class='dfnref' href='#dfn-indexed-property-deleter'>indexed property deleter</a>, then return <span class='esvalue'>false</span>.</li>
-                  <li>Let <var>operation</var> be the operation used to declare the indexed property deleter.</li>
-                  <li>If <var>operation</var> was defined without an <a class='dfnref' href='#dfn-identifier'>identifier</a>, then:
-                    <ol>
-                      <li>Perform the steps listed in the interface description to
-                        <a class='dfnref' href='#dfn-delete-an-existing-indexed-property'>delete an existing indexed property</a>
-                        with <var>index</var> as the index.</li>
-                      <li>If the steps indicated that the deletion failed, then <span class='esvalue'>false</span>.</li>
-                    </ol>
-                  </li>
-                  <li>Otherwise, <var>operation</var> was defined with an identifier:
-                    <ol>
-                      <li>Perform the steps listed in the description of <var>operation</var> with <var>index</var> as the only argument value.</li>
-                      <li>If <var>operation</var> was declared with a <a class='dfnref' href='#dfn-return-type'>return type</a> of <span class='idltype'>boolean</span>
-                        and the steps returned <span class='idlvalue'>false</span>, then <span class='esvalue'>false</span>.</li>
-                    </ol>
-                  </li>
-                  <li>Return <span class='esvalue'>true</span>.</li>
+                  <li>Return <span class='esvalue'>false</span>.</li>
                 </ol>
               </li>
 
@@ -14220,7 +14176,7 @@ C implements A;</x:codeblock>
             <li>
               Otherwise, if <var>F</var> corresponds to an indexed or named property, then return
               the global environment associated with the interface that
-              the index or named property getter, setter, creator or deleter was defined on.
+              the indexed or named property getter, setter, creator or deleter was defined on.
             </li>
             <li>
               Otherwise, if <var>F</var> is a named constructor for an interface, or is
@@ -15268,6 +15224,11 @@ d.type = et;
                 </p>
               </li>
               <!-- below are changes in v1 too -->
+              <li>
+                <p>
+                  Removed indexed deleters.
+                </p>
+              </li>
               <li>
                 <p>
                   Made the prototype of an interface object of a non-root
