@@ -88,6 +88,7 @@
         <term name='array index' class='external' href='http://people.mozilla.org/~jorendorff/es6-draft.html#sec-array-exotic-objects' ref='ECMA-262' section='9.4.2'/>
         <term name='default [[GetOwnProperty]] internal method' class='external' href='http://people.mozilla.org/~jorendorff/es6-draft.html#sec-ordinary-object-internal-methods-and-internal-slots-getownproperty-p' ref='ECMA-262' section='9.1.5'/>
         <term name='default [[DefineOwnProperty]] internal method' class='external' href='http://people.mozilla.org/~jorendorff/es6-draft.html#sec-ordinary-object-internal-methods-and-internal-slots-defineownproperty-p-desc' ref='ECMA-262' section='9.1.6'/>
+        <term name='default [[Set]] internal method' class='external' href='http://people.mozilla.org/~jorendorff/es6-draft.html#sec-ordinary-object-internal-methods-and-internal-slots-set-p-v-receiver' ref='ECMA-262' section='9.1.9'/>
         <term name='equally close values' class='external' href='http://people.mozilla.org/~jorendorff/es6-draft.html#sec-ecmascript-language-types-number-type' ref='ECMA-262' section='6.1.6'/>
         <term name='internal slot' class='external' href='https://people.mozilla.org/~jorendorff/es6-draft.html#sec-object-internal-methods-and-internal-slots'/>
         <term name="ReturnIfAbrupt" class='external'
@@ -6197,8 +6198,9 @@ interface Person {
           <a class="external" href="http://people.mozilla.org/~jorendorff/es6-draft.html#sec-built-in-function-objects-call-thisargument-argumentslist">9.3.1</a> unless otherwise specified, in which case one or
           more of the following are redefined in accordance with the rules for exotic objects:
           <span class="prop">[[Call]]</span>,
+          <span class="prop">[[Set]]</span>,
           <span class="prop">[[DefineOwnProperty]]</span>,
-          <span class="prop">[[GetOwnProperty]]</span> and
+          <span class="prop">[[GetOwnProperty]]</span>,
           <span class="prop">[[Delete]]</span> and
           <span class="prop">[[HasInstance]]</span>.
         </p>
@@ -13336,7 +13338,8 @@ C implements A;</x:codeblock>
             <p>
               The name of each property that appears to exist due to an object supporting indexed properties
               is an <dfn id='dfn-array-index-property-name'>array index property name</dfn>, which is a property
-              name <var>P</var> for which the following algorithm returns <span class='esvalue'>true</span>:
+              name <var>P</var> such that <a>Type</a>(<var>P</var>) is String
+              and for which the following algorithm returns <span class='esvalue'>true</span>:
             </p>
             <ol class='algorithm'>
               <li>Let <var>i</var> be <a>ToUint32</a>(<var>P</var>).</li>
@@ -13433,24 +13436,23 @@ C implements A;</x:codeblock>
               defined in section <?sref getownproperty?>, and
               for <a class='dfnref' href='#dfn-setter'>setters</a>
               by the <a href='#defineownproperty'>platform object [[DefineOwnProperty]] method</a>
-              defined in section <?sref defineownproperty?>.
+              defined in section <?sref defineownproperty?> and the <a
+              href='#platformobjectset'>platform object [[Set]] method</a>
+              defined in section <?sref platformobjectset?>.
             </p>
           </div>
 
-          <div id='getownproperty' class='section'>
-            <h4>Platform object [[GetOwnProperty]] method</h4>
+          <div id='getownproperty-guts' class='section'>
+            <h4>The PlatformObjectGetOwnProperty abstract operation</h4>
 
             <p>
-              The internal <span class='prop'>[[GetOwnProperty]]</span> method of every
-              <a class='dfnref' href='#dfn-platform-object'>platform object</a> <var>O</var> that implements an <a class='dfnref' href='#dfn-interface'>interface</a>
-              which <a class='dfnref' href='#dfn-support-indexed-properties'>supports indexed</a> or
-              <a class='dfnref' href='#dfn-support-named-properties'>named properties</a>
-              <span class='rfc2119'>MUST</span> behave as follows when called with property name <var>P</var>:
+              The <span class='prop'>PlatformObjectGetOwnProperty</span>
+              abstract operation performs the following steps when called with an
+              object <var>O</var>, a property name <var>P</var>, and a boolean
+              <var>ignoreNamedProps</var> value:
             </p>
 
             <ol class='algorithm'>
-              <li>Let <var>ignore</var> be false.</li>
-
               <li>
                 If <var>O</var> <a class='dfnref' href='#dfn-support-indexed-properties'>supports indexed properties</a>
                 and <var>P</var> is an <a class='dfnref' href='#dfn-array-index-property-name'>array index property name</a>, then:
@@ -13478,14 +13480,14 @@ C implements A;</x:codeblock>
                       <li>Return <var>desc</var>.</li>
                     </ol>
                   </li>
-                  <li>Set <var>ignore</var> to true.</li>
+                  <li>Set <var>ignoreNamedProps</var> to true.</li>
                 </ol>
               </li>
 
               <li>If <var>O</var> <a class='dfnref' href='#dfn-support-named-properties'>supports named properties</a>, <var>O</var> does not
                 implement an <a class='dfnref' href='#dfn-interface'>interface</a> with the <a class='xattr' href='#Global'>[Global]</a> or <a class='xattr' href='#PrimaryGlobal'>[PrimaryGlobal]</a>
                 <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>, the result of running the <a class='dfnref' href='#dfn-named-property-visibility'>named property visibility algorithm</a> with
-                property name <var>P</var> and object <var>O</var> is true, and <var>ignore</var> is false, then:
+                property name <var>P</var> and object <var>O</var> is true, and <var>ignoreNamedProps</var> is false, then:
                 <ol>
                   <li>Let <var>operation</var> be the operation used to declare the named property getter.</li>
 
@@ -13517,6 +13519,151 @@ C implements A;</x:codeblock>
             </ol>
           </div>
 
+          <div id='getownproperty' class='section'>
+            <h4>Platform object [[GetOwnProperty]] method</h4>
+
+            <p>
+              The internal <span class='prop'>[[GetOwnProperty]]</span> method of every
+              <a class='dfnref' href='#dfn-platform-object'>platform object</a> <var>O</var> that implements an <a class='dfnref' href='#dfn-interface'>interface</a>
+              which <a class='dfnref' href='#dfn-support-indexed-properties'>supports indexed</a> or
+              <a class='dfnref' href='#dfn-support-named-properties'>named properties</a>
+              <span class='rfc2119'>MUST</span> behave as follows when called with property name <var>P</var>:
+            </p>
+
+            <ol class='algorithm'>
+              <li>
+                Return the result of invoking the <a class='dfnref'
+                href='#getownproperty-guts'>PlatformObjectGetOwnProperty</a>
+                abstract operation with
+                <var>O</var>, <var>P</var>, and <span class='esvalue'>false</span> as
+                arguments.
+              </li>
+            </ol>
+          </div>
+
+          <div id='invoking-indexed-setter' class='section'>
+            <h4>Invoking a platform object indexed property setter</h4>
+            <p>
+              To <dfn id='invoke-indexed-setter'>invoke an indexed property
+              setter</dfn> with property name <var>P</var> and ECMAScript value
+              <var>V</var>, the following steps <span
+              class='rfc2119'>MUST</span> be performed:
+            </p>
+            <ol class='algorithm'>
+              <li>Let <var>index</var> be the result of calling <a>ToUint32</a>(<var>P</var>).</li>
+              <li>Let <var>creating</var> be true if <var>index</var> is not a <a class='dfnref' href='#dfn-supported-property-indices'>supported property index</a>, and false otherwise.</li>
+              <li>Let <var>operation</var> be the operation used to declare the indexed property setter.</li>
+              <li>Let <var>T</var> be the type of the second argument of <var>operation</var>.</li>
+              <li>Let <var>value</var> be the result of <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a> <var>V</var> to an IDL value of type <var>T</var>.</li>
+              <li>If <var>operation</var> was defined without an <a class='dfnref' href='#dfn-identifier'>identifier</a>, then:
+              <ol>
+                <li>If <var>creating</var> is true, then perform the steps listed in the interface description to
+                <a class='dfnref' href='#dfn-set-the-value-of-a-new-indexed-property'>set the value of a new indexed property</a>
+                with <var>index</var> as the index and <var>value</var> as the value.</li>
+                <li>Otherwise, <var>creating</var> is false.  Perform the steps listed in the interface description to
+                <a class='dfnref' href='#dfn-set-the-value-of-an-existing-indexed-property'>set the value of an existing indexed property</a>
+                with <var>index</var> as the index and <var>value</var> as the value.</li>
+              </ol>
+              </li>
+              <li>Otherwise, <var>operation</var> was defined with an identifier.  Perform the steps listed in the description of
+              <var>operation</var> with <var>index</var> and <var>value</var> as the two argument values.</li>
+            </ol>
+          </div>
+
+          <div id='invoking-named-setter' class='section'>
+            <h4>Invoking a platform object named property setter</h4>
+            <p>
+              To <dfn id='invoke-named-setter'>invoke a named property
+              setter</dfn> with property name <var>P</var> and ECMAScript value
+              <var>V</var>, the following steps <span
+              class='rfc2119'>MUST</span> be performed:
+            </p>
+            <ol class='algorithm'>
+              <li>Let <var>creating</var> be true if <var>P</var> is not a <a class='dfnref' href='#dfn-supported-property-names'>supported property name</a>, and false otherwise.</li>
+              <li>Let <var>operation</var> be the operation used to declare the named property setter.</li>
+              <li>Let <var>T</var> be the type of the second argument of <var>operation</var>.</li>
+              <li>Let <var>value</var> be the result of <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a> <var>V</var> to an IDL value of type <var>T</var>.</li>
+              <li>If <var>operation</var> was defined without an <a class='dfnref' href='#dfn-identifier'>identifier</a>, then:
+              <ol>
+                <li>If <var>creating</var> is true, then perform the steps listed in the interface description to
+                <a class='dfnref' href='#dfn-set-the-value-of-a-new-named-property'>set the value of a new named property</a>
+                with <var>P</var> as the name and <var>value</var> as the value.</li>
+                <li>Otherwise, <var>creating</var> is false.  Perform the steps listed in the interface description to
+                <a class='dfnref' href='#dfn-set-the-value-of-an-existing-named-property'>set the value of an existing named property</a>
+                with <var>P</var> as the name and <var>value</var> as the value.</li>
+              </ol>
+              </li>
+              <li>Otherwise, <var>operation</var> was defined with an identifier.  Perform the steps listed in the description of
+              <var>operation</var> with <var>index</var> and <var>value</var> as the two argument values.</li>
+            </ol>
+          </div>
+
+          <div id='platformobjectset' class='section'>
+            <h4>Platform object [[Set]] method</h4>
+
+            <p>
+              The internal <span class='prop'>[[Set]]</span> method of every
+              <a class='dfnref' href='#dfn-platform-object'>platform object</a> <var>O</var> that implements an <a class='dfnref' href='#dfn-interface'>interface</a>
+              which <a class='dfnref' href='#dfn-support-indexed-properties'>supports indexed</a> or
+              <a class='dfnref' href='#dfn-support-named-properties'>named properties</a>
+              <span class='rfc2119'>MUST</span> behave as follows when called
+              with property name <var>P</var>, value <var>V</var>, and
+              ECMAScript language value <var>Receiver</var>:
+            </p>
+
+            <ol class='algorithm'>
+              <li>If <var>O</var> and <var>Receiver</var> are the same object,
+              then:
+              <ol>
+                <li>
+                  If <var>O</var> <a class='dfnref'
+                  href='#dfn-support-indexed-properties'>supports indexed
+                  properties</a>, <var>P</var> is an <a class='dfnref'
+                  href='#dfn-array-index-property-name'>array index property
+                  name</a>, and <var>O</var> implements an interface with an <a
+                  class='dfnref' href='#dfn-indexed-property-setter'>indexed
+                  property setter</a>, then:
+                  <ol>
+                    <li>
+                      <a href='#invoking-indexed-setter'>Invoke the indexed
+                      property setter</a> with <var>P</var> and <var>V</var>.
+                    </li>
+                    <li>Return <span class='esvalue'>true</span>.</li>
+                  </ol>
+                </li>
+
+                <li>
+                  If <var>O</var> <a class='dfnref'
+                  href='#dfn-support-named-properties'>supports named
+                  properties</a>, <a>Type</a>(<var>P</var>) is String,
+                  <var>P</var> is not an <a class='dfnref'
+                  href='#dfn-array-index-property-name'>array index property
+                  name</a>, and <var>O</var> implements an interface with a <a
+                  class='dfnref' href='#dfn-named-property-setter'>named
+                  property setter</a>, then:
+                  <ol>
+                    <li>
+                      <a href='#invoking-named-setter'>Invoke the named
+                      property setter</a> with <var>P</var> and <var>V</var>.
+                    </li>
+                    <li>Return <span class='esvalue'>true</span>.</li>
+                  </ol>
+                </li>
+              </ol>
+              </li>
+              <li>
+                Let <var>ownDesc</var> be the result of invoking the <a class='dfnref'
+                href='#getownproperty-guts'>PlatformObjectGetOwnProperty</a>
+                abstract operation with
+                <var>O</var>, <var>P</var>, and <span class='esvalue'>true</span> as
+                arguments.
+              </li>
+              <li>
+                Perform steps 3-11 of the <a>default [[Set]] internal method</a>.
+              </li>
+            </ol>
+          </div>
+
           <div id='defineownproperty' class='section'>
             <h4>Platform object [[DefineOwnProperty]] method</h4>
 
@@ -13537,24 +13684,9 @@ C implements A;</x:codeblock>
                 <var>P</var> is an <a class='dfnref' href='#dfn-array-index-property-name'>array index property name</a>, then:
                 <ol>
                   <li>If the result of calling <a>IsDataDescriptor</a>(<var>Desc</var>) is <span class='esvalue'>false</span>, then Reject.</li>
-                  <li>Let <var>index</var> be the result of calling <a>ToUint32</a>(<var>P</var>).</li>
-                  <li>Let <var>creating</var> be true if <var>index</var> is not a <a class='dfnref' href='#dfn-supported-property-indices'>supported property index</a>, and false otherwise.</li>
                   <li>If <var>O</var> does not implement an interface with an <a class='dfnref' href='#dfn-indexed-property-setter'>indexed property setter</a>, then Reject.</li>
-                  <li>Let <var>operation</var> be the operation used to declare the indexed property setter.</li>
-                  <li>Let <var>T</var> be the type of the second argument of <var>operation</var>.</li>
-                  <li>Let <var>value</var> be the result of <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a> <var>Desc</var>.<span class='prop'>[[Value]]</span> to an IDL value of type <var>T</var>.</li>
-                  <li>If <var>operation</var> was defined without an <a class='dfnref' href='#dfn-identifier'>identifier</a>, then:
-                    <ol>
-                      <li>If <var>creating</var> is true, then perform the steps listed in the interface description to
-                        <a class='dfnref' href='#dfn-set-the-value-of-a-new-indexed-property'>set the value of a new indexed property</a>
-                        with <var>index</var> as the index and <var>value</var> as the value.</li>
-                      <li>Otherwise, <var>creating</var> is false.  Perform the steps listed in the interface description to
-                        <a class='dfnref' href='#dfn-set-the-value-of-an-existing-indexed-property'>set the value of an existing indexed property</a>
-                        with <var>index</var> as the index and <var>value</var> as the value.</li>
-                    </ol>
-                  </li>
-                  <li>Otherwise, <var>operation</var> was defined with an identifier.  Perform the steps listed in the description of
-                    <var>operation</var> with <var>index</var> and <var>value</var> as the two argument values.</li>
+                  <li><a href='#invoking-indexed-setter'>Invoke the indexed
+                  property setter</a> with <var>P</var> and <var>Desc</var>.<span class='prop'>[[Value]]</span>.</li>
                   <li>Return <span class='esvalue'>true</span>.</li>
                 </ol>
               </li>
@@ -13599,21 +13731,11 @@ C implements A;</x:codeblock>
                       <li>If <var>O</var> implements an interface with a <a class='dfnref' href='#dfn-named-property-setter'>named property setter</a>, then:
                         <ol>
                           <li>If the result of calling <a>IsDataDescriptor</a>(<var>Desc</var>) is <span class='esvalue'>false</span>, then Reject.</li>
-                          <li>Let <var>operation</var> be the operation used to declare the named property setter.</li>
-                          <li>Let <var>T</var> be the type of the second argument of <var>operation</var>.</li>
-                          <li>Let <var>value</var> be the result of <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a> <var>Desc</var>.<span class='prop'>[[Value]]</span> to an IDL value of type <var>T</var>.</li>
-                          <li>If <var>operation</var> was defined without an <a class='dfnref' href='#dfn-identifier'>identifier</a>, then:
-                            <ol>
-                              <li>If <var>creating</var> is true, then perform the steps listed in the interface description to
-                                <a class='dfnref' href='#dfn-set-the-value-of-a-new-named-property'>set the value of a new named property</a>
-                                with <var>P</var> as the name and <var>value</var> as the value.</li>
-                              <li>Otherwise, <var>creating</var> is false.  Perform the steps listed in the interface description to
-                                <a class='dfnref' href='#dfn-set-the-value-of-an-existing-named-property'>set the value of an existing named property</a>
-                                with <var>P</var> as the name and <var>value</var> as the value.</li>
-                            </ol>
+                          <li>
+                            <a href='#invoking-named-setter'>Invoke the named
+                          property setter</a> with <var>P</var> and
+                          <var>Desc</var>.<span class='prop'>[[Value]]</span>.
                           </li>
-                          <li>Otherwise, <var>operation</var> was defined with an identifier.  Perform the steps listed in the description of
-                            <var>operation</var> with <var>index</var> and <var>value</var> as the two argument values.</li>
                           <li>Return <span class='esvalue'>true</span>.</li>
                         </ol>
                       </li>
@@ -15226,6 +15348,12 @@ d.type = et;
                 </p>
               </li>
               <!-- below are changes in v1 too -->
+              <li>
+                <p>
+                  Added a platform object [[Set]] internal method to handle
+                  named and indexed setters better.
+                </p>
+              </li>
               <li>
                 <p>
                   Removed the concept of creators; setters are always also
