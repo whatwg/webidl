@@ -966,12 +966,12 @@ partial interface <em>SomeInterface</em> {
             <a class='dfnref' href='#dfn-partial-interface'>partial interface</a> definitions, with some
             limitations.  The following extended attributes <span class='rfc2119'>MUST NOT</span>
             be specified on partial interface definitions:
-            <a class='xattr' href='#ArrayClass'>[ArrayClass]</a>,
             <a class='xattr' href='#Constructor'>[Constructor]</a>,
             <a class='xattr' href='#ImplicitThis'>[ImplicitThis]</a>,
             <!--JAVA
             <a class='xattr' href='#JavaPackage'>[JavaPackage]</a>,
             -->
+            <a class='xattr' href='#LegacyArrayClass'>[LegacyArrayClass]</a>,
             <a class='xattr' href='#NamedConstructor'>[NamedConstructor]</a>,
             <a class='xattr' href='#NoInterfaceObject'>[NoInterfaceObject]</a>.
           </p>
@@ -1010,7 +1010,6 @@ partial interface <em>SomeInterface</em> {
 
           <p>
             The following extended attributes are applicable to interfaces:
-            <a class='xattr' href='#ArrayClass'>[ArrayClass]</a>,
             <a class='xattr' href='#Constructor'>[Constructor]</a>,
             <a class='xattr' href='#Exposed'>[Exposed]</a>,
             <a class='xattr' href='#Global'>[Global]</a>,
@@ -1018,6 +1017,7 @@ partial interface <em>SomeInterface</em> {
             <!--JAVA
             <a class='xattr' href='#JavaPackage'>[JavaPackage]</a>,
             -->
+            <a class='xattr' href='#LegacyArrayClass'>[LegacyArrayClass]</a>,
             <a class='xattr' href='#NamedConstructor'>[NamedConstructor]</a>,
             <a class='xattr' href='#NoInterfaceObject'>[NoInterfaceObject]</a>,
             <a class='xattr' href='#OverrideBuiltins'>[OverrideBuiltins]</a>.
@@ -8182,84 +8182,6 @@ alert(b[4]);    <span class='comment'>// This would alert "50".</span></x:codebl
             whose presence affects only the ECMAScript binding.
           </p>
 
-          <div id='ArrayClass' class='section'>
-            <h4>[ArrayClass]</h4>
-
-            <p>
-              If the <a class='xattr' href='#ArrayClass'>[ArrayClass]</a>
-              <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
-              appears on an <a class='dfnref' href='#dfn-interface'>interface</a>
-              that is not defined to <a class='dfnref' href='#dfn-inherit'>inherit</a>
-              from another, it indicates that the internal <span class='prop'>[[Prototype]]</span>
-              property of its <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype object</a>
-              will be the <span class='estype'>Array</span> prototype object rather than
-              the <span class='estype'>Object</span> prototype object.  This allows
-              <span class='estype'>Array</span> methods to be used more easily
-              with objects implementing the interface.
-            </p>
-            <p>
-              The <a class='xattr' href='#ArrayClass'>[ArrayClass]</a> extended attribute
-              <span class='rfc2119'>MUST</span> <a class='dfnref' href='#dfn-xattr-no-arguments'>take no arguments</a>.
-              It <span class='rfc2119'>MUST NOT</span> be used on an interface that
-              has any <a class='dfnref' href='#dfn-inherited-interfaces'>inherited interfaces</a>.
-            </p>
-            <div class='note'>
-              <p>
-                Interfaces using <a class='xattr' href='#ArrayClass'>[ArrayClass]</a> will
-                need to define a “length” <a class='dfnref' href='#dfn-attribute'>attribute</a>
-                of type <span class='estype'>unsigned long</span> that exposes the length
-                of the array-like object, in order for the inherited <span class='estype'>Array</span>
-                methods to operate correctly.  Such interfaces would typically also
-                <a class='dfnref' href='#dfn-support-indexed-properties'>support indexed properties</a>,
-                which would provide access to the array elements.
-              </p>
-            </div>
-            <p>
-              See <a href='#interface-prototype-object'>section <?sref interface-prototype-object?></a> for the
-              specific requirements that the use of <a class='xattr' href='#ArrayClass'>[ArrayClass]</a>
-              entails.
-            </p>
-            <div class='example'>
-              <p>
-                The following <a class='dfnref' href='#dfn-idl-fragment'>IDL fragment</a>
-                defines two <a class='dfnref' href='#dfn-interface'>interfaces</a>
-                that use <a class='xattr' href='#ArrayClass'>[ArrayClass]</a>.
-              </p>
-              <x:codeblock language='idl'>[ArrayClass]
-interface ItemList {
-  attribute unsigned long length;
-  getter object getItem(unsigned long index);
-  setter object setItem(unsigned long index, object item);
-};
-
-[ArrayClass]
-interface ImmutableItemList {
-  readonly attribute unsigned long length;
-  getter object getItem(unsigned long index);
-};</x:codeblock>
-              <p>
-                In an ECMAScript implementation of the above two interfaces,
-                with appropriate definitions for getItem, setItem and removeItem,
-                <span class='estype'>Array</span> methods to inspect and
-                modify the array-like object can be used.
-              </p>
-              <x:codeblock language='es'>var list = getItemList();  <span class='comment'>// Obtain an instance of ItemList.</span>
-
-list.concat();             <span class='comment'>// Clone the ItemList into an Array.</span>
-list.pop();                <span class='comment'>// Remove an item from the ItemList.</span>
-list.unshift({ });         <span class='comment'>// Insert an item at index 0.</span></x:codeblock>
-              <p>
-                <span class='idltype'>ImmutableItemList</span> has a read only
-                length <a class='dfnref' href='#dfn-attribute'>attribute</a>
-                and no indexed property <a class='dfnref' href='#dfn-indexed-property-setter'>setter</a>.  The
-                mutating <span class='estype'>Array</span> methods will generally not
-                succeed on objects implementing <span class='idltype'>ImmutableItemList</span>.
-                The exact behavior depends on the definition of <a class="external" href="http://people.mozilla.org/~jorendorff/es6-draft.html#sec-properties-of-the-array-prototype-object">the <span class='estype'>Array</span> methods
-                  themselves</a> (<a href='#ref-ECMA-262'>[ECMA-262]</a>, section 22.1.3).
-              </p>
-            </div>
-          </div>
-
           <div id='Clamp' class='section'>
             <h4>[Clamp]</h4>
 
@@ -8957,6 +8879,83 @@ interface Window {
             </div>
           </div>
 
+          <div id='LegacyArrayClass' class='section'>
+            <h4>[LegacyArrayClass]</h4>
+
+            <p>
+              If the <a class='xattr' href='#LegacyArrayClass'>[LegacyArrayClass]</a>
+              <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
+              appears on an <a class='dfnref' href='#dfn-interface'>interface</a>
+              that is not defined to <a class='dfnref' href='#dfn-inherit'>inherit</a>
+              from another, it indicates that the internal <span class='prop'>[[Prototype]]</span>
+              property of its <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype object</a>
+              will be the <span class='estype'>Array</span> prototype object rather than
+              the <span class='estype'>Object</span> prototype object.  This allows
+              <span class='estype'>Array</span> methods to be used more easily
+              with objects implementing the interface.
+            </p>
+            <p>
+              The <a class='xattr' href='#LegacyArrayClass'>[LegacyArrayClass]</a> extended attribute
+              <span class='rfc2119'>MUST</span> <a class='dfnref' href='#dfn-xattr-no-arguments'>take no arguments</a>.
+              It <span class='rfc2119'>MUST NOT</span> be used on an interface that
+              has any <a class='dfnref' href='#dfn-inherited-interfaces'>inherited interfaces</a>.
+            </p>
+            <div class='note'>
+              <p>
+                Interfaces using <a class='xattr' href='#LegacyArrayClass'>[LegacyArrayClass]</a> will
+                need to define a “length” <a class='dfnref' href='#dfn-attribute'>attribute</a>
+                of type <span class='estype'>unsigned long</span> that exposes the length
+                of the array-like object, in order for the inherited <span class='estype'>Array</span>
+                methods to operate correctly.  Such interfaces would typically also
+                <a class='dfnref' href='#dfn-support-indexed-properties'>support indexed properties</a>,
+                which would provide access to the array elements.
+              </p>
+            </div>
+            <p>
+              See <a href='#interface-prototype-object'>section <?sref interface-prototype-object?></a> for the
+              specific requirements that the use of <a class='xattr' href='#LegacyArrayClass'>[LegacyArrayClass]</a>
+              entails.
+            </p>
+            <div class='example'>
+              <p>
+                The following <a class='dfnref' href='#dfn-idl-fragment'>IDL fragment</a>
+                defines two <a class='dfnref' href='#dfn-interface'>interfaces</a>
+                that use <a class='xattr' href='#LegacyArrayClass'>[LegacyArrayClass]</a>.
+              </p>
+              <x:codeblock language='idl'>[LegacyArrayClass]
+interface ItemList {
+  attribute unsigned long length;
+  getter object getItem(unsigned long index);
+  setter object setItem(unsigned long index, object item);
+};
+
+[LegacyArrayClass]
+interface ImmutableItemList {
+  readonly attribute unsigned long length;
+  getter object getItem(unsigned long index);
+};</x:codeblock>
+              <p>
+                In an ECMAScript implementation of the above two interfaces,
+                with appropriate definitions for getItem, setItem and removeItem,
+                <span class='estype'>Array</span> methods to inspect and
+                modify the array-like object can be used.
+              </p>
+              <x:codeblock language='es'>var list = getItemList();  <span class='comment'>// Obtain an instance of ItemList.</span>
+
+list.concat();             <span class='comment'>// Clone the ItemList into an Array.</span>
+list.pop();                <span class='comment'>// Remove an item from the ItemList.</span>
+list.unshift({ });         <span class='comment'>// Insert an item at index 0.</span></x:codeblock>
+              <p>
+                <span class='idltype'>ImmutableItemList</span> has a read only
+                length <a class='dfnref' href='#dfn-attribute'>attribute</a>
+                and no indexed property <a class='dfnref' href='#dfn-indexed-property-setter'>setter</a>.  The
+                mutating <span class='estype'>Array</span> methods will generally not
+                succeed on objects implementing <span class='idltype'>ImmutableItemList</span>.
+                The exact behavior depends on the definition of <a class="external" href="http://people.mozilla.org/~jorendorff/es6-draft.html#sec-properties-of-the-array-prototype-object">the <span class='estype'>Array</span> methods
+                  themselves</a> (<a href='#ref-ECMA-262'>[ECMA-262]</a>, section 22.1.3).
+              </p>
+            </div>
+          </div>
           <div id='LenientThis' class='section'>
             <h4>[LenientThis]</h4>
             <p>
@@ -10918,7 +10917,7 @@ with (thing) {
               interface, then return the
               <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype object</a>
               for the inherited interface.</li>
-              <li>Otherwise, if <var>A</var> is declared with the <a class='xattr' href='#ArrayClass'>[ArrayClass]</a>
+              <li>Otherwise, if <var>A</var> is declared with the <a class='xattr' href='#LegacyArrayClass'>[LegacyArrayClass]</a>
               extended attribute, then return <a>%ArrayPrototype%</a>.</li>
               <li>Otherwise, return <a>%ObjectPrototype%</a>.
               (<a href="#ref-ECMA-262">[ECMA-262]</a>, section 15.2.4).</li>
@@ -11013,7 +11012,7 @@ partial interface Window {
               <li>If <var>A</var> is declared to inherit from another interface, then return the
               <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype object</a>
               for the inherited interface.</li>
-              <li>Otherwise, if <var>A</var> is declared with the <a class='xattr' href='#ArrayClass'>[ArrayClass]</a>
+              <li>Otherwise, if <var>A</var> is declared with the <a class='xattr' href='#LegacyArrayClass'>[LegacyArrayClass]</a>
               extended attribute, then return <a>%ArrayPrototype%</a>.</li>
               <li>Otherwise, return <a>%ObjectPrototype%</a>.</li>
             </ol>
@@ -14787,6 +14786,11 @@ d.type = et;
           <dt>Current editor’s draft</dt>
           <dd>
             <ul>
+              <li>
+                <p>
+                  Renamed <span class='xattr'>[ArrayClass]</span> to <span class='xattr'>[LegacyArrayClass]</span>.
+                </p>
+              </li>
               <li>
                 <p>
                   Removed <span class='idltype'><var>T</var>[]</span> array types.
