@@ -125,6 +125,8 @@
               href='https://people.mozilla.org/~jorendorff/es6-draft.html#sec-detacharraybuffer'/>
         <term name='IsDetachedBuffer' class='external'
               href='https://people.mozilla.org/~jorendorff/es6-draft.html#sec-isdetachedbuffer'/>
+        <term name='SetIntegrityLevel' class='external'
+              href='https://people.mozilla.org/~jorendorff/es6-draft.html#sec-setintegritylevel'/>
       </links>
     </options>
   </head>
@@ -599,13 +601,13 @@ dictionary <i>identifier</i> {
           <div class='example'>
             <p>Therefore, the following <a class='dfnref' href='#dfn-idl-fragment'>IDL fragment</a> is valid:</p>
             <x:codeblock language='idl'>interface B : A {
-  void f(ArrayOfLongs x);
+  void f(SequenceOfLongs x);
 };
 
 interface A {
 };
 
-typedef long[] ArrayOfLongs;</x:codeblock>
+typedef sequence&lt;long&gt; SequenceOfLongs;</x:codeblock>
           </div>
 
           <div class='example'>
@@ -625,7 +627,7 @@ interface System {
   object createObject(DOMString _interface);
 
   <span class='comment'>// Operation argument identifier: "interface"</span>
-  object[] createObjectArray(DOMString interface);
+  sequence&lt;object&gt; getObjects(DOMString interface);
 
   <span class='comment'>// Operation has no identifier; it declares a getter.</span>
   getter DOMString (DOMString keyName);
@@ -966,12 +968,12 @@ partial interface <em>SomeInterface</em> {
             <a class='dfnref' href='#dfn-partial-interface'>partial interface</a> definitions, with some
             limitations.  The following extended attributes <span class='rfc2119'>MUST NOT</span>
             be specified on partial interface definitions:
-            <a class='xattr' href='#ArrayClass'>[ArrayClass]</a>,
             <a class='xattr' href='#Constructor'>[Constructor]</a>,
             <a class='xattr' href='#ImplicitThis'>[ImplicitThis]</a>,
             <!--JAVA
             <a class='xattr' href='#JavaPackage'>[JavaPackage]</a>,
             -->
+            <a class='xattr' href='#LegacyArrayClass'>[LegacyArrayClass]</a>,
             <a class='xattr' href='#NamedConstructor'>[NamedConstructor]</a>,
             <a class='xattr' href='#NoInterfaceObject'>[NoInterfaceObject]</a>.
           </p>
@@ -1010,7 +1012,6 @@ partial interface <em>SomeInterface</em> {
 
           <p>
             The following extended attributes are applicable to interfaces:
-            <a class='xattr' href='#ArrayClass'>[ArrayClass]</a>,
             <a class='xattr' href='#Constructor'>[Constructor]</a>,
             <a class='xattr' href='#Exposed'>[Exposed]</a>,
             <a class='xattr' href='#Global'>[Global]</a>,
@@ -1018,6 +1019,7 @@ partial interface <em>SomeInterface</em> {
             <!--JAVA
             <a class='xattr' href='#JavaPackage'>[JavaPackage]</a>,
             -->
+            <a class='xattr' href='#LegacyArrayClass'>[LegacyArrayClass]</a>,
             <a class='xattr' href='#NamedConstructor'>[NamedConstructor]</a>,
             <a class='xattr' href='#NoInterfaceObject'>[NoInterfaceObject]</a>,
             <a class='xattr' href='#OverrideBuiltins'>[OverrideBuiltins]</a>.
@@ -3224,7 +3226,7 @@ partial interface A {
                     <th>callback <br/>function</th>
                     <th>dictionary</th>
                     <th>sequence&lt;<var>T</var>&gt;</th>
-                    <th><var>T</var>[]</th>
+                    <th>FrozenArray&lt;<var>T</var>&gt;</th>
                     <th>Date</th>
                     <th>RegExp</th>
                     <th>exception types</th>
@@ -3288,7 +3290,7 @@ partial interface A {
                     <td>(b)</td>
                     <td>(b)</td>
                     <td>●</td>
-                    <td>(b)</td>
+                    <td>●</td>
                     <td>●</td>
                     <td>●</td>
                     <td>●</td>
@@ -3320,7 +3322,7 @@ partial interface A {
                     <td></td>
                     <td></td>
                     <td>●</td>
-                    <td></td>
+                    <td>●</td>
                     <td>●</td>
                     <td>●</td>
                     <td>●</td>
@@ -3336,7 +3338,7 @@ partial interface A {
                     <td class='belowdiagonal'></td>
                     <td></td>
                     <td>●</td>
-                    <td></td>
+                    <td>●</td>
                     <td>●</td>
                     <td>●</td>
                     <td>●</td>
@@ -3359,7 +3361,7 @@ partial interface A {
                     <td>●</td>
                   </tr>
                   <tr>
-                    <th><var>T</var>[]</th>
+                    <th>FrozenArray&lt;<var>T</var>></th>
                     <td class='belowdiagonal'></td>
                     <td class='belowdiagonal'></td>
                     <td class='belowdiagonal'></td>
@@ -4040,8 +4042,8 @@ dictionary <i>Derived</i> : <em>Base</em> {
             <li>the type is a dictionary that <a class='dfnref' href='#dfn-dictionary-inherit'>inherits</a> from <var>D</var></li>
             <li>the type is a <a class='dfnref' href='#dfn-nullable'>nullable type</a>
             whose <a class='dfnref' href='#dfn-inner-type'>inner type</a> includes <var>D</var></li>
-            <li>the type is a <a href='#idl-sequence'>sequence type</a> or <a href='#idl-array'>array type</a>
-            whose element type includes <var>D</var></li>
+            <li>the type is a <a href='#idl-sequence'>sequence type</a> or <a href='#idl-array'>array type</a> 
+            whose element type includes <var>D</var></li> 
             <li>the type is a <a class='dnfref' href='#dfn-union-type'>union type</a>,
             one of whose <a class='dfnref' href='#dfn-union-member-type'>member types</a>
             includes <var>D</var></li>
@@ -4838,13 +4840,12 @@ EventTarget et = (EventTarget) n; <span class='comment'>// This should never thr
           <p>
             In a given implementation of a set of <a class='dfnref' href='#dfn-idl-fragment'>IDL fragments</a>,
             an object can be described as being a <dfn id='dfn-platform-object'>platform object</dfn>, a
-            <dfn id='dfn-user-object'>user object</dfn>, or neither.  There are three kinds of
+            <dfn id='dfn-user-object'>user object</dfn>, or neither.  There are two kinds of
             object that are considered to be platform objects:
           </p>
           <ul>
             <li>objects that implement a non-<a class='dfnref' href='#dfn-callback-interface'>callback</a> <a class='dfnref' href='#dfn-interface'>interface</a>;</li>
-            <li>objects representing IDL <a class='dfnref' href='#dfn-DOMException'>DOMExceptions</a>;</li>
-            <li>and objects representing IDL <a href='#idl-array'>array</a> objects (<a class='dfnref' href='#dfn-platform-array-object'>platform array objects</a>).</li>
+            <li>objects representing IDL <a class='dfnref' href='#dfn-DOMException'>DOMExceptions</a>.</li>
           </ul>
           <p>
             In a browser, for example,
@@ -5036,7 +5037,7 @@ interface Person {
             assign to the attribute.
           </p>
 
-          <?productions grammar Type SingleType NonAnyType UnionType UnionMemberType UnionMemberTypes ConstType Null PrimitiveType FloatType UnrestrictedFloatType UnsignedIntegerType IntegerType OptionalLong PromiseType TypeSuffix TypeSuffixStartingWithArray?>
+          <?productions grammar Type SingleType NonAnyType UnionType UnionMemberType UnionMemberTypes ConstType Null PrimitiveType FloatType UnrestrictedFloatType UnsignedIntegerType IntegerType OptionalLong PromiseType?>
 
           <div id='idl-any' class='section'>
             <h4>any</h4>
@@ -5690,8 +5691,7 @@ interface Person {
                 are copied rather than having references
                 to them passed around.  Instead of a writable <a class='dfnref' href='#dfn-attribute'>attribute</a> of a sequence
                 type, it is suggested that a pair of <a class='dfnref' href='#dfn-operation'>operations</a> to get and set the
-                sequence is used.  Another option is to use an <a href='#idl-array'>array type</a>,
-                which can be used as the type of an attribute.
+                sequence is used.
               </p>
             </div>
             <p>
@@ -5699,49 +5699,6 @@ interface Person {
               is the concatenation of the type name for <var>T</var> and
               the string “Sequence”.
             </p>
-          </div>
-
-          <div id='idl-array' class='section'>
-            <h4>Arrays — <var>T</var>[]</h4>
-
-            <p>
-              The <a class='idltype' href='#idl-array'><var>T</var>[]</a> type
-              is a parameterized type.  The values of this type are non-null references to arrays
-              of values of type <var>T</var>.
-              Unlike <a class='dfnref' href='#idl-sequence'>sequences</a>,
-              arrays are passed by reference.  Passing an array to a <a class='dfnref' href='#dfn-platform-object'>platform object</a>
-              could result in that array being modified by the object.
-              An array returned from a platform object might also be modified by the object,
-              and any modifications to the array performed by user code might be acted upon by the
-              platform object.
-            </p>
-            <p>
-              The element type of an array <span class='rfc2119'>MUST NOT</span> be
-              a <a href='#idl-sequence'>sequence</a> or <a href='#idl-dictionary'>dictionary</a> type.
-            </p>
-            <p>
-              Arrays can either be <dfn id='dfn-fixed-length'>fixed length</dfn> or
-              <dfn id='dfn-variable-length'>variable length</dfn>.  Fixed length
-              arrays cannot have their length changed by user code after they have been
-              created, while variable length arrays can.  Unless otherwise
-              specified, arrays are fixed length.
-            </p>
-            <p>
-              Arrays can also be designated as being <dfn id='dfn-read-only-array'>read only</dfn>.
-              User code cannot modify the values of read only array elements.
-              If an array is read only, then it is also implicitly <a class='dfnref' href='#dfn-fixed-length'>fixed length</a>.
-            </p>
-            <p>
-              There is no way to represent a constant array value in IDL.
-            </p>
-            <p>
-              The <a class='dfnref' href='#dfn-type-name'>type name</a> of an array type
-              is the concatenation of the type name for <var>T</var> and
-              the string “Array”.
-            </p>
-            <div class='example'>
-              <p>See <a href='#es-array'>section <?sref es-array?></a> for an example using array types.</p>
-            </div>
           </div>
 
           <div id='idl-promise' class='section'>
@@ -5780,8 +5737,8 @@ interface Person {
             <div class='note'>
               <p>
                 For example, you might write <code>(Node or DOMString)</code>
-                or <code>(float or float[])</code>.  When applying a
-                <code>[]</code> or <code>?</code> suffix to a
+                or <code>(float or sequence&lt;float&gt;)</code>.  When applying a
+                <code>?</code> suffix to a
                 <a class='dfnref' href='#dfn-union-type'>union type</a>
                 as a whole, it is placed after the closing parenthesis,
                 as in <code>(Node or DOMString)?</code>.
@@ -5825,10 +5782,10 @@ interface Person {
               <p>
                 For example, the <a class='dfnref' href='#dfn-flattened-union-member-types'>flattened member types</a>
                 of the <a class='dfnref' href='#dfn-union-type'>union type</a>
-                <code>(Node or (Date or Event) or (XMLHttpRequest or DOMString)? or (float[] or NodeList)[])</code>
+                <code>(Node or (Date or Event) or (XMLHttpRequest or DOMString)? or sequence&lt;(sequence&lt;float&gt; or NodeList)&gt;)</code>
                 are the six types <code>Node</code>, <code>Date</code>, <code>Event</code>,
                 <code>XMLHttpRequest</code>, <code>DOMString</code> and
-                <code>(float[] or NodeList)[]</code>.
+                <code>sequence&lt;(sequence&lt;float&gt; or NodeList)&gt;</code>.
               </p>
             </div>
             <p>
@@ -6065,6 +6022,29 @@ interface Person {
             <div class='ednote'>
               <p>We should include an example of specification text that uses these types and terms.</p>
             </div>
+          </div>
+
+          <div id='idl-frozen-array' class='section'>
+            <h4>Frozen arrays — FrozenArray&lt;<var>T</var>&gt;</h4>
+
+            <p>
+              A <dfn id='dfn-frozen-array-type'>frozen array type</dfn> is a parameterized
+              type whose values are references to objects that hold a fixed length array
+              of unmodifiable values.  The values in the array are of type <var>T</var>.
+            </p>
+            <p>
+              Since <span class='idltype'>FrozenArray&lt;<var>T</var>&gt;</span> values
+              are references, they are unlike <a href='#idl-sequence'>sequence types</a>,
+              which are lists of values that are passed by value.
+            </p>
+            <p>
+              There is no way to represent a constant frozen array value in IDL.
+            </p>
+            <p>
+              The <a class='dfnref' href='#dfn-type-name'>type name</a> of a frozen array
+              type is the concatenation of the type name for <var>T</var> and the string
+              “Array”.
+            </p>
           </div>
         </div>
 
@@ -7736,351 +7716,6 @@ alert(b[4]);    <span class='comment'>// This would alert "50".</span></x:codebl
             -->
           </div>
 
-          <div id='es-array' class='section'>
-            <h4>Arrays — <var>T</var>[]</h4>
-
-            <p>
-              IDL array values are represented by references to objects known
-              as <dfn id='dfn-platform-array-object'>platform array objects</dfn>, with particular
-              characteristics that allow them to behave similarly to native <span class='estype'>Array</span>
-              objects.  All <a class='dfnref' href='#dfn-platform-array-object'>platform array objects</a>
-              are <a class='dfnref' href='#dfn-platform-object'>platform objects</a>, and
-              thus each is associated with a particular global environment.
-            </p>
-            <div class='note'>
-              <p>
-                <a class='dfnref' href='#dfn-platform-array-object'>Platform array objects</a> differ
-                from <span class='estype'>Array</span> objects in the following ways:
-              </p>
-              <ul>
-                <li>they are never sparse</li>
-                <li>their elements are always data properties</li>
-                <li>an ECMAScript-to-IDL value conversion is always performed when storing an element</li>
-                <li>they stringify with Object.prototype.toString differently</li>
-                <li>their internal <span class='prop'>[[Extensible]]</span> property value is always <span class='esvalue'>true</span></li>
-              </ul>
-            </div>
-            <p>
-              The value of the internal <span class='prop'>[[Prototype]]</span> property of a
-              <a class='dfnref' href='#dfn-platform-array-object'>platform array object</a>
-              <span class='rfc2119'>MUST</span> be <a>%ArrayPrototype%</a>
-              from its associated global environment.
-            </p>
-            <div class='note'>
-              <p>
-                Note that some of the functions from the <span class='estype'>Array</span> prototype object
-                will not behave on a <a class='dfnref' href='#dfn-fixed-length'>fixed length</a>
-                platform array object as they do on an <span class='estype'>Array</span> object, since
-                attempting to assign to the “length” property will fail.
-                Similarly, some of the functions from the <span class='estype'>Array</span>
-                prototype object will not perform any useful operation on
-                <a class='dfnref' href='#dfn-read-only-array'>read only arrays</a>.
-              </p>
-            </div>
-            <p>
-              The <a class='dfnref' href='#dfn-class-string'>class string</a> of a
-              platform array object <span class='rfc2119'>MUST</span> be
-              the <a class='dfnref' href='#dfn-type-name'>type name</a> of the
-              <a href='#idl-array'>array type</a>.
-            </p>
-            <!--
-            <p>
-              Platform array objects <span class='rfc2119'>MUST</span> have a property named “length”
-              whose value is a <span class='estype'>Number</span> that is the length
-              of the array.  If the array is <a class='dfnref' href='#dfn-fixed-length'>fixed length</a>,
-              then this property has attributes <span class='descriptor'>{ [[Writable]]: <span class='esvalue'>false</span>, [[Enumerable]]: <span class='esvalue'>false</span>, [[Configurable]]: <span class='esvalue'>false</span> }</span>.
-              Otherwise, the array is <a class='dfnref' href='#dfn-variable-length'>variable length</a>,
-              and the property has attributes <span class='descriptor'>{ [[Writable]]: <span class='esvalue'>true</span>, [[Enumerable]]: <span class='esvalue'>false</span>, [[Configurable]]: <span class='esvalue'>false</span> }</span>.
-            </p>
-            <p>
-              Platform array objects <span class='rfc2119'>MUST</span> always have a property named
-              <a>ToString</a>(<var>i</var>) for every integer index 0 ≤ <var>i</var> &lt; <var>n</var>,
-              where <var>n</var> is the length of the array.  These properties have attributes
-              <span class='descriptor'>{ [[Writable]]: <span class='esvalue'>false</span>, [[Enumerable]]: <span class='esvalue'>true</span>, [[Configurable]]: <span class='esvalue'>false</span> }</span> if the array is
-              <a class='dfnref' href='#dfn-read-only-array'>read only</a> and
-              <span class='descriptor'>{ [[Writable]]: <span class='esvalue'>true</span>, [[Enumerable]]: <span class='esvalue'>true</span>, [[Configurable]]: <span class='esvalue'>false</span> }</span> otherwise.  The values of these properties
-              <span class='rfc2119'>MUST</span> be the result of <a class='dfnref' href='#dfn-convert-idl-to-ecmascript-value'>converting</a>
-              the value of the array element at the corresponding index to an ECMAScript value.
-            </p>
-            -->
-
-            <p>
-              Platform array objects appear to have a “length” property and a property
-              for each element of the array.  The values and behaviors of these properties are
-              implemented by the internal <span class='prop'>[[GetOwnProperty]]</span>,
-              <span class='prop'>[[DefineOwnProperty]]</span> and <span class='prop'>[[Delete]]</span>
-              methods, which are also defined below.
-            </p>
-
-            <p>
-              Platform array objects cannot be fixed; if <code>Object.freeze</code>, <code>Object.seal</code>
-              or <code>Object.preventExtensions</code> is called on one, the function
-              <span class='rfc2119'>MUST</span> <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>TypeError</span></a>.
-            </p>
-
-            <p id='es-to-array'>
-              An ECMAScript value <var>V</var> is <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converted</a>
-              to an IDL array value of type <span class='idltype'><var>T</var>[]</span> as follows:
-            </p>
-            <ol class="algorithm">
-              <li>If <var>V</var> is a <a class='dfnref' href='#dfn-platform-array-object'>platform array object</a>
-                whose element type is <var>T</var>, then return the array that the platform array object
-                represents.</li>
-              <li>Let <var>values</var> be the result of <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a>
-                <var>V</var> to a <a href='#idl-sequence'>sequence</a> with element
-                type <var>T</var>.</li>
-              <li>Let <var>n</var> be the length of <var>values</var>.</li>
-              <li>Return a new <a class='dfnref' href='#dfn-fixed-length'>fixed length</a>
-                array of length <var>n</var> whose element values are the same as those
-                in <var>values</var>.</li>
-            </ol>
-
-            <p id='array-to-es'>
-              An IDL array value <var>V</var> of type <span class='idltype'><var>T</var>[]</span> is
-              <a class='dfnref' href='#dfn-convert-idl-to-ecmascript-value'>converted</a> to an
-              ECMAScript value as follows:
-            </p>
-            <ul>
-              <li>If <var>V</var> is already represented by a <a class='dfnref' href='#dfn-platform-array-object'>platform array object</a>,
-                then the ECMAScript value is that platform array object.</li>
-              <li>Otherwise, the ECMAScript value is a newly created platform array object that represents <var>V</var>.</li>
-            </ul>
-
-            <div class='example'>
-              <p>
-                The following IDL defines an interface that has an
-                <span class='idltype'>unsigned short[]</span> attribute.
-              </p>
-              <x:codeblock language='idl'>[Constructor]
-interface LotteryResults {
-  readonly attribute unsigned short[] numbers;
-};</x:codeblock>
-              <p>
-                Assuming that the array has a <a class='dfnref' href='#dfn-fixed-length'>fixed length</a>
-                of 6, the following ECMAScript code illustrates how the array
-                attribute in the above interface would behave:
-              </p>
-              <x:codeblock language='es'>var results = new LotteryResults();  <span class='comment'>// results is a new platform object</span>
-                                     <span class='comment'>// implementing the LotteryResults interface.</span>
-
-var a = [4, 8, 15, 16, 23, 42];      <span class='comment'>// Numbers will be assigned into the array.</span>
-for (var i = 0; i &lt; 6; i++) {
-  results.numbers[i] = a[i];
-}
-
-results.numbers = a;                 <span class='comment'>// This has no effect, since numbers is</span>
-                                     <span class='comment'>// read only.</span>
-
-a[0] = 5;                            <span class='comment'>// Change the array.</span>
-results.numbers[0];                  <span class='comment'>// Evaluates to 4, since results.numbers is</span>
-                                     <span class='comment'>// not a reference to 'a'.</span>
-
-results.numbers[0] = 5;              <span class='comment'>// Modifies the array stored in the platform</span>
-                                     <span class='comment'>// object.</span>
-results.numbers[0];                  <span class='comment'>// Now evaluates to 5.</span>
-
-results.numbers[0] = 6.25;           <span class='comment'>// Assigns 6 to the first element of the array</span>
-                                     <span class='comment'>// since that is how 6.5 is converted to an</span>
-                                     <span class='comment'>// unsigned short.</span>
-
-results.numbers.length = 7;          <span class='comment'>// Has no effect, since numbers is</span>
-                                     <span class='comment'>// fixed length.</span>
-results.numbers[6];                  <span class='comment'>// Evaluates to undefined.</span>
-
-results.numbers.slice(0, 2);         <span class='comment'>// Evaluates to an Array [6, 8].</span>
-
-results.numbers.push(108);           <span class='comment'>// Has no effect, since the definition of</span>
-                                     <span class='comment'>// push() relies on calling [[Put]] on a</span>
-                                     <span class='comment'>// non-existent array index property</span>
-                                     <span class='comment'>// and on "length", both of which will</span>
-                                     <span class='comment'>// be silently ignored.</span>
-
-delete results.numbers[3];           <span class='comment'>// Has no effect and evaluates to false,</span>
-                                     <span class='comment'>// since the array index properties are</span>
-                                     <span class='comment'>// non-configurable.</span></x:codeblock>
-              <p>
-                If passing an <span class='estype'>Array</span> object to a <a class='dfnref' href='#dfn-platform-object'>platform object</a>
-                expecting an IDL array value, a new <a class='dfnref' href='#dfn-platform-array-object'>platform array object</a>
-                will be created to represent an IDL array value determined from that <span class='estype'>Array</span>.
-                If the <span class='idltype'>LotteryResults</span> interface is instead defined as:
-              </p>
-              <x:codeblock language='idl'>[Constructor]
-interface LotteryResults {
-  attribute unsigned short[] numbers;
-};</x:codeblock>
-              <p>
-                then an <span class='estype'>Array</span> object can be assigned to the
-                “numbers” property.  Unless the prose accompanying
-                the interface said otherwise, this would result in a
-                <a class='dfnref' href='#dfn-fixed-length'>fixed length</a>
-                array of whatever length the <span class='estype'>Array</span>
-                has being assigned to the IDL attribute.
-              </p>
-              <x:codeblock language='es'>var results = new LotteryResults();
-
-results.numbers.length;       <span class='comment'>// Evaluates to 6.</span>
-
-var a = [1, 3, 5];
-
-results.numbers = a;          <span class='comment'>// Assigns a fixed length IDL array of length 3 to</span>
-                              <span class='comment'>// the numbers attribute.</span>
-
-results.numbers;              <span class='comment'>// This now evaluates to a platform array object</span>
-                              <span class='comment'>// that represents the fixed length IDL array,</span>
-                              <span class='comment'>// not the Array object assigned in the previous</span>
-                              <span class='comment'>// statement.</span>
-
-results.numbers == a;         <span class='comment'>// Evaluates to false.</span>
-
-results.numbers.length;       <span class='comment'>// Evaluates to 3.</span>
-
-results.numbers.push(7);      <span class='comment'>// Silently ignored in non-strict mode.</span>
-results.numbers.length;       <span class='comment'>// So this still evaluates to 3.</span></x:codeblock>
-            </div>
-
-            <div id='platform-array-object-getownproperty' class='section'>
-              <h5>Platform array object [[GetOwnProperty]] method</h5>
-
-              <p>
-                The internal <span class='prop'>[[GetOwnProperty]]</span> method of every
-                <a class='dfnref' href='#dfn-platform-array-object'>platform array object</a>
-                <var>A</var> with element type <var>T</var>
-                <span class='rfc2119'>MUST</span> behave as follows when
-                called with property name <var>P</var>:
-              </p>
-
-              <ol class='algorithm'>
-                <li>Let <var>length</var> be the length of the IDL array that <var>A</var> represents.</li>
-                <li>If <var>P</var> is “length”, then:
-                  <ol>
-                    <li>Let <var>desc</var> be a newly created <a>Property Descriptor</a> with no fields.</li>
-                    <li>Set <var>desc</var>.<span class='prop'>[[Value]]</span> to the <span class='estype'>Number</span> value for <var>length</var>.</li>
-                    <li>Set <var>desc</var>.<span class='prop'>[[Writable]]</span> to <span class='esvalue'>false</span> if <var>A</var> represents a
-                      <a class='dfnref' href='#dfn-read-only-array'>read only</a> or <a class='dfnref' href='#dfn-fixed-length'>fixed length</a> array, and <span class='esvalue'>true</span> otherwise.</li>
-                    <li>Set <var>desc</var>.<span class='prop'>[[Enumerable]]</span> to <span class='esvalue'>false</span>.</li>
-                    <li>Set <var>desc</var>.<span class='prop'>[[Configurable]]</span> to <span class='esvalue'>false</span>.</li>
-                    <li>Return <var>desc</var>.</li>
-                  </ol>
-                </li>
-                <li>Otherwise, if <var>P</var> is an <a>array index</a>, then:
-                  <ol>
-                    <li>Let <var>index</var> be <a>ToUint32</a>(<var>P</var>).</li>
-                    <li>If <var>index</var> ≥ <var>length</var>, then return <span class='esvalue'>undefined</span>.</li>
-                    <li>Let <var>value</var> be the result of <a class='dfnref' href='#dfn-convert-idl-to-ecmascript-value'>converting</a> the <var>index</var>th element of
-                      the IDL array that <var>A</var> represents to an IDL value of type <var>T</var>.</li>
-                    <li>Let <var>desc</var> be a newly created <a>Property Descriptor</a> with no fields.</li>
-                    <li>Set <var>desc</var>.<span class='prop'>[[Value]]</span> to <var>value</var>.</li>
-                    <li>Set <var>desc</var>.<span class='prop'>[[Writable]]</span> to <span class='esvalue'>false</span> if <var>A</var> represents a <a class='dfnref' href='#dfn-read-only-array'>read only array</a>,
-                      and <span class='esvalue'>true</span> otherwise.</li>
-                    <li>Set <var>desc</var>.<span class='prop'>[[Enumerable]]</span> and <var>desc</var>.<span class='prop'>[[Configurable]]</span> to <span class='esvalue'>true</span>.</li>
-                    <li>Return <var>desc</var>.</li>
-                  </ol>
-                </li>
-                <li>Return the result of calling the <a>default <span class='prop'>[[GetOwnProperty]]</span> internal method</a> on <var>A</var> passing <var>P</var> as the argument.</li>
-              </ol>
-            </div>
-
-            <div id='platform-array-object-defineownproperty' class='section'>
-              <h5>Platform array object [[DefineOwnProperty]] method</h5>
-
-              <p>
-                The internal <span class='prop'>[[DefineOwnProperty]]</span> method of every
-                <a class='dfnref' href='#dfn-platform-array-object'>platform array object</a>
-                <var>A</var> with element type <var>T</var>
-                <span class='rfc2119'>MUST</span> behave as follows when passed
-                property name <var>P</var>, Property Descriptor <var>Desc</var> and
-                boolean flag <var>Throw</var>.
-                The term “Reject”
-                is used in the same sense as that defined in ECMA-262, namely, to mean “If <var>Throw</var> is
-                <span class='esvalue'>true</span>, then <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='esvalue'>TypeError</span></a> exception,
-                otherwise return <span class='esvalue'>false</span>”.
-              </p>
-
-              <ol class='algorithm'>
-                <li>Initialize <var>oldLen</var> to be the length of the IDL array that <var>A</var> represents.</li>
-
-                <li>If <var>P</var> is “length”, then:
-                  <ol>
-                    <li>If the result of calling <a>IsDataDescriptor</a>(<var>Desc</var>) is <span class='esvalue'>false</span>, then Reject.</li>
-                    <li>Let <var>newLen</var> be <a>ToUint32</a>(<var>Desc</var>.<span class='prop'>[[Value]]</span>).</li>
-                    <li>If <var>newLen</var> is not equal to <a>ToNumber</a>(<var>Desc</var>.<span class='prop'>[[Value]]</span>), then <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>RangeError</span></a> exception.</li>
-                    <li>If <var>A</var> represents a <a class='dfnref' href='#dfn-read-only-array'>read only</a> or <a class='dfnref' href='#dfn-fixed-length'>fixed length</a> IDL array, then Reject.</li>
-
-                    <li>If <var>newLen</var> &gt; <var>oldLen</var>, then:
-                      <ol>
-                        <li>Let <var>value</var> be the result of <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a>
-                          <span class='esvalue'>undefined</span> to type <var>T</var>.</li>
-                        <li>Update the IDL array that <var>A</var> represents to have a length of <var>newLen</var>, and set every
-                          value of the IDL array at indices in the range [<var>oldLen</var>, <var>newLen</var>) to <var>value</var>.</li>
-                      </ol>
-                    </li>
-
-                    <li>Otherwise, if <var>newLen</var> &lt; <var>oldLen</var>, then update the IDL array that <var>A</var> represents to have a length of <var>newLen</var>, discarding elements
-                      at indices in the range [<var>newLen</var>, <var>oldLen</var>).</li>
-
-                    <li>Return <b>true</b>.</li>
-                  </ol>
-                </li>
-
-                <li>Otherwise, if <var>P</var> is an <a>array index</a>, then:
-
-                  <ol>
-                    <li>If the result of calling <a>IsDataDescriptor</a>(<var>Desc</var>) is <span class='esvalue'>false</span>, then Reject.</li>
-
-                    <li>Let <var>index</var> be <a>ToUint32</a>(<var>P</var>).</li>
-                    <li>If <var>index</var> ≥ <var>oldLen</var>, then:
-                      <ol>
-                        <li>If <var>A</var> represents a <a class='dfnref' href='#dfn-read-only-array'>read only</a> or <a class='dfnref' href='#dfn-fixed-length'>fixed length</a>
-                          IDL array, then Reject.</li>
-                        <li>Let <var>value</var> be the result of <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a>
-                          <span class='esvalue'>undefined</span> to type <var>T</var>.</li>
-                        <li>Update the IDL array that <var>A</var> represents to have a length of <var>index</var> + 1, and set every
-                          value of the IDL array at indices in the range [<var>oldLen</var>, <var>index</var>) to <var>value</var>.</li>
-                      </ol>
-                    </li>
-
-                    <li>If <var>A</var> represents a <a class='dfnref' href='#dfn-read-only-array'>read only</a> IDL array, then Reject.</li>
-                    <li>Let <var>newValue</var> be the result of <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a>
-                      <var>Desc</var>.<span class='prop'>[[Value]]</span> to an IDL value of type <var>T</var>.</li>
-                    <li>Set the <var>index</var>th element of the IDL array that <var>A</var> represents to <var>newValue</var>.</li>
-
-                    <li>Return <b>true</b>.</li>
-                  </ol>
-                </li>
-
-                <li>Set <var>Desc</var>.<span class='prop'>[[Configurable]]</span> to <span class='esvalue'>true</span>.</li>
-                <li>Return the result of calling the <a>default <span class='prop'>[[DefineOwnProperty]]</span> internal method</a> on <var>A</var> passing <var>P</var>, <var>Desc</var>, and <var>Throw</var> as arguments.</li>
-              </ol>
-            </div>
-
-            <div id='platform-array-object-delete' class='section'>
-              <h5>Platform array object [[Delete]] method</h5>
-
-              <p>
-                The internal <span class='prop'>[[Delete]]</span> method of every
-                <a class='dfnref' href='#dfn-platform-array-object'>platform array object</a>
-                <var>A</var> with element type <var>T</var>
-                <span class='rfc2119'>MUST</span> behave as follows when passed
-                property name <var>P</var>.
-              </p>
-
-              <ol class='algorithm'>
-                <li>If <var>P</var> is “length”, then return <span class='esvalue'>false</span>.</li>
-                <li>Let <var>length</var> be the length of the IDL array that <var>A</var> represents.</li>
-                <li>If <var>P</var> is an <a>array index</a>, then:
-                  <ol>
-                    <li>Let <var>index</var> be <a>ToUint32</a>(<var>P</var>).</li>
-                    <li>If <var>index</var> &lt; <var>length</var>, then <span class='esvalue'>false</span>.</li>
-                    <li>Return <span class='esvalue'>true</span>.</li>
-                  </ol>
-                </li>
-                <li>If <var>P</var> has an own property with name <var>P</var>, then remove it.</li>
-                <li>Return <span class='esvalue'>true</span>.</li>
-              </ol>
-            </div>
-
-          </div>
-
           <div id='es-promise' class='section'>
             <h4>Promise types — Promise&lt;<var>T</var>&gt;</h4>
 
@@ -8290,9 +7925,6 @@ results.numbers.length;       <span class='comment'>// So this still evaluates t
                 a native <span class='estype'>Date</span> object or
                 a native <span class='estype'>RegExp</span> object, then:
                 <ol>
-                  <li>If <var>types</var> includes an <a href='#idl-array'>array type</a>, then return the result of
-                    <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a>
-                    <var>V</var> to that type.</li>
                   <li>
                     If <var>types</var> includes a <a href='#idl-sequence'>sequence type</a>, then
                     <ol>
@@ -8310,6 +7942,26 @@ results.numbers.length;       <span class='comment'>// So this still evaluates t
                         <a class='dfnref'
                            href='#create-sequence-from-iterable'>creating a
                         sequence of that type from <var>V</var> and
+                        <var>method</var></a>.
+                      </li>
+                    </ol>
+                  </li>
+                  <li>
+                    If <var>types</var> includes a <a href='#idl-frozen-array'>frozen array type</a>, then
+                    <ol>
+                      <li>
+                        Let <var>method</var> be the result of
+                        <a>CheckIterable</a>(<var>V</var>).
+                      </li>
+                      <li>
+                        <a>ReturnIfAbrupt</a>(<var>method</var>).
+                      </li>
+                      <li>
+                        If <var>method</var> is not
+                        <span class="esvalue">undefined</span>,
+                        return the result of
+                        <a class='dfnref' href='#create-frozen-array-from-iterable'>creating a
+                        frozen array of that type from <var>V</var> and
                         <var>method</var></a>.
                       </li>
                     </ol>
@@ -8593,6 +8245,64 @@ results.numbers.length;       <span class='comment'>// So this still evaluates t
               <li><a>DetachArrayBuffer</a>(<var>O</var>).</li>
             </ol>
           </div>
+
+          <div id='es-frozen-array' class='section'>
+            <h4>Frozen arrays — FrozenArray&lt;<var>T</var>&gt;</h4>
+
+            <p>
+              Values of frozen array types are represented by frozen ECMAScript
+              <span class='estype'>Array</span> object references.
+            </p>
+            <p>
+              An ECMAScript value <var>V</var> is
+              <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converted</a>
+              to an IDL <span class='idltype'>FrozenArray&lt;<var>T</var>&gt;</span> value
+              by running the following algorithm:
+            </p>
+            <ol class='algorithm'>
+              <li>Let <var>values</var> be the result of
+                <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a>
+                <var>V</var> to IDL type <span class='idltype'>sequence&lt;<var>T</var>&gt;</span>.</li>
+              <li>Return the result of
+                <a class='dfnref' href='#dfn-create-frozen-array'>creating a frozen array</a>
+                from <var>values</var>.</li>
+            </ol>
+            <p>
+              To <dfn id='dfn-create-frozen-array'>create a frozen array</dfn> from a sequence
+              of values of type <var>T</var>, follow these steps:
+            </p>
+            <ol class='algorithm'>
+              <li>Let <var>array</var> be the result of
+                <a class='dfnref' href='#dfn-convert-idl-to-ecmascript-value'>converting</a>
+                the sequence of values to an ECMAScript value.</li>
+              <li>Perform <a>SetIntegrityLevel</a>(<var>array</var>, <code>"frozen"</code>).</li>
+              <li>Return <var>array</var>.</li>
+            </ol>
+            <p>
+              The result of <a class='dfnref' href='#dfn-convert-idl-to-ecmascript-value'>converting</a>
+              an IDL <span class='idltype'>FrozenArray&lt;<var>T</var>&gt;</span> value to an ECMAScript
+              value is the <span class='estype'>Object</span> value that represents a reference
+              to the same object that the IDL <span class='idltype'>FrozenArray&lt;<var>T</var>&gt;</span> represents.
+            </p>
+
+            <div id='create-frozen-array-from-iterable' class='section'>
+              <h5>Creating a frozen array from an iterable</h5>
+              <p>
+                To create an IDL value of type <a class='idltype'
+                href='#idl-sequence'>FrozenArray&lt;<var>T</var>></a> given an
+                iterable <var>iterable</var> and an iterator getter
+                <var>method</var>, perform the following steps:
+              </p>
+              <ol class='algorithm'>
+                <li>Let <var>values</var> be the result of
+                  <a class='dfnref' href='#create-sequence-from-iterable'>creating
+                    a sequence of type <span class='idltype'>sequence&lt;<var>T</var>&gt;</span>
+                    from <var>iterable</var> and <var>method</var></a>.</li>
+                <li>Return the result of <a class='dfnref' href='#dfn-create-frozen-array'>creating a frozen
+                    array</a> from <var>values</var>.</li>
+              </ol>
+            </div>
+          </div>
         </div>
 
         <div id='es-extended-attributes' class='section'>
@@ -8603,84 +8313,6 @@ results.numbers.length;       <span class='comment'>// So this still evaluates t
             <a class='dfnref' href='#dfn-extended-attribute'>extended attributes</a>
             whose presence affects only the ECMAScript binding.
           </p>
-
-          <div id='ArrayClass' class='section'>
-            <h4>[ArrayClass]</h4>
-
-            <p>
-              If the <a class='xattr' href='#ArrayClass'>[ArrayClass]</a>
-              <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
-              appears on an <a class='dfnref' href='#dfn-interface'>interface</a>
-              that is not defined to <a class='dfnref' href='#dfn-inherit'>inherit</a>
-              from another, it indicates that the internal <span class='prop'>[[Prototype]]</span>
-              property of its <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype object</a>
-              will be the <span class='estype'>Array</span> prototype object rather than
-              the <span class='estype'>Object</span> prototype object.  This allows
-              <span class='estype'>Array</span> methods to be used more easily
-              with objects implementing the interface.
-            </p>
-            <p>
-              The <a class='xattr' href='#ArrayClass'>[ArrayClass]</a> extended attribute
-              <span class='rfc2119'>MUST</span> <a class='dfnref' href='#dfn-xattr-no-arguments'>take no arguments</a>.
-              It <span class='rfc2119'>MUST NOT</span> be used on an interface that
-              has any <a class='dfnref' href='#dfn-inherited-interfaces'>inherited interfaces</a>.
-            </p>
-            <div class='note'>
-              <p>
-                Interfaces using <a class='xattr' href='#ArrayClass'>[ArrayClass]</a> will
-                need to define a “length” <a class='dfnref' href='#dfn-attribute'>attribute</a>
-                of type <span class='estype'>unsigned long</span> that exposes the length
-                of the array-like object, in order for the inherited <span class='estype'>Array</span>
-                methods to operate correctly.  Such interfaces would typically also
-                <a class='dfnref' href='#dfn-support-indexed-properties'>support indexed properties</a>,
-                which would provide access to the array elements.
-              </p>
-            </div>
-            <p>
-              See <a href='#interface-prototype-object'>section <?sref interface-prototype-object?></a> for the
-              specific requirements that the use of <a class='xattr' href='#ArrayClass'>[ArrayClass]</a>
-              entails.
-            </p>
-            <div class='example'>
-              <p>
-                The following <a class='dfnref' href='#dfn-idl-fragment'>IDL fragment</a>
-                defines two <a class='dfnref' href='#dfn-interface'>interfaces</a>
-                that use <a class='xattr' href='#ArrayClass'>[ArrayClass]</a>.
-              </p>
-              <x:codeblock language='idl'>[ArrayClass]
-interface ItemList {
-  attribute unsigned long length;
-  getter object getItem(unsigned long index);
-  setter object setItem(unsigned long index, object item);
-};
-
-[ArrayClass]
-interface ImmutableItemList {
-  readonly attribute unsigned long length;
-  getter object getItem(unsigned long index);
-};</x:codeblock>
-              <p>
-                In an ECMAScript implementation of the above two interfaces,
-                with appropriate definitions for getItem, setItem and removeItem,
-                <span class='estype'>Array</span> methods to inspect and
-                modify the array-like object can be used.
-              </p>
-              <x:codeblock language='es'>var list = getItemList();  <span class='comment'>// Obtain an instance of ItemList.</span>
-
-list.concat();             <span class='comment'>// Clone the ItemList into an Array.</span>
-list.pop();                <span class='comment'>// Remove an item from the ItemList.</span>
-list.unshift({ });         <span class='comment'>// Insert an item at index 0.</span></x:codeblock>
-              <p>
-                <span class='idltype'>ImmutableItemList</span> has a read only
-                length <a class='dfnref' href='#dfn-attribute'>attribute</a>
-                and no indexed property <a class='dfnref' href='#dfn-indexed-property-setter'>setter</a>.  The
-                mutating <span class='estype'>Array</span> methods will generally not
-                succeed on objects implementing <span class='idltype'>ImmutableItemList</span>.
-                The exact behavior depends on the definition of <a class="external" href="http://people.mozilla.org/~jorendorff/es6-draft.html#sec-properties-of-the-array-prototype-object">the <span class='estype'>Array</span> methods
-                  themselves</a> (<a href='#ref-ECMA-262'>[ECMA-262]</a>, section 22.1.3).
-              </p>
-            </div>
-          </div>
 
           <div id='Clamp' class='section'>
             <h4>[Clamp]</h4>
@@ -9379,6 +9011,83 @@ interface Window {
             </div>
           </div>
 
+          <div id='LegacyArrayClass' class='section'>
+            <h4>[LegacyArrayClass]</h4>
+
+            <p>
+              If the <a class='xattr' href='#LegacyArrayClass'>[LegacyArrayClass]</a>
+              <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
+              appears on an <a class='dfnref' href='#dfn-interface'>interface</a>
+              that is not defined to <a class='dfnref' href='#dfn-inherit'>inherit</a>
+              from another, it indicates that the internal <span class='prop'>[[Prototype]]</span>
+              property of its <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype object</a>
+              will be the <span class='estype'>Array</span> prototype object rather than
+              the <span class='estype'>Object</span> prototype object.  This allows
+              <span class='estype'>Array</span> methods to be used more easily
+              with objects implementing the interface.
+            </p>
+            <p>
+              The <a class='xattr' href='#LegacyArrayClass'>[LegacyArrayClass]</a> extended attribute
+              <span class='rfc2119'>MUST</span> <a class='dfnref' href='#dfn-xattr-no-arguments'>take no arguments</a>.
+              It <span class='rfc2119'>MUST NOT</span> be used on an interface that
+              has any <a class='dfnref' href='#dfn-inherited-interfaces'>inherited interfaces</a>.
+            </p>
+            <div class='note'>
+              <p>
+                Interfaces using <a class='xattr' href='#LegacyArrayClass'>[LegacyArrayClass]</a> will
+                need to define a “length” <a class='dfnref' href='#dfn-attribute'>attribute</a>
+                of type <span class='estype'>unsigned long</span> that exposes the length
+                of the array-like object, in order for the inherited <span class='estype'>Array</span>
+                methods to operate correctly.  Such interfaces would typically also
+                <a class='dfnref' href='#dfn-support-indexed-properties'>support indexed properties</a>,
+                which would provide access to the array elements.
+              </p>
+            </div>
+            <p>
+              See <a href='#interface-prototype-object'>section <?sref interface-prototype-object?></a> for the
+              specific requirements that the use of <a class='xattr' href='#LegacyArrayClass'>[LegacyArrayClass]</a>
+              entails.
+            </p>
+            <div class='example'>
+              <p>
+                The following <a class='dfnref' href='#dfn-idl-fragment'>IDL fragment</a>
+                defines two <a class='dfnref' href='#dfn-interface'>interfaces</a>
+                that use <a class='xattr' href='#LegacyArrayClass'>[LegacyArrayClass]</a>.
+              </p>
+              <x:codeblock language='idl'>[LegacyArrayClass]
+interface ItemList {
+  attribute unsigned long length;
+  getter object getItem(unsigned long index);
+  setter object setItem(unsigned long index, object item);
+};
+
+[LegacyArrayClass]
+interface ImmutableItemList {
+  readonly attribute unsigned long length;
+  getter object getItem(unsigned long index);
+};</x:codeblock>
+              <p>
+                In an ECMAScript implementation of the above two interfaces,
+                with appropriate definitions for getItem, setItem and removeItem,
+                <span class='estype'>Array</span> methods to inspect and
+                modify the array-like object can be used.
+              </p>
+              <x:codeblock language='es'>var list = getItemList();  <span class='comment'>// Obtain an instance of ItemList.</span>
+
+list.concat();             <span class='comment'>// Clone the ItemList into an Array.</span>
+list.pop();                <span class='comment'>// Remove an item from the ItemList.</span>
+list.unshift({ });         <span class='comment'>// Insert an item at index 0.</span></x:codeblock>
+              <p>
+                <span class='idltype'>ImmutableItemList</span> has a read only
+                length <a class='dfnref' href='#dfn-attribute'>attribute</a>
+                and no indexed property <a class='dfnref' href='#dfn-indexed-property-setter'>setter</a>.  The
+                mutating <span class='estype'>Array</span> methods will generally not
+                succeed on objects implementing <span class='idltype'>ImmutableItemList</span>.
+                The exact behavior depends on the definition of <a class="external" href="http://people.mozilla.org/~jorendorff/es6-draft.html#sec-properties-of-the-array-prototype-object">the <span class='estype'>Array</span> methods
+                  themselves</a> (<a href='#ref-ECMA-262'>[ECMA-262]</a>, section 22.1.3).
+              </p>
+            </div>
+          </div>
           <div id='LenientThis' class='section'>
             <h4>[LenientThis]</h4>
             <p>
@@ -10052,8 +9761,8 @@ counter.value;                                           <span class='comment'>/
               extended attribute <span class='rfc2119'>MUST NOT</span>
               be used on anything other than a <a class='dfnref' href='#dfn-read-only'>read only</a>
               <a class='dfnref' href='#dfn-attribute'>attribute</a>
-              whose type is an <a href='#idl-interface'>interface type</a>,
-              an <a href='#idl-array'>array type</a> or <span class='idltype'>object</span>.
+              whose type is an <a href='#idl-interface'>interface type</a>
+              or <span class='idltype'>object</span>.
             </p>
             <div class='example'>
               <p>
@@ -10791,7 +10500,8 @@ with (thing) {
                       following types at position <var>i</var> of its type list,
                       <ul>
                         <li>a <a href='#idl-sequence'>sequence type</a></li>
-                        <li>a <a class='dfnref' href='#dfn-nullable-type'>nullable</a> <a href='#idl-sequence'>sequence type</a></li>
+                        <li>a <a href='#idl-frozen-array'>frozen array type</a></li>
+                        <li>a <a class='dfnref' href='#dfn-nullable-type'>nullable</a> version of any of the above types</li>
                         <li>a <a class='dfnref' href='#dfn-union-type'>union type</a> or <a class='dfnref' href='#dfn-nullable-type'>nullable</a> union type
                            that has one of the above types in its <a class='dfnref' href='#dfn-flattened-union-member-types'>flattened member types</a></li>
 
@@ -10817,7 +10527,6 @@ with (thing) {
                       a native <span class='estype'>RegExp</span> object, and
                       there is an entry in <var>S</var> that has one of the following types at position <var>i</var> of its type list,
                       <ul>
-                        <li>an <a href='#idl-array'>array type</a></li>
                         <li>a <a class='dfnref' href='#dfn-callback-interface'>callback interface</a> type</li>
                         <li>a <a href='#idl-dictionary'>dictionary type</a></li>
                         <li><span class='idltype'>object</span></li>
@@ -10913,9 +10622,18 @@ with (thing) {
                       type list of the remaining entry in <var>S</var>.
                     </li>
                     <li>
-                      Append to <var>values</var> the result of
+                      If <var>T</var> is a <a href='#idl-sequence'>sequence type</a>, then
+                      append to <var>values</var> the result of
                       <a class='dfnref'
                          href='#create-sequence-from-iterable'>creating a sequence
+                      of type <var>T</var> from
+                      <var>V</var> and <var>method</var></a>.
+                    </li>
+                    <li>
+                      Otherwise, <var>T</var> is a <a href='#idl-frozen-array'>frozen array type</a>.
+                      Append to <var>values</var> the result of
+                      <a class='dfnref'
+                         href='#create-frozen-array-from-iterable'>creating a frozen array
                       of type <var>T</var> from
                       <var>V</var> and <var>method</var></a>.
                     </li>
@@ -11341,7 +11059,7 @@ with (thing) {
               interface, then return the
               <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype object</a>
               for the inherited interface.</li>
-              <li>Otherwise, if <var>A</var> is declared with the <a class='xattr' href='#ArrayClass'>[ArrayClass]</a>
+              <li>Otherwise, if <var>A</var> is declared with the <a class='xattr' href='#LegacyArrayClass'>[LegacyArrayClass]</a>
               extended attribute, then return <a>%ArrayPrototype%</a>.</li>
               <li>Otherwise, return <a>%ObjectPrototype%</a>.
               (<a href="#ref-ECMA-262">[ECMA-262]</a>, section 15.2.4).</li>
@@ -11436,7 +11154,7 @@ partial interface Window {
               <li>If <var>A</var> is declared to inherit from another interface, then return the
               <a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype object</a>
               for the inherited interface.</li>
-              <li>Otherwise, if <var>A</var> is declared with the <a class='xattr' href='#ArrayClass'>[ArrayClass]</a>
+              <li>Otherwise, if <var>A</var> is declared with the <a class='xattr' href='#LegacyArrayClass'>[LegacyArrayClass]</a>
               extended attribute, then return <a>%ArrayPrototype%</a>.</li>
               <li>Otherwise, return <a>%ObjectPrototype%</a>.</li>
             </ol>
@@ -14700,7 +14418,8 @@ d.type = et;
           Anton Tayanovskyy,
           Peter Van der Beken,
           Jeff Walden,
-          Allen Wirfs-Brock and
+          Allen Wirfs-Brock,
+          Jeffrey Yasskin and
           Collin Xu.
         </p>
         <p>
@@ -14904,7 +14623,7 @@ d.type = et;
           <prod nt='Other'>
               integer | float | identifier | string <!--| whitespace--> | other
             | "-" | "-Infinity" | "." | "..." | ":" | ";" | "&lt;" | "=" | ">" | "?"
-            | "ByteString" | "Date" | "DOMString" | "Infinity" | "NaN" | "RegExp" | "USVString" | "any" | "boolean" | "byte" | "double" | "false" | "float"
+            | "ByteString" | "Date" | "DOMString" | "FrozenArray" | "Infinity" | "NaN" | "RegExp" | "USVString" | "any" | "boolean" | "byte" | "double" | "false" | "float"
             | "long" | "null" | "object" | "octet" | "or" | "optional" | "sequence"
             | "short" | "true" | "unsigned" | "void"
             | ArgumentNameKeyword
@@ -14918,12 +14637,12 @@ d.type = et;
           </prod>
           <prod nt='OtherOrComma'>Other | ","</prod>
 
-          <prod nt='Type'>SingleType | UnionType TypeSuffix</prod>
-          <prod nt='SingleType'>NonAnyType | "any" TypeSuffixStartingWithArray</prod>
+          <prod nt='Type'>SingleType | UnionType Null</prod>
+          <prod nt='SingleType'>NonAnyType | "any"</prod>
           <prod nt='UnionType'>"(" UnionMemberType "or" UnionMemberType UnionMemberTypes ")"</prod>
-          <prod nt='UnionMemberType'>NonAnyType | UnionType TypeSuffix | "any" "[" "]" TypeSuffix</prod>
+          <prod nt='UnionMemberType'>NonAnyType | UnionType Null</prod>
           <prod nt='UnionMemberTypes'>"or" UnionMemberType UnionMemberTypes | ε</prod>
-          <prod nt='NonAnyType'>PrimitiveType TypeSuffix | PromiseType Null | "ByteString" TypeSuffix | "DOMString" TypeSuffix | "USVString" TypeSuffix | identifier TypeSuffix | "sequence" "&lt;" Type ">" Null | "object" TypeSuffix | "Date" TypeSuffix | "RegExp" TypeSuffix | "Error" TypeSuffix | "DOMException" TypeSuffix | BufferRelatedType TypeSuffix</prod>
+          <prod nt='NonAnyType'>PrimitiveType Null | PromiseType Null | "ByteString" Null | "DOMString" Null | "USVString" Null | identifier Null | "sequence" "&lt;" Type ">" Null | "object" Null | "Date" Null | "RegExp" Null | "Error" Null | "DOMException" Null | BufferRelatedType Null | "FrozenArray" "&lt;" Type ">" Null</prod>
           <prod nt='BufferRelatedType'>"ArrayBuffer" | "DataView" | "Int8Array" | "Int16Array" | "Int32Array" | "Uint8Array" | "Uint16Array" | "Uint32Array" | "Uint8ClampedArray" | "Float32Array" | "Float64Array"</prod>
           <prod nt='ConstType'>PrimitiveType Null | identifier Null</prod>
           <prod nt='PrimitiveType'>UnsignedIntegerType | UnrestrictedFloatType | "boolean" | "byte" | "octet"</prod>
@@ -14933,8 +14652,6 @@ d.type = et;
           <prod nt='IntegerType'>"short" | "long" OptionalLong</prod>
           <prod nt='OptionalLong'>"long" | ε</prod>
           <prod nt='PromiseType'>"Promise" "&lt;" ReturnType "&gt;"</prod>
-          <prod nt='TypeSuffix'>"[" "]" TypeSuffix | "?" TypeSuffixStartingWithArray | ε</prod>
-          <prod nt='TypeSuffixStartingWithArray'>"[" "]" TypeSuffix | ε</prod>
           <prod nt='Null'>"?" | ε</prod>
           <prod nt='ReturnType'>Type | "void"</prod>
 
@@ -15211,6 +14928,21 @@ d.type = et;
           <dt>Current editor’s draft</dt>
           <dd>
             <ul>
+              <li>
+                <p>
+                  Added a <span class='idltype'>FrozenArray&lt;<var>T</var>&gt;</span> type.
+                </p>
+              </li>
+              <li>
+                <p>
+                  Renamed <span class='xattr'>[ArrayClass]</span> to <span class='xattr'>[LegacyArrayClass]</span>.
+                </p>
+              </li>
+              <li>
+                <p>
+                  Removed <span class='idltype'><var>T</var>[]</span> array types.
+                </p>
+              </li>
               <li>
                 <p>
                   Allowed <span class='xattr'>[NewObject]</span> to be used on things with
