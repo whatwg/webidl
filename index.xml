@@ -1470,6 +1470,7 @@ attribute <i>type</i> <i>identifier</i> inherits getter setraises(<i>scoped-name
               <a class='xattr' href='#EnforceRange'>[EnforceRange]</a>,
               <a class='xattr' href='#Exposed'>[Exposed]</a>,
               <a class='xattr' href='#SameObject'>[SameObject]</a>,
+              <a class='xattr' href='#SecureContext'>[SecureContext]</a>,
               <a class='xattr' href='#TreatNullAs'>[TreatNullAs]</a>.
             </p>
 
@@ -8616,13 +8617,26 @@ context.setColorEnforcedRange(-1, 255, 256);</x:codeblock>
             </p>
             <p>
               An <a class='dfnref' href='#dfn-interface'>interface</a>,
-              <a class='dfnref' href='#dfn-interface-member'>interface member</a> or
-              <a class='dfnref' href='#dfn-dictionary'>dictionary</a>
-              is <dfn id='dfn-exposed'>exposed</dfn> in a given ECMAScript global environment if
-              the ECMAScript global object implements an interface that is in the
-              interface, interface member or dictionary's
-              <a class='dfnref' href='#dfn-exposure-set'>exposure set</a>.
+              <a class='dfnref' href='#dfn-interface-member'>interface member</a>
+              or <a class='dfnref' href='#dfn-dictionary'>dictionary</a> is
+              <dfn id='dfn-exposed'>exposed</dfn> in a given ECMAScript global
+              environment if both of the following criteria are true:
             </p>
+            <ol>
+              <li>
+                The ECMAScript global object implements an interface that is in
+                the interface, interface member, or dictionary's
+                <a class='dfnref' href='#dfn-exposure-set'>exposure set</a>.
+              </li>
+              <li>
+                The interface, interface member, or dictionary does not
+                <a class="dfnref" href="#dfn-require-secure-context">require a
+                secure context</a>, or the ECMAScript global object is a
+                <a href='https://w3c.github.io/webappsec-secure-contexts/#secure-context'>secure context</a>
+                (<a href='#ref-SECURE-CONTEXTS'>[SECURE-CONTEXTS]</a>, section
+                2).
+              </li>
+            </ol>
             <p>
               See
               <a href='#es-interfaces'>section <?sref es-interfaces?></a>,
@@ -9708,6 +9722,106 @@ counter.value;                                           <span class='comment'>/
   [SameObject] readonly attribute DOMImplementation implementation;
   ...
 };</x:codeblock>
+            </div>
+          </div>
+
+          <div id='SecureContext' class='section'>
+            <h4>[SecureContext]</h4>
+
+            <p>
+              If the <a class='xattr' href='#SecureContext'>[SecureContext]</a>
+              <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
+              appears on an <a class="dfnref" href="#dfn-interface">interface</a>,
+              <a class="dfnref" href="#dfn-partial-interface">partial interface</a>,
+              an individual
+              <a class="dfnref" href="#dfn-interface-member">interface member</a>,
+              or <a class="dfnref" href="#dfn-dictionary">dictionary</a> with a
+              <a class="dfnref" href="#es-dictionary-constructors">constructor</a>,
+              it indicates the the interface, interface member, or constructor is
+              <a class="dfnref" href="#dfn-exposed">exposed</a> only within
+              ECMAScript global environments which are
+              <a href='https://w3c.github.io/webappsec-secure-contexts/#secure-context'>secure context</a>
+              (<a href='#ref-SECURE-CONTEXTS'>[SECURE-CONTEXTS]</a>, section 2).
+              This behavior is explained in the definition of
+              "<a class="dfnref" href="#dfn-exposed">exposed</a>".
+            </p>
+            <p>
+              It is possible for a context to shift from secure to non-secure at
+              runtime if it takes some action which the user agent designates as
+              insecure. In these cases, it's possible that a reference to an
+              interface, interface member, or constructor could be obtained while
+              the context is secure, but executed when the context is non-secure.
+              In these cases the execution will either throw a
+              <a href="#securityerror">SecurityError</a> directly, or return a
+              <span class="estype">Promise</span> object rejected with a
+              <a href="#securityerror">SecurityError</a>, as appropriate.
+            </p>
+            <p>
+              This behavior is defined in more detail in the
+              <a class='dfnref' href='#dfn-perform-a-security-check'>perform a
+              security check</a> algorithm.
+            </p>
+            <p>
+              The <a class='xattr' href='#SecureContext'>[SecureContext]</a>
+              extended attribute <span class='rfc2119'>MUST</span>
+              <a class='dfnref' href='#dfn-xattr-no-arguments'>take no arguments</a>.
+            </p>
+            <p>
+              A construct <dfn id="dfn-require-secure-context">requires a secure
+              context</dfn> explicitly if it specifies
+              <a class='xattr' href='#SecureContext'>[SecureContext]</a>
+              directly, or implicitly if the following statements associated
+              with the type of construct are true:
+            </p>
+            <dl class='switch'>
+              <dt>interface</dt>
+              <dt>dictionary</dt>
+              <dd>
+                The interface or dictionary
+                <a class="dfnref" href="#dfn-require-secure-context">requires a
+                secure context</a> if it <a class="dfnref" href="#dfn-inherits">inherits</a>
+                from an interface or dictionary which
+                <a class="dfnref" href="#dfn-require-secure-context">requires a
+                secure context</a>.
+              </dd>
+              <dt>partial interface</dt>
+              <dd>
+                The partial interface
+                <a class="dfnref" href="#dfn-require-secure-context">requires a
+                secure context</a> if the original interface definition
+                <a class="dfnref" href="#dfn-require-secure-context">requires a
+                secure context</a>.
+              </dd>
+              <dt>interface member</dt>
+              <dd>
+                The interface member
+                <a class="dfnref" href="#dfn-require-secure-context">requires a
+                secure context</a> if the interface or partial interface the
+                member is declared on
+                <a class="dfnref" href="#dfn-require-secure-context">requires a
+                secure context</a>.
+              </dd>
+            </dl>
+            <div class='example'>
+              The following <a class='dfnref' href='#dfn-idl-fragment'>IDL fragment</a> defines an interface
+              with one <a class='dfnref' href='#dfn-operation'>operation</a> that is executable from all
+              contexts, and two which are executable only from secure contexts.
+
+              <x:codeblock language='idl'>interface PowerfulFeature {
+  // This call will succeed in all contexts.
+  Promise &lt;Result&gt; calculateNotSoSecretResult();
+
+  // This operation will not be exposed to a non-secure context. If such a context
+  // is somehow able to call it despite this precaution, the Promise will be
+  // immedietely rejected with a '<a href='#securityerror'>SecurityError</a>' exception.
+  [SecureContext] Promise&lt;Result&gt; calculateSecretResult();
+
+  // The same applies here: the operation will not be exposed to a non-secure context,
+  // and if somehow called from a non-secure context, a '<a href='#securityerror'>SecurityError</a>'
+  // exception will be thrown.
+  [SecureContext] boolean getSecretBoolean();
+};</x:codeblock>
+
             </div>
           </div>
 
@@ -11318,6 +11432,12 @@ interface
                         then <a class='dfnref' href='#dfn-perform-a-security-check'>perform a security check</a> on <var>O</var>
                         with the ECMAScript global environment associated with this <span class='estype'>Function</span> that
                         implements the <a class='dfnref' href='#dfn-attribute-getter'>attribute getter</a>.</li>
+                      <li>If the attribute <a class="dfnref" href="#dfn-require-secure-context">requires a secure context</a>, and the
+                        <a class='dfnref external' href='https://html.spec.whatwg.org/multipage/webappapis.html#relevant-settings-object'>relevant settings object</a>
+                        for the ECMAScript global environment associated with the <span class='estype'>Function</span> that implements the
+                        <a class='dfnref' href='#dfn-attribute-getter'>attribute getter</a> is not a
+                        <a href='https://w3c.github.io/webappsec-secure-contexts/#secure-context'>secure context</a>,
+                        then <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>SecurityError</span></a>.</li>
                       <li>If <var>O</var> is not a <a class='dfnref' href='#dfn-platform-object'>platform object</a> that implements <var>I</var>, then:
                         <ol>
                           <li>If the <a class='dfnref' href='#dfn-attribute'>attribute</a> was specified with the
@@ -11367,6 +11487,12 @@ interface
                         then <a class='dfnref' href='#dfn-perform-a-security-check'>perform a security check</a> on <var>O</var>
                         with the ECMAScript global environment associated with this <span class='estype'>Function</span> that
                         implements the <a class='dfnref' href='#dfn-attribute-setter'>attribute setter</a>.</li>
+                      <li>If the attribute <a class="dfnref" href="#dfn-require-secure-context">requires a secure context</a>, and the
+                        <a class='dfnref external' href='https://html.spec.whatwg.org/multipage/webappapis.html#relevant-settings-object'>relevant settings object</a>
+                        for the ECMAScript global environment associated with the <span class='estype'>Function</span> that implements the
+                        <a class='dfnref' href='#dfn-attribute-setter'>attribute setter</a> is not a
+                        <a href='https://w3c.github.io/webappsec-secure-contexts/#secure-context'>secure context</a>,
+                        then <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>SecurityError</span></a>.</li>
                       <li>Let <var>validThis</var> be <span class='esvalue'>true</span> if <var>O</var> is a
                         <a class='dfnref' href='#dfn-platform-object'>platform object</a> that implements <var>I</var>, or
                         <span class='esvalue'>false</span> otherwise.</li>
@@ -11450,9 +11576,22 @@ interface
               of an <a class='dfnref' href='#dfn-exposed'>exposed</a> <a class='dfnref' href='#dfn-operation'>operation</a>
               defined on the <a class='dfnref' href='#dfn-interface'>interface</a>, there
               <span class='rfc2119'>MUST</span> exist a corresponding property,
-              unless the <a class='dfnref' href='#dfn-effective-overload-set'>effective overload set</a>
-              for that <a class='dfnref' href='#dfn-identifier'>identifier</a> and <a class='dfnref' href='#dfn-operation'>operation</a>
-              and with an argument count of 0 has no entries.
+              unless one of the following statements is true:
+            </p>
+            <ol>
+              <li>The <a class='dfnref' href='#dfn-effective-overload-set'>effective overload set</a>
+              for that <a class='dfnref' href='#dfn-identifier'>identifier</a> and
+              <a class='dfnref' href='#dfn-operation'>operation</a> and with an argument count of 0
+              has no entries</li>
+
+              <li>The <a class='xattr' href='#SecureContext'>[SecureContext]</a>
+              <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
+              is present on the <a class='dfnref' href='#dfn-operation'>operation</a>,
+              and the ECCMAScript global environment is not a
+              <a href='https://w3c.github.io/webappsec-secure-contexts/#secure-context'>secure context</a>
+              (<a href='#ref-SECURE-CONTEXTS'>[SECURE-CONTEXTS]</a>, section 2)</li>
+            </ol>
+            <p>
               The characteristics of this property are as follows:
             </p>
             <ul>
@@ -11528,8 +11667,15 @@ interface
                       </li>
                       <li>If <var>O</var> is a <a class='dfnref' href='#dfn-platform-object'>platform object</a>,
                         then <a class='dfnref' href='#dfn-perform-a-security-check'>perform a security check</a> on <var>O</var>
-                        with the ECMAScript global environment associated with this <span class='estype'>Function</span> that
+                        with the ECMAScript global environment associated with the <span class='estype'>Function</span> that
                         implements the <a class='dfnref' href='#dfn-operation'>operation</a>.</li>
+                      <li>
+                        If the <a class='dfnref' href='#dfn-operation'>operation</a> <a class="dfnref" href="#dfn-require-secure-context">requires a secure context</a>, and the
+                        <a class='dfnref external' href='https://html.spec.whatwg.org/multipage/webappapis.html#relevant-settings-object'>relevant settings object</a>
+                        for the ECMAScript global environment associated with the <span class='estype'>Function</span> that implements the
+                        <a class='dfnref' href='#dfn-operation'>operation</a> is not a <a href='https://w3c.github.io/webappsec-secure-contexts/#secure-context'>secure context</a>,
+                        then <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>SecurityError</span></a>.
+                      </li>
                       <li>
                         If <var>O</var> is not <span class='esvalue'>null</span> and is also not a <a class='dfnref' href='#dfn-platform-object'>platform object</a>
                         that implements interface <var>I</var>, <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>TypeError</span></a>.
@@ -11628,6 +11774,12 @@ interface
                       then <a class='dfnref' href='#dfn-perform-a-security-check'>perform a security check</a> on <var>O</var>
                       with the ECMAScript global environment associated with this <span class='estype'>Function</span> that
                       implements the <a class='dfnref' href='#dfn-stringifier'>stringifier</a>.</li>
+                    <li>If the interface <a class="dfnref" href="#dfn-require-secure-context">requires a secure context</a>, and the
+                      <a class='dfnref external' href='https://html.spec.whatwg.org/multipage/webappapis.html#relevant-settings-object'>relevant settings object</a>
+                      for the ECMAScript global environment associated with the <span class='estype'>Function</span> that implements the
+                      <a class='dfnref' href='#dfn-attribute-stringifier'>stringifier</a> is not a
+                      <a href='https://w3c.github.io/webappsec-secure-contexts/#secure-context'>secure context</a>,
+                      then <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>SecurityError</span></a>.</li>
                     <li>If <var>O</var> is not an object that implements the <a class='dfnref' href='#dfn-interface'>interface</a>
                       on which the stringifier was declared, then <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>TypeError</span></a>.</li>
                     <li>Let <var>V</var> be an uninitialized variable.</li>
@@ -11691,6 +11843,12 @@ interface
                   then <a class='dfnref' href='#dfn-perform-a-security-check'>perform a security check</a> on <var>O</var>
                   with the ECMAScript global environment associated with this <span class='estype'>Function</span> that
                   implements the <a class='dfnref' href='#dfn-serializer'>serializer</a>.</li>
+                <li>If the interface <a class="dfnref" href="#dfn-require-secure-context">requires a secure context</a>, and the
+                  <a class='dfnref external' href='https://html.spec.whatwg.org/multipage/webappapis.html#relevant-settings-object'>relevant settings object</a>
+                  for the ECMAScript global environment associated with the <span class='estype'>Function</span> that implements the
+                  <a class='dfnref' href='#dfn-serializer'>serializer</a> is not a
+                  <a href='https://w3c.github.io/webappsec-secure-contexts/#secure-context'>secure context</a>,
+                  then <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>SecurityError</span></a>.</li>
                 <li>If <var>O</var> is not an object that implements the <a class='dfnref' href='#dfn-interface'>interface</a>
                   on which the serializer was declared, then <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>TypeError</span></a>.</li>
                 <li>Depending on how <code>serializer</code> was specified:
@@ -11823,6 +11981,11 @@ interface
                 <li>If <var>object</var> is a <a class='dfnref' href='#dfn-platform-object'>platform object</a>,
                   then <a class='dfnref' href='#dfn-perform-a-security-check'>perform a security check</a> on <var>object</var>
                   with the ECMAScript global environment associated with this <span class='estype'>Function</span>.</li>
+                <li>If the declaration <a class="dfnref" href="#dfn-require-secure-context">requires a secure context</a>, and the
+                  <a class='dfnref external' href='https://html.spec.whatwg.org/multipage/webappapis.html#relevant-settings-object'>relevant settings object</a>
+                  for the ECMAScript global environment associated with this <span class='estype'>Function</span> is not a
+                  <a href='https://w3c.github.io/webappsec-secure-contexts/#secure-context'>secure context</a>,
+                  then <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>SecurityError</span></a>.</li>
                 <li>Let <var>interface</var> be the <a class='dfnref' href='#dfn-interface'>interface</a>
                   the <a class='dfnref' href='#dfn-iterable-declaration'>iterable declaration</a> is on.</li>
                 <li>If <var>object</var> is not a <a class='dfnref' href='#dfn-platform-object'>platform object</a>
@@ -11848,6 +12011,11 @@ interface
                 <li>If <var>object</var> is a <a class='dfnref' href='#dfn-platform-object'>platform object</a>,
                   then <a class='dfnref' href='#dfn-perform-a-security-check'>perform a security check</a> on <var>object</var>
                   with the ECMAScript global environment associated with this <span class='estype'>Function</span>.</li>
+                <li>If the declaration <a class="dfnref" href="#dfn-require-secure-context">requires a secure context</a>, and the
+                  <a class='dfnref external' href='https://html.spec.whatwg.org/multipage/webappapis.html#relevant-settings-object'>relevant settings object</a>
+                  for the ECMAScript global environment associated with this <span class='estype'>Function</span> is not a
+                  <a href='https://w3c.github.io/webappsec-secure-contexts/#secure-context'>secure context</a>,
+                  then <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>SecurityError</span></a>.</li>
                 <li>If <var>object</var> is not a <a class='dfnref' href='#dfn-platform-object'>platform object</a>
                   that implements the <a class='dfnref' href='#dfn-interface'>interface</a>
                   on which the <a class='dfnref' href='#dfn-maplike-declaration'>maplike declaration</a>
@@ -11937,9 +12105,19 @@ interface
                 <li>If <var>object</var> is a <a class='dfnref' href='#dfn-platform-object'>platform object</a>,
                   then <a class='dfnref' href='#dfn-perform-a-security-check'>perform a security check</a> on <var>object</var>
                   with the ECMAScript global environment associated with this <span class='estype'>Function</span>.</li>
+                <li>If the declaration <a class="dfnref" href="#dfn-require-secure-context">requires a secure context</a>, and the
+                  <a class='dfnref external' href='https://html.spec.whatwg.org/multipage/webappapis.html#relevant-settings-object'>relevant settings object</a>
+                  for the ECMAScript global environment associated with this <span class='estype'>Function</span> is not a
+                  <a href='https://w3c.github.io/webappsec-secure-contexts/#secure-context'>secure context</a>,
+                  then <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>SecurityError</span></a>.</li>
                 <li>Let <var>interface</var> be the <a class='dfnref' href='#dfn-interface'>interface</a>
                   on which the <a class='dfnref' href='#dfn-maplike-declaration'>maplike declaration</a>
                   or <a class='dfnref' href='#dfn-setlike-declaration'>setlike declaration</a> is declared.</li>
+                <li>If <var>interface</var> <a class="dfnref" href="#dfn-require-secure-context">requires a secure context</a>, and the
+                  <a class='dfnref external' href='https://html.spec.whatwg.org/multipage/webappapis.html#relevant-settings-object'>relevant settings object</a>
+                  for the ECMAScript global environment associated with this <span class='estype'>Function</span> is not a
+                  <a href='https://w3c.github.io/webappsec-secure-contexts/#secure-context'>secure context</a>,
+                  then <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>SecurityError</span></a>.</li>
                 <li>If <var>object</var> is not a <a class='dfnref' href='#dfn-platform-object'>platform object</a>
                   that implements <var>interface</var>,
                   then <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>TypeError</span></a>.</li>
@@ -12014,6 +12192,11 @@ interface
                 <li>If <var>object</var> is a <a class='dfnref' href='#dfn-platform-object'>platform object</a>,
                   then <a class='dfnref' href='#dfn-perform-a-security-check'>perform a security check</a> on <var>object</var>
                   with the ECMAScript global environment associated with this <span class='estype'>Function</span>.</li>
+                <li>If the <a class='dfnref' href='#dfn-iterable-declaration'>iterable declaration</a> <a class="dfnref" href="#dfn-require-secure-context">requires a secure context</a>, and the
+                  <a class='dfnref external' href='https://html.spec.whatwg.org/multipage/webappapis.html#relevant-settings-object'>relevant settings object</a>
+                  for the ECMAScript global environment associated with this <span class='estype'>Function</span> is not a
+                  <a href='https://w3c.github.io/webappsec-secure-contexts/#secure-context'>secure context</a>,
+                  then <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>SecurityError</span></a>.</li>
                 <li>Let <var>interface</var> be the <a class='dfnref' href='#dfn-interface'>interface</a>
                   on which the <a class='dfnref' href='#dfn-iterable-declaration'>iterable declaration</a> is declared on.</li>
                 <li>If <var>object</var> is not a <a class='dfnref' href='#dfn-platform-object'>platform object</a>
@@ -12057,6 +12240,11 @@ interface
                 <li>If <var>object</var> is a <a class='dfnref' href='#dfn-platform-object'>platform object</a>,
                   then <a class='dfnref' href='#dfn-perform-a-security-check'>perform a security check</a> on <var>object</var>
                   with the ECMAScript global environment associated with this <span class='estype'>Function</span>.</li>
+                <li>If the <a class='dfnref' href='#dfn-iterable-declaration'>iterable declaration</a> <a class="dfnref" href="#dfn-require-secure-context">requires a secure context</a>, and the
+                  <a class='dfnref external' href='https://html.spec.whatwg.org/multipage/webappapis.html#relevant-settings-object'>relevant settings object</a>
+                  for the ECMAScript global environment associated with this <span class='estype'>Function</span> is not a
+                  <a href='https://w3c.github.io/webappsec-secure-contexts/#secure-context'>secure context</a>,
+                  then <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>SecurityError</span></a>.</li>
                 <li>Let <var>interface</var> be the <a class='dfnref' href='#dfn-interface'>interface</a>
                   on which the <a class='dfnref' href='#dfn-iterable-declaration'>iterable declaration</a> is declared on.</li>
                 <li>If <var>object</var> is not a <a class='dfnref' href='#dfn-platform-object'>platform object</a>
@@ -12159,6 +12347,11 @@ interface
                   then <a class='dfnref' href='#dfn-perform-a-security-check'>perform a security check</a> on <var>object</var>
                   with the ECMAScript global environment associated with this <span class='estype'>Function</span> that
                   implements the iterator’s <code>next</code> method.</li>
+                <li>If the <a class='dfnref' href='#dfn-iterable-declaration'>iterable declaration</a> <a class="dfnref" href="#dfn-require-secure-context">requires a secure context</a>, and the
+                  <a class='dfnref external' href='https://html.spec.whatwg.org/multipage/webappapis.html#relevant-settings-object'>relevant settings object</a>
+                  for the ECMAScript global environment associated with this <span class='estype'>Function</span> is not a
+                  <a href='https://w3c.github.io/webappsec-secure-contexts/#secure-context'>secure context</a>,
+                  then <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>SecurityError</span></a>.</li>
                 <li>If <var>object</var> is not a <a class='dfnref' href='#dfn-default-iterator-object'>default iterator object</a> for <var>interface</var>,
                   then <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>TypeError</span></a>.</li>
                 <li>Let <var>target</var> be <var>object</var>’s target.</li>
@@ -12250,6 +12443,11 @@ interface
               <li>If <var>O</var> is a <a class='dfnref' href='#dfn-platform-object'>platform object</a>,
                 then <a class='dfnref' href='#dfn-perform-a-security-check'>perform a security check</a> on <var>O</var>
                 with the ECMAScript global environment associated with this <span class='estype'>Function</span>.</li>
+              <li>If the <a class='dfnref' href='#dfn-maplike-declaration'>maplike declaration</a> <a class="dfnref" href="#dfn-require-secure-context">requires a secure context</a>, and the
+                <a class='dfnref external' href='https://html.spec.whatwg.org/multipage/webappapis.html#relevant-settings-object'>relevant settings object</a>
+                for the ECMAScript global environment associated with this <span class='estype'>Function</span> is not a
+                <a href='https://w3c.github.io/webappsec-secure-contexts/#secure-context'>secure context</a>,
+                then <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>SecurityError</span></a>.</li>
               <li>If <var>O</var> is not an object that implements <var>A</var>, then <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>TypeError</span></a>.</li>
               <li>Let <var>map</var> be the <span class='estype'>Map</span> object that is the value of <var>O</var>’s [[BackingMap]] <a>internal slot</a>.</li>
               <li>Let <var>function</var> be the result of calling the [[Get]] internal method of <var>map</var> passing <var>name</var> and <var>map</var> as arguments.</li>
@@ -12277,6 +12475,11 @@ interface
                     <li>If <var>O</var> is a <a class='dfnref' href='#dfn-platform-object'>platform object</a>,
                       then <a class='dfnref' href='#dfn-perform-a-security-check'>perform a security check</a> on <var>O</var>
                       with the ECMAScript global environment associated with this <span class='estype'>Function</span>.</li>
+                    <li>If the <a class='dfnref' href='#dfn-maplike-declaration'>maplike declaration</a> <a class="dfnref" href="#dfn-require-secure-context">requires a secure context</a>, and the
+                      <a class='dfnref external' href='https://html.spec.whatwg.org/multipage/webappapis.html#relevant-settings-object'>relevant settings object</a>
+                      for the ECMAScript global environment associated with this <span class='estype'>Function</span> is not a
+                      <a href='https://w3c.github.io/webappsec-secure-contexts/#secure-context'>secure context</a>,
+                      then <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>SecurityError</span></a>.</li>
                     <li>If <var>O</var> is not an object that implements <var>A</var>, then <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>TypeError</span></a>.</li>
                     <li>Let <var>map</var> be the <span class='estype'>Map</span> object that is the value of <var>O</var>’s [[BackingMap]] <a>internal slot</a>.</li>
                     <li>Return the result of calling the [[Get]] internal method of <var>map</var> passing “size” and <var>map</var> as arguments.</li>
@@ -12331,6 +12534,11 @@ interface
                     <li>If <var>O</var> is a <a class='dfnref' href='#dfn-platform-object'>platform object</a>,
                       then <a class='dfnref' href='#dfn-perform-a-security-check'>perform a security check</a> on <var>O</var>
                       with the ECMAScript global environment associated with this <span class='estype'>Function</span>.</li>
+                    <li>If the <a class='dfnref' href='#dfn-maplike-declaration'>maplike declaration</a> <a class="dfnref" href="#dfn-require-secure-context">requires a secure context</a>, and the
+                      <a class='dfnref external' href='https://html.spec.whatwg.org/multipage/webappapis.html#relevant-settings-object'>relevant settings object</a>
+                      for the ECMAScript global environment associated with this <span class='estype'>Function</span> is not a
+                      <a href='https://w3c.github.io/webappsec-secure-contexts/#secure-context'>secure context</a>,
+                      then <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>SecurityError</span></a>.</li>
                     <li>If <var>O</var> is not an object that implements <var>A</var>, then <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>TypeError</span></a>.</li>
                     <li>Let <var>map</var> be the <span class='estype'>Map</span> object that is the value of <var>O</var>’s [[BackingMap]] <a>internal slot</a>.</li>
                     <li>Let <var>keyType</var> be the key type specified in the <a class='dfnref' href='#dfn-maplike-declaration'>maplike declaration</a>.</li>
@@ -12386,6 +12594,11 @@ interface
                     <li>If <var>O</var> is a <a class='dfnref' href='#dfn-platform-object'>platform object</a>,
                       then <a class='dfnref' href='#dfn-perform-a-security-check'>perform a security check</a> on <var>O</var>
                       with the ECMAScript global environment associated with this <span class='estype'>Function</span>.</li>
+                    <li>If the <a class='dfnref' href='#dfn-maplike-declaration'>maplike declaration</a> <a class="dfnref" href="#dfn-require-secure-context">requires a secure context</a>, and the
+                      <a class='dfnref external' href='https://html.spec.whatwg.org/multipage/webappapis.html#relevant-settings-object'>relevant settings object</a>
+                      for the ECMAScript global environment associated with this <span class='estype'>Function</span> is not a
+                      <a href='https://w3c.github.io/webappsec-secure-contexts/#secure-context'>secure context</a>,
+                      then <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>SecurityError</span></a>.</li>
                     <li>If <var>O</var> is not an object that implements <var>A</var>, then <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>TypeError</span></a>.</li>
                     <li>Let <var>map</var> be the <span class='estype'>Map</span> object that is the value of <var>O</var>’s [[BackingMap]] <a>internal slot</a>.</li>
                     <li>Let <var>keyType</var> be the key type specified in the <a class='dfnref' href='#dfn-maplike-declaration'>maplike declaration</a>.</li>
@@ -12421,6 +12634,11 @@ interface
                     <li>If <var>O</var> is a <a class='dfnref' href='#dfn-platform-object'>platform object</a>,
                       then <a class='dfnref' href='#dfn-perform-a-security-check'>perform a security check</a> on <var>O</var>
                       with the ECMAScript global environment associated with this <span class='estype'>Function</span>.</li>
+                    <li>If the <a class='dfnref' href='#dfn-maplike-declaration'>maplike declaration</a> <a class="dfnref" href="#dfn-require-secure-context">requires a secure context</a>, and the
+                      <a class='dfnref external' href='https://html.spec.whatwg.org/multipage/webappapis.html#relevant-settings-object'>relevant settings object</a>
+                      for the ECMAScript global environment associated with this <span class='estype'>Function</span> is not a
+                      <a href='https://w3c.github.io/webappsec-secure-contexts/#secure-context'>secure context</a>,
+                      then <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>SecurityError</span></a>.</li>
                     <li>If <var>O</var> is not an object that implements <var>A</var>, then <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>TypeError</span></a>.</li>
                     <li>Let <var>map</var> be the <span class='estype'>Map</span> object that is the value of <var>O</var>’s [[BackingMap]] <a>internal slot</a>.</li>
                     <li>Let <var>keyType</var> and <var>valueType</var> be the key and value types specified in the <a class='dfnref' href='#dfn-maplike-declaration'>maplike declaration</a>.</li>
@@ -12473,6 +12691,11 @@ interface
               <li>If <var>O</var> is a <a class='dfnref' href='#dfn-platform-object'>platform object</a>,
                 then <a class='dfnref' href='#dfn-perform-a-security-check'>perform a security check</a> on <var>O</var>
                 with the ECMAScript global environment associated with this <span class='estype'>Function</span>.</li>
+              <li>If the <a class='dfnref' href='#dfn-setlike-declaration'>setlike declaration</a> <a class="dfnref" href="#dfn-require-secure-context">requires a secure context</a>, and the
+                <a class='dfnref external' href='https://html.spec.whatwg.org/multipage/webappapis.html#relevant-settings-object'>relevant settings object</a>
+                for the ECMAScript global environment associated with this <span class='estype'>Function</span> is not a
+                <a href='https://w3c.github.io/webappsec-secure-contexts/#secure-context'>secure context</a>,
+                then <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>SecurityError</span></a>.</li>
               <li>If <var>O</var> is not an object that implements <var>A</var>, then <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>TypeError</span></a>.</li>
               <li>Let <var>set</var> be the <span class='estype'>Set</span> object that is the value of <var>O</var>’s [[BackingSet]] <a>internal slot</a>.</li>
               <li>Let <var>function</var> be the result of calling the [[Get]] internal method of <var>set</var> passing <var>name</var> and <var>set</var> as arguments.</li>
@@ -12500,6 +12723,11 @@ interface
                     <li>If <var>O</var> is a <a class='dfnref' href='#dfn-platform-object'>platform object</a>,
                       then <a class='dfnref' href='#dfn-perform-a-security-check'>perform a security check</a> on <var>O</var>
                       with the ECMAScript global environment associated with this <span class='estype'>Function</span>.</li>
+                    <li>If the <a class='dfnref' href='#dfn-setlike-declaration'>setlike declaration</a> <a class="dfnref" href="#dfn-require-secure-context">requires a secure context</a>, and the
+                      <a class='dfnref external' href='https://html.spec.whatwg.org/multipage/webappapis.html#relevant-settings-object'>relevant settings object</a>
+                      for the ECMAScript global environment associated with this <span class='estype'>Function</span> is not a
+                      <a href='https://w3c.github.io/webappsec-secure-contexts/#secure-context'>secure context</a>,
+                      then <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>SecurityError</span></a>.</li>
                     <li>If <var>O</var> is not an object that implements <var>A</var>, then <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>TypeError</span></a>.</li>
                     <li>Let <var>set</var> be the <span class='estype'>Set</span> object that is the value of <var>O</var>’s [[BackingSet]] <a>internal slot</a>.</li>
                     <li>Return the result of calling the [[Get]] internal method of <var>set</var> passing “size” and <var>set</var> as arguments.</li>
@@ -12553,6 +12781,11 @@ interface
                     <li>If <var>O</var> is a <a class='dfnref' href='#dfn-platform-object'>platform object</a>,
                       then <a class='dfnref' href='#dfn-perform-a-security-check'>perform a security check</a> on <var>O</var>
                       with the ECMAScript global environment associated with this <span class='estype'>Function</span>.</li>
+                    <li>If the <a class='dfnref' href='#dfn-setlike-declaration'>setlike declaration</a> <a class="dfnref" href="#dfn-require-secure-context">requires a secure context</a>, and the
+                      <a class='dfnref external' href='https://html.spec.whatwg.org/multipage/webappapis.html#relevant-settings-object'>relevant settings object</a>
+                      for the ECMAScript global environment associated with this <span class='estype'>Function</span> is not a
+                      <a href='https://w3c.github.io/webappsec-secure-contexts/#secure-context'>secure context</a>,
+                      then <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>SecurityError</span></a>.</li>
                     <li>If <var>O</var> is not an object that implements <var>A</var>, then <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>TypeError</span></a>.</li>
                     <li>Let <var>set</var> be the <span class='estype'>Set</span> object that is the value of <var>O</var>’s [[BackingSet]] <a>internal slot</a>.</li>
                     <li>Let <var>type</var> be the value type specified in the <a class='dfnref' href='#dfn-setlike-declaration'>setlike declaration</a>.</li>
@@ -12594,6 +12827,11 @@ interface
                     <li>If <var>O</var> is a <a class='dfnref' href='#dfn-platform-object'>platform object</a>,
                       then <a class='dfnref' href='#dfn-perform-a-security-check'>perform a security check</a> on <var>O</var>
                       with the ECMAScript global environment associated with this <span class='estype'>Function</span>.</li>
+                    <li>If the <a class='dfnref' href='#dfn-setlike-declaration'>setlike declaration</a> <a class="dfnref" href="#dfn-require-secure-context">requires a secure context</a>, and the
+                      <a class='dfnref external' href='https://html.spec.whatwg.org/multipage/webappapis.html#relevant-settings-object'>relevant settings object</a>
+                      for the ECMAScript global environment associated with this <span class='estype'>Function</span> is not a
+                      <a href='https://w3c.github.io/webappsec-secure-contexts/#secure-context'>secure context</a>,
+                      then <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>SecurityError</span></a>.</li>
                     <li>If <var>O</var> is not an object that implements <var>A</var>, then <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>TypeError</span></a>.</li>
                     <li>Let <var>set</var> be the <span class='estype'>Set</span> object that is the value of <var>O</var>’s [[BackingSet]] <a>internal slot</a>.</li>
                     <li>Let <var>type</var> be the value type specified in the <a class='dfnref' href='#dfn-setlike-declaration'>setlike declaration</a>.</li>
@@ -14681,6 +14919,12 @@ d.type = et;
               F. Yergeau.  IETF, November 2003.
               <span class="print"><br/>Available at http://tools.ietf.org/html/rfc3629.</span>
             </dd>
+            <dt id='ref-SECURE-CONTEXTS'>[SECURE-CONTEXTS]</dt>
+            <dd>
+              <cite><a href='https://w3c.github.io/webappsec-secure-contexts/'>Secure Contexts</a></cite>.
+              M. West and Y. Zhu, Editors.  World Wide Web Consortium, October 2015.
+              <span class="print"><br/>Available at https://w3c.github.io/webappsec-secure-contexts/.</span>
+            </dd>
             <dt id='ref-TYPEDARRAYS'>[TYPEDARRAYS]</dt>
             <dd>
               <cite><a href='https://www.khronos.org/registry/typedarray/specs/1.0/'>Typed Array Specification</a></cite>,
@@ -14830,6 +15074,15 @@ d.type = et;
           <dt>Current editor’s draft</dt>
           <dd>
             <ul>
+              <li>
+                <p>
+                  Added a <span class='xattr'>[SecureContext]</span> attribute to interfaces,
+                  partial interfaces, interface members, and dictionaries. This attribute
+                  integrates with <span class='xattr'>[Exposed]</span> to ensure that marked
+                  constructs are only exposed in "secure contexts", and adds a check everywhere
+                  we perform a "security check" <a href='#ref-SECURE-CONTEXTS'>[SECURE-CONTEXTS]</a>.
+                </p>
+              </li>
               <li>
                 <p>
                   Removed the Date type.
