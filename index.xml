@@ -10089,6 +10089,435 @@ with (thing) {
           </div>
         </div>
 
+        <div id='es-overloads' class='section'>
+          <h3>Overload resolution algorithm</h3>
+
+          <p>
+            In order to define how overloaded function invocations are resolved, the
+            <dfn id='dfn-overload-resolution-algorithm'>overload resolution algorithm</dfn>
+            is defined.  Its input is an <a class='dfnref' href='#dfn-effective-overload-set'>effective overload set</a>,
+            <var>S</var>, and a list of ECMAScript values, <var>arg</var><sub>0..<var>n</var>−1</sub>.
+            Its output is a pair consisting of the <a class='dfnref' href='#dfn-operation'>operation</a> or
+            <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a> of one of <var>S</var>’s entries
+            and a list of IDL values or the special value “missing”.  The algorithm behaves as follows:
+          </p>
+          <ol class='algorithm'>
+            <li>Let <var>maxarg</var> be the length of the longest type list of the entries in <var>S</var>.</li>
+            <li>Initialize <var>argcount</var> to be min(<var>maxarg</var>, <var>n</var>).</li>
+
+            <li>Remove from <var>S</var> all entries whose type list is not of length <var>argcount</var>.</li>
+
+            <li>If <var>S</var> is empty, then <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>TypeError</span></a>.</li>
+
+            <li>Initialize <var>d</var> to −1.</li>
+
+            <li>
+              Initialize <var>method</var> to
+              <span class='esvalue'>undefined</span>.
+            </li>
+
+            <li>If there is more than one entry in <var>S</var>, then set
+              <var>d</var> to be the <a class='dfnref' href='#dfn-distinguishing-argument-index'>distinguishing argument index</a>
+              for the entries of <var>S</var>.</li>
+
+            <li>Initialize <var>values</var> to be an empty list, where each entry will be either an IDL value or the special value “missing”.</li>
+
+            <li>Initialize <var>i</var> to 0.</li>
+
+            <li>While <var>i</var> &lt; <var>d</var>:
+              <ol>
+                <li>Let <var>V</var> be <var>arg</var><sub><var>i</var></sub>.</li>
+                <li>Let <var>type</var> be the type at index <var>i</var> in the type list of any entry in <var>S</var>.
+                  <div class='note'><p>All entries in <var>S</var> at this point have the same type and <a class='dfnref' href='#dfn-optionality-value'>optionality value</a> at index <var>i</var>.</p></div>
+                </li>
+                <li>Let <var>optionality</var> be the value at index <var>i</var> in the list of <a class='dfnref' href='#dfn-optionality-value'>optionality values</a> of any entry in <var>S</var>.</li>
+                <li>If <var>optionality</var> is “optional” and <var>V</var> is <span class='esvalue'>undefined</span>, then:
+                  <ol>
+                    <li>If the argument at index <var>i</var> is declared with a <a class='dfnref' href='#dfn-optional-argument-default-value'>default value</a>,
+                      then append to <var>values</var> that default value.</li>
+                    <li>Otherwise, append to <var>values</var> the special value “missing”.</li>
+                  </ol>
+                </li>
+                <li>Otherwise, append to <var>values</var> the result of <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a>
+                  <var>V</var> to IDL type <var>type</var>.</li>
+                <li>Set <var>i</var> to <var>i</var> + 1.</li>
+              </ol>
+            </li>
+
+            <li>If <var>i</var> = <var>d</var>, then:
+              <ol>
+                <li>Let <var>V</var> be <var>arg</var><sub><var>i</var></sub>.
+                  <div class='note'><p>This is the argument that will be used to resolve which overload is selected.</p></div></li>
+
+                <li>If <var>V</var> is <span class='esvalue'>undefined</span>, and there is an entry in <var>S</var>
+                  whose list of <a class='dfnref' href='#dfn-optionality-value'>optionality values</a> has “optional” at index <var>i</var>,
+                  then remove from <var>S</var> all other entries.</li>
+
+                <li>Otherwise: if <var>V</var> is <span class='esvalue'>null</span> or <span class='esvalue'>undefined</span>,
+                  and there is an entry in <var>S</var> that has one of the following types at position <var>i</var> of its type list,
+                  <ul>
+                    <li>a <a class='dfnref' href='#dfn-nullable-type'>nullable type</a></li>
+                    <li>a <a href='#idl-dictionary'>dictionary type</a></li>
+                    <li>a <a class='dfnref' href='#dfn-union-type'>union type</a> that
+                      <a class='dfnref' href='#dfn-includes-a-nullable-type'>includes a nullable type</a> or that
+                      has a <a href='#idl-dictionary'>dictionary type</a> in its <a class='dfnref' href='#dfn-flattened-union-members'>flattened members</a></li>
+                  </ul>
+                  then remove from <var>S</var> all other entries.
+                </li>
+
+                <li>
+                  Otherwise: if <var>V</var> is a <a class='dfnref' href='#dfn-platform-object'>platform object</a> – but not a
+                  <a class='dfnref' href='#dfn-platform-array-object'>platform array object</a> – and
+                  there is an entry in <var>S</var> that has one of the following types at position <var>i</var> of its type list,
+                  <ul>
+                    <li>an <a href='#idl-interface'>interface type</a> that <var>V</var> implements</li>
+                    <li><span class='idltype'>object</span></li>
+                    <li>a <a class='dfnref' href='#dfn-nullable-type'>nullable</a> version of any of the above types</li>
+                    <li>a <a class='dfnref' href='#dfn-union-type'>union type</a> or a <a class='dfnref' href='#dfn-nullable-type'>nullable</a> union type
+                       that has one of the above types in its <a class='dfnref' href='#dfn-flattened-union-member-types'>flattened member types</a></li>
+                  </ul>
+                  then remove from <var>S</var> all other entries.
+                </li>
+
+                <li>
+                  Otherwise: if <var>V</var> is a <span class='estype'>RegExp</span> object and
+                  there is an entry in <var>S</var> that has one of the following types at position <var>i</var> of its type list,
+                  <ul>
+                    <li><span class='idltype'>RegExp</span></li>
+                    <li><span class='idltype'>object</span></li>
+                    <li>a <a class='dfnref' href='#dfn-nullable-type'>nullable</a> version of either of the above types</li>
+                    <li>a <a class='dfnref' href='#dfn-union-type'>union type</a> or <a class='dfnref' href='#dfn-nullable-type'>nullable</a> union type
+                       that has one of the above types in its <a class='dfnref' href='#dfn-flattened-union-member-types'>flattened member types</a></li>
+                  </ul>
+                  then remove from <var>S</var> all other entries.
+                </li>
+
+                <li>
+                  Otherwise: if <var>V</var> is a <span class='estype'>RegExp</span> object and
+                  there is an entry in <var>S</var> that has one of the following types at position <var>i</var> of its type list,
+                  <ul>
+                    <li><span class='idltype'>RegExp</span></li>
+                    <li><span class='idltype'>object</span></li>
+                    <li>a <a class='dfnref' href='#dfn-nullable-type'>nullable</a> version of either of the above types</li>
+                    <li>a <a class='dfnref' href='#dfn-union-type'>union type</a> or <a class='dfnref' href='#dfn-nullable-type'>nullable</a> union type
+                       that has one of the above types in its <a class='dfnref' href='#dfn-flattened-union-member-types'>flattened member types</a></li>
+                  </ul>
+                  then remove from <var>S</var> all other entries.
+                </li>
+
+                <li>
+                  Otherwise: if <var>V</var> is a <a class='dfnref' href='#dfn-DOMException'>DOMException</a> platform object and
+                  there is an entry in <var>S</var> that has one of the following types at position <var>i</var> of its type list,
+                  <ul>
+                    <li><span class='idltype'>DOMException</span></li>
+                    <li><span class='idltype'>Error</span></li>
+                    <li><span class='idltype'>object</span></li>
+                    <li>a <a class='dfnref' href='#dfn-nullable-type'>nullable</a> version of either of the above types</li>
+                    <li>a <a class='dfnref' href='#dfn-union-type'>union type</a> or <a class='dfnref' href='#dfn-nullable-type'>nullable</a> union type
+                       that has one of the above types in its <a class='dfnref' href='#dfn-flattened-union-member-types'>flattened member types</a></li>
+                  </ul>
+                  then remove from <var>S</var> all other entries.
+                </li>
+
+                <li>
+                  Otherwise: if <var>V</var> is an <span class='estype'>Error</span> object (that is, it has an [[ErrorData]] <a>internal slot</a>) and
+                  there is an entry in <var>S</var> that has one of the following types at position <var>i</var> of its type list,
+                  <ul>
+                    <li><span class='idltype'>Error</span></li>
+                    <li><span class='idltype'>object</span></li>
+                    <li>a <a class='dfnref' href='#dfn-nullable-type'>nullable</a> version of either of the above types</li>
+                    <li>a <a class='dfnref' href='#dfn-union-type'>union type</a> or <a class='dfnref' href='#dfn-nullable-type'>nullable</a> union type
+                       that has one of the above types in its <a class='dfnref' href='#dfn-flattened-union-member-types'>flattened member types</a></li>
+                  </ul>
+                  then remove from <var>S</var> all other entries.
+                </li>
+
+                <li>
+                  Otherwise: if <var>V</var> is an object with an [[ArrayBufferData]] <a>internal slot</a> and
+                  there is an entry in <var>S</var> that has one of the following types at position <var>i</var> of its type list,
+                  <ul>
+                    <li><span class='idltype'>ArrayBuffer</span></li>
+                    <li><span class='idltype'>object</span></li>
+                    <li>a <a class='dfnref' href='#dfn-nullable-type'>nullable</a> version of either of the above types</li>
+                    <li>a <a class='dfnref' href='#dfn-union-type'>union type</a> or <a class='dfnref' href='#dfn-nullable-type'>nullable</a> union type
+                       that has one of the above types in its <a class='dfnref' href='#dfn-flattened-union-member-types'>flattened member types</a></li>
+                  </ul>
+                  then remove from <var>S</var> all other entries.
+                </li>
+
+                <li>
+                  Otherwise: if <var>V</var> is an object with a [[DataView]] <a>internal slot</a> and
+                  there is an entry in <var>S</var> that has one of the following types at position <var>i</var> of its type list,
+                  <ul>
+                    <li><span class='idltype'>DataView</span></li>
+                    <li><span class='idltype'>object</span></li>
+                    <li>a <a class='dfnref' href='#dfn-nullable-type'>nullable</a> version of either of the above types</li>
+                    <li>a <a class='dfnref' href='#dfn-union-type'>union type</a> or <a class='dfnref' href='#dfn-nullable-type'>nullable</a> union type
+                       that has one of the above types in its <a class='dfnref' href='#dfn-flattened-union-member-types'>flattened member types</a></li>
+                  </ul>
+                  then remove from <var>S</var> all other entries.
+                </li>
+
+                <li>
+                  Otherwise: if <var>V</var> is an object with a [[TypedArrayName]] <a>internal slot</a> and
+                  there is an entry in <var>S</var> that has one of the following types at position <var>i</var> of its type list,
+                  <ul>
+                    <li>a <a class='dfnref' href='#dfn-typed-array-type'>typed array type</a> whose name
+                      is equal to the value of <var>V</var>’s [[TypedArrayName]] <a>internal slot</a></li>
+                    <li><span class='idltype'>object</span></li>
+                    <li>a <a class='dfnref' href='#dfn-nullable-type'>nullable</a> version of either of the above types</li>
+                    <li>a <a class='dfnref' href='#dfn-union-type'>union type</a> or <a class='dfnref' href='#dfn-nullable-type'>nullable</a> union type
+                       that has one of the above types in its <a class='dfnref' href='#dfn-flattened-union-member-types'>flattened member types</a></li>
+                  </ul>
+                  then remove from <var>S</var> all other entries.
+                </li>
+
+                <li>
+                  Otherwise: if <a>IsCallable</a>(<var>V</var>) is true,
+                  and there is an entry in <var>S</var> that has one of the following types at position <var>i</var> of its type list,
+                  <ul>
+                    <li>a <a class='dfnref' href='#dfn-callback-function'>callback function</a> type</li>
+                    <li><span class='idltype'>object</span></li>
+                    <li>a <a class='dfnref' href='#dfn-nullable-type'>nullable</a> version of any of the above types</li>
+                    <li>a <a class='dfnref' href='#dfn-union-type'>union type</a> or <a class='dfnref' href='#dfn-nullable-type'>nullable</a> union type
+                       that has one of the above types in its <a class='dfnref' href='#dfn-flattened-union-member-types'>flattened member types</a></li>
+                  </ul>
+                  then remove from <var>S</var> all other entries.
+                </li>
+
+                <li>
+                  Otherwise: if <var>V</var> is any kind of object except for
+                  a native <span class='estype'>RegExp</span> object, and
+                  there is an entry in <var>S</var> that has one of the
+                  following types at position <var>i</var> of its type list,
+                  <ul>
+                    <li>a <a href='#idl-sequence'>sequence type</a></li>
+                    <li>a <a href='#idl-frozen-array'>frozen array type</a></li>
+                    <li>a <a class='dfnref' href='#dfn-nullable-type'>nullable</a> version of any of the above types</li>
+                    <li>a <a class='dfnref' href='#dfn-union-type'>union type</a> or <a class='dfnref' href='#dfn-nullable-type'>nullable</a> union type
+                       that has one of the above types in its <a class='dfnref' href='#dfn-flattened-union-member-types'>flattened member types</a></li>
+
+                  </ul>
+                  and after performing the following steps,
+                  <ol>
+                    <li>
+                      Let <var>method</var> be the result of
+                      <a>GetMethod</a>(<var>V</var>, <a>@@iterator</a>).
+                    </li>
+                    <li>
+                      <a>ReturnIfAbrupt</a>(<var>method</var>).
+                    </li>
+                  </ol>
+                  <var>method</var> is not <span
+                  class='esvalue'>undefined</span>, then remove from <var>S</var> all
+                  other entries.
+                </li>
+
+                <li>
+                  Otherwise: if <var>V</var> is any kind of object except for
+                  a native <span class='estype'>RegExp</span> object, and
+                  there is an entry in <var>S</var> that has one of the following types at position <var>i</var> of its type list,
+                  <ul>
+                    <li>a <a class='dfnref' href='#dfn-callback-interface'>callback interface</a> type</li>
+                    <li>a <a href='#idl-dictionary'>dictionary type</a></li>
+                    <li><span class='idltype'>object</span></li>
+                    <li>a <a class='dfnref' href='#dfn-nullable-type'>nullable</a> version of any of the above types</li>
+                    <li>a <a class='dfnref' href='#dfn-union-type'>union type</a> or <a class='dfnref' href='#dfn-nullable-type'>nullable</a> union type
+                       that has one of the above types in its <a class='dfnref' href='#dfn-flattened-union-member-types'>flattened member types</a></li>
+                  </ul>
+                  then remove from <var>S</var> all other entries.
+                </li>
+
+                <li>
+                  Otherwise: if <var>V</var> is a <span class='estype'>Boolean</span> value,
+                  and there is an entry in <var>S</var> that has one of the following types at position <var>i</var> of its type list,
+                  <ul>
+                    <li><span class='idltype'>boolean</span></li>
+                    <li>a <a class='dfnref' href='#dfn-nullable-type'>nullable</a> <span class='idltype'>boolean</span></li>
+                    <li>a <a class='dfnref' href='#dfn-union-type'>union type</a> or <a class='dfnref' href='#dfn-nullable-type'>nullable</a> union type
+                      that has one of the above types in its <a class='dfnref' href='#dfn-flattened-union-member-types'>flattened member types</a></li>
+                  </ul>
+                  then remove from <var>S</var> all other entries.
+                </li>
+
+                <li>
+                  Otherwise: if <var>V</var> is a <span class='estype'>Number</span> value,
+                  and there is an entry in <var>S</var> that has one of the following types at position <var>i</var> of its type list,
+                  <ul>
+                    <li>a <a class='dfnref' href='#dfn-numeric-type'>numeric type</a></li>
+                    <li>a <a class='dfnref' href='#dfn-nullable-type'>nullable</a> <a class='dfnref' href='#dfn-numeric-type'>numeric type</a></li>
+                    <li>a <a class='dfnref' href='#dfn-union-type'>union type</a> or <a class='dfnref' href='#dfn-nullable-type'>nullable</a> union type
+                      that has one of the above types in its <a class='dfnref' href='#dfn-flattened-union-member-types'>flattened member types</a></li>
+                  </ul>
+                  then remove from <var>S</var> all other entries.
+                </li>
+
+                <li>
+                  Otherwise: if there is an entry in <var>S</var> that has one of the following types at position <var>i</var> of its type list,
+                  <ul>
+                    <li>a <a class='dfnref' href='#dfn-string-type'>string type</a></li>
+                    <li>a <a class='dfnref' href='#dfn-nullable-type'>nullable</a> version of any of the above types</li>
+                    <li>a <a class='dfnref' href='#dfn-union-type'>union type</a> or <a class='dfnref' href='#dfn-nullable-type'>nullable</a> union type
+                       that has one of the above types in its <a class='dfnref' href='#dfn-flattened-union-member-types'>flattened member types</a></li>
+                  </ul>
+                  then remove from <var>S</var> all other entries.
+                </li>
+
+                <li>
+                  Otherwise: if there is an entry in <var>S</var> that has one of the following types at position <var>i</var> of its type list,
+                  <ul>
+                    <li>a <a class='dfnref' href='#dfn-numeric-type'>numeric type</a></li>
+                    <li>a <a class='dfnref' href='#dfn-nullable-type'>nullable</a> <a class='dfnref' href='#dfn-numeric-type'>numeric type</a></li>
+                    <li>a <a class='dfnref' href='#dfn-union-type'>union type</a> or <a class='dfnref' href='#dfn-nullable-type'>nullable</a> union type
+                      that has one of the above types in its <a class='dfnref' href='#dfn-flattened-union-member-types'>flattened member types</a></li>
+                  </ul>
+                  then remove from <var>S</var> all other entries.
+                </li>
+
+                <li>
+                  Otherwise: if there is an entry in <var>S</var> that has one of the following types at position <var>i</var> of its type list,
+                  <ul>
+                    <li><span class='idltype'>boolean</span></li>
+                    <li>a <a class='dfnref' href='#dfn-nullable-type'>nullable</a> <span class='idltype'>boolean</span></li>
+                    <li>a <a class='dfnref' href='#dfn-union-type'>union type</a> or <a class='dfnref' href='#dfn-nullable-type'>nullable</a> union type
+                      that has one of the above types in its <a class='dfnref' href='#dfn-flattened-union-member-types'>flattened member types</a></li>
+                  </ul>
+                  then remove from <var>S</var> all other entries.
+                </li>
+
+                <li>
+                  Otherwise: if there is an entry in <var>S</var> that has <span class='idltype'>any</span> at position <var>i</var>
+                  of its type list,
+                  then remove from <var>S</var> all other entries.
+                </li>
+
+                <li>
+                  Otherwise:
+                  <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>TypeError</span></a>.
+                </li>
+              </ol>
+            </li>
+
+            <li>Let <var>callable</var> be the <a class='dfnref' href='#dfn-operation'>operation</a> or <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
+              of the single entry in <var>S</var>.</li>
+
+            <li>
+              If <var>i</var> = <var>d</var> and <var>method</var> is not <span
+              class='esvalue'>undefined</span>, then
+              <ol>
+                <li>
+                  Let <var>V</var> be <var>arg</var><sub><var>i</var></sub>.
+                </li>
+                <li>
+                  Let <var>T</var> be the type at index <var>i</var> in the
+                  type list of the remaining entry in <var>S</var>.
+                </li>
+                <li>
+                  If <var>T</var> is a <a href='#idl-sequence'>sequence type</a>, then
+                  append to <var>values</var> the result of
+                  <a class='dfnref'
+                     href='#create-sequence-from-iterable'>creating a sequence
+                  of type <var>T</var> from
+                  <var>V</var> and <var>method</var></a>.
+                </li>
+                <li>
+                  Otherwise, <var>T</var> is a <a href='#idl-frozen-array'>frozen array type</a>.
+                  Append to <var>values</var> the result of
+                  <a class='dfnref'
+                     href='#create-frozen-array-from-iterable'>creating a frozen array
+                  of type <var>T</var> from
+                  <var>V</var> and <var>method</var></a>.
+                </li>
+                <li>
+                  Set <var>i</var> to <var>i</var> + 1.
+                </li>
+              </ol>
+            </li>
+
+            <li>
+              While <var>i</var> &lt; <var>argcount</var>:
+              <ol>
+                <li>Let <var>V</var> be <var>arg</var><sub><var>i</var></sub>.</li>
+                <li>Let <var>type</var> be the type at index <var>i</var> in the type list of the remaining entry in <var>S</var>.</li>
+                <li>Let <var>optionality</var> be the value at index <var>i</var> in the list of <a class='dfnref' href='#dfn-optionality-value'>optionality values</a> of the remaining entry in <var>S</var>.</li>
+                <li>If <var>optionality</var> is “optional” and <var>V</var> is <span class='esvalue'>undefined</span>, then:
+                  <ol>
+                    <li>If the argument at index <var>i</var> is declared with a <a class='dfnref' href='#dfn-optional-argument-default-value'>default value</a>,
+                      then append to <var>values</var> that default value.</li>
+                    <li>Otherwise, append to <var>values</var> the special value “missing”.</li>
+                  </ol>
+                </li>
+                <li>Otherwise, append to <var>values</var> the result of
+                  <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a> <var>V</var> to IDL type <var>type</var>.</li>
+                <li>Set <var>i</var> to <var>i</var> + 1.</li>
+              </ol>
+            </li>
+
+            <li>While <var>i</var> is less than the number of arguments <var>callable</var> is declared to take:
+              <ol>
+                <li>If <var>callable</var>’s argument at index <var>i</var> is declared with a <a class='dfnref' href='#dfn-optional-argument-default-value'>default value</a>,
+                  then append to <var>values</var> that default value.</li>
+                <li>Otherwise, if <var>callable</var>’s argument at index <var>i</var> is not variadic, then append to <var>values</var> the special value “missing”.</li>
+                <li>Set <var>i</var> to <var>i</var> + 1.</li>
+              </ol>
+            </li>
+
+            <li>Return the pair &lt;<var>callable</var>, <var>values</var>&gt;.</li>
+          </ol>
+          <div class='note'>
+            <p>
+              The overload resolution algorithm performs both the identification
+              of which overloaded operation, constructor, etc. is being called,
+              and the conversion of the ECMAScript argument values to their
+              corresponding IDL values.  Informally, it operates as follows.
+            </p>
+            <p>First, the selection of valid overloads is done by considering
+              the number of ECMAScript arguments that were passed in to the function:</p>
+            <ul>
+              <li>If there are more arguments passed in than the longest
+                overload argument list, then they are ignored.</li>
+              <li>After ignoring these trailing arguments, only overloads
+                that can take this exact number of arguments are considered.
+                If there are none, then a <span class='estype'>TypeError</span> is thrown.</li>
+            </ul>
+            <p>Once we have a set of possible overloads with the right number
+              of arguments, the ECMAScript values are converted from left to right.
+              The nature of the restrictions on overloading means that if we
+              have multiple possible overloads at this point, then there will
+              be one position in the argument list that will be used to
+              distinguish which overload we will finally select; this is
+              the <a class='dfnref' href='#dfn-distinguishing-argument-index'>distinguishing
+                argument index</a>.</p>
+            <p>We first convert the arguments to the left of the distinguishing
+              argument.  (There is a requirement that an argument to the left of
+              the distinguishing argument index has the same type as in the other
+              overloads, at the same index.) Then we inspect the type of the
+              ECMAScript value that is passed in at the distinguishing argument
+              index to determine which IDL type it may correspond to.
+              This allows us to select the final overload that will
+              be invoked.  If the value passed in is <span class='esvalue'>undefined</span>
+              and there is an overload with an optional argument at this position, then
+              we will choose that overload.  If there is no valid overload for the type of
+              value passed in here, then we throw a <span class='estype'>TypeError</span>.
+              The inspection of the value at the distinguishing argument index does not have any side effects;
+              the only side effects that come from running the overload resolution
+              algorithm are those that come from converting the ECMAScript values
+              to IDL values.</p>
+            <p>At this point, we have determined which overload to use.  We now
+              convert the remaining arguments, from the distinguishing argument onwards,
+              again ignoring any additional arguments that were ignored due to being passed
+              after the last possible argument.</p>
+            <p>When converting an optional argument’s ECMAScript value to its equivalent IDL value,
+              <span class='esvalue'>undefined</span> will be converted into
+              the <a class='dfnref' href='#dfn-optional-argument-default-value'>optional argument’s default value</a>,
+              if it has one, or a special value “missing” otherwise.</p>
+            <p>Optional arguments corresponding to a final, variadic argument do not treat
+              <span class='esvalue'>undefined</span> as a special “missing” value, however.
+              The <span class='esvalue'>undefined</span> value is converted to the type
+              of variadic argument as would be done for a non-optional argument.</p>
+          </div>
+        </div>
+
         <div id='es-interfaces' class='section'>
           <h3>Interfaces</h3>
 
@@ -10217,430 +10646,6 @@ with (thing) {
                 the given interface if it returns normally (that is, if it does not
                 throw an exception).
               </p>-->
-              <p>
-                In order to define how overloaded constructor invocations are resolved, the
-                <dfn id='dfn-overload-resolution-algorithm'>overload resolution algorithm</dfn>
-                is defined.  Its input is an <a class='dfnref' href='#dfn-effective-overload-set'>effective overload set</a>,
-                <var>S</var>, and a list of ECMAScript values, <var>arg</var><sub>0..<var>n</var>−1</sub>.
-                Its output is a pair consisting of the <a class='dfnref' href='#dfn-operation'>operation</a> or
-                <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a> of one of <var>S</var>’s entries
-                and a list of IDL values or the special value “missing”.  The algorithm behaves as follows:
-              </p>
-              <ol class='algorithm'>
-                <li>Let <var>maxarg</var> be the length of the longest type list of the entries in <var>S</var>.</li>
-                <li>Initialize <var>argcount</var> to be min(<var>maxarg</var>, <var>n</var>).</li>
-
-                <li>Remove from <var>S</var> all entries whose type list is not of length <var>argcount</var>.</li>
-
-                <li>If <var>S</var> is empty, then <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>TypeError</span></a>.</li>
-
-                <li>Initialize <var>d</var> to −1.</li>
-
-                <li>
-                  Initialize <var>method</var> to
-                  <span class='esvalue'>undefined</span>.
-                </li>
-
-                <li>If there is more than one entry in <var>S</var>, then set
-                  <var>d</var> to be the <a class='dfnref' href='#dfn-distinguishing-argument-index'>distinguishing argument index</a>
-                  for the entries of <var>S</var>.</li>
-
-                <li>Initialize <var>values</var> to be an empty list, where each entry will be either an IDL value or the special value “missing”.</li>
-
-                <li>Initialize <var>i</var> to 0.</li>
-
-                <li>While <var>i</var> &lt; <var>d</var>:
-                  <ol>
-                    <li>Let <var>V</var> be <var>arg</var><sub><var>i</var></sub>.</li>
-                    <li>Let <var>type</var> be the type at index <var>i</var> in the type list of any entry in <var>S</var>.
-                      <div class='note'><p>All entries in <var>S</var> at this point have the same type and <a class='dfnref' href='#dfn-optionality-value'>optionality value</a> at index <var>i</var>.</p></div>
-                    </li>
-                    <li>Let <var>optionality</var> be the value at index <var>i</var> in the list of <a class='dfnref' href='#dfn-optionality-value'>optionality values</a> of any entry in <var>S</var>.</li>
-                    <li>If <var>optionality</var> is “optional” and <var>V</var> is <span class='esvalue'>undefined</span>, then:
-                      <ol>
-                        <li>If the argument at index <var>i</var> is declared with a <a class='dfnref' href='#dfn-optional-argument-default-value'>default value</a>,
-                          then append to <var>values</var> that default value.</li>
-                        <li>Otherwise, append to <var>values</var> the special value “missing”.</li>
-                      </ol>
-                    </li>
-                    <li>Otherwise, append to <var>values</var> the result of <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a>
-                      <var>V</var> to IDL type <var>type</var>.</li>
-                    <li>Set <var>i</var> to <var>i</var> + 1.</li>
-                  </ol>
-                </li>
-
-                <li>If <var>i</var> = <var>d</var>, then:
-                  <ol>
-                    <li>Let <var>V</var> be <var>arg</var><sub><var>i</var></sub>.
-                      <div class='note'><p>This is the argument that will be used to resolve which overload is selected.</p></div></li>
-
-                    <li>If <var>V</var> is <span class='esvalue'>undefined</span>, and there is an entry in <var>S</var>
-                      whose list of <a class='dfnref' href='#dfn-optionality-value'>optionality values</a> has “optional” at index <var>i</var>,
-                      then remove from <var>S</var> all other entries.</li>
-
-                    <li>Otherwise: if <var>V</var> is <span class='esvalue'>null</span> or <span class='esvalue'>undefined</span>,
-                      and there is an entry in <var>S</var> that has one of the following types at position <var>i</var> of its type list,
-                      <ul>
-                        <li>a <a class='dfnref' href='#dfn-nullable-type'>nullable type</a></li>
-                        <li>a <a href='#idl-dictionary'>dictionary type</a></li>
-                        <li>a <a class='dfnref' href='#dfn-union-type'>union type</a> that
-                          <a class='dfnref' href='#dfn-includes-a-nullable-type'>includes a nullable type</a> or that
-                          has a <a href='#idl-dictionary'>dictionary type</a> in its <a class='dfnref' href='#dfn-flattened-union-members'>flattened members</a></li>
-                      </ul>
-                      then remove from <var>S</var> all other entries.
-                    </li>
-
-                    <li>
-                      Otherwise: if <var>V</var> is a <a class='dfnref' href='#dfn-platform-object'>platform object</a> – but not a
-                      <a class='dfnref' href='#dfn-platform-array-object'>platform array object</a> – and
-                      there is an entry in <var>S</var> that has one of the following types at position <var>i</var> of its type list,
-                      <ul>
-                        <li>an <a href='#idl-interface'>interface type</a> that <var>V</var> implements</li>
-                        <li><span class='idltype'>object</span></li>
-                        <li>a <a class='dfnref' href='#dfn-nullable-type'>nullable</a> version of any of the above types</li>
-                        <li>a <a class='dfnref' href='#dfn-union-type'>union type</a> or a <a class='dfnref' href='#dfn-nullable-type'>nullable</a> union type
-                           that has one of the above types in its <a class='dfnref' href='#dfn-flattened-union-member-types'>flattened member types</a></li>
-                      </ul>
-                      then remove from <var>S</var> all other entries.
-                    </li>
-
-                    <li>
-                      Otherwise: if <var>V</var> is a <span class='estype'>RegExp</span> object and
-                      there is an entry in <var>S</var> that has one of the following types at position <var>i</var> of its type list,
-                      <ul>
-                        <li><span class='idltype'>RegExp</span></li>
-                        <li><span class='idltype'>object</span></li>
-                        <li>a <a class='dfnref' href='#dfn-nullable-type'>nullable</a> version of either of the above types</li>
-                        <li>a <a class='dfnref' href='#dfn-union-type'>union type</a> or <a class='dfnref' href='#dfn-nullable-type'>nullable</a> union type
-                           that has one of the above types in its <a class='dfnref' href='#dfn-flattened-union-member-types'>flattened member types</a></li>
-                      </ul>
-                      then remove from <var>S</var> all other entries.
-                    </li>
-
-                    <li>
-                      Otherwise: if <var>V</var> is a <span class='estype'>RegExp</span> object and
-                      there is an entry in <var>S</var> that has one of the following types at position <var>i</var> of its type list,
-                      <ul>
-                        <li><span class='idltype'>RegExp</span></li>
-                        <li><span class='idltype'>object</span></li>
-                        <li>a <a class='dfnref' href='#dfn-nullable-type'>nullable</a> version of either of the above types</li>
-                        <li>a <a class='dfnref' href='#dfn-union-type'>union type</a> or <a class='dfnref' href='#dfn-nullable-type'>nullable</a> union type
-                           that has one of the above types in its <a class='dfnref' href='#dfn-flattened-union-member-types'>flattened member types</a></li>
-                      </ul>
-                      then remove from <var>S</var> all other entries.
-                    </li>
-
-                    <li>
-                      Otherwise: if <var>V</var> is a <a class='dfnref' href='#dfn-DOMException'>DOMException</a> platform object and
-                      there is an entry in <var>S</var> that has one of the following types at position <var>i</var> of its type list,
-                      <ul>
-                        <li><span class='idltype'>DOMException</span></li>
-                        <li><span class='idltype'>Error</span></li>
-                        <li><span class='idltype'>object</span></li>
-                        <li>a <a class='dfnref' href='#dfn-nullable-type'>nullable</a> version of either of the above types</li>
-                        <li>a <a class='dfnref' href='#dfn-union-type'>union type</a> or <a class='dfnref' href='#dfn-nullable-type'>nullable</a> union type
-                           that has one of the above types in its <a class='dfnref' href='#dfn-flattened-union-member-types'>flattened member types</a></li>
-                      </ul>
-                      then remove from <var>S</var> all other entries.
-                    </li>
-
-                    <li>
-                      Otherwise: if <var>V</var> is an <span class='estype'>Error</span> object (that is, it has an [[ErrorData]] <a>internal slot</a>) and
-                      there is an entry in <var>S</var> that has one of the following types at position <var>i</var> of its type list,
-                      <ul>
-                        <li><span class='idltype'>Error</span></li>
-                        <li><span class='idltype'>object</span></li>
-                        <li>a <a class='dfnref' href='#dfn-nullable-type'>nullable</a> version of either of the above types</li>
-                        <li>a <a class='dfnref' href='#dfn-union-type'>union type</a> or <a class='dfnref' href='#dfn-nullable-type'>nullable</a> union type
-                           that has one of the above types in its <a class='dfnref' href='#dfn-flattened-union-member-types'>flattened member types</a></li>
-                      </ul>
-                      then remove from <var>S</var> all other entries.
-                    </li>
-
-                    <li>
-                      Otherwise: if <var>V</var> is an object with an [[ArrayBufferData]] <a>internal slot</a> and
-                      there is an entry in <var>S</var> that has one of the following types at position <var>i</var> of its type list,
-                      <ul>
-                        <li><span class='idltype'>ArrayBuffer</span></li>
-                        <li><span class='idltype'>object</span></li>
-                        <li>a <a class='dfnref' href='#dfn-nullable-type'>nullable</a> version of either of the above types</li>
-                        <li>a <a class='dfnref' href='#dfn-union-type'>union type</a> or <a class='dfnref' href='#dfn-nullable-type'>nullable</a> union type
-                           that has one of the above types in its <a class='dfnref' href='#dfn-flattened-union-member-types'>flattened member types</a></li>
-                      </ul>
-                      then remove from <var>S</var> all other entries.
-                    </li>
-
-                    <li>
-                      Otherwise: if <var>V</var> is an object with a [[DataView]] <a>internal slot</a> and
-                      there is an entry in <var>S</var> that has one of the following types at position <var>i</var> of its type list,
-                      <ul>
-                        <li><span class='idltype'>DataView</span></li>
-                        <li><span class='idltype'>object</span></li>
-                        <li>a <a class='dfnref' href='#dfn-nullable-type'>nullable</a> version of either of the above types</li>
-                        <li>a <a class='dfnref' href='#dfn-union-type'>union type</a> or <a class='dfnref' href='#dfn-nullable-type'>nullable</a> union type
-                           that has one of the above types in its <a class='dfnref' href='#dfn-flattened-union-member-types'>flattened member types</a></li>
-                      </ul>
-                      then remove from <var>S</var> all other entries.
-                    </li>
-
-                    <li>
-                      Otherwise: if <var>V</var> is an object with a [[TypedArrayName]] <a>internal slot</a> and
-                      there is an entry in <var>S</var> that has one of the following types at position <var>i</var> of its type list,
-                      <ul>
-                        <li>a <a class='dfnref' href='#dfn-typed-array-type'>typed array type</a> whose name
-                          is equal to the value of <var>V</var>’s [[TypedArrayName]] <a>internal slot</a></li>
-                        <li><span class='idltype'>object</span></li>
-                        <li>a <a class='dfnref' href='#dfn-nullable-type'>nullable</a> version of either of the above types</li>
-                        <li>a <a class='dfnref' href='#dfn-union-type'>union type</a> or <a class='dfnref' href='#dfn-nullable-type'>nullable</a> union type
-                           that has one of the above types in its <a class='dfnref' href='#dfn-flattened-union-member-types'>flattened member types</a></li>
-                      </ul>
-                      then remove from <var>S</var> all other entries.
-                    </li>
-
-                    <li>
-                      Otherwise: if <a>IsCallable</a>(<var>V</var>) is true,
-                      and there is an entry in <var>S</var> that has one of the following types at position <var>i</var> of its type list,
-                      <ul>
-                        <li>a <a class='dfnref' href='#dfn-callback-function'>callback function</a> type</li>
-                        <li><span class='idltype'>object</span></li>
-                        <li>a <a class='dfnref' href='#dfn-nullable-type'>nullable</a> version of any of the above types</li>
-                        <li>a <a class='dfnref' href='#dfn-union-type'>union type</a> or <a class='dfnref' href='#dfn-nullable-type'>nullable</a> union type
-                           that has one of the above types in its <a class='dfnref' href='#dfn-flattened-union-member-types'>flattened member types</a></li>
-                      </ul>
-                      then remove from <var>S</var> all other entries.
-                    </li>
-
-                    <li>
-                      Otherwise: if <var>V</var> is any kind of object except for
-                      a native <span class='estype'>RegExp</span> object, and
-                      there is an entry in <var>S</var> that has one of the
-                      following types at position <var>i</var> of its type list,
-                      <ul>
-                        <li>a <a href='#idl-sequence'>sequence type</a></li>
-                        <li>a <a href='#idl-frozen-array'>frozen array type</a></li>
-                        <li>a <a class='dfnref' href='#dfn-nullable-type'>nullable</a> version of any of the above types</li>
-                        <li>a <a class='dfnref' href='#dfn-union-type'>union type</a> or <a class='dfnref' href='#dfn-nullable-type'>nullable</a> union type
-                           that has one of the above types in its <a class='dfnref' href='#dfn-flattened-union-member-types'>flattened member types</a></li>
-
-                      </ul>
-                      and after performing the following steps,
-                      <ol>
-                        <li>
-                          Let <var>method</var> be the result of
-                          <a>GetMethod</a>(<var>V</var>, <a>@@iterator</a>).
-                        </li>
-                        <li>
-                          <a>ReturnIfAbrupt</a>(<var>method</var>).
-                        </li>
-                      </ol>
-                      <var>method</var> is not <span
-                      class='esvalue'>undefined</span>, then remove from <var>S</var> all
-                      other entries.
-                    </li>
-
-                    <li>
-                      Otherwise: if <var>V</var> is any kind of object except for
-                      a native <span class='estype'>RegExp</span> object, and
-                      there is an entry in <var>S</var> that has one of the following types at position <var>i</var> of its type list,
-                      <ul>
-                        <li>a <a class='dfnref' href='#dfn-callback-interface'>callback interface</a> type</li>
-                        <li>a <a href='#idl-dictionary'>dictionary type</a></li>
-                        <li><span class='idltype'>object</span></li>
-                        <li>a <a class='dfnref' href='#dfn-nullable-type'>nullable</a> version of any of the above types</li>
-                        <li>a <a class='dfnref' href='#dfn-union-type'>union type</a> or <a class='dfnref' href='#dfn-nullable-type'>nullable</a> union type
-                           that has one of the above types in its <a class='dfnref' href='#dfn-flattened-union-member-types'>flattened member types</a></li>
-                      </ul>
-                      then remove from <var>S</var> all other entries.
-                    </li>
-
-                    <li>
-                      Otherwise: if <var>V</var> is a <span class='estype'>Boolean</span> value,
-                      and there is an entry in <var>S</var> that has one of the following types at position <var>i</var> of its type list,
-                      <ul>
-                        <li><span class='idltype'>boolean</span></li>
-                        <li>a <a class='dfnref' href='#dfn-nullable-type'>nullable</a> <span class='idltype'>boolean</span></li>
-                        <li>a <a class='dfnref' href='#dfn-union-type'>union type</a> or <a class='dfnref' href='#dfn-nullable-type'>nullable</a> union type
-                          that has one of the above types in its <a class='dfnref' href='#dfn-flattened-union-member-types'>flattened member types</a></li>
-                      </ul>
-                      then remove from <var>S</var> all other entries.
-                    </li>
-
-                    <li>
-                      Otherwise: if <var>V</var> is a <span class='estype'>Number</span> value,
-                      and there is an entry in <var>S</var> that has one of the following types at position <var>i</var> of its type list,
-                      <ul>
-                        <li>a <a class='dfnref' href='#dfn-numeric-type'>numeric type</a></li>
-                        <li>a <a class='dfnref' href='#dfn-nullable-type'>nullable</a> <a class='dfnref' href='#dfn-numeric-type'>numeric type</a></li>
-                        <li>a <a class='dfnref' href='#dfn-union-type'>union type</a> or <a class='dfnref' href='#dfn-nullable-type'>nullable</a> union type
-                          that has one of the above types in its <a class='dfnref' href='#dfn-flattened-union-member-types'>flattened member types</a></li>
-                      </ul>
-                      then remove from <var>S</var> all other entries.
-                    </li>
-
-                    <li>
-                      Otherwise: if there is an entry in <var>S</var> that has one of the following types at position <var>i</var> of its type list,
-                      <ul>
-                        <li>a <a class='dfnref' href='#dfn-string-type'>string type</a></li>
-                        <li>a <a class='dfnref' href='#dfn-nullable-type'>nullable</a> version of any of the above types</li>
-                        <li>a <a class='dfnref' href='#dfn-union-type'>union type</a> or <a class='dfnref' href='#dfn-nullable-type'>nullable</a> union type
-                           that has one of the above types in its <a class='dfnref' href='#dfn-flattened-union-member-types'>flattened member types</a></li>
-                      </ul>
-                      then remove from <var>S</var> all other entries.
-                    </li>
-
-                    <li>
-                      Otherwise: if there is an entry in <var>S</var> that has one of the following types at position <var>i</var> of its type list,
-                      <ul>
-                        <li>a <a class='dfnref' href='#dfn-numeric-type'>numeric type</a></li>
-                        <li>a <a class='dfnref' href='#dfn-nullable-type'>nullable</a> <a class='dfnref' href='#dfn-numeric-type'>numeric type</a></li>
-                        <li>a <a class='dfnref' href='#dfn-union-type'>union type</a> or <a class='dfnref' href='#dfn-nullable-type'>nullable</a> union type
-                          that has one of the above types in its <a class='dfnref' href='#dfn-flattened-union-member-types'>flattened member types</a></li>
-                      </ul>
-                      then remove from <var>S</var> all other entries.
-                    </li>
-
-                    <li>
-                      Otherwise: if there is an entry in <var>S</var> that has one of the following types at position <var>i</var> of its type list,
-                      <ul>
-                        <li><span class='idltype'>boolean</span></li>
-                        <li>a <a class='dfnref' href='#dfn-nullable-type'>nullable</a> <span class='idltype'>boolean</span></li>
-                        <li>a <a class='dfnref' href='#dfn-union-type'>union type</a> or <a class='dfnref' href='#dfn-nullable-type'>nullable</a> union type
-                          that has one of the above types in its <a class='dfnref' href='#dfn-flattened-union-member-types'>flattened member types</a></li>
-                      </ul>
-                      then remove from <var>S</var> all other entries.
-                    </li>
-
-                    <li>
-                      Otherwise: if there is an entry in <var>S</var> that has <span class='idltype'>any</span> at position <var>i</var>
-                      of its type list,
-                      then remove from <var>S</var> all other entries.
-                    </li>
-
-                    <li>
-                      Otherwise:
-                      <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>TypeError</span></a>.
-                    </li>
-                  </ol>
-                </li>
-
-                <li>Let <var>callable</var> be the <a class='dfnref' href='#dfn-operation'>operation</a> or <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
-                  of the single entry in <var>S</var>.</li>
-
-                <li>
-                  If <var>i</var> = <var>d</var> and <var>method</var> is not <span
-                  class='esvalue'>undefined</span>, then
-                  <ol>
-                    <li>
-                      Let <var>V</var> be <var>arg</var><sub><var>i</var></sub>.
-                    </li>
-                    <li>
-                      Let <var>T</var> be the type at index <var>i</var> in the
-                      type list of the remaining entry in <var>S</var>.
-                    </li>
-                    <li>
-                      If <var>T</var> is a <a href='#idl-sequence'>sequence type</a>, then
-                      append to <var>values</var> the result of
-                      <a class='dfnref'
-                         href='#create-sequence-from-iterable'>creating a sequence
-                      of type <var>T</var> from
-                      <var>V</var> and <var>method</var></a>.
-                    </li>
-                    <li>
-                      Otherwise, <var>T</var> is a <a href='#idl-frozen-array'>frozen array type</a>.
-                      Append to <var>values</var> the result of
-                      <a class='dfnref'
-                         href='#create-frozen-array-from-iterable'>creating a frozen array
-                      of type <var>T</var> from
-                      <var>V</var> and <var>method</var></a>.
-                    </li>
-                    <li>
-                      Set <var>i</var> to <var>i</var> + 1.
-                    </li>
-                  </ol>
-                </li>
-
-                <li>
-                  While <var>i</var> &lt; <var>argcount</var>:
-                  <ol>
-                    <li>Let <var>V</var> be <var>arg</var><sub><var>i</var></sub>.</li>
-                    <li>Let <var>type</var> be the type at index <var>i</var> in the type list of the remaining entry in <var>S</var>.</li>
-                    <li>Let <var>optionality</var> be the value at index <var>i</var> in the list of <a class='dfnref' href='#dfn-optionality-value'>optionality values</a> of the remaining entry in <var>S</var>.</li>
-                    <li>If <var>optionality</var> is “optional” and <var>V</var> is <span class='esvalue'>undefined</span>, then:
-                      <ol>
-                        <li>If the argument at index <var>i</var> is declared with a <a class='dfnref' href='#dfn-optional-argument-default-value'>default value</a>,
-                          then append to <var>values</var> that default value.</li>
-                        <li>Otherwise, append to <var>values</var> the special value “missing”.</li>
-                      </ol>
-                    </li>
-                    <li>Otherwise, append to <var>values</var> the result of
-                      <a class='dfnref' href='#dfn-convert-ecmascript-to-idl-value'>converting</a> <var>V</var> to IDL type <var>type</var>.</li>
-                    <li>Set <var>i</var> to <var>i</var> + 1.</li>
-                  </ol>
-                </li>
-
-                <li>While <var>i</var> is less than the number of arguments <var>callable</var> is declared to take:
-                  <ol>
-                    <li>If <var>callable</var>’s argument at index <var>i</var> is declared with a <a class='dfnref' href='#dfn-optional-argument-default-value'>default value</a>,
-                      then append to <var>values</var> that default value.</li>
-                    <li>Otherwise, if <var>callable</var>’s argument at index <var>i</var> is not variadic, then append to <var>values</var> the special value “missing”.</li>
-                    <li>Set <var>i</var> to <var>i</var> + 1.</li>
-                  </ol>
-                </li>
-
-                <li>Return the pair &lt;<var>callable</var>, <var>values</var>&gt;.</li>
-              </ol>
-              <div class='note'>
-                <p>
-                  The overload resolution algorithm performs both the identification
-                  of which overloaded operation, constructor, etc. is being called,
-                  and the conversion of the ECMAScript argument values to their
-                  corresponding IDL values.  Informally, it operates as follows.
-                </p>
-                <p>First, the selection of valid overloads is done by considering
-                  the number of ECMAScript arguments that were passed in to the function:</p>
-                <ul>
-                  <li>If there are more arguments passed in than the longest
-                    overload argument list, then they are ignored.</li>
-                  <li>After ignoring these trailing arguments, only overloads
-                    that can take this exact number of arguments are considered.
-                    If there are none, then a <span class='estype'>TypeError</span> is thrown.</li>
-                </ul>
-                <p>Once we have a set of possible overloads with the right number
-                  of arguments, the ECMAScript values are converted from left to right.
-                  The nature of the restrictions on overloading means that if we
-                  have multiple possible overloads at this point, then there will
-                  be one position in the argument list that will be used to
-                  distinguish which overload we will finally select; this is
-                  the <a class='dfnref' href='#dfn-distinguishing-argument-index'>distinguishing
-                    argument index</a>.</p>
-                <p>We first convert the arguments to the left of the distinguishing
-                  argument.  (There is a requirement that an argument to the left of
-                  the distinguishing argument index has the same type as in the other
-                  overloads, at the same index.) Then we inspect the type of the
-                  ECMAScript value that is passed in at the distinguishing argument
-                  index to determine which IDL type it may correspond to.
-                  This allows us to select the final overload that will
-                  be invoked.  If the value passed in is <span class='esvalue'>undefined</span>
-                  and there is an overload with an optional argument at this position, then
-                  we will choose that overload.  If there is no valid overload for the type of
-                  value passed in here, then we throw a <span class='estype'>TypeError</span>.
-                  The inspection of the value at the distinguishing argument index does not have any side effects;
-                  the only side effects that come from running the overload resolution
-                  algorithm are those that come from converting the ECMAScript values
-                  to IDL values.</p>
-                <p>At this point, we have determined which overload to use.  We now
-                  convert the remaining arguments, from the distinguishing argument onwards,
-                  again ignoring any additional arguments that were ignored due to being passed
-                  after the last possible argument.</p>
-                <p>When converting an optional argument’s ECMAScript value to its equivalent IDL value,
-                  <span class='esvalue'>undefined</span> will be converted into
-                  the <a class='dfnref' href='#dfn-optional-argument-default-value'>optional argument’s default value</a>,
-                  if it has one, or a special value “missing” otherwise.</p>
-                <p>Optional arguments corresponding to a final, variadic argument do not treat
-                  <span class='esvalue'>undefined</span> as a special “missing” value, however.
-                  The <span class='esvalue'>undefined</span> value is converted to the type
-                  of variadic argument as would be done for a non-optional argument.</p>
-              </div>
               <p>
                 The internal <span class='prop'>[[Call]]</span> method
                 of the interface object behaves as follows, assuming
