@@ -10075,13 +10075,21 @@ with (thing) {
             object.  This check is used to determine whether a given
             <a class='dfnref' href='#dfn-operation'>operation</a> invocation or
             <a class='dfnref' href='#dfn-attribute'>attribute</a> access should be
-            allowed.  The input to the security check is the
-            <a class='dfnref' href='#dfn-platform-object'>platform object</a> on
-            which the operation invocation or attribute access is being done,
-            and the ECMAScript global environment associated with the
-            <span class='estype'>Function</span> object that implements the
-            operation or attribute.
+            allowed.  The security check takes the following four inputs:
           </p>
+          <ol>
+            <li>the <a class='dfnref' href='#dfn-platform-object'>platform object</a> on
+              which the operation invocation or attribute access is being done,</li>
+            <li>the ECMAScript global environment associated with the
+              <span class='estype'>Function</span> object that implements the
+              operation or attribute,</li>
+            <li>the <a class='dfnref' href='#dfn-identifier'>identifier</a>
+              of the operation or attribute, and</li>
+            <li>the type of the <span class='estype'>Function</span> object –
+              “method” (when it corresponds to an IDL operation), or
+              “getter” or “setter” (when it corresponds to the
+              getter or setter function of an IDL attribute).</li>
+          </ol>
           <div class='note'>
             <p>The expectation is that the HTML specification defines how a
             security check is performed, and that it will either throw an
@@ -11320,9 +11328,15 @@ interface
                       </li>
                       <li>Let <var>O</var> be the <strong>this</strong> value.</li>
                       <li>If <var>O</var> is a <a class='dfnref' href='#dfn-platform-object'>platform object</a>,
-                        then <a class='dfnref' href='#dfn-perform-a-security-check'>perform a security check</a> on <var>O</var>
-                        with the ECMAScript global environment associated with this <span class='estype'>Function</span> that
-                        implements the <a class='dfnref' href='#dfn-attribute-getter'>attribute getter</a>.</li>
+                        then <a class='dfnref' href='#dfn-perform-a-security-check'>perform a security check</a>, passing:
+                        <ul>
+                          <li>the platform object <var>O</var>,</li>
+                          <li>the ECMAScript global environment associated with this <span class='estype'>Function</span> that
+                            implements the <a class='dfnref' href='#dfn-attribute-getter'>attribute getter</a>,</li>
+                          <li>the <a class='dfnref' href='#dfn-identifier'>identifier</a> of the <a class='dfnref' href='#dfn-attribute'>attribute</a>, and</li>
+                          <li>the type “getter”.</li>
+                        </ul>
+                      </li>
                       <li>If <var>O</var> is not a <a class='dfnref' href='#dfn-platform-object'>platform object</a> that implements <var>I</var>, then:
                         <ol>
                           <li>If the <a class='dfnref' href='#dfn-attribute'>attribute</a> was specified with the
@@ -11372,9 +11386,15 @@ interface
                         this property corresponding to the attribute appears on.</li>
                       <li>Let <var>O</var> be the <strong>this</strong> value.</li>
                       <li>If <var>O</var> is a <a class='dfnref' href='#dfn-platform-object'>platform object</a>,
-                        then <a class='dfnref' href='#dfn-perform-a-security-check'>perform a security check</a> on <var>O</var>
-                        with the ECMAScript global environment associated with this <span class='estype'>Function</span> that
-                        implements the <a class='dfnref' href='#dfn-attribute-setter'>attribute setter</a>.</li>
+                        then <a class='dfnref' href='#dfn-perform-a-security-check'>perform a security check</a>, passing:
+                        <ul>
+                          <li>the platform object <var>O</var>,</li>
+                          <li>the ECMAScript global environment associated with this <span class='estype'>Function</span> that
+                            implements the <a class='dfnref' href='#dfn-attribute-setter'>attribute setter</a>,</li>
+                          <li>the <a class='dfnref' href='#dfn-identifier'>identifier</a> of the <a class='dfnref' href='#dfn-attribute'>attribute</a>, and</li>
+                          <li>the type “setter”.</li>
+                        </ul>
+                      </li>
                       <li>Let <var>validThis</var> be <span class='esvalue'>true</span> if <var>O</var> is a
                         <a class='dfnref' href='#dfn-platform-object'>platform object</a> that implements <var>I</var>, or
                         <span class='esvalue'>false</span> otherwise.</li>
@@ -11538,9 +11558,15 @@ interface
                         </ul>
                       </li>
                       <li>If <var>O</var> is a <a class='dfnref' href='#dfn-platform-object'>platform object</a>,
-                        then <a class='dfnref' href='#dfn-perform-a-security-check'>perform a security check</a> on <var>O</var>
-                        with the ECMAScript global environment associated with this <span class='estype'>Function</span> that
-                        implements the <a class='dfnref' href='#dfn-operation'>operation</a>.</li>
+                        then <a class='dfnref' href='#dfn-perform-a-security-check'>perform a security check</a>, passing:
+                        <ul>
+                          <li>the platform object <var>O</var>,</li>
+                          <li>the ECMAScript global environment associated with this <span class='estype'>Function</span> that
+                            implements the <a class='dfnref' href='#dfn-operation'>operation</a>,</li>
+                          <li>the <a class='dfnref' href='#dfn-identifier'>identifier</a> of the <a class='dfnref' href='#dfn-operation'>operation</a>, and</li>
+                          <li>the type “method”.</li>
+                        </ul>
+                      </li>
                       <li>
                         If <var>O</var> is not <span class='esvalue'>null</span> and is also not a <a class='dfnref' href='#dfn-platform-object'>platform object</a>
                         that implements interface <var>I</var>, <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>TypeError</span></a>.
@@ -11639,9 +11665,15 @@ interface
                   <ol class='algorithm'>
                     <li>Let <var>O</var> be the result of calling <a>ToObject</a> on the <span class='esvalue'>this</span> value.</li>
                     <li>If <var>O</var> is a <a class='dfnref' href='#dfn-platform-object'>platform object</a>,
-                      then <a class='dfnref' href='#dfn-perform-a-security-check'>perform a security check</a> on <var>O</var>
-                      with the ECMAScript global environment associated with this <span class='estype'>Function</span> that
-                      implements the <a class='dfnref' href='#dfn-stringifier'>stringifier</a>.</li>
+                      then <a class='dfnref' href='#dfn-perform-a-security-check'>perform a security check</a>, passing:
+                      <ul>
+                        <li>the platform object <var>O</var>,</li>
+                        <li>the ECMAScript global environment associated with this <span class='estype'>Function</span> that
+                          implements the <a class='dfnref' href='#dfn-stringifier'>stringifier</a>,</li>
+                        <li>the <a class='dfnref' href='#dfn-identifier'>identifier</a> of the <a class='dfnref' href='#dfn-stringifier'>stringifier</a>, and</li>
+                        <li>the type “method”.</li>
+                      </ul>
+                    </li>
                     <li>If <var>O</var> is not an object that implements the <a class='dfnref' href='#dfn-interface'>interface</a>
                       on which the stringifier was declared, then <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>TypeError</span></a>.</li>
                     <li>Let <var>V</var> be an uninitialized variable.</li>
@@ -11704,9 +11736,15 @@ interface
               <ol class='algorithm'>
                 <li>Let <var>O</var> be the result of calling <a>ToObject</a> on the <span class='esvalue'>this</span> value.</li>
                 <li>If <var>O</var> is a <a class='dfnref' href='#dfn-platform-object'>platform object</a>,
-                  then <a class='dfnref' href='#dfn-perform-a-security-check'>perform a security check</a> on <var>O</var>
-                  with the ECMAScript global environment associated with this <span class='estype'>Function</span> that
-                  implements the <a class='dfnref' href='#dfn-serializer'>serializer</a>.</li>
+                  then <a class='dfnref' href='#dfn-perform-a-security-check'>perform a security check</a>, passing:
+                  <ul>
+                    <li>the platform object <var>O</var>,</li>
+                    <li>the ECMAScript global environment associated with this <span class='estype'>Function</span> that
+                      implements the <a class='dfnref' href='#dfn-serializer'>serializer</a>,</li>
+                    <li>the <a class='dfnref' href='#dfn-identifier'>identifier</a> of the <a class='dfnref' href='#dfn-serializer'>serializer</a>, and</li>
+                    <li>the type “method”.</li>
+                  </ul>
+                </li>
                 <li>If <var>O</var> is not an object that implements the <a class='dfnref' href='#dfn-interface'>interface</a>
                   on which the serializer was declared, then <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>TypeError</span></a>.</li>
                 <li>Depending on how <code>serializer</code> was specified:
@@ -11841,8 +11879,14 @@ interface
               <ol class='algorithm'>
                 <li>Let <var>object</var> be the result of calling <a>ToObject</a> on the <span class='esvalue'>this</span> value.</li>
                 <li>If <var>object</var> is a <a class='dfnref' href='#dfn-platform-object'>platform object</a>,
-                  then <a class='dfnref' href='#dfn-perform-a-security-check'>perform a security check</a> on <var>object</var>
-                  with the ECMAScript global environment associated with this <span class='estype'>Function</span>.</li>
+                  then <a class='dfnref' href='#dfn-perform-a-security-check'>perform a security check</a>, passing:
+                  <ul>
+                    <li>the platform object <var>object</var>,</li>
+                    <li>the ECMAScript global environment associated with this <span class='estype'>Function</span>,</li>
+                    <li>the identifier “@@iterator”, and</li>
+                    <li>the type “method”.</li>
+                  </ul>
+                </li>
                 <li>Let <var>interface</var> be the <a class='dfnref' href='#dfn-interface'>interface</a>
                   the <a class='dfnref' href='#dfn-iterable-declaration'>iterable declaration</a> is on.</li>
                 <li>If <var>object</var> is not a <a class='dfnref' href='#dfn-platform-object'>platform object</a>
@@ -11866,8 +11910,14 @@ interface
               <ol class='algorithm'>
                 <li>Let <var>object</var> be the result of calling <a>ToObject</a> on the <span class='esvalue'>this</span> value.</li>
                 <li>If <var>object</var> is a <a class='dfnref' href='#dfn-platform-object'>platform object</a>,
-                  then <a class='dfnref' href='#dfn-perform-a-security-check'>perform a security check</a> on <var>object</var>
-                  with the ECMAScript global environment associated with this <span class='estype'>Function</span>.</li>
+                  then <a class='dfnref' href='#dfn-perform-a-security-check'>perform a security check</a>, passing:
+                  <ul>
+                    <li>the platform object <var>object</var>,</li>
+                    <li>the ECMAScript global environment associated with this <span class='estype'>Function</span>,</li>
+                    <li>the identifier “@@iterator”, and</li>
+                    <li>the type “method”.</li>
+                  </ul>
+                </li>
                 <li>If <var>object</var> is not a <a class='dfnref' href='#dfn-platform-object'>platform object</a>
                   that implements the <a class='dfnref' href='#dfn-interface'>interface</a>
                   on which the <a class='dfnref' href='#dfn-maplike-declaration'>maplike declaration</a>
@@ -11957,8 +12007,14 @@ interface
               <ol class='algorithm'>
                 <li>Let <var>object</var> be the result of calling <a>ToObject</a> on the <span class='esvalue'>this</span> value.</li>
                 <li>If <var>object</var> is a <a class='dfnref' href='#dfn-platform-object'>platform object</a>,
-                  then <a class='dfnref' href='#dfn-perform-a-security-check'>perform a security check</a> on <var>object</var>
-                  with the ECMAScript global environment associated with this <span class='estype'>Function</span>.</li>
+                  then <a class='dfnref' href='#dfn-perform-a-security-check'>perform a security check</a>, passing:
+                  <ul>
+                    <li>the platform object <var>object</var>,</li>
+                    <li>the ECMAScript global environment associated with this <span class='estype'>Function</span>,</li>
+                    <li>the identifier “forEach”, and</li>
+                    <li>the type “method”.</li>
+                  </ul>
+                </li>
                 <li>Let <var>interface</var> be the <a class='dfnref' href='#dfn-interface'>interface</a>
                   on which the <a class='dfnref' href='#dfn-maplike-declaration'>maplike declaration</a>
                   or <a class='dfnref' href='#dfn-setlike-declaration'>setlike declaration</a> is declared.</li>
@@ -12036,8 +12092,14 @@ interface
               <ol class='algorithm'>
                 <li>Let <var>object</var> be the result of calling <a>ToObject</a> on the <span class='esvalue'>this</span> value.</li>
                 <li>If <var>object</var> is a <a class='dfnref' href='#dfn-platform-object'>platform object</a>,
-                  then <a class='dfnref' href='#dfn-perform-a-security-check'>perform a security check</a> on <var>object</var>
-                  with the ECMAScript global environment associated with this <span class='estype'>Function</span>.</li>
+                  then <a class='dfnref' href='#dfn-perform-a-security-check'>perform a security check</a>, passing:
+                  <ul>
+                    <li>the platform object <var>object</var>,</li>
+                    <li>the ECMAScript global environment associated with this <span class='estype'>Function</span>,</li>
+                    <li>the identifier “entries”, and</li>
+                    <li>the type “method”.</li>
+                  </ul>
+                </li>
                 <li>Let <var>interface</var> be the <a class='dfnref' href='#dfn-interface'>interface</a>
                   on which the <a class='dfnref' href='#dfn-iterable-declaration'>iterable declaration</a> is declared on.</li>
                 <li>If <var>object</var> is not a <a class='dfnref' href='#dfn-platform-object'>platform object</a>
@@ -12080,8 +12142,14 @@ interface
               <ol class='algorithm'>
                 <li>Let <var>object</var> be the result of calling <a>ToObject</a> on the <span class='esvalue'>this</span> value.</li>
                 <li>If <var>object</var> is a <a class='dfnref' href='#dfn-platform-object'>platform object</a>,
-                  then <a class='dfnref' href='#dfn-perform-a-security-check'>perform a security check</a> on <var>object</var>
-                  with the ECMAScript global environment associated with this <span class='estype'>Function</span>.</li>
+                  then <a class='dfnref' href='#dfn-perform-a-security-check'>perform a security check</a>, passing:
+                  <ul>
+                    <li>the platform object <var>object</var>,</li>
+                    <li>the ECMAScript global environment associated with this <span class='estype'>Function</span>,</li>
+                    <li>the identifier “keys”, and</li>
+                    <li>the type “method”.</li>
+                  </ul>
+                </li>
                 <li>Let <var>interface</var> be the <a class='dfnref' href='#dfn-interface'>interface</a>
                   on which the <a class='dfnref' href='#dfn-iterable-declaration'>iterable declaration</a> is declared on.</li>
                 <li>If <var>object</var> is not a <a class='dfnref' href='#dfn-platform-object'>platform object</a>
@@ -12181,9 +12249,14 @@ interface
                   <a class='dfnref' href='#dfn-iterator-prototype-object'>iterator prototype object</a> exists.</li>
                 <li>Let <var>object</var> be the result of calling <a>ToObject</a> on the <span class='esvalue'>this</span> value.</li>
                 <li>If <var>object</var> is a <a class='dfnref' href='#dfn-platform-object'>platform object</a>,
-                  then <a class='dfnref' href='#dfn-perform-a-security-check'>perform a security check</a> on <var>object</var>
-                  with the ECMAScript global environment associated with this <span class='estype'>Function</span> that
-                  implements the iterator’s <code>next</code> method.</li>
+                  then <a class='dfnref' href='#dfn-perform-a-security-check'>perform a security check</a>, passing:
+                  <ul>
+                    <li>the platform object <var>object</var>,</li>
+                    <li>the ECMAScript global environment associated with this <span class='estype'>Function</span>,</li>
+                    <li>the identifier “next”, and</li>
+                    <li>the type “method”.</li>
+                  </ul>
+                </li>
                 <li>If <var>object</var> is not a <a class='dfnref' href='#dfn-default-iterator-object'>default iterator object</a> for <var>interface</var>,
                   then <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>TypeError</span></a>.</li>
                 <li>Let <var>target</var> be <var>object</var>’s target.</li>
@@ -12273,8 +12346,14 @@ interface
               <li>Let <var>arguments</var> be the list of arguments passed to this function.</li>
               <li>Let <var>name</var> be the function name.</li>
               <li>If <var>O</var> is a <a class='dfnref' href='#dfn-platform-object'>platform object</a>,
-                then <a class='dfnref' href='#dfn-perform-a-security-check'>perform a security check</a> on <var>O</var>
-                with the ECMAScript global environment associated with this <span class='estype'>Function</span>.</li>
+                then <a class='dfnref' href='#dfn-perform-a-security-check'>perform a security check</a>, passing:
+                <ul>
+                  <li>the platform object <var>O</var>,</li>
+                  <li>the ECMAScript global environment associated with this <span class='estype'>Function</span>,</li>
+                  <li>an identifier equal to <var>name</var>, and</li>
+                  <li>the type “method”.</li>
+                </ul>
+              </li>
               <li>If <var>O</var> is not an object that implements <var>A</var>, then <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>TypeError</span></a>.</li>
               <li>Let <var>map</var> be the <span class='estype'>Map</span> object that is the value of <var>O</var>’s [[BackingMap]] <a>internal slot</a>.</li>
               <li>Let <var>function</var> be the result of calling the [[Get]] internal method of <var>map</var> passing <var>name</var> and <var>map</var> as arguments.</li>
@@ -12300,8 +12379,14 @@ interface
                   <ol class='algorithm'>
                     <li>Let <var>O</var> be the <span class='esvalue'>this</span> value.</li>
                     <li>If <var>O</var> is a <a class='dfnref' href='#dfn-platform-object'>platform object</a>,
-                      then <a class='dfnref' href='#dfn-perform-a-security-check'>perform a security check</a> on <var>O</var>
-                      with the ECMAScript global environment associated with this <span class='estype'>Function</span>.</li>
+                      then <a class='dfnref' href='#dfn-perform-a-security-check'>perform a security check</a>, passing:
+                      <ul>
+                        <li>the platform object <var>O</var>,</li>
+                        <li>the ECMAScript global environment associated with this <span class='estype'>Function</span>,</li>
+                        <li>the identifier “size”, and</li>
+                        <li>the type “getter”.</li>
+                      </ul>
+                    </li>
                     <li>If <var>O</var> is not an object that implements <var>A</var>, then <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>TypeError</span></a>.</li>
                     <li>Let <var>map</var> be the <span class='estype'>Map</span> object that is the value of <var>O</var>’s [[BackingMap]] <a>internal slot</a>.</li>
                     <li>Return the result of calling the [[Get]] internal method of <var>map</var> passing “size” and <var>map</var> as arguments.</li>
@@ -12355,8 +12440,14 @@ interface
                     <li>Let <var>O</var> be the <span class='esvalue'>this</span> value.</li>
                     <li>Let <var>name</var> be the name of the property – “get” or “has”.</li>
                     <li>If <var>O</var> is a <a class='dfnref' href='#dfn-platform-object'>platform object</a>,
-                      then <a class='dfnref' href='#dfn-perform-a-security-check'>perform a security check</a> on <var>O</var>
-                      with the ECMAScript global environment associated with this <span class='estype'>Function</span>.</li>
+                      then <a class='dfnref' href='#dfn-perform-a-security-check'>perform a security check</a>, passing:
+                      <ul>
+                        <li>the platform object <var>O</var>,</li>
+                        <li>the ECMAScript global environment associated with this <span class='estype'>Function</span>,</li>
+                        <li>an identifier equal to <var>name</var>, and</li>
+                        <li>the type “method”.</li>
+                      </ul>
+                    </li>
                     <li>If <var>O</var> is not an object that implements <var>A</var>, then <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>TypeError</span></a>.</li>
                     <li>Let <var>map</var> be the <span class='estype'>Map</span> object that is the value of <var>O</var>’s [[BackingMap]] <a>internal slot</a>.</li>
                     <li>Let <var>keyType</var> be the key type specified in the <a class='dfnref' href='#dfn-maplike-declaration'>maplike declaration</a>.</li>
@@ -12412,8 +12503,14 @@ interface
                   <ol class='algorithm'>
                     <li>Let <var>O</var> be the <span class='esvalue'>this</span> value.</li>
                     <li>If <var>O</var> is a <a class='dfnref' href='#dfn-platform-object'>platform object</a>,
-                      then <a class='dfnref' href='#dfn-perform-a-security-check'>perform a security check</a> on <var>O</var>
-                      with the ECMAScript global environment associated with this <span class='estype'>Function</span>.</li>
+                      then <a class='dfnref' href='#dfn-perform-a-security-check'>perform a security check</a>, passing:
+                      <ul>
+                        <li>the platform object <var>O</var>,</li>
+                        <li>the ECMAScript global environment associated with this <span class='estype'>Function</span>,</li>
+                        <li>the identifier “delete”, and</li>
+                        <li>the type “method”.</li>
+                      </ul>
+                    </li>
                     <li>If <var>O</var> is not an object that implements <var>A</var>, then <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>TypeError</span></a>.</li>
                     <li>Let <var>map</var> be the <span class='estype'>Map</span> object that is the value of <var>O</var>’s [[BackingMap]] <a>internal slot</a>.</li>
                     <li>Let <var>keyType</var> be the key type specified in the <a class='dfnref' href='#dfn-maplike-declaration'>maplike declaration</a>.</li>
@@ -12448,8 +12545,14 @@ interface
                   <ol class='algorithm'>
                     <li>Let <var>O</var> be the <span class='esvalue'>this</span> value.</li>
                     <li>If <var>O</var> is a <a class='dfnref' href='#dfn-platform-object'>platform object</a>,
-                      then <a class='dfnref' href='#dfn-perform-a-security-check'>perform a security check</a> on <var>O</var>
-                      with the ECMAScript global environment associated with this <span class='estype'>Function</span>.</li>
+                      then <a class='dfnref' href='#dfn-perform-a-security-check'>perform a security check</a>, passing:
+                      <ul>
+                        <li>the platform object <var>O</var>,</li>
+                        <li>the ECMAScript global environment associated with this <span class='estype'>Function</span>,</li>
+                        <li>the identifier “set”, and</li>
+                        <li>the type “method”.</li>
+                      </ul>
+                    </li>
                     <li>If <var>O</var> is not an object that implements <var>A</var>, then <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>TypeError</span></a>.</li>
                     <li>Let <var>map</var> be the <span class='estype'>Map</span> object that is the value of <var>O</var>’s [[BackingMap]] <a>internal slot</a>.</li>
                     <li>Let <var>keyType</var> and <var>valueType</var> be the key and value types specified in the <a class='dfnref' href='#dfn-maplike-declaration'>maplike declaration</a>.</li>
@@ -12501,8 +12604,14 @@ interface
               <li>Let <var>arguments</var> be the list of arguments passed to this function.</li>
               <li>Let <var>name</var> be the function name.</li>
               <li>If <var>O</var> is a <a class='dfnref' href='#dfn-platform-object'>platform object</a>,
-                then <a class='dfnref' href='#dfn-perform-a-security-check'>perform a security check</a> on <var>O</var>
-                with the ECMAScript global environment associated with this <span class='estype'>Function</span>.</li>
+                then <a class='dfnref' href='#dfn-perform-a-security-check'>perform a security check</a>, passing:
+                <ul>
+                  <li>the platform object <var>O</var>,</li>
+                  <li>the ECMAScript global environment associated with this <span class='estype'>Function</span>,</li>
+                  <li>an identifier equal to <var>name</var>, and</li>
+                  <li>the type “method”.</li>
+                </ul>
+              </li>
               <li>If <var>O</var> is not an object that implements <var>A</var>, then <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>TypeError</span></a>.</li>
               <li>Let <var>set</var> be the <span class='estype'>Set</span> object that is the value of <var>O</var>’s [[BackingSet]] <a>internal slot</a>.</li>
               <li>Let <var>function</var> be the result of calling the [[Get]] internal method of <var>set</var> passing <var>name</var> and <var>set</var> as arguments.</li>
@@ -12528,8 +12637,14 @@ interface
                   <ol class='algorithm'>
                     <li>Let <var>O</var> be the <span class='esvalue'>this</span> value.</li>
                     <li>If <var>O</var> is a <a class='dfnref' href='#dfn-platform-object'>platform object</a>,
-                      then <a class='dfnref' href='#dfn-perform-a-security-check'>perform a security check</a> on <var>O</var>
-                      with the ECMAScript global environment associated with this <span class='estype'>Function</span>.</li>
+                      then <a class='dfnref' href='#dfn-perform-a-security-check'>perform a security check</a>, passing:
+                      <ul>
+                        <li>the platform object <var>O</var>,</li>
+                        <li>the ECMAScript global environment associated with this <span class='estype'>Function</span>,</li>
+                        <li>the identifier “size”, and</li>
+                        <li>the type “getter”.</li>
+                      </ul>
+                    </li>
                     <li>If <var>O</var> is not an object that implements <var>A</var>, then <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>TypeError</span></a>.</li>
                     <li>Let <var>set</var> be the <span class='estype'>Set</span> object that is the value of <var>O</var>’s [[BackingSet]] <a>internal slot</a>.</li>
                     <li>Return the result of calling the [[Get]] internal method of <var>set</var> passing “size” and <var>set</var> as arguments.</li>
@@ -12582,8 +12697,14 @@ interface
                   <ol class='algorithm'>
                     <li>Let <var>O</var> be the <span class='esvalue'>this</span> value.</li>
                     <li>If <var>O</var> is a <a class='dfnref' href='#dfn-platform-object'>platform object</a>,
-                      then <a class='dfnref' href='#dfn-perform-a-security-check'>perform a security check</a> on <var>O</var>
-                      with the ECMAScript global environment associated with this <span class='estype'>Function</span>.</li>
+                      then <a class='dfnref' href='#dfn-perform-a-security-check'>perform a security check</a>, passing:
+                      <ul>
+                        <li>the platform object <var>O</var>,</li>
+                        <li>the ECMAScript global environment associated with this <span class='estype'>Function</span>,</li>
+                        <li>the identifier “has”, and</li>
+                        <li>the type “method”.</li>
+                      </ul>
+                    </li>
                     <li>If <var>O</var> is not an object that implements <var>A</var>, then <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>TypeError</span></a>.</li>
                     <li>Let <var>set</var> be the <span class='estype'>Set</span> object that is the value of <var>O</var>’s [[BackingSet]] <a>internal slot</a>.</li>
                     <li>Let <var>type</var> be the value type specified in the <a class='dfnref' href='#dfn-setlike-declaration'>setlike declaration</a>.</li>
@@ -12624,8 +12745,14 @@ interface
                     <li>Let <var>O</var> be the <span class='esvalue'>this</span> value.</li>
                     <li>Let <var>name</var> be the name of the property – “add” or “delete”.</li>
                     <li>If <var>O</var> is a <a class='dfnref' href='#dfn-platform-object'>platform object</a>,
-                      then <a class='dfnref' href='#dfn-perform-a-security-check'>perform a security check</a> on <var>O</var>
-                      with the ECMAScript global environment associated with this <span class='estype'>Function</span>.</li>
+                      then <a class='dfnref' href='#dfn-perform-a-security-check'>perform a security check</a>, passing:
+                      <ul>
+                        <li>the platform object <var>O</var>,</li>
+                        <li>the ECMAScript global environment associated with this <span class='estype'>Function</span>,</li>
+                        <li>an identifier equal to <var>name</var>, and</li>
+                        <li>the type “method”.</li>
+                      </ul>
+                    </li>
                     <li>If <var>O</var> is not an object that implements <var>A</var>, then <a href='#ecmascript-throw' class='dfnref external'>throw a <span class='estype'>TypeError</span></a>.</li>
                     <li>Let <var>set</var> be the <span class='estype'>Set</span> object that is the value of <var>O</var>’s [[BackingSet]] <a>internal slot</a>.</li>
                     <li>Let <var>type</var> be the value type specified in the <a class='dfnref' href='#dfn-setlike-declaration'>setlike declaration</a>.</li>
@@ -14866,6 +14993,11 @@ d.type = et;
           <dt>Current editor’s draft</dt>
           <dd>
             <ul>
+              <li>
+                <p>
+                  Added some more parameters to the “perform a security check” hook.
+                </p>
+              </li>
               <li>
                 <p>
                   Defined the “name” property for all <span class='estype'>Function</span>
