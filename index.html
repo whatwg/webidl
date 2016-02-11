@@ -12055,7 +12055,7 @@ interface
                   that implements <var>interface</var>,
                   then <a href="#ecmascript-throw" class="dfnref external">throw a <span class="estype">TypeError</span></a>.</li>
                 <li>Let <var>iterator</var> be a newly created <a class="dfnref" href="#dfn-default-iterator-object">default iterator object</a>
-                  for <var>interface</var> with <var>object</var> as its target and iterator kind “value”.</li>
+                  for <var>interface</var> with <var>object</var> as its target and iterator kind “key+value”.</li>
                 <li>Return <var>iterator</var>.</li>
               </ol>
               <p>
@@ -12098,7 +12098,12 @@ interface
                 property is the <span class="estype">Number</span> value <span class="esvalue">0</span>.
               </p>
               <p>The value of the <a class="external" href="https://people.mozilla.org/~jorendorff/es6-draft.html#sec-well-known-symbols">@@iterator</a> <span class="estype">Function</span> object’s “name”
-                property is the <span class="estype">String</span> value “[Symbol.iterator]”.</p>
+              property is the <span class="estype">String</span> value “entries” if the interface has a
+              <a class="dfnref" href="#dfn-pair-iterator">pair iterator</a> or a 
+              <a class="dfnref" href="#dfn-maplike-declaration">maplike
+              declaration</a> and the <span class="estype">String</span> “values”
+              if the interface has a 
+              <a class="dfnref" href="#dfn-setlike-declaration">setlike declaration</a>.</p>
             </div>
 
             <div id="es-forEach" class="section">
@@ -12260,30 +12265,9 @@ interface
               </p>
               <p>
                 If the interface has a <a class="dfnref" href="#dfn-pair-iterator">pair iterator</a>,
-                then the <span class="estype">Function</span>, when invoked, <span class="rfc2119">MUST</span> behave as follows:
+                then the <span class="estype">Function</span> object is
+                the value of the <a class="external" href="https://people.mozilla.org/~jorendorff/es6-draft.html#sec-well-known-symbols">@@iterator</a> property.
               </p>
-              <ol class="algorithm">
-                <li>Let <var>object</var> be the result of calling <a class="external" href="http://people.mozilla.org/~jorendorff/es6-draft.html#sec-toobject">ToObject</a> on the <span class="esvalue">this</span> value.</li>
-                <li>If <var>object</var> is a <a class="dfnref" href="#dfn-platform-object">platform object</a>,
-                  then <a class="dfnref" href="#dfn-perform-a-security-check">perform a security check</a>, passing:
-                  <ul>
-                    <li>the platform object <var>object</var>,</li>
-                    <li>the ECMAScript global environment associated with this <span class="estype">Function</span>,</li>
-                    <li>the identifier “entries”, and</li>
-                    <li>the type “method”.</li>
-                  </ul>
-                </li>
-                <li>Let <var>interface</var> be the <a class="dfnref" href="#dfn-interface">interface</a>
-                  on which the <a class="dfnref" href="#dfn-iterable-declaration">iterable declaration</a> is declared on.</li>
-                <li>If <var>object</var> is not a <a class="dfnref" href="#dfn-platform-object">platform object</a>
-                  that implements <var>interface</var>,
-                  then <a href="#ecmascript-throw" class="dfnref external">throw a <span class="estype">TypeError</span></a>.</li>
-                <li>Let <var>iterator</var> be a newly created <a class="dfnref" href="#dfn-default-iterator-object">default iterator object</a>
-                  for <var>interface</var> with <var>object</var> as its target and iterator kind “key+value”.</li>
-                <li>Return <var>iterator</var>.</li>
-              </ol>
-              <p>The value of the <span class="estype">Function</span> object’s “length” property is the <span class="estype">Number</span> value <span class="esvalue">0</span>.</p>
-              <p>The value of the <span class="estype">Function</span> object’s “name” property is the <span class="estype">String</span> value “entries”.</p>
             </div>
 
             <div id="es-iterable-keys" class="section">
@@ -12350,8 +12334,7 @@ interface
                 <a class="dfnref" href="#dfn-iterable-declaration">iterable declaration</a>,
                 then a property named “values” <span class="rfc2119">MUST</span> exist
                 with attributes <span class="descriptor">{ [[Writable]]: <span class="esvalue">true</span>, [[Enumerable]]: <span class="esvalue">true</span>, [[Configurable]]: <span class="esvalue">true</span> }</span>
-                and whose value is the <a class="dfnref" href="#dfn-function-object">function object</a>
-                that is the value of the <a class="external" href="https://people.mozilla.org/~jorendorff/es6-draft.html#sec-well-known-symbols">@@iterator</a> property.
+                and whose value is the <a class="dfnref" href="#dfn-function-object">function object</a>.
               </p>
               <p>
                 The location of the property is determined as follows:
@@ -12366,6 +12349,39 @@ interface
                 the consequential interface’s <a class="dfnref" href="#dfn-interface-prototype-object">interface prototype object</a>.</li>
                 <li>Otherwise, the property exists solely on the interface’s <a class="dfnref" href="#dfn-interface-prototype-object">interface prototype object</a>.</li>
               </ul>
+
+              <p>
+                If the interface has a <a class="dfnref" href="#dfn-value-iterator">value iterator</a>,
+                then the <span class="estype">Function</span> object is
+                the value of the <a class="external" href="https://people.mozilla.org/~jorendorff/es6-draft.html#sec-well-known-symbols">@@iterator</a> property.
+              </p>
+
+              <p>
+                If the interface has a <a class="dfnref" href="#dfn-pair-iterator">pair iterator</a>,
+                then the <span class="estype">Function</span>, when invoked, <span class="rfc2119">MUST</span> behave as follows:
+              </p>
+              <ol class="algorithm">
+                <li>Let <var>object</var> be the result of calling <a class="external" href="http://people.mozilla.org/~jorendorff/es6-draft.html#sec-toobject">ToObject</a> on the <span class="esvalue">this</span> value.</li>
+                <li>If <var>object</var> is a <a class="dfnref" href="#dfn-platform-object">platform object</a>,
+                  then <a class="dfnref" href="#dfn-perform-a-security-check">perform a security check</a>, passing:
+                  <ul>
+                    <li>the platform object <var>object</var>,</li>
+                    <li>the ECMAScript global environment associated with this <span class="estype">Function</span>,</li>
+                    <li>the identifier “entries”, and</li>
+                    <li>the type “method”.</li>
+                  </ul>
+                </li>
+                <li>Let <var>interface</var> be the <a class="dfnref" href="#dfn-interface">interface</a>
+                  on which the <a class="dfnref" href="#dfn-iterable-declaration">iterable declaration</a> is declared on.</li>
+                <li>If <var>object</var> is not a <a class="dfnref" href="#dfn-platform-object">platform object</a>
+                  that implements <var>interface</var>,
+                  then <a href="#ecmascript-throw" class="dfnref external">throw a <span class="estype">TypeError</span></a>.</li>
+                <li>Let <var>iterator</var> be a newly created <a class="dfnref" href="#dfn-default-iterator-object">default iterator object</a>
+                  for <var>interface</var> with <var>object</var> as its target and iterator kind “value”.</li>
+                <li>Return <var>iterator</var>.</li>
+              </ol>
+              <p>The value of the <span class="estype">Function</span> object’s “length” property is the <span class="estype">Number</span> value <span class="esvalue">0</span>.</p>
+              <p>The value of the <span class="estype">Function</span> object’s “name” property is the <span class="estype">String</span> value “values”.</p>
             </div>
 
             <div id="es-default-iterator-object" class="section">
