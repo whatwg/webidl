@@ -139,6 +139,10 @@
               href='https://people.mozilla.org/~jorendorff/es6-draft.html#sec-construct'/>
         <term name='DefinePropertyOrThrow' class='external'
               href='https://people.mozilla.org/~jorendorff/es6-draft.html#sec-definepropertyorthrow'/>
+        <term name='relevant settings object' class='external'
+              href='https://html.spec.whatwg.org/multipage/webappapis.html#relevant-settings-object'/>
+        <term name='secure context' class='external'
+              href='https://w3c.github.io/webappsec-secure-contexts/#secure-context'/>
       </links>
     </options>
   </head>
@@ -995,7 +999,8 @@ partial interface <em>SomeInterface</em> {
               <a class='xattr' href='#Exposed'>[Exposed]</a>,
               <a class='xattr' href='#Global'>[Global]</a>,
               <a class='xattr' href='#OverrideBuiltins'>[OverrideBuiltins]</a>,
-              <a class='xattr' href='#PrimaryGlobal'>[PrimaryGlobal]</a> and
+              <a class='xattr' href='#PrimaryGlobal'>[PrimaryGlobal]</a>,
+              <a class='xattr' href='#SecureContext'>[SecureContext]</a> and
               <a class='xattr' href='#Unforgeable'>[Unforgeable]</a>.</p>
           </div>
           <p>
@@ -1033,8 +1038,9 @@ partial interface <em>SomeInterface</em> {
             <a class='xattr' href='#LegacyArrayClass'>[LegacyArrayClass]</a>,
             <a class='xattr' href='#NamedConstructor'>[NamedConstructor]</a>,
             <a class='xattr' href='#NoInterfaceObject'>[NoInterfaceObject]</a>,
-            <a class='xattr' href='#OverrideBuiltins'>[OverrideBuiltins]</a>.
+            <a class='xattr' href='#OverrideBuiltins'>[OverrideBuiltins]</a>,
             <a class='xattr' href='#PrimaryGlobal'>[PrimaryGlobal]</a>,
+            <a class='xattr' href='#SecureContext'>[SecureContext]</a>,
             <a class='xattr' href='#Unforgeable'>[Unforgeable]</a>.
           </p>
 
@@ -1317,7 +1323,8 @@ node.appendChild(newNode);  <span class='comment'>// This will throw a TypeError
             </div>
             <p>
               The following extended attributes are applicable to constants:
-              <a class='xattr' href='#Exposed'>[Exposed]</a>.
+              <a class='xattr' href='#Exposed'>[Exposed]</a>,
+              <a class='xattr' href='#SecureContext'>[SecureContext]</a>.
             </p>
 
             <?productions grammar Const ConstType ConstValue BooleanLiteral FloatLiteral?>
@@ -1471,6 +1478,7 @@ attribute <i>type</i> <i>identifier</i> inherits getter setraises(<i>scoped-name
               <a class='xattr' href='#EnforceRange'>[EnforceRange]</a>,
               <a class='xattr' href='#Exposed'>[Exposed]</a>,
               <a class='xattr' href='#SameObject'>[SameObject]</a>,
+              <a class='xattr' href='#SecureContext'>[SecureContext]</a>,
               <a class='xattr' href='#TreatNullAs'>[TreatNullAs]</a>.
             </p>
 
@@ -1858,6 +1866,7 @@ s.union(1, 4, 7);         <span class='comment'>// Passing three arguments corre
               are applicable to operations:
               <a class='xattr' href='#Exposed'>[Exposed]</a>,
               <a class='xattr' href='#NewObject'>[NewObject]</a>,
+              <a class='xattr' href='#SecureContext'>[SecureContext]</a>,
               <a class='xattr' href='#TreatNullAs'>[TreatNullAs]</a>,
               <a class='xattr' href='#Unforgeable'>[Unforgeable]</a>.
             </p>
@@ -3734,7 +3743,8 @@ for (let session of sm) {
             </p>
             <p>
               The following extended attributes are applicable to <a class='dfnref' href='#dfn-iterable-declaration'>iterable declarations</a>:
-              <a class='xattr' href='#Exposed'>[Exposed]</a>.
+              <a class='xattr' href='#Exposed'>[Exposed]</a>,
+              <a class='xattr' href='#SecureContext'>[SecureContext]</a>.
             </p>
             <!--
             <p>
@@ -4153,7 +4163,8 @@ something.f(dict);</x:codeblock>
           <p>
             The following extended attributes are applicable to dictionaries:
             <a class='xattr' href='#Constructor'>[Constructor]</a>,
-            <a class='xattr' href='#Exposed'>[Exposed]</a>.
+            <a class='xattr' href='#Exposed'>[Exposed]</a>,
+            <a class='xattr' href='#SecureContext'>[SecureContext]</a>,
           </p>
           <p>
             The following extended attributes are applicable to dictionary members:
@@ -8654,8 +8665,22 @@ context.setColorEnforcedRange(-1, 255, 256);</x:codeblock>
               is <dfn data-export="" id='dfn-exposed'>exposed</dfn> in a given ECMAScript global environment if
               the ECMAScript global object implements an interface that is in the
               interface, interface member or dictionary's
-              <a class='dfnref' href='#dfn-exposure-set'>exposure set</a>.
+              <a class='dfnref' href='#dfn-exposure-set'>exposure set</a>,
+              and either:
             </p>
+            <ul>
+              <li>the <a>relevant settings object</a> for the ECMAScript global object is a <a>secure context</a>; or</li>
+              <li>the interface, interface member or dictionary is not <a class='dfnref' href='#dfn-available-only-in-secure-contexts'>available only in secure contexts</a>.</li>
+            </ul>
+            <div class='note'>
+              <p>Since it is not possible for the <a>relevant settings object</a>
+              for an ECMAScript global object to change whether it is a
+              <a>secure context</a> or not over time, an implementation's
+              decision to create properties for an interface, interface member
+              or dictionary can be made once, at the time the
+              <a class='dfnref' href='#dfn-initial-object'>initial objects</a>
+              are created.</p>
+            </div>
             <p>
               See
               <a href='#es-interfaces'>section <?sref es-interfaces?></a>,
@@ -9773,6 +9798,119 @@ counter.value;                                           <span class='comment'>/
   [SameObject] readonly attribute DOMImplementation implementation;
   ...
 };</x:codeblock>
+            </div>
+          </div>
+
+          <div id='SecureContext' class='section'>
+            <h4>[SecureContext]</h4>
+
+            <p>
+              If the <a class='xattr' href='#SecureContext'>[SecureContext]</a>
+              <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
+              appears on an <a class='dfnref' href='#dfn-interface'>interface</a>,
+              <a class='dfnref' href='#dfn-partial-interface'>partial interface</a>,
+              an individual <a class='dfnref' href='#dfn-interface-member'>interface member</a>, or
+              <a class='dfnref' href='#dfn-dictionary'>dictionary</a> with a <a href='#es-dictionary-constructors'>constructor</a>,
+              it indicates that the interface, interface member or <a href='#es-dictionary-constructors'>dictionary constructor</a> is exposed
+              only within a
+              <a href='https://w3c.github.io/webappsec-secure-contexts/#secure-context'>secure context</a>
+              (<a href='#ref-SECURE-CONTEXTS'>[SECURE-CONTEXTS]</a>, section 2).
+            </p>
+            <p>
+              The <a class='xattr' href='#SecureContext'>[SecureContext]</a>
+              extended attribute <span class='rfc2119'>MUST</span>
+              <a class='dfnref' href='#dfn-xattr-no-arguments'>take no arguments</a>.
+            </p>
+            <p>
+              The <a class='xattr' href='#SecureContext'>[SecureContext]</a>
+              extended attribute <span class='rfc2119'>MUST NOT</span>
+              be used on anything other than an
+              <a class='dfnref' href='#dfn-interface'>interface</a>,
+              <a class='dfnref' href='#dfn-partial-interface'>partial interface</a>,
+              an individual <a class='dfnref' href='#dfn-interface-member'>interface member</a>, or
+              <a class='dfnref' href='#dfn-dictionary'>dictionary</a>.
+            </p>
+            <p>
+              Whether a construct that the <a class='xattr' href='#SecureContext'>[SecureContext]</a>
+              <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
+              can be specified on is <dfn data-export="" id='dfn-available-only-in-secure-contexts'>available only in secure contexts</dfn>
+              is defined as follows:
+            </p>
+            <ul>
+              <li>
+                <p>If the <a class='xattr' href='#SecureContext'>[SecureContext]</a>
+                <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
+                is specified on the construct, then it is
+                <a class='dfnre' href='#dfn-available-only-in-secure-contexts'>available only in secure contexts</a>.</p>
+              </li>
+              <li>
+                <p>Otherwise, if the <a class='xattr' href='#SecureContext'>[SecureContext]</a>
+                <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
+                does not appear on a construct, then whether it is
+                <a class='dfnre' href='#dfn-available-only-in-secure-contexts'>available only in secure contexts</a>
+                depends on the type of construct:</p>
+                <dl class='switch'>
+                  <dt>interface</dt>
+                  <dt>dictionary</dt>
+                  <dd>The interface or dictionary is not
+                  <a class='dfnre' href='#dfn-available-only-in-secure-contexts'>available only in secure contexts</a>.</dd>
+                  <dt>partial interface</dt>
+                  <dd>The partial interface is <a class='dfnre' href='#dfn-available-only-in-secure-contexts'>available only in secure contexts</a>
+                  if and only if the original interface definition is.</dd>
+                  <dt>interface member</dt>
+                  <dd>The interface member is <a class='dfnre' href='#dfn-available-only-in-secure-contexts'>available only in secure contexts</a>
+                  if and only if the interface or partial interface the member is declared on is.</dd>
+                </dl>
+              </li>
+            </ul>
+            <div class='note'>
+              <p>
+                Whether a construct is
+                <a class='dfnre' href='#dfn-available-only-in-secure-contexts'>available only in secure contexts</a>
+                influences whether it is <a class='dfnref' href='#dfn-exposed'>exposed</a> in a given
+                ECMAScript global environment.
+              </p>
+            </div>
+            <p>
+              If <a class='xattr' href='#SecureContext'>[SecureContext]</a> appears on an
+              <a class='dfnref' href='#dfn-overloaded'>overloaded</a> <a class='dfnref' href='#dfn-operation'>operation</a>,
+              then it <span class='rfc2119'>MUST</span> appear on all overloads.
+            </p>
+            <p>
+              The <a class='xattr' href='#SecureContext'>[SecureContext]</a> extended attribute
+              <span class='rfc2119'>MUST NOT</span> be specified on both an interface
+              member and the interface or partial interface definition the
+              interface member is declared on.
+            </p>
+            <p>
+              An interface without the <a class='xattr' href='#SecureContext'>[SecureContext]</a> extended attribute
+              <span class='rfc2119'>MUST NOT</span> <a class='dfnref' href='#dfn-inherit'>inherit</a> from another interface
+              that does specify <a class='xattr' href='#SecureContext'>[SecureContext]</a>.
+            </p>
+            <p>
+              The <a class='xattr' href='#SecureContext'>[SecureContext]</a> extended attribute
+              <span class='rfc2119'>MUST NOT</span> be specified on a <a class='dfnref' href='#dfn-dictionary'>dictionary</a>
+              that does not also have a <a class='xattr' href='#Constructor'>[Constructor]</a> extended attribute.
+            </p>
+            <div class='example'>
+              <p>The following <a class='dfnref' href='#dfn-idl-fragment'>IDL fragment</a> defines an interface
+              with one <a class='dfnref' href='#dfn-operation'>operation</a> that is executable from all
+              contexts, and two which are executable only from secure contexts.</p>
+
+              <x:codeblock language='idl'>interface PowerfulFeature {
+  <span class='comment'>// This call will succeed in all contexts.</span>
+  Promise &lt;Result&gt; calculateNotSoSecretResult();
+
+  <span class='comment'>// This operation will not be exposed to a non-secure context. In such a context,
+  // there will be no "calculateSecretResult" property on PowerfulFeature.prototype.</span>
+  [SecureContext] Promise&lt;Result&gt; calculateSecretResult();
+
+  <span class='comment'>// The same applies here: the attribute will not be exposed to a non-secure context,
+  // and in a non-secure context there will be no "secretBoolean" property on
+  // PowerfulFeature.prototype.</span>
+  [SecureContext] readonly attribute boolean secretBoolean;
+};</x:codeblock>
+
             </div>
           </div>
 
@@ -11552,6 +11690,8 @@ interface
               unless the <a class='dfnref' href='#dfn-effective-overload-set'>effective overload set</a>
               for that <a class='dfnref' href='#dfn-identifier'>identifier</a> and <a class='dfnref' href='#dfn-operation'>operation</a>
               and with an argument count of 0 has no entries.
+            </p>
+            <p>
               The characteristics of this property are as follows:
             </p>
             <ul>
@@ -14952,6 +15092,12 @@ d.type = et;
               F. Yergeau.  IETF, November 2003.
               <span class="print"><br/>Available at http://tools.ietf.org/html/rfc3629.</span>
             </dd>
+            <dt id='ref-SECURE-CONTEXTS'>[SECURE-CONTEXTS]</dt>
+            <dd>
+              <cite><a href='https://w3c.github.io/webappsec-secure-contexts/'>Secure Contexts</a></cite>.
+              M. West and Y. Zhu, Editors.  World Wide Web Consortium, October 2015.
+              <span class="print"><br/>Available at https://w3c.github.io/webappsec-secure-contexts/.</span>
+            </dd>
             <dt id='ref-TYPEDARRAYS'>[TYPEDARRAYS]</dt>
             <dd>
               <cite><a href='https://www.khronos.org/registry/typedarray/specs/1.0/'>Typed Array Specification</a></cite>,
@@ -15101,6 +15247,11 @@ d.type = et;
           <dt>Current editor’s draft</dt>
           <dd>
             <ul>
+              <li>
+                <p>
+                  Added the <span class='xattr'>[SecureContext]</span> extended attribute.
+                </p>
+              </li>
               <li>
                 <p>
                   Changed from <span class='xattr'>[Unscopeable]</span> to
