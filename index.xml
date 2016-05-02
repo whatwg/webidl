@@ -1485,6 +1485,7 @@ attribute <i>type</i> <i>identifier</i> inherits getter setraises(<i>scoped-name
             <p>
               The following <a class='dfnref' href='#dfn-extended-attribute'>extended attributes</a>
               are applicable only to regular attributes:
+              <a class='xattr' href='#LenientSetter'>[LenientSetter]</a>,
               <a class='xattr' href='#LenientThis'>[LenientThis]</a>,
               <a class='xattr' href='#PutForwards'>[PutForwards]</a>,
               <a class='xattr' href='#Replaceable'>[Replaceable]</a>,
@@ -9109,6 +9110,80 @@ list.unshift({ });         <span class='comment'>// Insert an item at index 0.</
             </p>
           </div>
 
+          <div id='LenientSetter' class='section'>
+            <h4>[LenientSetter]</h4>
+            <p>
+              If the <a class='xattr' href='#LenientSetter'>[LenientSetter]</a>
+              <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
+              appears on a <a class='dfnref' href='#dfn-read-only'>read only</a>
+              <a class='dfnref' href='#dfn-regular-attribute'>regular attribute</a>,
+              it indicates that a no-op setter will be generated for the attribute’s
+              accessor property.  This results in erroneous assignments to the property
+              in strict mode to be ignored rather than causing an exception to be thrown.
+            </p>
+            <div class='warning'>
+              <p>
+                Specifications <span class='rfc2119'>SHOULD NOT</span> use <a href='#LenientThis' class='xattr'>[LenientSetter]</a>
+                unless required for compatibility reasons.  Pages have been observed
+                where authors have attempted to polyfill an IDL attribute by assigning
+                to the property, but have accidentally done so even if the property
+                exists.  In strict mode, this would cause an exception to be thrown,
+                potentially breaking page.  Without <a class='xattr' href='#LenientSetter'>[LenientSetter]</a>,
+                this could prevent a browser from shipping the feature.
+              </p>
+              <p>
+                Specification authors who
+                wish to use this feature are strongly advised to discuss this on the
+                <a href='mailto:public-script-coord@w3.org'>public-script-coord@w3.org</a>
+                mailing list before proceeding.
+              </p>
+            </div>
+            <p>
+              The <a class='xattr' href='#LenientThis'>[LenientThis]</a> extended attribute
+              <span class='rfc2119'>MUST</span>
+              <a class='dfnref' href='#dfn-xattr-no-arguments'>take no arguments</a>.
+              It <span class='rfc2119'>MUST NOT</span> be used on anything other than
+              a <a class='dfnref' href='#dfn-read-only'>read only</a>
+              <a class='dfnref' href='#dfn-regular-attribute'>regular attribute</a>.
+            </p>
+            <p>
+              An attribute with the <a class='xattr' href='#LenientSetter'>[LenientSetter]</a>
+              extended attribute <span class='rfc2119'>MUST NOT</span> also be declared
+              with the <a class='xattr' href='#PutForwards'>[PutForwards]</a>
+              or <a class='xattr' href='#Replaceable'>[Replaceable]</a> extended attributes.
+            </p>
+            <p>
+              See the <a href='#es-attributes'>Attributes</a> section <?sdir es-attributes?> for how
+              <a class='xattr' href='#LenientSetter'>[LenientSetter]</a>
+              is to be implemented.
+            </p>
+            <div class='example'>
+              <p>
+                The following IDL fragment defines an interface that uses the
+                <a class='xattr' href='#LenientSetter'>[LenientSetter]</a> extended
+                attribute.
+              </p>
+              <x:codeblock language='idl'>interface Example {
+  [LenientSetter] readonly attribute DOMString x;
+  readonly attribute DOMString y;
+};</x:codeblock>
+              <p>
+                An ECMAScript implementation that supports this interface will
+                have a setter on the accessor property that correspond to x,
+                which allows any assignment to be ignored in strict mode.
+              </p>
+              <x:codeblock language='es'>"use strict";
+
+var example = getExample();  <span class='comment'>// Get an instance of Example.</span>
+
+<span class='comment'>// Fine; while we are in strict mode, there is a setter that is a no-op.</span>
+example.x = 1;
+
+<span class='comment'>// Throws a TypeError, since we are in strict mode and there is no setter.</span>
+example.y = 1;</x:codeblock>
+            </div>
+          </div>
+
           <div id='LenientThis' class='section'>
             <h4>[LenientThis]</h4>
             <p>
@@ -9617,8 +9692,8 @@ Node implements EventTarget;</x:codeblock>
             <p>
               An attribute with the <a class='xattr' href='#PutForwards'>[PutForwards]</a>
               extended attribute <span class='rfc2119'>MUST NOT</span> also be declared
-              with the <a class='xattr' href='#Replaceable'>[Replaceable]</a>
-              extended attribute.
+              with the <a class='xattr' href='#LenientSetter'>[LenientSetter]</a> or
+              <a class='xattr' href='#Replaceable'>[Replaceable]</a> extended attributes.
             </p>
             <p>
               The <a class='xattr' href='#PutForwards'>[PutForwards]</a>
@@ -9695,8 +9770,8 @@ p.name.full = 'John Citizen';  <span class='comment'>// ...has the same behavior
             <p>
               An attribute with the <a class='xattr' href='#Replaceable'>[Replaceable]</a>
               extended attribute <span class='rfc2119'>MUST NOT</span> also be declared
-              with the <a class='xattr' href='#PutForwards'>[PutForwards]</a>
-              extended attribute.
+              with the <a class='xattr' href='#LenientSetter'>[LenientSetter]</a> or
+              <a class='xattr' href='#PutForwards'>[PutForwards]</a> extended attributes.
             </p>
             <p>
               The <a class='xattr' href='#Replaceable'>[Replaceable]</a>
@@ -11577,8 +11652,9 @@ interface
               </li>
               <li>
                 The <dfn data-export="" id='dfn-attribute-setter'>attribute setter</dfn> is <span class='esvalue'>undefined</span>
-                if the attribute is declared <code>readonly</code> and has neither a
-                <a class='xattr' href='#PutForwards'>[PutForwards]</a> nor a <a class='xattr' href='#Replaceable'>[Replaceable]</a>
+                if the attribute is declared <code>readonly</code> and does not have a
+                <a class='xattr' href='#LenientThis'>[LenientThis]</a>, <a class='xattr' href='#PutForwards'>[PutForwards]</a> or
+                <a class='xattr' href='#Replaceable'>[Replaceable]</a>
                 <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a> declared on it.
                 Otherwise, it is a <span class='estype'>Function</span> object whose behavior when invoked is as follows:
                 <ol class='algorithm'>
@@ -11620,6 +11696,8 @@ interface
                         </ol>
                       </li>
                       <li>If <var>validThis</var> is <span class='esvalue'>false</span>, then return <span class='esvalue'>undefined</span>.</li>
+                      <li>If the attribute is declared with a <a class='xattr' href='#LenientSetter'>[LenientSetter]</a>
+                        extended attribute, then return <span class='esvalue'>undefined</span>.</li>
                       <li>If the attribute is declared with a <a class='xattr' href='#PutForwards'>[PutForwards]</a>
                         extended attribute, then:
                         <ol>
@@ -15247,6 +15325,11 @@ d.type = et;
           <dt>Current editor’s draft</dt>
           <dd>
             <ul>
+              <li>
+                <p>
+                  Added the <span class='xattr'>[LenientSetter]</span> extended attribute.
+                </p>
+              </li>
               <li>
                 <p>
                   Added the <span class='xattr'>[SecureContext]</span> extended attribute.
