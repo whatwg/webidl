@@ -6307,7 +6307,6 @@ interface Person {
           <ul>
             <li><a class='dfnref' href='#dfn-interface-object'>interface objects</a></li>
             <li><a class='dfnref' href='#dfn-named-constructor'>named constructors</a></li>
-            <li><a class='dfnref' href='#dfn-dictionary-constructor'>dictionary constructors</a></li>
             <li><a class='dfnref' href='#dfn-interface-prototype-object'>interface prototype objects</a></li>
             <li><a class='dfnref' href='#dfn-named-properties-object'>named properties objects</a></li>
             <li><a class='dfnref' href='#dfn-iterator-prototype-object'>iterator prototype objects</a></li>
@@ -8367,15 +8366,8 @@ context.setColorClamped(-1, 255, 257);</x:codeblock>
               allowing objects implementing the interface to be constructed.
             </p>
             <p>
-              If it appears on a <a class='dfnref' href='#dfn-dictionary'>dictionary</a>, then it
-              indicates that the ECMAScript global object will have a property whose
-              name is the identifier of the dictionary and whose value is a constructor
-              function that can return an ECMAScript object that represents a dictionary
-              value of the given type.
-            </p>
-            <p>
               Multiple <a class='xattr' href='#Constructor'>[Constructor]</a> extended
-              attributes may appear on a given interface or dictionary.
+              attributes may appear on a given interface.
             </p>
             <p>
               The <a class='xattr' href='#Constructor'>[Constructor]</a>
@@ -8391,13 +8383,13 @@ context.setColorClamped(-1, 255, 257);</x:codeblock>
             <p>
               The prose definition of a constructor <span class='rfc2119'>MUST</span>
               either return an IDL value of a type corresponding to the interface
-              or dictionary the <a class='xattr' href='#Constructor'>[Constructor]</a>
+              the <a class='xattr' href='#Constructor'>[Constructor]</a>
               extended attribute appears on, or throw an exception.
             </p>
             <p>
-              If the <a class='xattr' href='#Constructor'>[Constructor]</a> extended attribute
-              is specified on an interface, then the <a class='xattr' href='#NoInterfaceObject'>[NoInterfaceObject]</a>
-              extended attribute <span class='rfc2119'>MUST NOT</span> also be specified on that interface.
+              The <a class='xattr' href='#Constructor'>[Constructor]</a> and
+              <a class='xattr' href='#NoInterfaceObject'>[NoInterfaceObject]</a>
+              extended attributes must not be specified on the same interface.
             </p>
             <p>
               The <a class='xattr' href='#Constructor'>[Constructor]</a> extended attribute
@@ -8406,9 +8398,7 @@ context.setColorClamped(-1, 255, 257);</x:codeblock>
             <p>
               See <a href='#es-interface-call'>section <?sref es-interface-call?></a>
               <?sdir es-interface-call?> for details on how a constructor
-              for an interface is to be implemented, and
-              <a href='#es-dictionary-constructors'>section <?sref es-dictionary-constructors?></a>
-              for how a constructor for a dictionary is to be implemented.
+              for an interface is to be implemented.
             </p>
 
             <div class='example'>
@@ -8448,41 +8438,6 @@ var y = new Circle(1.25);  <span class='comment'>// This also creates a Circle o
 
 var z = new NodeList();    <span class='comment'>// This would throw a TypeError, since no</span>
                            <span class='comment'>// [Constructor] is declared.</span></x:codeblock>
-            </div>
-
-            <div class='example'>
-              <p>
-                The following IDL defines a dictionary type with a constructor:
-              </p>
-              <x:codeblock language='idl'>[Constructor(unsigned long patties, unsigned long cheeseSlices)]
-dictionary BurgerOrder {
-  unsigned long pattyCount;
-  unsigned long cheeseSliceCount;
-};</x:codeblock>
-              <p>
-                The constructor is defined with the following prose:
-              </p>
-              <blockquote>
-                <p>When the <span class='idltype'>BurgerOrder</span> constructor
-                is invoked, it must return a dictionary value of type
-                <span class='idltype'>BurgerOrder</span> whose
-                pattyCount and cheeseSliceCount members are set to the
-                values of the patties and cheeseSlices arguments, respectively.</p>
-              </blockquote>
-              <p>
-                An ECMAScript implementation supporting this dictionary type
-                would have a constructor function on the global object that
-                returns a plain object with properties corresponding to
-                the dictionary’s members:
-              </p>
-              <x:codeblock language='es'>typeof BurgerOrder;                                <span class='comment'>// Evaluates to "function".</span>
-
-var order = new BurgerOrder(1, 2);                 <span class='comment'>// Creates a new object.</span>
-
-order.hasOwnProperty("pattyCount");                <span class='comment'>// Evaluates to true.</span>
-order.pattyCount;                                  <span class='comment'>// Evaluates to 1.</span>
-
-Object.getPrototypeOf(order) == Object.prototype;  <span class='comment'>// Evaluates to true.</span></x:codeblock>
             </div>
           </div>
 
@@ -8564,10 +8519,9 @@ context.setColorEnforcedRange(-1, 255, 256);</x:codeblock>
               If the <a class='xattr' href='#Exposed'>[Exposed]</a>
               <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
               appears on an <a class='dfnref' href='#dfn-interface'>interface</a>,
-              <a class='dfnref' href='#dfn-partial-interface'>partial interface</a>,
-              an individual <a class='dfnref' href='#dfn-interface-member'>interface member</a>, or
-              <a class='dfnref' href='#dfn-dictionary'>dictionary</a> with a <a href='#es-dictionary-constructors'>constructor</a>,
-              it indicates that the interface, interface member or <a href='#es-dictionary-constructors'>dictionary constructor</a> is exposed
+              <a class='dfnref' href='#dfn-partial-interface'>partial interface</a>, or
+              an individual <a class='dfnref' href='#dfn-interface-member'>interface member</a>,
+              it indicates that the interface or interface member is exposed
               on a particular set of global interfaces, rather than the default of
               being exposed only on the <a class='dfnref' href='#dfn-primary-global-interface'>primary global interface</a>.
             </p>
@@ -8605,9 +8559,8 @@ context.setColorEnforcedRange(-1, 255, 256);</x:codeblock>
                 implicitly, depending on the type of construct:</p>
                 <dl class='switch'>
                   <dt>interface</dt>
-                  <dt>dictionary</dt>
                   <dd>The <a class='dfnref' href='#dfn-exposure-set'>exposure set</a> of the interface
-                  or dictionary only contains the
+                  only contains the
                   <a class='dfnref' href='#dfn-primary-global-interface'>primary global interface</a>.</dd>
                   <dt>partial interface</dt>
                   <dd>The <a class='dfnref' href='#dfn-exposure-set'>exposure set</a> of the partial
@@ -8655,37 +8608,30 @@ context.setColorEnforcedRange(-1, 255, 256);</x:codeblock>
               <var>Y</var>.
             </p>
             <p>
-              The <a class='xattr' href='#Exposed'>[Exposed]</a> extended attribute
-              <span class='rfc2119'>MUST NOT</span> be specified on a <a class='dfnref' href='#dfn-dictionary'>dictionary</a>
-              that does not also have a <a class='xattr' href='#Constructor'>[Constructor]</a> extended attribute.
-            </p>
-            <p>
-              An <a class='dfnref' href='#dfn-interface'>interface</a>,
-              <a class='dfnref' href='#dfn-interface-member'>interface member</a> or
-              <a class='dfnref' href='#dfn-dictionary'>dictionary</a>
+              An <a class='dfnref' href='#dfn-interface'>interface</a> or
+              <a class='dfnref' href='#dfn-interface-member'>interface member</a>
               is <dfn data-export="" id='dfn-exposed'>exposed</dfn> in a given ECMAScript global environment if
               the ECMAScript global object implements an interface that is in the
-              interface, interface member or dictionary's
+              interface or interface member's
               <a class='dfnref' href='#dfn-exposure-set'>exposure set</a>,
               and either:
             </p>
             <ul>
               <li>the <a>relevant settings object</a> for the ECMAScript global object is a <a>secure context</a>; or</li>
-              <li>the interface, interface member or dictionary is not <a class='dfnref' href='#dfn-available-only-in-secure-contexts'>available only in secure contexts</a>.</li>
+              <li>the interface or interface member is not <a class='dfnref' href='#dfn-available-only-in-secure-contexts'>available only in secure contexts</a>.</li>
             </ul>
             <div class='note'>
               <p>Since it is not possible for the <a>relevant settings object</a>
               for an ECMAScript global object to change whether it is a
               <a>secure context</a> or not over time, an implementation's
-              decision to create properties for an interface, interface member
-              or dictionary can be made once, at the time the
+              decision to create properties for an interface or interface member
+              can be made once, at the time the
               <a class='dfnref' href='#dfn-initial-object'>initial objects</a>
               are created.</p>
             </div>
             <p>
               See
               <a href='#es-interfaces'>section <?sref es-interfaces?></a>,
-              <a href='#es-dictionary-constructors'>section <?sref es-dictionary-constructors?></a>,
               <a href='#es-constants'>section <?sref es-constants?></a>,
               <a href='#es-attributes'>section <?sref es-attributes?></a>,
               <a href='#es-operations'>section <?sref es-operations?></a> and
@@ -9884,9 +9830,8 @@ counter.value;                                           <span class='comment'>/
               <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
               appears on an <a class='dfnref' href='#dfn-interface'>interface</a>,
               <a class='dfnref' href='#dfn-partial-interface'>partial interface</a>,
-              an individual <a class='dfnref' href='#dfn-interface-member'>interface member</a>, or
-              <a class='dfnref' href='#dfn-dictionary'>dictionary</a> with a <a href='#es-dictionary-constructors'>constructor</a>,
-              it indicates that the interface, interface member or <a href='#es-dictionary-constructors'>dictionary constructor</a> is exposed
+              an individual <a class='dfnref' href='#dfn-interface-member'>interface member</a>,
+              it indicates that the interface or interface member is exposed
               only within a
               <a href='https://w3c.github.io/webappsec-secure-contexts/#secure-context'>secure context</a>
               (<a href='#ref-SECURE-CONTEXTS'>[SECURE-CONTEXTS]</a>, section 2).
@@ -9901,9 +9846,8 @@ counter.value;                                           <span class='comment'>/
               extended attribute <span class='rfc2119'>MUST NOT</span>
               be used on anything other than an
               <a class='dfnref' href='#dfn-interface'>interface</a>,
-              <a class='dfnref' href='#dfn-partial-interface'>partial interface</a>,
-              an individual <a class='dfnref' href='#dfn-interface-member'>interface member</a>, or
-              <a class='dfnref' href='#dfn-dictionary'>dictionary</a>.
+              <a class='dfnref' href='#dfn-partial-interface'>partial interface</a>, or
+              an individual <a class='dfnref' href='#dfn-interface-member'>interface member</a>.
             </p>
             <p>
               Whether a construct that the <a class='xattr' href='#SecureContext'>[SecureContext]</a>
@@ -9926,7 +9870,6 @@ counter.value;                                           <span class='comment'>/
                 depends on the type of construct:</p>
                 <dl class='switch'>
                   <dt>interface</dt>
-                  <dt>dictionary</dt>
                   <dd>The interface or dictionary is not
                   <a class='dfnre' href='#dfn-available-only-in-secure-contexts'>available only in secure contexts</a>.</dd>
                   <dt>partial interface</dt>
@@ -9961,11 +9904,6 @@ counter.value;                                           <span class='comment'>/
               An interface without the <a class='xattr' href='#SecureContext'>[SecureContext]</a> extended attribute
               <span class='rfc2119'>MUST NOT</span> <a class='dfnref' href='#dfn-inherit'>inherit</a> from another interface
               that does specify <a class='xattr' href='#SecureContext'>[SecureContext]</a>.
-            </p>
-            <p>
-              The <a class='xattr' href='#SecureContext'>[SecureContext]</a> extended attribute
-              <span class='rfc2119'>MUST NOT</span> be specified on a <a class='dfnref' href='#dfn-dictionary'>dictionary</a>
-              that does not also have a <a class='xattr' href='#Constructor'>[Constructor]</a> extended attribute.
             </p>
             <div class='example'>
               <p>The following <a class='dfnref' href='#dfn-idl-fragment'>IDL fragment</a> defines an interface
@@ -11127,90 +11065,6 @@ with (thing) {
               <a class='xattr' href='#NamedConstructor'>[NamedConstructor]</a>
               <a class='dfnref' href='#dfn-extended-attribute'>extended attribute</a>
               appears.
-            </p>
-          </div>
-
-          <div id='es-dictionary-constructors' class='section'>
-            <h4>Dictionary constructors</h4>
-
-            <p>
-              For every <a class='dfnref' href='#dfn-dictionary'>dictionary</a> type
-              that has one or more <a class='xattr' href='#Constructor'>[Constructor]</a>
-              <a class='dfnref' href='#dfn-extended-attribute'>extended attributes</a>
-              and which is <a class='dfnref' href='#dfn-exposed'>exposed</a> in a given
-              ECMAScript global environment, a corresponding property <span class='rfc2119'>MUST</span> exist on the
-              ECMAScript environment's global object.  The name of the property is the
-              <a class='dfnref' href='#dfn-identifier'>identifier</a> of the dictionary,
-              and its value is a <a class='dfnref' href='#dfn-function-object'>function object</a>
-              called the <dfn data-export="" id='dfn-dictionary-constructor'>dictionary constructor</dfn>.
-            </p>
-            <p>
-              The property has the attributes <span class='descriptor'>{ [[Writable]]: <span class='esvalue'>true</span>, [[Enumerable]]: <span class='esvalue'>false</span>, [[Configurable]]: <span class='esvalue'>true</span> }</span>.
-            </p>
-            <p>
-              The internal <span class='prop'>[[Call]]</span> method of the interface
-              object behaves as follows, assuming
-              <var>arg</var><sub>0..<var>n</var>−1</sub> is the list
-              of argument values passed to the constructor, and <var>D</var>
-              is the <a class='dfnref' href='#dfn-dictionary'>dictionary</a> type:
-            </p>
-            <ol class='algorithm'>
-              <li>
-                Let <var>id</var> be the identifier of dictionary type <var>D</var>.
-              </li>
-              <li>
-                Initialize <var>S</var> to the
-                <a class='dfnref' href='#dfn-effective-overload-set'>effective overload set</a>
-                for constructors with <a class='dfnref' href='#dfn-identifier'>identifier</a>
-                <var>id</var> on <a class='dfnref' href='#dfn-dictionary'>dictionary</a> type
-                <var>D</var> and with argument count <var>n</var>.
-              </li>
-              <li>
-                Let &lt;<var>constructor</var>, <var>values</var>> be the result of passing <var>S</var> and
-                <var>arg</var><sub>0..<var>n</var>−1</sub> to the
-                <a class='dfnref' href='#dfn-overload-resolution-algorithm'>overload resolution algorithm</a>.
-              </li>
-              <li>
-                Let <var>R</var> be the result of performing the actions listed in the description of
-                <var>constructor</var> with <var>values</var> as the argument values.
-              </li>
-              <li>
-                Return the result of <a class='dfnref' href='#dfn-convert-idl-to-ecmascript-value'>converting</a>
-                <var>R</var>, which is a dictionary value of type <var>D</var>, to an ECMAScript value.
-              </li>
-            </ol>
-            <p>
-              If the internal <span class='prop'>[[Call]]</span> method
-              of the <a class='dfnref' href='#dfn-named-constructor'>named constructor</a>
-              returns normally, then it <span class='rfc2119'>MUST</span>
-              return an object that is
-              associated with the ECMAScript global environment associated
-              with the <a class='dfnref' href='#dfn-dictionary-constructor'>dictionary constructor</a>.
-            </p>
-            <p>
-              A dictionary constructor object <span class='rfc2119'>MUST</span> have a property named “length”
-              with attributes <span class='descriptor'>{ [[Writable]]: <span class='esvalue'>false</span>, [[Enumerable]]: <span class='esvalue'>false</span>, [[Configurable]]: <span class='esvalue'>true</span> }</span>
-              whose value is a <span class='estype'>Number</span> determined as follows:
-            </p>
-            <ol class='algorithm'>
-              <li>
-                Let <var>id</var> be the identifier of the dictionary type.
-              </li>
-              <li>
-                Initialize <var>S</var> to the
-                <a class='dfnref' href='#dfn-effective-overload-set'>effective overload set</a>
-                for constructors with
-                <a class='dfnref' href='#dfn-identifier'>identifier</a>
-                <var>id</var> on dictionary <var>D</var> and with argument count 0.
-              </li>
-              <li>
-                Return the length of the shortest argument list of the entries in <var>S</var>.
-              </li>
-            </ol>
-            <p>
-              A dictionary constructor object <span class='rfc2119'>MUST</span> have a property named “name”
-              with attributes <span class='descriptor'>{ [[Writable]]: <span class='esvalue'>false</span>, [[Enumerable]]: <span class='esvalue'>false</span>, [[Configurable]]: <span class='esvalue'>true</span> }</span>
-              whose value is the identifier of the dictionary.
             </p>
           </div>
 
@@ -15325,6 +15179,11 @@ d.type = et;
           <dt>Current editor’s draft</dt>
           <dd>
             <ul>
+              <li>
+                <p>
+                  Removed support for <span class='xattr'>[Constructor]</span> on dictionaries.
+                </p>
+              </li>
               <li>
                 <p>
                   Added the <span class='xattr'>[LenientSetter]</span> extended attribute.
