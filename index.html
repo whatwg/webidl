@@ -10173,9 +10173,9 @@ counter.value;                                           <span class="comment">/
             <p>
               The <a class="xattr" href="#SecureContext">[SecureContext]</a> extended attribute
               <span class="rfc2119">MUST NOT</span> be specified on both an interface member and the
-              interface or partial interface definition the interface member is declared within, or
+              interface or partial interface definition the interface member is declared on, or
               on both a namespace member and the namespace or partial namespace definition the
-              namespace member is declared within.
+              namespace member is declared on.
             </p>
             <p>
               An interface without the <a class="xattr" href="#SecureContext">[SecureContext]</a> extended attribute
@@ -12026,6 +12026,105 @@ interface
                 property is a <span class="estype">String</span> whose value is the
                 identifier of the operation.</li>
             </ul>
+
+            <p>We also define <dfn id="dfn-create-operation-function">creating an operation
+            function</dfn>, given an <a class="dfnref" href="#dfn-operation">operation</a>
+            <var>op</var>, a <a class="dfnref" href="#dfn-namespace">namespace</a>
+            <var>namespace</var>, and a <a class="external external" href="https://tc39.github.io/ecma262/#sec-code-realms">Realm</a> <var>realm</var>:</p>
+
+            <p class="note">The astute reader may notice that what follows is very similar to the
+            above algorithm for operations on interfaces. It is currently only used for namespaces,
+            but we have near-future plans to generalize it slightly and then replace the above
+            definition so that this algorithm is useful both for interfaces and namespaces.</p>
+
+            <ol>
+              <li>
+                Let <var>id</var> be <var>op</var>'s <a class="dfnref" href="#dfn-identifier">identifier</a>.
+              </li>
+
+
+              <li>
+                Let <var>steps</var> be the following series of steps, given function argument
+                values <var>arg</var><sub>0..<var>n</var>−1</sub>:
+
+                <ol>
+                  <li>
+                    Try running the following steps:
+                    <ol>
+                      <li>
+                        Let <var>S</var> be the <a class="dfnref" href="#dfn-effective-overload-set">effective overload set</a> for <a class="dfnref" href="#dfn-regular-operation">regular operations</a> with
+                        <a class="dfnref" href="#dfn-identifier">identifier</a> <var>id</var> on
+                        <a class="dfnref" href="#dfn-namespace">namespace</a> <var>namespace</var>
+                        and with argument count <var>n</var>.
+                      </li>
+
+                      <li>
+                        Let &lt;<var>operation</var>, <var>values</var>&gt; be the result of passing
+                        <var>S</var> and <var>arg</var><sub>0..<var>n</var>−1</sub> to the <a class="dfnref" href="#dfn-overload-resolution-algorithm">overload resolution
+                        algorithm</a>.
+                      </li>
+
+                      <li>
+                        Let <var>R</var> be the result of performing the actions listed in the
+                        description of <var>operation</var> with <var>values</var> as the argument
+                        values.
+                      </li>
+
+                      <li>
+                        Return the result of <a class="dfnref" href="#dfn-convert-idl-to-ecmascript-value">converting</a> <var>R</var> to
+                        an ECMAScript value of the type <var>op</var> is declared to return.
+                      </li>
+                     </ol>
+                  </li>
+                </ol>
+
+                And then, if an exception was thrown:
+
+                <ol>
+                  <li>
+                    If the operation has a <a class="dfnref" href="#dfn-return-type">return type</a>
+                    that is a <a href="#idl-promise">promise type</a>, then:
+
+                    <ol>
+                      <li>
+                        Let <var>reject</var> be the initial value of <a class="nocite external" href="https://tc39.github.io/ecma262/#sec-promise-constructor">%Promise%</a>.reject.
+                      </li>
+                      <li>
+                        Return the result of calling <var>reject</var> with <a class="nocite external" href="https://tc39.github.io/ecma262/#sec-promise-constructor">%Promise%</a> as the <span class="esvalue">this</span> object
+                        and the exception as the single argument value.
+                      </li>
+                    </ol>
+                  </li>
+                  <li>
+                    Otherwise, end these steps and allow the exception to propagate.
+                  </li>
+                </ol>
+              </li>
+
+              <li>
+                Let <var>F</var> be <a class="external" href="https://tc39.github.io/ecma262/#sec-algorithm-conventions">!</a> <a class="external" href="https://tc39.github.io/ecma262/#sec-createbuiltinfunction">CreateBuiltinFunction</a>(<var>realm</var>,
+                <var>steps</var>, the <a class="external" href="https://tc39.github.io/ecma262/#sec-properties-of-the-function-prototype-object">%FunctionPrototype%</a> of <var>realm</var>).
+              </li>
+
+              <li>
+                Perform <a class="external" href="https://tc39.github.io/ecma262/#sec-algorithm-conventions">!</a> <a class="external" href="https://tc39.github.io/ecma262/#sec-setfunctionname">SetFunctionName</a>(<var>F</var>, <var>id</var>).
+              </li>
+
+              <li>
+                Let <var>S</var> be the <a class="dfnref" href="#dfn-effective-overload-set">effective overload set</a> for <a class="dfnref" href="#dfn-regular-operation">regular operations</a> with <a class="dfnref" href="#dfn-identifier">identifier</a> <var>id</var> on <a class="dfnref" href="#dfn-namespace">namespace</a> <var>namespace</var> and with argument count 0.
+              </li>
+
+              <li>
+                Let <var>length</var> be the length of the shortest argument list in the entries in
+                <var>S</var>.
+              </li>
+
+              <li>
+                Perform <a class="external" href="https://tc39.github.io/ecma262/#sec-algorithm-conventions">!</a> <a class="external" href="https://tc39.github.io/ecma262/#sec-definepropertyorthrow">DefinePropertyOrThrow</a>(<var>F</var>, <code>"length"</code>,
+                PropertyDescriptor<span class="descriptor">{[[Value]]: <var>length</var>,
+                [[Writable]]: <span class="esvalue">false</span>, [[Enumerable]]: <span class="esvalue">false</span>, [[Configurable]]: <span class="esvalue">true</span>}</span>).
+              </li>
+            </ol>
 
             <div id="es-stringifier" class="section">
               <h5>4.6.7.1. Stringifiers</h5>
@@ -14560,7 +14659,8 @@ C implements A;</code></pre></div></div>
 
             <p>
               The namespace object for a given <a class="dfnref" href="#dfn-namespace">namespace</a>
-              <var>namespace</var> and Realm <var>realm</var> is created as follows:
+              <var>namespace</var> and <a class="external external" href="https://tc39.github.io/ecma262/#sec-code-realms">Realm</a> <var>realm</var> is created as
+              follows:
             </p>
 
             <ol class="algorithm">
@@ -14574,97 +14674,14 @@ C implements A;</code></pre></div></div>
 
                 <ol>
                   <li>
-                    Let <var>id</var> be <var>op</var>'s <a class="dfnref" href="#dfn-identifier">identifier</a>.
-                  </li>
-
-                  <li>
-                    Let <var>steps</var> be the following series of steps, given function argument
-                    values <var>arg</var><sub>0..<var>n</var>−1</sub>:
-
-                    <ol>
-                      <li>
-                        Try running the following steps:
-                        <ol>
-                          <li>
-                            Let <var>S</var> be the <a class="dfnref" href="#dfn-effective-overload-set">effective overload set</a> for <a class="dfnref" href="#dfn-regular-operation">regular operations</a> with
-                            <a class="dfnref" href="#dfn-identifier">identifier</a> <var>id</var> on
-                            <a class="dfnref" href="#dfn-namespace">namespace</a>
-                            <var>namespace</var> and with argument count <var>n</var>.
-                          </li>
-
-                          <li>
-                            Let &lt;<var>operation</var>, <var>values</var>&gt; be the result of
-                            passing <var>S</var> and <var>arg</var><sub>0..<var>n</var>−1</sub> to
-                            the <a class="dfnref" href="#dfn-overload-resolution-algorithm">overload
-                            resolution algorithm</a>.
-                          </li>
-
-                          <li>
-                            Let <var>R</var> be the result of performing the actions listed in the
-                            description of <var>operation</var> with <var>values</var> as the
-                            argument values.
-                          </li>
-
-                          <li>
-                            Return the result of <a class="dfnref" href="#dfn-convert-idl-to-ecmascript-value">converting</a> <var>R</var>
-                            to an ECMAScript value of the type <var>op</var> is declared to return.
-                          </li>
-                         </ol>
-                      </li>
-                    </ol>
-
-                    And then, if an exception was thrown:
-
-                    <ol>
-                      <li>
-                        If the operation has a <a class="dfnref" href="#dfn-return-type">return
-                        type</a> that is a <a href="#idl-promise">promise type</a>, then:
-
-                        <ol>
-                          <li>
-                            Let <var>reject</var> be the initial value of <a class="nocite external" href="https://tc39.github.io/ecma262/#sec-promise-constructor">%Promise%</a>.reject.
-                          </li>
-                          <li>
-                            Return the result of calling <var>reject</var> with <a class="nocite external" href="https://tc39.github.io/ecma262/#sec-promise-constructor">%Promise%</a> as the <span class="esvalue">this</span>
-                            object and the exception as the single argument value.
-                          </li>
-                        </ol>
-                      </li>
-                      <li>
-                        Otherwise, end these steps and allow the exception to propagate.
-                      </li>
-                    </ol>
-                  </li>
-
-                  <li>
-                    Let <var>F</var> be <a class="external" href="https://tc39.github.io/ecma262/#sec-algorithm-conventions">!</a> <a class="external" href="https://tc39.github.io/ecma262/#sec-createbuiltinfunction">CreateBuiltinFunction</a>(<var>realm</var>,
-                    <var>steps</var>, the <a class="external" href="https://tc39.github.io/ecma262/#sec-properties-of-the-function-prototype-object">%FunctionPrototype%</a> of <var>realm</var>).
-                  </li>
-
-                  <li>
-                    Perform <a class="external" href="https://tc39.github.io/ecma262/#sec-algorithm-conventions">!</a> <a class="external" href="https://tc39.github.io/ecma262/#sec-setfunctionname">SetFunctionName</a>(<var>F</var>, <var>id</var>).
-                  </li>
-
-                  <li>
-                    Let <var>S</var> be the <a class="dfnref" href="#dfn-effective-overload-set">effective overload set</a> for <a class="dfnref" href="#dfn-regular-operation">regular operations</a> with <a class="dfnref" href="#dfn-identifier">identifier</a> <var>id</var> on <a class="dfnref" href="#dfn-namespace">namespace</a> <var>namespace</var> and with
-                    argument count 0.
-                  </li>
-
-                  <li>
-                    Let <var>length</var> be the length of the shortest argument list in the entries
-                    in <var>S</var>.
-                  </li>
-
-                  <li>
-                    Perform <a class="external" href="https://tc39.github.io/ecma262/#sec-algorithm-conventions">!</a> <a class="external" href="https://tc39.github.io/ecma262/#sec-definepropertyorthrow">DefinePropertyOrThrow</a>(<var>F</var>,
-                    <code>"length"</code>, PropertyDescriptor<span class="descriptor">{[[Value]]:
-                    <var>length</var>, [[Writable]]: <span class="esvalue">false</span>,
-                    [[Enumerable]]: <span class="esvalue">false</span>, [[Configurable]]: <span class="esvalue">true</span>}</span>).
+                    Let <var>F</var> be the result of <a class="dfnref" href="#dfn-create-operation-function">creating an operation function</a> given
+                    <var>op</var>, <var>namespace</var>,  and <var>realm</var>.
                   </li>
 
                   <li>
                     Perform <a class="external" href="https://tc39.github.io/ecma262/#sec-algorithm-conventions">!</a> <a class="external" href="https://tc39.github.io/ecma262/#sec-createdataproperty">CreateDataProperty</a>(<var>namespaceObject</var>,
-                    <var>id</var>, <var>F</var>).
+                    <var>op</var>'s <a class="dfnref" href="#dfn-identifier">identifier</a>,
+                    <var>F</var>).
                   </li>
                 </ol>
               </li>
