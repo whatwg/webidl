@@ -144,7 +144,8 @@ urlPrefix: https://html.spec.whatwg.org/multipage/webappapis.html; spec: HTML
         text: Clean up after running a callback
         text: incumbent settings object
         text: event handler IDL attributes; url: event-handler-attributes
-        text: settings object; url: concept-realm-settings-object            
+        text: settings object; url: concept-realm-settings-object
+        text: global object; url: concept-realm-global; for: Realm
 </pre>
 
 <style>
@@ -1030,7 +1031,6 @@ definition.
 limitations.  The following extended attributes must not
 be specified on partial interface definitions:
 [{{Constructor}}],
-[{{ImplicitThis}}],
 [{{LegacyArrayClass}}],
 [{{NamedConstructor}}],
 [{{NoInterfaceObject}}].
@@ -1057,7 +1057,6 @@ The following extended attributes are applicable to interfaces:
 [{{Constructor}}],
 [{{Exposed}}],
 [{{Global}}],
-[{{ImplicitThis}}],
 [{{LegacyArrayClass}}],
 [{{NamedConstructor}}],
 [{{NoInterfaceObject}}],
@@ -8495,63 +8494,6 @@ for the specific requirements that the use of
 </div>
 
 
-<h4 id="ImplicitThis" extended-attribute lt="ImplicitThis">[ImplicitThis]</h4>
-
-If the [{{ImplicitThis}}]
-[=extended attribute=]
-appears on an [=interface=],
-it indicates that when a <emu-val>Function</emu-val> corresponding
-to one of the interface’s [=operations=]
-is invoked with the <emu-val>null</emu-val> or <emu-val>undefined</emu-val>
-value as the <emu-val>this</emu-val> value, that the ECMAScript global
-object will be used as the <emu-val>this</emu-val> value instead.
-This is regardless of whether the calling code is in strict mode.
-
-The [{{ImplicitThis}}]
-extended attribute must
-[=takes no arguments|take no arguments=].
-
-See [[#es-operations]]
-for the specific requirements that the use of
-[{{ImplicitThis}}] entails.
-
-Note: The [{{ImplicitThis}}] [=extended attribute=]
-is intended for use on the {{Window}} [=interface=].
-
-<div class="example">
-    
-    In the following example, the <code class="idl">Window</code>
-    [=interface=] is defined
-    with the [{{ImplicitThis}}]
-    [=extended attribute=].
-    
-    <pre highlight="webidl">
-        [ImplicitThis]
-        interface Window {
-          // ...
-          attribute DOMString name;
-          void alert(DOMString message);
-        };
-    </pre>
-    
-    Since the <code class="idl">Window</code> object is used as
-    the ECMAScript global object, calls to its functions can be made
-    without an explicit object, even in strict mode:
-    
-    <pre highlight="js">
-        "use strict";
-        
-        window.alert("hello");      // Calling alert with an explicit window object works.
-        alert("hello");             // This also works, even though we are in strict mode.
-        alert.call(null, "hello");  // As does passing null explicitly as the this value.
-        
-        // This does not apply to getters for attributes on the interface, though.
-        // The following will throw a TypeError.
-        Object.getOwnPropertyDescriptor(Window.prototype, "name").get.call(null);
-    </pre>
-</div>
-
-
 <h4 oldids="PrimaryGlobal" id="Global" extended-attribute lt="Global|PrimaryGlobal" dfn>[Global] and [PrimaryGlobal]</h4>
 
 If the [{{Global}}]
@@ -10944,99 +10886,26 @@ The characteristics of this property are as follows:
     where |B| is <emu-val>false</emu-val> if the operation is
     [=unforgeable=] on the interface,
     and <emu-val>true</emu-val> otherwise.
-*   The value of the property is a <emu-val>Function</emu-val> object whose
-    behavior is as follows,
-    assuming |id| is the
-    [=identifier=],
-    |arg|<sub>0..|n|−1</sub> is the list
-    of argument values passed to the function:
-    <ol class="algorithm">
-        1.  Try running the following steps:
-            1.  Let |I| be the [=interface=]
-                whose [=interface prototype object=]
-                (or [=interface object=], for a static
-                operation) this property corresponding to the operation appears on.
-                
-                Note: This means that even if an implements statement was used to make
-                an operation available on the interface, |I| is the interface
-                on the left hand side of the implements statement, and not the one
-                that the operation was originally declared on.
-                
-            1.  Let |O| be a value determined as follows:
-                *   If the operation is a static operation, then |O| is <emu-val>null</emu-val>.
-                *   Otherwise, if the [=interface=] on which the
-                    [=operation=] appears has an
-                    [{{ImplicitThis}}] [=extended attribute=],
-                    and the <emu-val>this</emu-val> value is <emu-val>null</emu-val>
-                    or <emu-val>undefined</emu-val>, then |O| is
-                    the ECMAScript global object associated with the <emu-val>Function</emu-val> object.
-                *   Otherwise, if the <emu-val>this</emu-val> value is not <emu-val>null</emu-val>,
-                    then |O| is the <emu-val>this</emu-val> value.
-                *   Otherwise, <a lt="es throw">throw a <emu-val>TypeError</emu-val></a>.
-            1.  If |O| is a [=platform object=],
-                then [=perform a security check=], passing:
-                *   the platform object |O|,
-                *   the ECMAScript global environment associated with this <emu-val>Function</emu-val> that
-                    implements the [=operation=],
-                *   the [=identifier=] of the [=operation=], and
-                *   the type “method”.
-            1.  If |O| is not <emu-val>null</emu-val> and is also not a [=platform object=]
-                that implements interface |I|, <a lt="es throw">throw a <emu-val>TypeError</emu-val></a>.
-            1.  Initialize |S| to the
-                [=effective overload set=]
-                for [=regular operations=]
-                (if the operation is a regular operation) or for
-                [=static operations=]
-                (if the operation is a static operation) with
-                [=identifier=]
-                |id| on [=interface=]
-                |I| and with argument count |n|.
-            1.  Let &lt;|operation|, |values|&gt; be the result of passing |S| and
-                |arg|<sub>0..|n|−1</sub> to the
-                [=overload resolution algorithm=].
-            1.  Let |R| be the result of performing (on |O|, if the operation
-                is not a static operation) the actions listed in the description of
-                |operation| with |values| as the argument values.
-            1.  Return the result of [=converted to an ECMAScript value|converting=]
-                |R| to an ECMAScript value of
-                the type |op| is declared to return.
-            
-            And then, if an exception was thrown:
-            
-            1.  If the operation has a [=return type=]
-                that is a <a href="#idl-promise">promise type</a>, then:
-                1.  Let |reject| be the initial value of [=%Promise%=].reject.
-                1.  Return the result of calling |reject| with [=%Promise%=] as the
-                    <emu-val>this</emu-val> object and the exception as the single
-                    argument value.
-            1.  Otherwise, end these steps and allow the exception to propagate.
-    </ol>
-*   The value of the <emu-val>Function</emu-val> object’s “length”
-    property is a <emu-val>Number</emu-val> determined as follows:
-    <ol class="algorithm">
-        1.  Let |S| be the
-            [=effective overload set=]
-            for [=regular operations=]
-            (if the operation is a regular operation) or for
-            [=static operations=]
-            (if the operation is a static operation) with
-            [=identifier=]
-            |id| on [=interface=]
-            |I| and with argument count 0.
-        1.  Return the length of the shortest argument list of the entries in |S|.
-    </ol>
-*   The value of the <emu-val>Function</emu-val> object’s “name”
-    property is a <emu-val>String</emu-val> whose value is the
-    identifier of the operation.
+*   The value of the property is the result of [=creating an operation function=] given the
+    operation, the interface (or the interface it's being mixed in to, if the interface is actually
+    a mixin), and the [=relevant Realm=] of the object that is the location of the property.
 
-We also define <dfn id="dfn-create-operation-function">creating an operation function</dfn>, given an [=operation=]
-|op|, a [=namespace=]
-|namespace|, and a [=Realm=] |realm|:
+    Note: that is, even if an [=implements statement=] was used to make an operation
+    available on the interface, we pass in the interface on the left-hand side of the
+    [=implements statement=], and not the really-a-mixin interface on the right-hand side,
+    where the operation was originally declared.
 
-Note: The astute reader may notice that what follows is very similar to the
-above algorithm for operations on interfaces. It is currently only used for namespaces,
-but we have near-future plans to generalize it slightly and then replace the above
-definition so that this algorithm is useful both for interfaces and namespaces.
+<p class="advisement">
+    The above description has some bugs, especially around partial interfaces. See
+    <a href="https://github.com/heycam/webidl/issues/164">issue #164</a>.
+</p>
+
+For [=namespaces=], the properties corresponding to each declared operation are described in
+[[#namespace-object]]. (We hope to eventually move interfaces to the same explicit
+property-installation style as namespaces.)
+
+To <dfn id="dfn-create-operation-function" lt="creating an operation function">create an operation function</dfn>,
+given an [=operation=] |op|, a [=namespace=] or [=interface=] |target|, and a [=Realm=] |realm|:
 
 1.  Let |id| be |op|'s [=identifier=].
 
@@ -11044,18 +10913,38 @@ definition so that this algorithm is useful both for interfaces and namespaces.
     values |arg|<sub>0..|n|−1</sub>:
     
     1.  Try running the following steps:
-        1.  Let |S| be the [=effective overload set=] for [=regular operations=] with
+        1.  Let |O| be <emu-val>null</emu-val>.
+
+        1.  If |target| is an [=interface=], and |op| is not a [=static operation=]:
+
+            1.  If the <emu-val>this</emu-val> value is <emu-val>null</emu-val> or
+                <emu-val>undefined</emu-val>, set |O| to |realm|'s [=Realm/global object=]. (This
+                will subsequently cause a <emu-val>TypeError</emu-val> in a few steps, if the global
+                object does not implement |target|.)
+
+                <!-- https://www.w3.org/Bugs/Public/show_bug.cgi?id=18547#c9 -->
+
+            1.  Otherwise, set |O| to the <emu-val>this</emu-val> value.
+
+            1.  If |O| is a [=platform object=], then [=perform a security check=], passing |O|,
+                |realm|, |id|, and "method".
+
+            1.  If |O| is not a [=platform object=] that implements the interface |target|,
+                <a lt="es throw">throw a <emu-val>TypeError</emu-val></a>.
+
+        1.  Let |S| be the [=effective overload set=] for [=regular operations=] (if |op| is a
+            regular operation) or for [=static operations=] (if |op| is a static operation) with
             [=identifier=] |id| on
-            [=namespace=] |namespace|
+            |target|
             and with argument count |n|.
         
         1.  Let &lt;|operation|, |values|&gt; be the result of passing
             |S| and |arg|<sub>0..|n|−1</sub> to the [=overload resolution algorithm=].
         
         1.  Let |R| be the result of performing the actions listed in the
-            description of |operation| with |values| as the argument
-            values.
-        
+            description of |operation|, on |O| if |O| is not <emu-val>null</emu-val>, with |values|
+            as the argument values.
+
         1.  Return the result of [=converted to an ECMAScript value|converting=] |R| to
             an ECMAScript value of the type |op| is declared to return.
     
@@ -11074,12 +10963,14 @@ definition so that this algorithm is useful both for interfaces and namespaces.
 
 1.  Perform [=!=] [=SetFunctionName=](|F|, |id|).
 
-1.  Let |S| be the [=effective overload set=] for [=regular operations=] with [=identifier=] |id| on [=namespace=] |namespace| and with argument count 0.
+1.  Let |S| be the [=effective overload set=] for [=regular operations=] (if |op| is a regular
+    operation) or for [=static operations=] (if |op| is a static operation) with [=identifier=] |id|
+    on |target| and with argument count 0.
 
 1.  Let |length| be the length of the shortest argument list in the entries in
     |S|.
 
-1.  Perform [=!=] [=DefinePropertyOrThrow=](|F|, <code>"length"</code>,
+1.  Perform [=!=] [=DefinePropertyOrThrow=](|F|, "length",
     PropertyDescriptor<span class="descriptor">{\[[Value]]: |length|,
     \[[Writable]]: <emu-val>false</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val>}</span>).
 
