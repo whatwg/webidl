@@ -7522,7 +7522,7 @@ ECMAScript <emu-val>Array</emu-val> values.
     1.  [=ReturnIfAbrupt=](|method|).
     1.  If |method| is <emu-val>undefined</emu-val>,
         <a lt="es throw">throw a <emu-val>TypeError</emu-val></a>.
-    1.  Return the result of <a href="#create-sequence-from-iterable">creating a sequence</a>
+    1.  Return the result of [=creating a sequence from an iterable|creating a sequence=]
         from |V| and |method|.
 </ol>
 
@@ -7806,7 +7806,8 @@ represented by ECMAScript values that correspond to the union’s
             1.  If |method| is not
                 <emu-val>undefined</emu-val>,
                 return the result of
-                .
+                [=creating a sequence from an iterable|creating a sequence=]
+                of that type from |V| and |method|.
         1.  If |types| includes a <a href="#idl-frozen-array">frozen array type</a>, then
             1.  Let |method| be the result of
                 [=GetMethod=](|V|, [=@@iterator=]).
@@ -8076,12 +8077,11 @@ to the same object that the IDL <a interface lt="FrozenArray">FrozenArray&lt;|T|
 <h5 id="create-frozen-array-from-iterable" dfn>Creating a frozen array from an iterable</h5>
 
 To create an IDL value of type <a interface lt="FrozenArray">FrozenArray&lt;|T|&gt;</a> given an
-iterable |iterable| and an iterator getter
-|method|, perform the following steps:
+iterable |iterable| and an iterator getter |method|, perform the following steps:
 
 <ol class="algorithm">
-    1.  Let |values| be the result of
-        .
+    1.  Let |values| be the result of [=creating a sequence from an iterable|creating a sequence=]
+        of type <a interface lt="sequence">sequence&lt;|T|&gt;</a> from |iterable| and |method|.
     1.  Return the result of [=create a frozen array|creating a frozen array=] from |values|.
 </ol>
 
@@ -9988,24 +9988,15 @@ and a list of IDL values or the special value “missing”.  The algorithm beha
 <ol class="algorithm">
     1.  Let |maxarg| be the length of the longest type list of the entries in |S|.
     1.  Initialize |argcount| to be min(|maxarg|, |n|).
-    
     1.  Remove from |S| all entries whose type list is not of length |argcount|.
-    
     1.  If |S| is empty, then <a lt="es throw">throw a <emu-val>TypeError</emu-val></a>.
-    
     1.  Initialize |d| to −1.
-    
-    1.  Initialize |method| to
-        <emu-val>undefined</emu-val>.
-    
+    1.  Initialize |method| to <emu-val>undefined</emu-val>.
     1.  If there is more than one entry in |S|, then set
         |d| to be the [=distinguishing argument index=]
         for the entries of |S|.
-    
     1.  Initialize |values| to be an empty list, where each entry will be either an IDL value or the special value “missing”.
-    
     1.  Initialize |i| to 0.
-    
     1.  While |i| &lt; |d|:
         1.  Let |V| be |arg|<sub>|i|</sub>.
         1.  Let |type| be the type at index |i| in the type list of any entry in |S|.
@@ -10020,7 +10011,6 @@ and a list of IDL values or the special value “missing”.  The algorithm beha
         1.  Otherwise, append to |values| the result of [=converted to an IDL value|converting=]
             |V| to IDL type |type|.
         1.  Set |i| to |i| + 1.
-    
     1.  If |i| = |d|, then:
         1.  Let |V| be |arg|<sub>|i|</sub>.
             
@@ -10196,27 +10186,22 @@ and a list of IDL values or the special value “missing”.  The algorithm beha
             then remove from |S| all other entries.
         
         1.  Otherwise: if there is an entry in |S| that has {{any}} at position |i|
-            of its type list,
-            then remove from |S| all other entries.
-        
-        1.  Otherwise:
-            <a lt="es throw">throw a <emu-val>TypeError</emu-val></a>.
-    
+            of its type list, then remove from |S| all other entries.
+        1.  Otherwise: <a lt="es throw">throw a <emu-val>TypeError</emu-val></a>.
     1.  Let |callable| be the [=operation=] or [=extended attribute=]
         of the single entry in |S|.
-    
     1.  If |i| = |d| and |method| is not <emu-val>undefined</emu-val>, then
         1.  Let |V| be |arg|<sub>|i|</sub>.
         1.  Let |T| be the type at index |i| in the
             type list of the remaining entry in |S|.
         1.  If |T| is a <a href="#idl-sequence">sequence type</a>, then
             append to |values| the result of
-            .
+            [=creating a sequence from an iterable|creating a sequence=]
+            of type |T| from |V| and |method|.
         1.  Otherwise, |T| is a <a href="#idl-frozen-array">frozen array type</a>.
             Append to |values| the result of
             [=Creating a frozen array from an iterable|creating a frozen array of type T from V and method=].
         1.  Set |i| to |i| + 1.
-    
     1.  While |i| &lt; |argcount|:
         1.  Let |V| be |arg|<sub>|i|</sub>.
         1.  Let |type| be the type at index |i| in the type list of the remaining entry in |S|.
@@ -10228,13 +10213,11 @@ and a list of IDL values or the special value “missing”.  The algorithm beha
         1.  Otherwise, append to |values| the result of
             [=converted to an IDL value|converting=] |V| to IDL type |type|.
         1.  Set |i| to |i| + 1.
-    
     1.  While |i| is less than the number of arguments |callable| is declared to take:
         1.  If |callable|’s argument at index |i| is declared with a [=optional argument/default value=],
             then append to |values| that default value.
         1.  Otherwise, if |callable|’s argument at index |i| is not variadic, then append to |values| the special value “missing”.
         1.  Set |i| to |i| + 1.
-    
     1.  Return the pair &lt;|callable|, |values|&gt;.
 </ol>
 
