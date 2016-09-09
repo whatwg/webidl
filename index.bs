@@ -12200,16 +12200,14 @@ depending on whether the [{{OverrideBuiltins}}]
 operates as follows, with property name |P| and object |O|:
 
 <ol class="algorithm">
-    1.  If |P| is an [=unforgeable property name=]
-        on |O|, then return false.
-    1.  If |O| implements an [=interface=] with
-        an [{{Unforgeable}}]-annotated [=attribute=]
-        whose [=identifier=] is |P|, then return false.
     1.  If |P| is not a [=supported property name=]
         of |O|, then return false.
+    1.  If |O| has an own property named |P|, then return false.
+
+          Note: This will include cases in which |O| has unforgeable properties, because in practice those are always set up before objects have any supported property names, and once set up will make the corresponding named properties invisible.
+
     1.  If |O| implements an interface that has the [{{OverrideBuiltins}}]
         [=extended attribute=], then return true.
-    1.  If |O| has an own property named |P|, then return false.
     1.  Initialize |prototype| to be the value of the internal \[[Prototype]] property of |O|.
     1.  While |prototype| is not null:
         1.  If |prototype| is not a [=named properties object=],
@@ -12223,16 +12221,12 @@ operates as follows, with property name |P| and object |O|:
     This should ensure that for objects with named properties, property resolution is done in the following order:
 
     1.  Indexed properties.
-    1.  Unforgeable attributes and operations.
+    1.  Own properties, including unforgeable attributes and operations.
     1.  Then, if [{{OverrideBuiltins}}]:
         1.  Named properties.
-        1.  Own properties.
         1.  Properties from the prototype chain.
     1.  Otherwise, if not [{{OverrideBuiltins}}]:
-        1.  Own properties.
-
         1.  Properties from the prototype chain.
-
         1.  Named properties.
 
 </div>
