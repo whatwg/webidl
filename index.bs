@@ -108,6 +108,7 @@ urlPrefix: https://tc39.github.io/ecma262/; spec: ECMA-262
         text: Construct; url: sec-construct
         text: own property; url: sec-own-property
         text: enumerable; url: sec-property-attributes
+        text: HasOwnProperty; url: sec-hasownproperty
         text: EnumerableOwnProperties; url: sec-enumerableownproperties
         text: DefinePropertyOrThrow; url: sec-definepropertyorthrow
         url: sec-code-realms
@@ -7587,13 +7588,14 @@ ECMAScript <emu-val>Object</emu-val> values.
     1.  If [=Type=](|O|) is not <emu-val>Object</emu-val>,
         <a lt="es throw">throw a <emu-val>TypeError</emu-val></a>.
     1.  Let |result| be a new empty instance of <code>{{OpenDictionary}}<|K|, |V|></code>.
-    1.  Let |entries| be [=EnumerableOwnProperties=](|O|, "key+value").
-    1.  [=ReturnIfAbrupt=](|entries|).
-    1.  Repeat, for each element [|key|, |value|] of |entries| in [=List=] order:
-        1.  Let |typedKey| be |key| [=converted to an IDL value=] of type |K|.
-        1.  Let |typedValue| be |value| [=converted to an IDL value=] of type |V|.
-        1.  Assert: |typedKey| is not yet a key in |result|.
-        1.  Append to |result| a mapping from |typedKey| to |typedValue|.
+    1.  Let |keys| be [=?=] [=EnumerableOwnProperties=](|O|, "key").
+    1.  Repeat, for each element |key| of |keys| in [=List=] order:
+        1.  If [=!=] [=HasOwnProperty=](|O|, |key|) is <code>true</code>, then:
+            1.  Let |typedKey| be |key| [=converted to an IDL value=] of type |K|.
+            1.  Let |value| be [=?=] [=Get=](|O|, |key|).
+            1.  Let |typedValue| be |value| [=converted to an IDL value=] of type |V|.
+            1.  Assert: |typedKey| is not yet a key in |result|.
+            1.  Append to |result| a mapping from |typedKey| to |typedValue|.
     1.  Return |result|.
 </ol>
 
