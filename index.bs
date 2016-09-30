@@ -5226,7 +5226,7 @@ type.
 
 <pre class="grammar" id="prod-OpenDictionaryType">
     OpenDictionaryType :
-        "dictionary" "&lt;" Type OpenDictionaryTypeMaybeValue
+        "OpenDictionary" "&lt;" Type OpenDictionaryTypeMaybeValue
 </pre>
 
 <pre class="grammar" id="prod-OpenDictionaryTypeMaybeValue">
@@ -5753,16 +5753,17 @@ is the concatenation of the type name for |T| and
 the string “Sequence”.
 
 
-<h4 id="idl-open-dictionary" dictionary lt="dictionary">Open dictionary types — dictionary&lt;[|K|,] |V|&gt;</h4>
+<h4 id="idl-open-dictionary" dictionary lt="OpenDictionary">Open dictionary types — OpenDictionary&lt;[|K|,] |V|&gt;</h4>
 
 An <dfn export>open dictionary type</dfn> is a parameterized [=dictionary type=]
 whose values are ordered associative arrays mapping instances of |K| to
-instances of |V|. The (key, value) pairs are called <dfn for="dictionary">mappings</dfn>.
+instances of |V|. The (key, value) pairs are called
+<dfn for="OpenDictionary">mappings</dfn>.
 The order of an open dictionary's mappings is determined when the open
 dictionary value is created.
 
 |K| must be one of {{DOMString}}, {{USVString}}, or {{ByteString}}. In a type
-name of the form <code>dictionary&lt;|V|></code>, which omits |K|, |K| defaults
+name of the form <code>OpenDictionary&lt;|V|></code>, which omits |K|, |K| defaults
 to {{DOMString}}.
 
 |V| must be a type allowed for [=dictionary members=].
@@ -7575,17 +7576,17 @@ iterable |iterable| and an iterator getter
 </div>
 
 
-<h4 id="es-open-dictionary">Open dictionaries — dictionary&lt;[|K|,] |V|&gt;</h4>
+<h4 id="es-open-dictionary">Open dictionaries — OpenDictionary&lt;[|K|,] |V|&gt;</h4>
 
-IDL {{dictionary}}&lt;|K|, |V|&gt; values are represented by
+IDL {{OpenDictionary}}&lt;|K|, |V|&gt; values are represented by
 ECMAScript <emu-val>Object</emu-val> values.
 
 <div algorithm="convert object to open dictionary" id="es-to-open-dictionary">
-    An ECMAScript value |O| is [=converted to an IDL value|converted=] to an IDL <code>{{dictionary}}<|K|, |V|></code> value as follows:
+    An ECMAScript value |O| is [=converted to an IDL value|converted=] to an IDL <code>{{OpenDictionary}}<|K|, |V|></code> value as follows:
 
     1.  If [=Type=](|O|) is not <emu-val>Object</emu-val>,
         <a lt="es throw">throw a <emu-val>TypeError</emu-val></a>.
-    1.  Let |result| be a new empty instance of <code>{{dictionary}}<|K|, |V|></code>.
+    1.  Let |result| be a new empty instance of <code>{{OpenDictionary}}<|K|, |V|></code>.
     1.  Let |entries| be [=EnumerableOwnProperties=](|O|, "key+value").
     1.  [=ReturnIfAbrupt=](|entries|).
     1.  Repeat, for each element [|key|, |value|] of |entries| in [=List=] order:
@@ -7597,12 +7598,12 @@ ECMAScript <emu-val>Object</emu-val> values.
 </div>
 
 <div algorithm="convert open dictionary to object" id="open-dictionary-to-es">
-    An IDL <code>{{dictionary}}<…></code> value |D| is [=converted to an
+    An IDL <code>{{OpenDictionary}}<…></code> value |D| is [=converted to an
     ECMAScript value|converted=] to an ECMAScript value as follows:
 
     1.  Let |result| be a new <emu-val>Object</emu-val> instance
         created as if by the expression <code>{}</code>.
-    1.  Repeat, for each [=dictionary/mapping=] (|key|, |value|) in |D|:
+    1.  Repeat, for each [=OpenDictionary/mapping=] (|key|, |value|) in |D|:
         1.  Let |esKey| be |key| [=converted to an ECMAScript value=].
         1.  Let |esValue| be |value| [=converted to an ECMAScript value=].
         1.  Let |created| be [=!=] [=CreateDataProperty=](|result|, |esKey|, |esValue|).
@@ -7612,8 +7613,8 @@ ECMAScript <emu-val>Object</emu-val> values.
 
 <div class="example" id="example-es-open-dictionary">
     Passing the ECMAScript value <code>{b: 3, a: 4}</code> to a
-    <code>{{dictionary}}&lt;DOMString, long></code> argument would result in the
-    IDL value:
+    <code>{{OpenDictionary}}&lt;DOMString, long></code> argument
+    would result in the IDL value:
     <table class="data">
         <thead><th>Key</th><th>Value</th></thead>
         <tr><td><code>"b"</code></td><td><code>3</code></td></tr>
@@ -7621,7 +7622,7 @@ ECMAScript <emu-val>Object</emu-val> values.
     </table>
 
     Open dictionaries only consider [=own property|own=] [=enumerable=] properties, so given an IDL operation
-    <code>dictionary&lt;long> identity(dictionary&lt;long> arg)</code> which
+    <code>OpenDictionary&lt;long> identity(OpenDictionary&lt;long> arg)</code> which
     returns its argument, the following code passes its assertions:
 
     <pre highlight="js">
@@ -7639,14 +7640,14 @@ ECMAScript <emu-val>Object</emu-val> values.
         assert(entries[1][1] === "6");
     </pre>
 
-    Dictionary keys and values can be constrained, although keys can only be
+    Open dictionary keys and values can be constrained, although keys can only be
     constrained among the three string types. The following conversions all
     throw {{TypeError}}s:
     <table class="data">
         <thead><th>Value</th><th>Passed to type</th></thead>
-        <tr><td><code>{"😞": 1}</code></td><td><code>{{dictionary}}&lt;ByteString, long></code></td></tr>
-        <tr><td><code>{"\uD83D": 1}</code></td><td><code>{{dictionary}}&lt;USVString, long></code></td></tr>
-        <tr><td><code>{a: {hello: "world"}}</code></td><td><code>{{dictionary}}&lt;DOMString, long></code></td></tr>
+        <tr><td><code>{"😞": 1}</code></td><td><code>{{OpenDictionary}}&lt;ByteString, long></code></td></tr>
+        <tr><td><code>{"\uD83D": 1}</code></td><td><code>{{OpenDictionary}}&lt;USVString, long></code></td></tr>
+        <tr><td><code>{a: {hello: "world"}}</code></td><td><code>{{OpenDictionary}}&lt;DOMString, long></code></td></tr>
     </table>
 </div>
 
