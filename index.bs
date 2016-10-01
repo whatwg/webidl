@@ -7618,16 +7618,11 @@ ECMAScript <emu-val>Object</emu-val> values.
 
 <div class="example" id="example-es-open-dictionary">
     Passing the ECMAScript value <code>{b: 3, a: 4}</code> to a
-    <code>{{OpenDictionary}}&lt;DOMString, long></code> argument
-    would result in the IDL value:
-    <table class="data">
-        <thead><th>Key</th><th>Value</th></thead>
-        <tr><td><code>"b"</code></td><td><code>3</code></td></tr>
-        <tr><td><code>"a"</code></td><td><code>4</code></td></tr>
-    </table>
+    <code>{{OpenDictionary}}&lt;DOMString, double></code> argument
+    would result in the IDL value <code>[ "b" ⇒ 3, "a" ⇒ 4 ]</code>.
 
     Open dictionaries only consider [=own property|own=] [=enumerable=] properties, so given an IDL operation
-    <code>OpenDictionary&lt;long> identity(OpenDictionary&lt;long> arg)</code> which
+    <code>OpenDictionary&lt;double> identity(OpenDictionary&lt;double> arg)</code> which
     returns its argument, the following code passes its assertions:
 
     <pre highlight="js">
@@ -7640,19 +7635,31 @@ ECMAScript <emu-val>Object</emu-val> values.
         console.assert(result.e === undefined);
         let entries = Object.entries(result);
         console.assert(entries[0][0] === "d");
-        console.assert(entries[0][1] === "5");
+        console.assert(entries[0][1] === 5);
         console.assert(entries[1][0] === "c");
-        console.assert(entries[1][1] === "6");
+        console.assert(entries[1][1] === 6);
     </pre>
 
     Open dictionary keys and values can be constrained, although keys can only be
-    constrained among the three string types. The following conversions all
-    throw {{TypeError}}s:
+    constrained among the three string types.
+    The following conversions have the described results:
     <table class="data">
-        <thead><th>Value</th><th>Passed to type</th></thead>
-        <tr><td><code>{"😞": 1}</code></td><td><code>{{OpenDictionary}}&lt;ByteString, long></code></td></tr>
-        <tr><td><code>{"\uD83D": 1}</code></td><td><code>{{OpenDictionary}}&lt;USVString, long></code></td></tr>
-        <tr><td><code>{a: {hello: "world"}}</code></td><td><code>{{OpenDictionary}}&lt;DOMString, long></code></td></tr>
+        <thead><th>Value</th><th>Passed to type</th><th>Result</th></thead>
+        <tr>
+            <td><code>{"😞": 1}</code></td>
+            <td><code>{{OpenDictionary}}&lt;ByteString, double></code></td>
+            <td><emu-val>TypeError</emu-val></td>
+        </tr>
+        <tr>
+            <td><code>{"\uD83D": 1}</code></td>
+            <td><code>{{OpenDictionary}}&lt;USVString, double></code></td>
+            <td>[ "\uFFFD" ⇒ 1 ]</td>
+        </tr>
+        <tr>
+            <td><code>{"\uD83D": {hello: "world"}}</code></td>
+            <td><code>{{OpenDictionary}}&lt;DOMString, double></code></td>
+            <td>[ "\uD83D" ⇒ 0 ]</td>
+        </tr>
     </table>
 </div>
 
