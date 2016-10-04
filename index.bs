@@ -1363,8 +1363,10 @@ The type of the attribute, after resolving typedefs, must not be a
 
 *   a [=sequence type=]
 *   a [=dictionary type=]
+*   an [=open dictionary type=]
 *   a [=union type=]
-    that has a nullable or non-nullable sequence type or dictionary
+    that has a nullable or non-nullable sequence type, dictionary,
+    or open dictionary
     as one of its [=flattened member types=]
 
 The attribute is <dfn id="dfn-read-only" export>read only</dfn> if the
@@ -1755,15 +1757,15 @@ corresponding argument omitted.
     conversion of <emu-val>undefined</emu-val> to be used (i.e., <emu-val>false</emu-val>).
 </p>
 
-If the type of an argument is a [=dictionary type=]
+If the type of an argument is a [=dictionary type=] or [=open dictionary type=]
 or a [=union type=] that has a
-dictionary type as one of its [=flattened member types=],
+dictionary or open dictionary type as one of its [=flattened member types=],
 and that dictionary type and its ancestors have no [=required dictionary member|required members=],
 and the argument is either the final argument or is followed only by
 [=optional arguments=], then
 the argument must be specified as optional.
 Such arguments are always considered to have a
-[=optional argument/default value=] of an empty dictionary,
+[=optional argument/default value=] of an empty dictionary or open dictionary, as appropriate,
 unless otherwise specified.
 
 <div class="note">
@@ -3254,7 +3256,6 @@ extended attribute’s [=takes a named argument list|named argument list=].
 
 Two types are <dfn id="dfn-distinguishable" export>distinguishable</dfn> if
 at most one of the two [=includes a nullable type=]
-or is a [=dictionary type=],
 and at least one of the following three conditions is true:
 
 1.  The two types (taking their [=inner types=]
@@ -3285,7 +3286,7 @@ and at least one of the following three conditions is true:
                     <span>callback function</span>
             </div></th>
                 <th><div>
-                    <span>dictionary</span>
+                    <span>[open] dictionary</span>
             </div></th>
                 <th><div>
                     <span>sequence&lt;|T|&gt;</span>
@@ -3394,7 +3395,7 @@ and at least one of the following three conditions is true:
             <td>●</td>
         </tr>
         <tr>
-            <th>dictionary</th>
+            <th>[open] dictionary</th>
             <td class="belowdiagonal"></td>
             <td class="belowdiagonal"></td>
             <td class="belowdiagonal"></td>
@@ -5681,10 +5682,11 @@ character after an existing type.  The inner type must not
 be {{any}},
 another nullable type, or a [=union type=]
 that itself has [=includes a nullable type=]
-or has a dictionary type as one of its
+or has a dictionary or open dictionary type as one of its
 [=flattened member types=].
 
-Note: Although dictionary types can in general be nullable, they cannot when used
+Note: Although dictionary and open dictionary types can in general be nullable,
+they cannot when used
 as the type of an operation argument or a dictionary member.
 
 Nullable type constant values in IDL are represented in the same way that
@@ -5756,7 +5758,7 @@ the string “Sequence”.
 
 <h4 id="idl-open-dictionary" dictionary lt="OpenDictionary">Open dictionary types — OpenDictionary&lt;[|K|,] |V|&gt;</h4>
 
-An <dfn export>open dictionary type</dfn> is a parameterized [=dictionary type=]
+An <dfn export>open dictionary type</dfn> is a parameterized type
 whose values are ordered associative arrays mapping instances of |K| to
 instances of |V|. The (key, value) pairs are called
 <dfn for="OpenDictionary">mappings</dfn>.
@@ -5879,7 +5881,7 @@ be used as a [=member types|union member type=].
 The [=number of nullable member types=]
 of a [=union type=] must
 be 0 or 1, and if it is 1 then the union type must also not have
-a [=dictionary type=] in its
+a [=dictionary type=] or [=open dictionary type=] in its
 [=flattened member types=].
 
 A type <dfn id="dfn-includes-a-nullable-type" export>includes a nullable type</dfn> if:
@@ -7828,6 +7830,9 @@ represented by ECMAScript values that correspond to the union’s
                 return the result of
                 [=Creating a frozen array from an iterable|creating a frozen array of that type from V and method=].
         1.  If |types| includes a [=dictionary type=], then return the
+            result of [=converted to an IDL value|converting=]
+            |V| to that dictionary type.
+        1.  If |types| includes an [=open dictionary type=], then return the
             result of [=converted to an IDL value|converting=]
             |V| to that dictionary type.
         1.  If |types| includes a [=callback interface=]
@@ -9978,6 +9983,7 @@ and a list of IDL values or the special value “missing”.  The algorithm beha
             and there is an entry in |S| that has one of the following types at position |i| of its type list,
             *   a [=nullable type=]
             *   a [=dictionary type=]
+            *   an [=open dictionary type=]
             *   a [=union type=] that
                 [=includes a nullable type=] or that
                 has a [=dictionary type=] in its [=flattened member types|flattened members=]
@@ -10090,6 +10096,7 @@ and a list of IDL values or the special value “missing”.  The algorithm beha
             there is an entry in |S| that has one of the following types at position |i| of its type list,
             *   a [=callback interface=] type
             *   a [=dictionary type=]
+            *   an [=open dictionary type=]
             *   {{object}}
             *   a [=nullable type|nullable=] version of any of the above types
             *   a [=union type=] or [=nullable type|nullable=] union type
