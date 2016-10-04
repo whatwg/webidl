@@ -5165,9 +5165,7 @@ type.
     NonAnyType :
         PrimitiveType Null
         PromiseType Null
-        "ByteString" Null
-        "DOMString" Null
-        "USVString" Null
+        StringType Null
         identifier Null
         "sequence" "&lt;" Type "&gt;" Null
         "object" Null
@@ -5220,6 +5218,13 @@ type.
         ε
 </pre>
 
+<pre class="grammar" id="prod-StringType">
+    StringType :
+        "ByteString"
+        "DOMString"
+        "USVString"
+</pre>
+
 <pre class="grammar" id="prod-PromiseType">
     PromiseType :
         "Promise" "&lt;" ReturnType "&gt;"
@@ -5227,13 +5232,7 @@ type.
 
 <pre class="grammar" id="prod-OpenDictionaryType">
     OpenDictionaryType :
-        "OpenDictionary" "&lt;" Type OpenDictionaryTypeMaybeValue
-</pre>
-
-<pre class="grammar" id="prod-OpenDictionaryTypeMaybeValue">
-    OpenDictionaryTypeMaybeValue :
-        "&gt;"
-        "," Type "&gt;"
+        "OpenDictionary" "&lt;" StringType "," Type "&gt;"
 </pre>
 
 <pre class="grammar" id="prod-Null">
@@ -5755,7 +5754,7 @@ is the concatenation of the type name for |T| and
 the string “Sequence”.
 
 
-<h4 id="idl-open-dictionary" dictionary lt="OpenDictionary">Open dictionary types — OpenDictionary&lt;[|K|,] |V|&gt;</h4>
+<h4 id="idl-open-dictionary" dictionary lt="OpenDictionary">Open dictionary types — OpenDictionary&lt;|K|, |V|&gt;</h4>
 
 An <dfn export>open dictionary type</dfn> is a parameterized type
 whose values are ordered associative arrays mapping instances of |K| to
@@ -5764,9 +5763,7 @@ instances of |V|. The (key, value) pairs are called
 The order of an open dictionary's mappings is determined when the open
 dictionary value is created.
 
-|K| must be one of {{DOMString}}, {{USVString}}, or {{ByteString}}. In a type
-name of the form <code>OpenDictionary&lt;|V|></code>, which omits |K|, |K| defaults
-to {{DOMString}}.
+|K| must be one of {{DOMString}}, {{USVString}}, or {{ByteString}}.
 
 Open dictionaries are always passed by value. In language bindings where an open
 dictionary is represented by an object of some kind, passing an open dictionary
@@ -7576,7 +7573,7 @@ iterable |iterable| and an iterator getter
 </div>
 
 
-<h4 id="es-open-dictionary">Open dictionaries — OpenDictionary&lt;[|K|,] |V|&gt;</h4>
+<h4 id="es-open-dictionary">Open dictionaries — OpenDictionary&lt;|K|, |V|&gt;</h4>
 
 IDL {{OpenDictionary}}&lt;|K|, |V|&gt; values are represented by
 ECMAScript <emu-val>Object</emu-val> values.
@@ -7623,9 +7620,11 @@ ECMAScript <emu-val>Object</emu-val> values.
     <code>{{OpenDictionary}}&lt;DOMString, double></code> argument
     would result in the IDL value <code>[ ("b", 3), ("a", 4) ]</code>.
 
-    Open dictionaries only consider [=own property|own=] [=enumerable=] properties, so given an IDL operation
-    <code>OpenDictionary&lt;double> identity(OpenDictionary&lt;double> arg)</code> which
-    returns its argument, the following code passes its assertions:
+    Open dictionaries only consider [=own property|own=] [=enumerable=]
+    properties, so given an IDL operation
+    <code>OpenDictionary&lt;DOMString, double>
+    identity(OpenDictionary&lt;DOMString, double> arg)</code> which returns its
+    argument, the following code passes its assertions:
 
     <pre highlight="js">
         let proto = {a: 3, b: 4};

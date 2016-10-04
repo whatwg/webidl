@@ -1663,7 +1663,7 @@ are interoperable.</p>
         <li><a href="#idl-callback-function"><span class="secno">2.11.22</span> <span class="content">Callback function types</span></a>
         <li><a href="#idl-nullable-type"><span class="secno">2.11.23</span> <span class="content">Nullable types — <var>T</var>?</span></a>
         <li><a href="#idl-sequence"><span class="secno">2.11.24</span> <span class="content">Sequence types — sequence&lt;<var>T</var>></span></a>
-        <li><a href="#idl-open-dictionary"><span class="secno">2.11.25</span> <span class="content">Open dictionary types — OpenDictionary&lt;[<var>K</var>,] <var>V</var>></span></a>
+        <li><a href="#idl-open-dictionary"><span class="secno">2.11.25</span> <span class="content">Open dictionary types — OpenDictionary&lt;<var>K</var>, <var>V</var>></span></a>
         <li><a href="#idl-promise"><span class="secno">2.11.26</span> <span class="content">Promise types — Promise&lt;<var>T</var>></span></a>
         <li><a href="#idl-union"><span class="secno">2.11.27</span> <span class="content">Union types</span></a>
         <li><a href="#idl-RegExp"><span class="secno">2.11.28</span> <span class="content">RegExp</span></a>
@@ -1710,7 +1710,7 @@ are interoperable.</p>
          <ol class="toc">
           <li><a href="#create-sequence-from-iterable"><span class="secno">3.2.25.1</span> <span class="content">Creating a sequence from an iterable</span></a>
          </ol>
-        <li><a href="#es-open-dictionary"><span class="secno">3.2.26</span> <span class="content">Open dictionaries — OpenDictionary&lt;[<var>K</var>,] <var>V</var>></span></a>
+        <li><a href="#es-open-dictionary"><span class="secno">3.2.26</span> <span class="content">Open dictionaries — OpenDictionary&lt;<var>K</var>, <var>V</var>></span></a>
         <li><a href="#es-promise"><span class="secno">3.2.27</span> <span class="content">Promise types — Promise&lt;<var>T</var>></span></a>
         <li><a href="#es-union"><span class="secno">3.2.28</span> <span class="content">Union types</span></a>
         <li><a href="#es-RegExp"><span class="secno">3.2.29</span> <span class="content">RegExp</span></a>
@@ -5458,9 +5458,7 @@ type.</p>
 <pre class="grammar" id="prod-NonAnyType">NonAnyType :
     PrimitiveType Null
     PromiseType Null
-    "ByteString" Null
-    "DOMString" Null
-    "USVString" Null
+    StringType Null
     identifier Null
     "sequence" "&lt;" Type ">" Null
     "object" Null
@@ -5499,15 +5497,16 @@ type.</p>
     "long"
     ε
 </pre>
+<pre class="grammar" id="prod-StringType">StringType :
+    "ByteString"
+    "DOMString"
+    "USVString"
+</pre>
 <pre class="grammar" id="prod-PromiseType">PromiseType :
     "Promise" "&lt;" ReturnType ">"
 </pre>
 <pre class="grammar" id="prod-OpenDictionaryType">OpenDictionaryType :
-    "OpenDictionary" "&lt;" Type OpenDictionaryTypeMaybeValue
-</pre>
-<pre class="grammar" id="prod-OpenDictionaryTypeMaybeValue">OpenDictionaryTypeMaybeValue :
-    ">"
-    "," Type ">"
+    "OpenDictionary" "&lt;" StringType "," Type ">"
 </pre>
 <pre class="grammar" id="prod-Null">Null :
     "?"
@@ -5818,15 +5817,13 @@ sequence is used.</p>
    <p>The <a data-link-type="dfn" href="#dfn-type-name" id="ref-for-dfn-type-name-24">type name</a> of a sequence type
 is the concatenation of the type name for <var>T</var> and
 the string “Sequence”.</p>
-   <h4 class="heading settled dfn-paneled idl-code" data-dfn-type="dictionary" data-export="" data-level="2.11.25" data-lt="OpenDictionary" id="idl-open-dictionary"><span class="secno">2.11.25. </span><span class="content">Open dictionary types — OpenDictionary&lt;[<var>K</var>,] <var>V</var>></span></h4>
+   <h4 class="heading settled dfn-paneled idl-code" data-dfn-type="dictionary" data-export="" data-level="2.11.25" data-lt="OpenDictionary" id="idl-open-dictionary"><span class="secno">2.11.25. </span><span class="content">Open dictionary types — OpenDictionary&lt;<var>K</var>, <var>V</var>></span></h4>
    <p>An <dfn class="dfn-paneled" data-dfn-type="dfn" data-export="" id="open-dictionary-type">open dictionary type</dfn> is a parameterized type
 whose values are ordered associative arrays mapping instances of <var>K</var> to
 instances of <var>V</var>. The (key, value) pairs are called <dfn class="dfn-paneled" data-dfn-for="OpenDictionary" data-dfn-type="dfn" data-noexport="" id="opendictionary-mappings">mappings</dfn>.
 The order of an open dictionary’s mappings is determined when the open
 dictionary value is created.</p>
-   <p><var>K</var> must be one of <code class="idl"><a data-link-type="idl" href="#idl-DOMString" id="ref-for-idl-DOMString-36">DOMString</a></code>, <code class="idl"><a data-link-type="idl" href="#idl-USVString" id="ref-for-idl-USVString-10">USVString</a></code>, or <code class="idl"><a data-link-type="idl" href="#idl-ByteString" id="ref-for-idl-ByteString-10">ByteString</a></code>. In a type
-name of the form <code>OpenDictionary&lt;<var>V</var>></code>, which omits <var>K</var>, <var>K</var> defaults
-to <code class="idl"><a data-link-type="idl" href="#idl-DOMString" id="ref-for-idl-DOMString-37">DOMString</a></code>.</p>
+   <p><var>K</var> must be one of <code class="idl"><a data-link-type="idl" href="#idl-DOMString" id="ref-for-idl-DOMString-36">DOMString</a></code>, <code class="idl"><a data-link-type="idl" href="#idl-USVString" id="ref-for-idl-USVString-10">USVString</a></code>, or <code class="idl"><a data-link-type="idl" href="#idl-ByteString" id="ref-for-idl-ByteString-10">ByteString</a></code>.</p>
    <p>Open dictionaries are always passed by value. In language bindings where an open
 dictionary is represented by an object of some kind, passing an open dictionary
 to a <a data-link-type="dfn" href="#dfn-platform-object" id="ref-for-dfn-platform-object-8">platform object</a> will not result in a reference to the open dictionary
@@ -6359,7 +6356,7 @@ as described in <a href="#es-unrestricted-double">§3.2.15 unrestricted double</
      <p>A <emu-val>String</emu-val> value</p>
     <dd data-md="">
      <p>The IDL value is that which is obtained
-by following the rules for converting the <emu-val>String</emu-val> to an IDL <code class="idl"><a data-link-type="idl" href="#idl-DOMString" id="ref-for-idl-DOMString-38">DOMString</a></code> value,
+by following the rules for converting the <emu-val>String</emu-val> to an IDL <code class="idl"><a data-link-type="idl" href="#idl-DOMString" id="ref-for-idl-DOMString-37">DOMString</a></code> value,
 as described in <a href="#es-DOMString">§3.2.16 DOMString</a>.</p>
     <dt data-md="">
      <p>An <code class="idl"><a data-link-type="idl" href="#idl-object" id="ref-for-idl-object-7">object</a></code> value</p>
@@ -6964,7 +6961,7 @@ then the <emu-val>Number</emu-val> value is <emu-val>NaN</emu-val>.</p>
 the one that represents the same numeric value as the IDL <code class="idl"><a data-link-type="idl" href="#idl-unrestricted-double" id="ref-for-idl-unrestricted-double-16">unrestricted double</a></code> value.</p>
    </ul>
    <h4 class="heading settled" data-level="3.2.16" id="es-DOMString"><span class="secno">3.2.16. </span><span class="content">DOMString</span><a class="self-link" href="#es-DOMString"></a></h4>
-   <p id="es-to-DOMString"> An ECMAScript value <var>V</var> is <a data-link-type="dfn" href="#dfn-convert-ecmascript-to-idl-value" id="ref-for-dfn-convert-ecmascript-to-idl-value-15">converted</a> to an IDL <code class="idl"><a data-link-type="idl" href="#idl-DOMString" id="ref-for-idl-DOMString-39">DOMString</a></code> value
+   <p id="es-to-DOMString"> An ECMAScript value <var>V</var> is <a data-link-type="dfn" href="#dfn-convert-ecmascript-to-idl-value" id="ref-for-dfn-convert-ecmascript-to-idl-value-15">converted</a> to an IDL <code class="idl"><a data-link-type="idl" href="#idl-DOMString" id="ref-for-idl-DOMString-38">DOMString</a></code> value
     by running the following algorithm: </p>
    <ol class="algorithm">
     <li data-md="">
@@ -6982,15 +6979,15 @@ operation annotated with [<code class="idl"><a data-link-type="idl" href="#Treat
        <p><var>V</var> is being returned from a <a data-link-type="dfn" href="#dfn-user-object" id="ref-for-dfn-user-object-7">user object</a> implementation of an
 attribute annotated with [<code class="idl"><a data-link-type="idl" href="#TreatNullAs" id="ref-for-TreatNullAs-7">TreatNullAs</a></code>],</p>
      </ul>
-     <p>then return the <code class="idl"><a data-link-type="idl" href="#idl-DOMString" id="ref-for-idl-DOMString-40">DOMString</a></code> value that represents the empty string.</p>
+     <p>then return the <code class="idl"><a data-link-type="idl" href="#idl-DOMString" id="ref-for-idl-DOMString-39">DOMString</a></code> value that represents the empty string.</p>
     <li data-md="">
      <p>Let <var>x</var> be <a data-link-type="dfn" href="https://tc39.github.io/ecma262/#sec-tostring">ToString</a>(<var>V</var>).</p>
     <li data-md="">
-     <p>Return the IDL <code class="idl"><a data-link-type="idl" href="#idl-DOMString" id="ref-for-idl-DOMString-41">DOMString</a></code> value that represents the same sequence of code units as the one the ECMAScript <emu-val>String</emu-val> value <var>x</var> represents.</p>
+     <p>Return the IDL <code class="idl"><a data-link-type="idl" href="#idl-DOMString" id="ref-for-idl-DOMString-40">DOMString</a></code> value that represents the same sequence of code units as the one the ECMAScript <emu-val>String</emu-val> value <var>x</var> represents.</p>
    </ol>
-   <p id="DOMString-to-es"> The result of <a data-link-type="dfn" href="#dfn-convert-idl-to-ecmascript-value" id="ref-for-dfn-convert-idl-to-ecmascript-value-15">converting</a> an IDL <code class="idl"><a data-link-type="idl" href="#idl-DOMString" id="ref-for-idl-DOMString-42">DOMString</a></code> value to an ECMAScript
+   <p id="DOMString-to-es"> The result of <a data-link-type="dfn" href="#dfn-convert-idl-to-ecmascript-value" id="ref-for-dfn-convert-idl-to-ecmascript-value-15">converting</a> an IDL <code class="idl"><a data-link-type="idl" href="#idl-DOMString" id="ref-for-idl-DOMString-41">DOMString</a></code> value to an ECMAScript
     value is the <emu-val>String</emu-val> value that represents the same sequence of <a data-link-type="dfn" href="#dfn-code-unit" id="ref-for-dfn-code-unit-6">code units</a> that the
-    IDL <code class="idl"><a data-link-type="idl" href="#idl-DOMString" id="ref-for-idl-DOMString-43">DOMString</a></code> represents. </p>
+    IDL <code class="idl"><a data-link-type="idl" href="#idl-DOMString" id="ref-for-idl-DOMString-42">DOMString</a></code> represents. </p>
    <h4 class="heading settled" data-level="3.2.17" id="es-ByteString"><span class="secno">3.2.17. </span><span class="content">ByteString</span><a class="self-link" href="#es-ByteString"></a></h4>
    <p id="es-to-ByteString"> An ECMAScript value <var>V</var> is <a data-link-type="dfn" href="#dfn-convert-ecmascript-to-idl-value" id="ref-for-dfn-convert-ecmascript-to-idl-value-16">converted</a> to an IDL <code class="idl"><a data-link-type="idl" href="#idl-ByteString" id="ref-for-idl-ByteString-11">ByteString</a></code> value
     by running the following algorithm: </p>
@@ -7013,7 +7010,7 @@ the value of the corresponding element of <var>x</var>.</p>
     by running the following algorithm: </p>
    <ol class="algorithm">
     <li data-md="">
-     <p>Let <var>string</var> be the result of <a data-link-type="dfn" href="#dfn-convert-ecmascript-to-idl-value" id="ref-for-dfn-convert-ecmascript-to-idl-value-18">converting</a> <var>V</var> to a <code class="idl"><a data-link-type="idl" href="#idl-DOMString" id="ref-for-idl-DOMString-44">DOMString</a></code>.</p>
+     <p>Let <var>string</var> be the result of <a data-link-type="dfn" href="#dfn-convert-ecmascript-to-idl-value" id="ref-for-dfn-convert-ecmascript-to-idl-value-18">converting</a> <var>V</var> to a <code class="idl"><a data-link-type="idl" href="#idl-DOMString" id="ref-for-idl-DOMString-43">DOMString</a></code>.</p>
     <li data-md="">
      <p>Return an IDL <code class="idl"><a data-link-type="idl" href="#idl-USVString" id="ref-for-idl-USVString-12">USVString</a></code> value
 that is the result of <a data-link-type="dfn" href="#dfn-obtain-unicode" id="ref-for-dfn-obtain-unicode-1">converting string to a sequence of Unicode scalar values</a>.</p>
@@ -7344,7 +7341,7 @@ canvas<span class="p">.</span>drawPolygon<span class="p">(</span>s<span class="p
 alert<span class="p">(</span>b<span class="p">[</span><span class="mi">4</span><span class="p">]</span><span class="p">)</span><span class="p">;</span>    <span class="c1">// This would alert "50".
 </span></pre>
    </div>
-   <h4 class="heading settled" data-level="3.2.26" id="es-open-dictionary"><span class="secno">3.2.26. </span><span class="content">Open dictionaries — OpenDictionary&lt;[<var>K</var>,] <var>V</var>></span><a class="self-link" href="#es-open-dictionary"></a></h4>
+   <h4 class="heading settled" data-level="3.2.26" id="es-open-dictionary"><span class="secno">3.2.26. </span><span class="content">Open dictionaries — OpenDictionary&lt;<var>K</var>, <var>V</var>></span><a class="self-link" href="#es-open-dictionary"></a></h4>
    <p>IDL <code class="idl"><a data-link-type="idl" href="#idl-open-dictionary" id="ref-for-idl-open-dictionary-1">OpenDictionary</a></code>&lt;<var>K</var>, <var>V</var>> values are represented by
 ECMAScript <emu-val>Object</emu-val> values.</p>
    <p id="es-to-open-dictionary"> An ECMAScript value <var>O</var> is <a data-link-type="dfn" href="#dfn-convert-ecmascript-to-idl-value" id="ref-for-dfn-convert-ecmascript-to-idl-value-29">converted</a> to an IDL <code><code class="idl"><a data-link-type="idl" href="#idl-open-dictionary" id="ref-for-idl-open-dictionary-2">OpenDictionary</a></code>&lt;<var>K</var>, <var>V</var>></code> value as follows: </p>
@@ -7398,8 +7395,9 @@ return <var>result</var>.</p>
    <div class="example" id="example-es-open-dictionary">
     <a class="self-link" href="#example-es-open-dictionary"></a> Passing the ECMAScript value <code>{b: 3, a: 4}</code> to a <code><code class="idl"><a data-link-type="idl" href="#idl-open-dictionary" id="ref-for-idl-open-dictionary-5">OpenDictionary</a></code>&lt;DOMString, double></code> argument
     would result in the IDL value <code>[ ("b", 3), ("a", 4) ]</code>. 
-    <p>Open dictionaries only consider <a data-link-type="dfn" href="https://tc39.github.io/ecma262/#sec-own-property">own</a> <a data-link-type="dfn" href="https://tc39.github.io/ecma262/#sec-property-attributes">enumerable</a> properties, so given an IDL operation <code>OpenDictionary&lt;double> identity(OpenDictionary&lt;double> arg)</code> which
-    returns its argument, the following code passes its assertions:</p>
+    <p>Open dictionaries only consider <a data-link-type="dfn" href="https://tc39.github.io/ecma262/#sec-own-property">own</a> <a data-link-type="dfn" href="https://tc39.github.io/ecma262/#sec-property-attributes">enumerable</a> properties, so given an IDL operation <code>OpenDictionary&lt;DOMString, double>
+    identity(OpenDictionary&lt;DOMString, double> arg)</code> which returns its
+    argument, the following code passes its assertions:</p>
 <pre class="highlight"><span class="kd">let</span> proto <span class="o">=</span> <span class="p">{</span>a<span class="o">:</span> <span class="mi">3</span><span class="p">,</span> b<span class="o">:</span> <span class="mi">4</span><span class="p">}</span><span class="p">;</span>
 <span class="kd">let</span> obj <span class="o">=</span> <span class="p">{</span>__proto__<span class="o">:</span> proto<span class="p">,</span> d<span class="o">:</span> <span class="mi">5</span><span class="p">,</span> c<span class="o">:</span> <span class="mi">6</span><span class="p">}</span>
 Object<span class="p">.</span>defineProperty<span class="p">(</span>obj<span class="p">,</span> <span class="s2">"e"</span><span class="p">,</span> <span class="p">{</span>value<span class="o">:</span> <span class="mi">7</span><span class="p">,</span> enumerable<span class="o">:</span> <span class="kc">false</span><span class="p">}</span><span class="p">)</span><span class="p">;</span>
@@ -8873,7 +8871,7 @@ manager<span class="p">.</span>handler2<span class="p">;</span>            <span
 </span></pre>
    </div>
    <h4 class="heading settled dfn-paneled idl-code" data-dfn-type="extended-attribute" data-export="" data-level="3.3.19" data-lt="TreatNullAs" id="TreatNullAs"><span class="secno">3.3.19. </span><span class="content">[TreatNullAs]</span></h4>
-   <p>If the [<code class="idl"><a data-link-type="idl" href="#TreatNullAs" id="ref-for-TreatNullAs-8">TreatNullAs</a></code>] <a data-link-type="dfn" href="#dfn-extended-attribute" id="ref-for-dfn-extended-attribute-75">extended attribute</a> appears on an <a data-link-type="dfn" href="#dfn-attribute" id="ref-for-dfn-attribute-58">attribute</a> or <a data-link-type="dfn" href="#dfn-operation" id="ref-for-dfn-operation-59">operation</a> argument whose type is <code class="idl"><a data-link-type="idl" href="#idl-DOMString" id="ref-for-idl-DOMString-45">DOMString</a></code>,
+   <p>If the [<code class="idl"><a data-link-type="idl" href="#TreatNullAs" id="ref-for-TreatNullAs-8">TreatNullAs</a></code>] <a data-link-type="dfn" href="#dfn-extended-attribute" id="ref-for-dfn-extended-attribute-75">extended attribute</a> appears on an <a data-link-type="dfn" href="#dfn-attribute" id="ref-for-dfn-attribute-58">attribute</a> or <a data-link-type="dfn" href="#dfn-operation" id="ref-for-dfn-operation-59">operation</a> argument whose type is <code class="idl"><a data-link-type="idl" href="#idl-DOMString" id="ref-for-idl-DOMString-44">DOMString</a></code>,
 it indicates that a <emu-val>null</emu-val> value
 assigned to the attribute or passed as the operation argument will be
 handled differently from its default handling.  Instead of being stringified
@@ -8888,7 +8886,7 @@ and attributes, as above.</p>
 extended attribute must <a data-link-type="dfn" href="#dfn-xattr-identifier" id="ref-for-dfn-xattr-identifier-4">take the identifier</a> <code>EmptyString</code>.</p>
    <p>The [<code class="idl"><a data-link-type="idl" href="#TreatNullAs" id="ref-for-TreatNullAs-11">TreatNullAs</a></code>] extended attribute
 must not be specified on an operation argument,
-attribute or operation return value whose type is not <code class="idl"><a data-link-type="idl" href="#idl-DOMString" id="ref-for-idl-DOMString-46">DOMString</a></code>.</p>
+attribute or operation return value whose type is not <code class="idl"><a data-link-type="idl" href="#idl-DOMString" id="ref-for-idl-DOMString-45">DOMString</a></code>.</p>
    <p class="note" role="note">Note: This means that even an attribute of type <code class="idl">DOMString?</code> must not
 use [<code class="idl"><a data-link-type="idl" href="#TreatNullAs" id="ref-for-TreatNullAs-12">TreatNullAs</a></code>], since <emu-val>null</emu-val> is a valid value of that type.</p>
    <p>The [<code class="idl"><a data-link-type="idl" href="#TreatNullAs" id="ref-for-TreatNullAs-13">TreatNullAs</a></code>] extended attribute
@@ -13485,7 +13483,7 @@ language binding.</p>
     <li><a href="#ref-for-dfn-constant-16">2.7. Callback functions</a>
     <li><a href="#ref-for-dfn-constant-17">2.11. Types</a>
     <li><a href="#ref-for-dfn-constant-18">2.11.24. Sequence types — sequence&lt;T></a>
-    <li><a href="#ref-for-dfn-constant-19">2.11.25. Open dictionary types — OpenDictionary&lt;[K,] V></a>
+    <li><a href="#ref-for-dfn-constant-19">2.11.25. Open dictionary types — OpenDictionary&lt;K, V></a>
     <li><a href="#ref-for-dfn-constant-20">3.3.12. [NoInterfaceObject]</a>
     <li><a href="#ref-for-dfn-constant-21">3.6. Interfaces</a>
     <li><a href="#ref-for-dfn-constant-22">3.6.1. Interface object</a> <a href="#ref-for-dfn-constant-23">(2)</a>
@@ -13513,7 +13511,7 @@ language binding.</p>
     <li><a href="#ref-for-dfn-attribute-20">2.11. Types</a>
     <li><a href="#ref-for-dfn-attribute-21">2.11.23. Nullable types — T?</a>
     <li><a href="#ref-for-dfn-attribute-22">2.11.24. Sequence types — sequence&lt;T></a> <a href="#ref-for-dfn-attribute-23">(2)</a>
-    <li><a href="#ref-for-dfn-attribute-24">2.11.25. Open dictionary types — OpenDictionary&lt;[K,] V></a>
+    <li><a href="#ref-for-dfn-attribute-24">2.11.25. Open dictionary types — OpenDictionary&lt;K, V></a>
     <li><a href="#ref-for-dfn-attribute-25">3.2.4. byte</a> <a href="#ref-for-dfn-attribute-26">(2)</a>
     <li><a href="#ref-for-dfn-attribute-27">3.2.5. octet</a> <a href="#ref-for-dfn-attribute-28">(2)</a>
     <li><a href="#ref-for-dfn-attribute-29">3.2.6. short</a> <a href="#ref-for-dfn-attribute-30">(2)</a>
@@ -14445,7 +14443,7 @@ language binding.</p>
     <li><a href="#ref-for-dfn-platform-object-4">2.2.6. Overloading</a>
     <li><a href="#ref-for-dfn-platform-object-5">2.4. Dictionaries</a> <a href="#ref-for-dfn-platform-object-6">(2)</a>
     <li><a href="#ref-for-dfn-platform-object-7">2.11.24. Sequence types — sequence&lt;T></a>
-    <li><a href="#ref-for-dfn-platform-object-8">2.11.25. Open dictionary types — OpenDictionary&lt;[K,] V></a>
+    <li><a href="#ref-for-dfn-platform-object-8">2.11.25. Open dictionary types — OpenDictionary&lt;K, V></a>
     <li><a href="#ref-for-dfn-platform-object-9">3. ECMAScript binding</a>
     <li><a href="#ref-for-dfn-platform-object-10">3.1. ECMAScript environment</a>
     <li><a href="#ref-for-dfn-platform-object-11">3.2. ECMAScript type mapping</a>
@@ -14578,7 +14576,7 @@ language binding.</p>
     <li><a href="#ref-for-dfn-type-name-22">2.11.22. Callback function types</a>
     <li><a href="#ref-for-dfn-type-name-23">2.11.23. Nullable types — T?</a>
     <li><a href="#ref-for-dfn-type-name-24">2.11.24. Sequence types — sequence&lt;T></a>
-    <li><a href="#ref-for-dfn-type-name-25">2.11.25. Open dictionary types — OpenDictionary&lt;[K,] V></a>
+    <li><a href="#ref-for-dfn-type-name-25">2.11.25. Open dictionary types — OpenDictionary&lt;K, V></a>
     <li><a href="#ref-for-dfn-type-name-26">2.11.26. Promise types — Promise&lt;T></a>
     <li><a href="#ref-for-dfn-type-name-27">2.11.27. Union types</a>
     <li><a href="#ref-for-dfn-type-name-28">2.11.28. RegExp</a>
@@ -14761,11 +14759,11 @@ language binding.</p>
     <li><a href="#ref-for-idl-DOMString-31">2.11.17. USVString</a> <a href="#ref-for-idl-DOMString-32">(2)</a>
     <li><a href="#ref-for-idl-DOMString-33">2.11.21. Enumeration types</a> <a href="#ref-for-idl-DOMString-34">(2)</a>
     <li><a href="#ref-for-idl-DOMString-35">2.11.23. Nullable types — T?</a>
-    <li><a href="#ref-for-idl-DOMString-36">2.11.25. Open dictionary types — OpenDictionary&lt;[K,] V></a> <a href="#ref-for-idl-DOMString-37">(2)</a>
-    <li><a href="#ref-for-idl-DOMString-38">3.2.1. any</a>
-    <li><a href="#ref-for-idl-DOMString-39">3.2.16. DOMString</a> <a href="#ref-for-idl-DOMString-40">(2)</a> <a href="#ref-for-idl-DOMString-41">(3)</a> <a href="#ref-for-idl-DOMString-42">(4)</a> <a href="#ref-for-idl-DOMString-43">(5)</a>
-    <li><a href="#ref-for-idl-DOMString-44">3.2.18. USVString</a>
-    <li><a href="#ref-for-idl-DOMString-45">3.3.19. [TreatNullAs]</a> <a href="#ref-for-idl-DOMString-46">(2)</a>
+    <li><a href="#ref-for-idl-DOMString-36">2.11.25. Open dictionary types — OpenDictionary&lt;K, V></a>
+    <li><a href="#ref-for-idl-DOMString-37">3.2.1. any</a>
+    <li><a href="#ref-for-idl-DOMString-38">3.2.16. DOMString</a> <a href="#ref-for-idl-DOMString-39">(2)</a> <a href="#ref-for-idl-DOMString-40">(3)</a> <a href="#ref-for-idl-DOMString-41">(4)</a> <a href="#ref-for-idl-DOMString-42">(5)</a>
+    <li><a href="#ref-for-idl-DOMString-43">3.2.18. USVString</a>
+    <li><a href="#ref-for-idl-DOMString-44">3.3.19. [TreatNullAs]</a> <a href="#ref-for-idl-DOMString-45">(2)</a>
    </ul>
   </aside>
   <aside class="dfn-panel" data-for="dfn-obtain-unicode">
@@ -14781,7 +14779,7 @@ language binding.</p>
     <li><a href="#ref-for-idl-ByteString-2">2.2.4.3. Serializers</a>
     <li><a href="#ref-for-idl-ByteString-3">2.11. Types</a>
     <li><a href="#ref-for-idl-ByteString-4">2.11.16. ByteString</a> <a href="#ref-for-idl-ByteString-5">(2)</a> <a href="#ref-for-idl-ByteString-6">(3)</a> <a href="#ref-for-idl-ByteString-7">(4)</a> <a href="#ref-for-idl-ByteString-8">(5)</a> <a href="#ref-for-idl-ByteString-9">(6)</a>
-    <li><a href="#ref-for-idl-ByteString-10">2.11.25. Open dictionary types — OpenDictionary&lt;[K,] V></a>
+    <li><a href="#ref-for-idl-ByteString-10">2.11.25. Open dictionary types — OpenDictionary&lt;K, V></a>
     <li><a href="#ref-for-idl-ByteString-11">3.2.17. ByteString</a> <a href="#ref-for-idl-ByteString-12">(2)</a> <a href="#ref-for-idl-ByteString-13">(3)</a> <a href="#ref-for-idl-ByteString-14">(4)</a> <a href="#ref-for-idl-ByteString-15">(5)</a>
    </ul>
   </aside>
@@ -14793,7 +14791,7 @@ language binding.</p>
     <li><a href="#ref-for-idl-USVString-3">2.2.4.3. Serializers</a>
     <li><a href="#ref-for-idl-USVString-4">2.11. Types</a>
     <li><a href="#ref-for-idl-USVString-5">2.11.17. USVString</a> <a href="#ref-for-idl-USVString-6">(2)</a> <a href="#ref-for-idl-USVString-7">(3)</a> <a href="#ref-for-idl-USVString-8">(4)</a> <a href="#ref-for-idl-USVString-9">(5)</a>
-    <li><a href="#ref-for-idl-USVString-10">2.11.25. Open dictionary types — OpenDictionary&lt;[K,] V></a>
+    <li><a href="#ref-for-idl-USVString-10">2.11.25. Open dictionary types — OpenDictionary&lt;K, V></a>
     <li><a href="#ref-for-idl-USVString-11">3.2.18. USVString</a> <a href="#ref-for-idl-USVString-12">(2)</a> <a href="#ref-for-idl-USVString-13">(3)</a> <a href="#ref-for-idl-USVString-14">(4)</a>
    </ul>
   </aside>
@@ -14917,7 +14915,7 @@ language binding.</p>
   <aside class="dfn-panel" data-for="idl-open-dictionary">
    <b><a href="#idl-open-dictionary">#idl-open-dictionary</a></b><b>Referenced in:</b>
    <ul>
-    <li><a href="#ref-for-idl-open-dictionary-1">3.2.26. Open dictionaries — OpenDictionary&lt;[K,] V></a> <a href="#ref-for-idl-open-dictionary-2">(2)</a> <a href="#ref-for-idl-open-dictionary-3">(3)</a> <a href="#ref-for-idl-open-dictionary-4">(4)</a> <a href="#ref-for-idl-open-dictionary-5">(5)</a> <a href="#ref-for-idl-open-dictionary-6">(6)</a> <a href="#ref-for-idl-open-dictionary-7">(7)</a> <a href="#ref-for-idl-open-dictionary-8">(8)</a>
+    <li><a href="#ref-for-idl-open-dictionary-1">3.2.26. Open dictionaries — OpenDictionary&lt;K, V></a> <a href="#ref-for-idl-open-dictionary-2">(2)</a> <a href="#ref-for-idl-open-dictionary-3">(3)</a> <a href="#ref-for-idl-open-dictionary-4">(4)</a> <a href="#ref-for-idl-open-dictionary-5">(5)</a> <a href="#ref-for-idl-open-dictionary-6">(6)</a> <a href="#ref-for-idl-open-dictionary-7">(7)</a> <a href="#ref-for-idl-open-dictionary-8">(8)</a>
    </ul>
   </aside>
   <aside class="dfn-panel" data-for="open-dictionary-type">
@@ -14933,7 +14931,7 @@ language binding.</p>
   <aside class="dfn-panel" data-for="opendictionary-mappings">
    <b><a href="#opendictionary-mappings">#opendictionary-mappings</a></b><b>Referenced in:</b>
    <ul>
-    <li><a href="#ref-for-opendictionary-mappings-1">3.2.26. Open dictionaries — OpenDictionary&lt;[K,] V></a>
+    <li><a href="#ref-for-opendictionary-mappings-1">3.2.26. Open dictionaries — OpenDictionary&lt;K, V></a>
    </ul>
   </aside>
   <aside class="dfn-panel" data-for="idl-promise">
@@ -15312,7 +15310,7 @@ language binding.</p>
     <li><a href="#ref-for-ecmascript-throw-26">3.2.22. Enumeration types</a>
     <li><a href="#ref-for-ecmascript-throw-27">3.2.23. Callback function types</a>
     <li><a href="#ref-for-ecmascript-throw-28">3.2.25. Sequences — sequence&lt;T></a> <a href="#ref-for-ecmascript-throw-29">(2)</a> <a href="#ref-for-ecmascript-throw-30">(3)</a>
-    <li><a href="#ref-for-ecmascript-throw-31">3.2.26. Open dictionaries — OpenDictionary&lt;[K,] V></a>
+    <li><a href="#ref-for-ecmascript-throw-31">3.2.26. Open dictionaries — OpenDictionary&lt;K, V></a>
     <li><a href="#ref-for-ecmascript-throw-32">3.2.27. Promise types — Promise&lt;T></a>
     <li><a href="#ref-for-ecmascript-throw-33">3.2.28. Union types</a>
     <li><a href="#ref-for-ecmascript-throw-34">3.2.30. Error</a>
@@ -15392,7 +15390,7 @@ language binding.</p>
     <li><a href="#ref-for-dfn-convert-ecmascript-to-idl-value-25">3.2.24. Nullable types — T?</a> <a href="#ref-for-dfn-convert-ecmascript-to-idl-value-26">(2)</a>
     <li><a href="#ref-for-dfn-convert-ecmascript-to-idl-value-27">3.2.25. Sequences — sequence&lt;T></a>
     <li><a href="#ref-for-dfn-convert-ecmascript-to-idl-value-28">3.2.25.1. Creating a sequence from an iterable</a>
-    <li><a href="#ref-for-dfn-convert-ecmascript-to-idl-value-29">3.2.26. Open dictionaries — OpenDictionary&lt;[K,] V></a> <a href="#ref-for-dfn-convert-ecmascript-to-idl-value-30">(2)</a> <a href="#ref-for-dfn-convert-ecmascript-to-idl-value-31">(3)</a>
+    <li><a href="#ref-for-dfn-convert-ecmascript-to-idl-value-29">3.2.26. Open dictionaries — OpenDictionary&lt;K, V></a> <a href="#ref-for-dfn-convert-ecmascript-to-idl-value-30">(2)</a> <a href="#ref-for-dfn-convert-ecmascript-to-idl-value-31">(3)</a>
     <li><a href="#ref-for-dfn-convert-ecmascript-to-idl-value-32">3.2.27. Promise types — Promise&lt;T></a> <a href="#ref-for-dfn-convert-ecmascript-to-idl-value-33">(2)</a> <a href="#ref-for-dfn-convert-ecmascript-to-idl-value-34">(3)</a>
     <li><a href="#ref-for-dfn-convert-ecmascript-to-idl-value-35">3.2.28. Union types</a> <a href="#ref-for-dfn-convert-ecmascript-to-idl-value-36">(2)</a> <a href="#ref-for-dfn-convert-ecmascript-to-idl-value-37">(3)</a> <a href="#ref-for-dfn-convert-ecmascript-to-idl-value-38">(4)</a> <a href="#ref-for-dfn-convert-ecmascript-to-idl-value-39">(5)</a> <a href="#ref-for-dfn-convert-ecmascript-to-idl-value-40">(6)</a> <a href="#ref-for-dfn-convert-ecmascript-to-idl-value-41">(7)</a> <a href="#ref-for-dfn-convert-ecmascript-to-idl-value-42">(8)</a> <a href="#ref-for-dfn-convert-ecmascript-to-idl-value-43">(9)</a> <a href="#ref-for-dfn-convert-ecmascript-to-idl-value-44">(10)</a> <a href="#ref-for-dfn-convert-ecmascript-to-idl-value-45">(11)</a> <a href="#ref-for-dfn-convert-ecmascript-to-idl-value-46">(12)</a> <a href="#ref-for-dfn-convert-ecmascript-to-idl-value-47">(13)</a> <a href="#ref-for-dfn-convert-ecmascript-to-idl-value-48">(14)</a> <a href="#ref-for-dfn-convert-ecmascript-to-idl-value-49">(15)</a> <a href="#ref-for-dfn-convert-ecmascript-to-idl-value-50">(16)</a> <a href="#ref-for-dfn-convert-ecmascript-to-idl-value-51">(17)</a>
     <li><a href="#ref-for-dfn-convert-ecmascript-to-idl-value-52">3.2.29. RegExp</a>
@@ -15440,7 +15438,7 @@ language binding.</p>
     <li><a href="#ref-for-dfn-convert-idl-to-ecmascript-value-23">3.2.23. Callback function types</a>
     <li><a href="#ref-for-dfn-convert-idl-to-ecmascript-value-24">3.2.24. Nullable types — T?</a> <a href="#ref-for-dfn-convert-idl-to-ecmascript-value-25">(2)</a>
     <li><a href="#ref-for-dfn-convert-idl-to-ecmascript-value-26">3.2.25. Sequences — sequence&lt;T></a> <a href="#ref-for-dfn-convert-idl-to-ecmascript-value-27">(2)</a>
-    <li><a href="#ref-for-dfn-convert-idl-to-ecmascript-value-28">3.2.26. Open dictionaries — OpenDictionary&lt;[K,] V></a> <a href="#ref-for-dfn-convert-idl-to-ecmascript-value-29">(2)</a> <a href="#ref-for-dfn-convert-idl-to-ecmascript-value-30">(3)</a>
+    <li><a href="#ref-for-dfn-convert-idl-to-ecmascript-value-28">3.2.26. Open dictionaries — OpenDictionary&lt;K, V></a> <a href="#ref-for-dfn-convert-idl-to-ecmascript-value-29">(2)</a> <a href="#ref-for-dfn-convert-idl-to-ecmascript-value-30">(3)</a>
     <li><a href="#ref-for-dfn-convert-idl-to-ecmascript-value-31">3.2.27. Promise types — Promise&lt;T></a>
     <li><a href="#ref-for-dfn-convert-idl-to-ecmascript-value-32">3.2.28. Union types</a>
     <li><a href="#ref-for-dfn-convert-idl-to-ecmascript-value-33">3.2.29. RegExp</a>
