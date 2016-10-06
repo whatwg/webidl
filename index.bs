@@ -1362,10 +1362,10 @@ The type of the attribute, after resolving typedefs, must not be a
 
 *   a [=sequence type=]
 *   a [=dictionary type=]
-*   an [=open dictionary type=]
+*   a [=record type=]
 *   a [=union type=]
     that has a nullable or non-nullable sequence type, dictionary,
-    or open dictionary
+    or record
     as one of its [=flattened member types=]
 
 The attribute is <dfn id="dfn-read-only" export>read only</dfn> if the
@@ -1756,15 +1756,15 @@ corresponding argument omitted.
     conversion of <emu-val>undefined</emu-val> to be used (i.e., <emu-val>false</emu-val>).
 </p>
 
-If the type of an argument is a [=dictionary type=] or [=open dictionary type=]
+If the type of an argument is a [=dictionary type=] or [=record type=]
 or a [=union type=] that has a
-dictionary or open dictionary type as one of its [=flattened member types=],
+dictionary or record type as one of its [=flattened member types=],
 and that dictionary type and its ancestors have no [=required dictionary member|required members=],
 and the argument is either the final argument or is followed only by
 [=optional arguments=], then
 the argument must be specified as optional.
 Such arguments are always considered to have a
-[=optional argument/default value=] of an empty dictionary or open dictionary, as appropriate,
+[=optional argument/default value=] of an empty dictionary or record, as appropriate,
 unless otherwise specified.
 
 <div class="note">
@@ -3285,7 +3285,7 @@ and at least one of the following three conditions is true:
                     <span>callback function</span>
             </div></th>
                 <th><div>
-                    <span>[open] dictionary</span>
+                    <span>dictionary/record</span>
             </div></th>
                 <th><div>
                     <span>sequence&lt;|T|&gt;</span>
@@ -3394,7 +3394,7 @@ and at least one of the following three conditions is true:
             <td>●</td>
         </tr>
         <tr>
-            <th>[open] dictionary</th>
+            <th>dictionary/record</th>
             <td class="belowdiagonal"></td>
             <td class="belowdiagonal"></td>
             <td class="belowdiagonal"></td>
@@ -5174,7 +5174,7 @@ type.
         "DOMException" Null
         BufferRelatedType Null
         "FrozenArray" "&lt;" Type "&gt;" Null
-        OpenDictionaryType Null
+        RecordType Null
 </pre>
 
 <div data-fill-with="grammar-ConstType"></div>
@@ -5230,9 +5230,9 @@ type.
         "Promise" "&lt;" ReturnType "&gt;"
 </pre>
 
-<pre class="grammar" id="prod-OpenDictionaryType">
-    OpenDictionaryType :
-        "OpenDictionary" "&lt;" StringType "," Type "&gt;"
+<pre class="grammar" id="prod-RecordType">
+    RecordType :
+        "record" "&lt;" StringType "," Type "&gt;"
 </pre>
 
 <pre class="grammar" id="prod-Null">
@@ -5680,10 +5680,10 @@ character after an existing type.  The inner type must not
 be {{any}},
 another nullable type, or a [=union type=]
 that itself has [=includes a nullable type=]
-or has a dictionary or open dictionary type as one of its
+or has a dictionary or record type as one of its
 [=flattened member types=].
 
-Note: Although dictionary and open dictionary types can in general be nullable,
+Note: Although dictionary and record types can in general be nullable,
 they cannot when used
 as the type of an operation argument or a dictionary member.
 
@@ -5754,31 +5754,30 @@ is the concatenation of the type name for |T| and
 the string “Sequence”.
 
 
-<h4 id="idl-open-dictionary" dictionary lt="OpenDictionary">Open dictionary types — OpenDictionary&lt;|K|, |V|&gt;</h4>
+<h4 id="idl-record" dictionary lt="record">Record types — record&lt;|K|, |V|&gt;</h4>
 
-An <dfn export>open dictionary type</dfn> is a parameterized type
+A <dfn export>record type</dfn> is a parameterized type
 whose values are ordered associative arrays mapping instances of |K| to
 instances of |V|. The (key, value) pairs are called
-<dfn for="OpenDictionary">mappings</dfn>.
-The order of an open dictionary's mappings is determined when the open
-dictionary value is created.
+<dfn for="record">mappings</dfn>.
+The order of a record's mappings is determined when the record value is created.
 
 |K| must be one of {{DOMString}}, {{USVString}}, or {{ByteString}}.
 
-Open dictionaries are always passed by value. In language bindings where an open
-dictionary is represented by an object of some kind, passing an open dictionary
-to a [=platform object=] will not result in a reference to the open dictionary
-being kept by that object. Similarly, any open dictionary returned from a
+Records are always passed by value. In language bindings where a record
+is represented by an object of some kind, passing a record
+to a [=platform object=] will not result in a reference to the record
+being kept by that object. Similarly, any record returned from a
 platform object will be a copy and modifications made to it will not be visible
 to the platform object.
 
-There is no way to represent a constant open dictionary value in IDL.
+There is no way to represent a constant record value in IDL.
 
-Open dictionaries must not be used as the type of an [=attribute=] or
+Records must not be used as the type of an [=attribute=] or
 [=constant=].
 
-The [=type name=] of an open dictionary type is the concatenation of the type
-name for |K|, the type name for |V| and the string “OpenDictionary”.
+The [=type name=] of a record type is the concatenation of the type
+name for |K|, the type name for |V| and the string “Record”.
 
 
 <h4 oldids="dom-promise" id="idl-promise" interface lt="Promise|Promise&lt;T&gt;">Promise types — Promise&lt;|T|&gt;</h4>
@@ -5877,7 +5876,7 @@ be used as a [=member types|union member type=].
 The [=number of nullable member types=]
 of a [=union type=] must
 be 0 or 1, and if it is 1 then the union type must also not have
-a [=dictionary type=] or [=open dictionary type=] in its
+a [=dictionary type=] or [=record type=] in its
 [=flattened member types=].
 
 A type <dfn id="dfn-includes-a-nullable-type" export>includes a nullable type</dfn> if:
@@ -7573,17 +7572,17 @@ iterable |iterable| and an iterator getter
 </div>
 
 
-<h4 id="es-open-dictionary">Open dictionaries — OpenDictionary&lt;|K|, |V|&gt;</h4>
+<h4 id="es-record">Records — record&lt;|K|, |V|&gt;</h4>
 
-IDL {{OpenDictionary}}&lt;|K|, |V|&gt; values are represented by
+IDL {{record}}&lt;|K|, |V|&gt; values are represented by
 ECMAScript <emu-val>Object</emu-val> values.
 
-<p id="es-to-open-dictionary">
-    An ECMAScript value |O| is [=converted to an IDL value|converted=] to an IDL <code>{{OpenDictionary}}<|K|, |V|></code> value as follows:
+<p id="es-to-record">
+    An ECMAScript value |O| is [=converted to an IDL value|converted=] to an IDL <code>{{record}}<|K|, |V|></code> value as follows:
 </p>
 
 <ol class="algorithm">
-    1.  Let |result| be a new empty instance of <code>{{OpenDictionary}}<|K|, |V|></code>.
+    1.  Let |result| be a new empty instance of <code>{{record}}<|K|, |V|></code>.
     1.  If [=Type=](|O|) is <emu-val>Undefined</emu-val> or <emu-val>Null</emu-val>,
         return |result|.
     1.  If [=Type=](|O|) is not <emu-val>Object</emu-val>,
@@ -7600,14 +7599,14 @@ ECMAScript <emu-val>Object</emu-val> values.
     1.  Return |result|.
 </ol>
 
-<p id="open-dictionary-to-es">
-    An IDL <code>{{OpenDictionary}}<…></code> value |D| is [=converted to an
+<p id="record-to-es">
+    An IDL <code>{{record}}<…></code> value |D| is [=converted to an
     ECMAScript value|converted=] to an ECMAScript value as follows:
 </p>
 
 <ol class="algorithm">
     1.  Let |result| be [=!=] [=ObjectCreate=]([=%ObjectPrototype%=]).
-    1.  Repeat, for each [=OpenDictionary/mapping=] (|key|, |value|) in |D|:
+    1.  Repeat, for each [=record/mapping=] (|key|, |value|) in |D|:
         1.  Let |esKey| be |key| [=converted to an ECMAScript value=].
         1.  Let |esValue| be |value| [=converted to an ECMAScript value=].
         1.  Let |created| be [=!=] [=CreateDataProperty=](|result|, |esKey|, |esValue|).
@@ -7615,15 +7614,15 @@ ECMAScript <emu-val>Object</emu-val> values.
     1.  Return |result|.
 </ol>
 
-<div class="example" id="example-es-open-dictionary">
+<div class="example" id="example-es-record">
     Passing the ECMAScript value <code>{b: 3, a: 4}</code> to a
-    <code>{{OpenDictionary}}&lt;DOMString, double></code> argument
+    <code>{{record}}&lt;DOMString, double></code> argument
     would result in the IDL value <code>[ ("b", 3), ("a", 4) ]</code>.
 
-    Open dictionaries only consider [=own property|own=] [=enumerable=]
+    Records only consider [=own property|own=] [=enumerable=]
     properties, so given an IDL operation
-    <code>OpenDictionary&lt;DOMString, double>
-    identity(OpenDictionary&lt;DOMString, double> arg)</code> which returns its
+    <code>record&lt;DOMString, double>
+    identity(record&lt;DOMString, double> arg)</code> which returns its
     argument, the following code passes its assertions:
 
     <pre highlight="js">
@@ -7641,24 +7640,24 @@ ECMAScript <emu-val>Object</emu-val> values.
         console.assert(entries[1][1] === 6);
     </pre>
 
-    Open dictionary keys and values can be constrained, although keys can only be
+    Record keys and values can be constrained, although keys can only be
     constrained among the three string types.
     The following conversions have the described results:
     <table class="data">
         <thead><th>Value</th><th>Passed to type</th><th>Result</th></thead>
         <tr>
             <td><code>{"😞": 1}</code></td>
-            <td><code>{{OpenDictionary}}&lt;ByteString, double></code></td>
+            <td><code>{{record}}&lt;ByteString, double></code></td>
             <td><emu-val>TypeError</emu-val></td>
         </tr>
         <tr>
             <td><code>{"\uD83D": 1}</code></td>
-            <td><code>{{OpenDictionary}}&lt;USVString, double></code></td>
+            <td><code>{{record}}&lt;USVString, double></code></td>
             <td>[ ("\uFFFD", 1) ]</td>
         </tr>
         <tr>
             <td><code>{"\uD83D": {hello: "world"}}</code></td>
-            <td><code>{{OpenDictionary}}&lt;DOMString, double></code></td>
+            <td><code>{{record}}&lt;DOMString, double></code></td>
             <td>[ ("\uD83D", 0) ]</td>
         </tr>
     </table>
@@ -7831,7 +7830,7 @@ represented by ECMAScript values that correspond to the union’s
         1.  If |types| includes a [=dictionary type=], then return the
             result of [=converted to an IDL value|converting=]
             |V| to that dictionary type.
-        1.  If |types| includes an [=open dictionary type=], then return the
+        1.  If |types| includes a [=record type=], then return the
             result of [=converted to an IDL value|converting=]
             |V| to that dictionary type.
         1.  If |types| includes a [=callback interface=]
@@ -9982,7 +9981,7 @@ and a list of IDL values or the special value “missing”.  The algorithm beha
             and there is an entry in |S| that has one of the following types at position |i| of its type list,
             *   a [=nullable type=]
             *   a [=dictionary type=]
-            *   an [=open dictionary type=]
+            *   a [=record type=]
             *   a [=union type=] that
                 [=includes a nullable type=] or that
                 has a [=dictionary type=] in its [=flattened member types|flattened members=]
@@ -10095,7 +10094,7 @@ and a list of IDL values or the special value “missing”.  The algorithm beha
             there is an entry in |S| that has one of the following types at position |i| of its type list,
             *   a [=callback interface=] type
             *   a [=dictionary type=]
-            *   an [=open dictionary type=]
+            *   a [=record type=]
             *   {{object}}
             *   a [=nullable type|nullable=] version of any of the above types
             *   a [=union type=] or [=nullable type|nullable=] union type
