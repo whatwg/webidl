@@ -69,10 +69,15 @@ urlPrefix: https://tc39.github.io/ecma262/; spec: ECMA-262
             text: %ErrorPrototype%
             text: %ObjProto_toString%
             text: %IteratorPrototype%
+        url: sec-object-internal-methods-and-internal-slots
+            text: [[GetOwnProperty]]
+            text: [[OwnPropertyKeys]]
         text: %ObjectPrototype%; url: sec-properties-of-the-object-prototype-object
         text: %FunctionPrototype%; url: sec-properties-of-the-function-prototype-object
         text: %Promise%; url: sec-promise-constructor
-        text: Property Descriptor; url: sec-property-descriptor-specification-type
+        url: sec-property-descriptor-specification-type
+            text: Property Descriptor
+            text: [[Enumerable]]
         text: array index; url: sec-array-exotic-objects
         text: OrdinaryGetOwnProperty; url: sec-ordinarygetownproperty
         text: OrdinaryDefineOwnProperty; url: sec-ordinarydefineownproperty
@@ -108,7 +113,6 @@ urlPrefix: https://tc39.github.io/ecma262/; spec: ECMA-262
         text: Construct; url: sec-construct
         text: own property; url: sec-own-property
         text: enumerable; url: sec-property-attributes
-        text: EnumerableOwnProperties; url: sec-enumerableownproperties
         text: DefinePropertyOrThrow; url: sec-definepropertyorthrow
         url: sec-code-realms
             text: Realm
@@ -7587,15 +7591,18 @@ ECMAScript <emu-val>Object</emu-val> values.
         return |result|.
     1.  If [=Type=](|O|) is not <emu-val>Object</emu-val>,
         <a lt="es throw">throw a <emu-val>TypeError</emu-val></a>.
-    1.  Let |keys| be [=?=] [=EnumerableOwnProperties=](|O|, "key").
+    1.  Let |keys| be [=?=] |O|.[=[[OwnPropertyKeys]]=]().
     1.  Repeat, for each element |key| of |keys| in [=List=] order:
-        1.  Let |typedKey| be |key| [=converted to an IDL value=] of type |K|.
-        1.  Let |value| be [=?=] [=Get=](|O|, |key|).
-        1.  Let |typedValue| be |value| [=converted to an IDL value=] of type |V|.
-        1.  If |typedKey| is already a key in |result|, set its value to |typedValue|.
+        1.  Let |desc| be [=?=] |O|.[=[[GetOwnProperty]]=](|key|).
+        1.  If |desc| is not <emu-val>undefined</emu-val>
+            and |desc|.[=[[Enumerable]]=] is <emu-val>true</emu-val>:
+            1.  Let |typedKey| be |key| [=converted to an IDL value=] of type |K|.
+            1.  Let |value| be [=?=] [=Get=](|O|, |key|).
+            1.  Let |typedValue| be |value| [=converted to an IDL value=] of type |V|.
+            1.  If |typedKey| is already a key in |result|, set its value to |typedValue|.
 
-            Note: This can happen when |O| is a proxy object.
-        1.  Otherwise, append to |result| a mapping from |typedKey| to |typedValue|.
+                Note: This can happen when |O| is a proxy object.
+            1.  Otherwise, append to |result| a mapping from |typedKey| to |typedValue|.
     1.  Return |result|.
 </ol>
 
