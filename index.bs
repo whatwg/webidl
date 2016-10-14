@@ -69,15 +69,10 @@ urlPrefix: https://tc39.github.io/ecma262/; spec: ECMA-262
             text: %ErrorPrototype%
             text: %ObjProto_toString%
             text: %IteratorPrototype%
-        url: sec-object-internal-methods-and-internal-slots
-            text: [[GetOwnProperty]]
-            text: [[OwnPropertyKeys]]
         text: %ObjectPrototype%; url: sec-properties-of-the-object-prototype-object
         text: %FunctionPrototype%; url: sec-properties-of-the-function-prototype-object
         text: %Promise%; url: sec-promise-constructor
-        url: sec-property-descriptor-specification-type
-            text: Property Descriptor
-            text: [[Enumerable]]
+        text: Property Descriptor; url: sec-property-descriptor-specification-type
         text: array index; url: sec-array-exotic-objects
         text: OrdinaryGetOwnProperty; url: sec-ordinarygetownproperty
         text: OrdinaryDefineOwnProperty; url: sec-ordinarydefineownproperty
@@ -7587,22 +7582,22 @@ ECMAScript <emu-val>Object</emu-val> values.
 
 <ol class="algorithm">
     1.  Let |result| be a new empty instance of <code>{{record}}&lt;|K|, |V|></code>.
-    1.  If [=Type=](|O|) is <emu-val>Undefined</emu-val> or <emu-val>Null</emu-val>,
+    1.  If [=Type=](|O|) is Undefined or Null,
         return |result|.
-    1.  If [=Type=](|O|) is not <emu-val>Object</emu-val>,
+    1.  If [=Type=](|O|) is not Object,
         <a lt="es throw">throw a <emu-val>TypeError</emu-val></a>.
-    1.  Let |keys| be [=?=] |O|.[=[[OwnPropertyKeys]]=]().
+    1.  Let |keys| be [=?=] |O|.\[[OwnPropertyKeys]]().
     1.  Repeat, for each element |key| of |keys| in [=List=] order:
-        1.  Let |desc| be [=?=] |O|.[=[[GetOwnProperty]]=](|key|).
+        1.  Let |desc| be [=?=] |O|.\[[GetOwnProperty]](|key|).
         1.  If |desc| is not <emu-val>undefined</emu-val>
-            and |desc|.[=[[Enumerable]]=] is <emu-val>true</emu-val>:
+            and |desc|.\[[Enumerable]] is <emu-val>true</emu-val>:
             1.  Let |typedKey| be |key| [=converted to an IDL value=] of type |K|.
             1.  Let |value| be [=?=] [=Get=](|O|, |key|).
             1.  Let |typedValue| be |value| [=converted to an IDL value=] of type |V|.
             1.  If |typedKey| is already a key in |result|, set its value to |typedValue|.
 
                 Note: This can happen when |O| is a proxy object.
-            1.  Otherwise, append to |result| a mapping from |typedKey| to |typedValue|.
+            1.  Otherwise, append to |result| a [=record/mapping=] (|typedKey|, |typedValue|).
     1.  Return |result|.
 </ol>
 
@@ -7622,9 +7617,9 @@ ECMAScript <emu-val>Object</emu-val> values.
 </ol>
 
 <div class="example" id="example-es-record">
-    Passing the ECMAScript value <code>{b: 3, a: 4}</code> to a
+    Passing the ECMAScript value <code>{b: 3, a: 4}</code> as a
     <code>{{record}}&lt;DOMString, double></code> argument
-    would result in the IDL value <code>[ ("b", 3), ("a", 4) ]</code>.
+    would result in the IDL value [ ("b", 3), ("a", 4) ].
 
     Records only consider [=own property|own=] [=enumerable=]
     properties, so given an IDL operation
@@ -7839,7 +7834,7 @@ represented by ECMAScript values that correspond to the union’s
             |V| to that dictionary type.
         1.  If |types| includes a [=record type=], then return the
             result of [=converted to an IDL value|converting=]
-            |V| to that dictionary type.
+            |V| to that record type.
         1.  If |types| includes a [=callback interface=]
             type, then return the result of
             [=converted to an IDL value|converting=]
