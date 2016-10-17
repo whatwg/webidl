@@ -17,3 +17,7 @@ In our issues, we use the following labels:
  * ⌛⌛⌛ — there goes your week-end
 
 Thus, good first bugs are [short and sweet](https://github.com/heycam/webidl/issues?utf8=✓&q=is%3Aissue%20is%3Aopen%20label%3A⌛%20%20label%3A☕).
+
+## Markup
+
+The specification is written in [Bikeshed](https://github.com/tabatkins/bikeshed), plus the [EcMarkup tags](https://bterlson.github.io/ecmarkup/) `<emu-val>`, `<emu-t>`, and `<emu-nt>`. 
