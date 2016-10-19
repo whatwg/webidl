@@ -3256,6 +3256,42 @@ Two types are <dfn id="dfn-distinguishable" export>distinguishable</dfn> if
 the following algorithm returns <i>true</i>.
 
 <ol class="algorithm">
+1.  If one type [=includes a nullable type=]
+    and the other type either
+    [=includes a nullable type=],
+    is a [=union type=] with [=flattened member types=]
+    including a [=dictionary type=] or [=record type=], or
+    is a [=dictionary type=] or [=record type=],
+    return <i>false</i>.
+    <div class="example" id="example-distinguishability-nullable">
+        None of the following pairs are distinguishable:
+        <ul>
+            <li>
+                <code>{{double}}?</code> and
+                <code>{{record}}&lt;{{DOMString}}, {{DOMString}}></code>
+            </li>
+            <li>
+                <code>(Interface1 or {{long}})?</code> and
+                <code>(Interface2 or {{DOMString}})?</code>
+            </li>
+            <li>
+                <code>(Interface1 or {{long}}?)</code> and
+                <code>(Interface2 or {{DOMString}})?</code>
+            </li>
+            <li>
+                <code>(Interface1 or {{long}}?)</code> and
+                <code>(Interface2 or {{DOMString}}?)</code>
+            </li>
+            <li>
+                <code>(Dictionary1 or {{long}})</code> and
+                <code>(Interface2 or {{DOMString}})?</code>
+            </li>
+            <li>
+                <code>(Dictionary1 or {{long}})</code> and
+                <code>(Interface2 or {{DOMString}}?)</code>
+            </li>
+        </ul>
+    </div>
 1.  If both types are either a [=union type=] or nullable union type,
     return <i>true</i> if each member type of the one
     is distinguishable with each member type of the other,
@@ -3265,17 +3301,6 @@ the following algorithm returns <i>true</i>.
     [=member type=] of the union type is distinguishable
     with the non-union type,
     or <i>false</i> otherwise.
-1.  If both types are any of:
-    *  a [=dictionary type=],
-    *  a [=record type=], or
-    *  a [=nullable type=],
-
-    return <i>false</i>.
-    <div class="example" id="example-distinguishability-record-nullable">
-        <code>{{double}}?</code> and <code>{{record}}&lt;DOMString, DOMString></code>
-        are not distinguishable.
-    </div>
-
 1.  If the two types (taking their [=inner types=]
     if they are [=nullable types=]) appear
     in the following table and there is a “●” mark in the corresponding entry
@@ -3527,22 +3552,22 @@ the following algorithm returns <i>true</i>.
         Given:
 
         <pre highlight="idl">
-            callback interface Foo {
+            callback interface CBIface {
                 attribute DOMString attr1;
             };
 
-            interface Bar {
+            interface Iface {
                 attribute DOMString attr2;
             };
 
-            dictionary Baz {
+            dictionary Dict {
                 DOMString field1;
             };
         </pre>
 
-        <code>Foo</code> is distinguishable from <code>Bar</code>
+        <code>CBIface</code> is distinguishable from <code>Iface</code>
         because the pair satisfies note (a),
-        but it is not distinguishable from <code>Baz</code>
+        but it is not distinguishable from <code>Dict</code>
         because that pair does not satisfy note (b).
     </div>
 
