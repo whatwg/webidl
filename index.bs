@@ -3253,14 +3253,60 @@ extended attribute’s [=takes a named argument list|named argument list=].
 </div>
 
 Two types are <dfn id="dfn-distinguishable" export>distinguishable</dfn> if
-at most one of the two [=includes a nullable type=], is a [=dictionary type=], or a [=record type=],
-and at least one of the following three conditions is true:
+the following algorithm returns <i>true</i>.
 
-1.  The two types (taking their [=inner types=]
+<ol class="algorithm">
+1.  If one type [=includes a nullable type=]
+    and the other type either
+    [=includes a nullable type=],
+    is a [=union type=] with [=flattened member types=]
+    including a [=dictionary type=] or [=record type=], or
+    is a [=dictionary type=] or [=record type=],
+    return <i>false</i>.
+    <div class="example" id="example-distinguishability-nullable">
+        None of the following pairs are distinguishable:
+        <ul>
+            <li>
+                <code>{{double}}?</code> and
+                <code>{{record}}&lt;{{DOMString}}, {{DOMString}}></code>
+            </li>
+            <li>
+                <code>(Interface1 or {{long}})?</code> and
+                <code>(Interface2 or {{DOMString}})?</code>
+            </li>
+            <li>
+                <code>(Interface1 or {{long}}?)</code> and
+                <code>(Interface2 or {{DOMString}})?</code>
+            </li>
+            <li>
+                <code>(Interface1 or {{long}}?)</code> and
+                <code>(Interface2 or {{DOMString}}?)</code>
+            </li>
+            <li>
+                <code>(Dictionary1 or {{long}})</code> and
+                <code>(Interface2 or {{DOMString}})?</code>
+            </li>
+            <li>
+                <code>(Dictionary1 or {{long}})</code> and
+                <code>(Interface2 or {{DOMString}}?)</code>
+            </li>
+        </ul>
+    </div>
+1.  If both types are either a [=union type=] or nullable union type,
+    return <i>true</i> if each member type of the one
+    is distinguishable with each member type of the other,
+    or <i>false</i> otherwise.
+1.  If one type is a [=union type=] or nullable union type,
+    return <i>true</i> if each
+    [=member type=] of the union type is distinguishable
+    with the non-union type,
+    or <i>false</i> otherwise.
+1.  If the two types (taking their [=inner types=]
     if they are [=nullable types=]) appear
     in the following table and there is a “●” mark in the corresponding entry
     or there is a letter in the corresponding entry and the designated additional
-    requirement below the table is satisfied:
+    requirement below the table is satisfied, then return <i>true</i>.
+    Otherwise return <i>false</i>.
 
     <table id="distinguishable-table" class="matrix data complex">
         <tr>
@@ -3491,15 +3537,46 @@ and at least one of the following three conditions is true:
             and it is not the case that both are [=callback interfaces=].
         1.  The interface type is not a [=callback interface=].
     </ol>
-1.  One type is a [=union type=] or nullable union type,
-    the other is neither a union type nor a nullable union type, and each
-    [=member type=] of the first is distinguishable
-    with the second.
-1.  Both types are either a union type or nullable union type, and each member type of the one
-    is distinguishable with each member type of the other.
 
-Note: [=Promise types=] do not appear in the above table, and as a consequence
-are not distinguishable with any other type.
+    <div class="example" id="example-distinguishability-diff-types">
+        {{double}} and {{DOMString}} are distinguishable because
+        there is a ● at the intersection of [=numeric types=] with [=string types=].
+    </div>
+
+    <div class="example" id="example-distinguishability-same-category">
+        {{double}} and {{long}} are not distinguishable because they are both [=numeric types=],
+        and there is no ● or letter at the intersection of [=numeric types=] with [=numeric types=].
+    </div>
+
+    <div class="example" id="example-distinguishability-callback-interfaces">
+        Given:
+
+        <pre highlight="idl">
+            callback interface CBIface {
+                attribute DOMString attr1;
+            };
+
+            interface Iface {
+                attribute DOMString attr2;
+            };
+
+            dictionary Dict {
+                DOMString field1;
+            };
+        </pre>
+
+        <code>CBIface</code> is distinguishable from <code>Iface</code>
+        because the pair satisfies note (a),
+        but it is not distinguishable from <code>Dict</code>
+        because that pair does not satisfy note (b).
+    </div>
+
+    <div class="example" id="example-distinguishability-promises">
+        [=Promise types=] do not appear in the above table, and as a consequence are
+        not distinguishable with any other type.
+    </div>
+
+</ol>
 
 If there is more than one entry in an [=effective overload set=]
 that has a given type list length, then for those entries there
