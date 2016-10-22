@@ -76,6 +76,7 @@ urlPrefix: https://tc39.github.io/ecma262/; spec: ECMA-262
         text: array index; url: sec-array-exotic-objects
         text: OrdinaryGetOwnProperty; url: sec-ordinarygetownproperty
         text: OrdinaryDefineOwnProperty; url: sec-ordinarydefineownproperty
+        text: OrdinaryPreventExtensions; url: sec-ordinarypreventextensions
         text: default [[Set]] internal method; url: sec-ordinary-object-internal-methods-and-internal-slots-set-p-v-receiver
         text: equally close values; url: sec-ecmascript-language-types-number-type
         text: internal slot; url: sec-object-internal-methods-and-internal-slots
@@ -10709,6 +10710,18 @@ called, the same algorithm must be executed as is defined for the \[[SetPrototyp
 [=immutable prototype exotic object=].
 
 
+<h5 id="named-properties-object-preventextensions">Named properties object \[[PreventExtensions]] method</h5>
+
+When the \[[PreventExtensions]] internal method of a [=named properties object=] is called,
+the following steps are taken:
+
+<ol class="algorithm">
+    1.  Return <emu-val>false</emu-val>.
+</ol>
+
+Note: this keeps [=named properties object=] extensible by
+making \[[PreventExtensions]] fail.
+
 <h4 id="es-constants">Constants</h4>
 
 For each [=exposed=]
@@ -12167,15 +12180,6 @@ when indexing the object with an array index.  Similarly for
 This way, the definitions of these special operations from
 ancestor interfaces can be overridden.
 
-Platform objects implementing an interface that supports indexed or named properties cannot be fixed; if <code>Object.freeze</code>, <code>Object.seal</code>
-or <code>Object.preventExtensions</code> is called on one of these objects, the function
-must <a lt="es throw">throw a <emu-val>TypeError</emu-val></a>.
-Similarly, an [=interface prototype object=]
-that exposes named properties due to the use of [{{Global}}] or
-[{{PrimaryGlobal}}]
-also must <a lt="es throw">throw a <emu-val>TypeError</emu-val></a>
-if one of the three functions above is called on it.
-
 The name of each property that appears to exist due to an object supporting indexed properties
 is an <dfn id="dfn-array-index-property-name" export>array index property name</dfn>, which is a property
 name |P| such that [=Type=](|P|) is String
@@ -12519,6 +12523,24 @@ values passed to \[[Call]]:
         |operation| is declared to return (or <emu-val>undefined</emu-val>
         if |operation| is declared to return {{void}}).
 </ol>
+
+
+<h4 id="preventextensions">Platform object \[[PreventExtensions]] method</h4>
+
+When the \[[PreventExtensions]] internal method of a [=platform object=] |O| is called,
+the following steps are taken:
+
+<ol class="algorithm">
+    1.  If |O| [=support indexed properties|supports indexed properties=] or
+        |O| [=support named properties|supports named properties=], 
+        return <emu-val>false</emu-val>.
+    1.  Return [=OrdinaryPreventExtensions=](|O|).
+</ol>
+
+Note: this keeps [=platform objects=] which
+[=support indexed properties|support indexed=] or
+[=support named properties|named properties=] extensible by
+making \[[PreventExtensions]] fail for them.
 
 
 <h4 id="property-enumeration">Property enumeration</h4>
