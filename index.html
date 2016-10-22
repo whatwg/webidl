@@ -9838,7 +9838,13 @@ following steps are taken:</p>
 called, the same algorithm must be executed as is defined for the [[SetPrototypeOf]] internal method of an <a data-link-type="dfn" href="https://tc39.github.io/ecma262/#sec-immutable-prototype-exotic-objects">immutable prototype exotic object</a>.</p>
    <h5 class="heading settled" data-level="3.6.4.5" id="named-properties-object-preventextensions"><span class="secno">3.6.4.5. </span><span class="content">Named properties object [[PreventExtensions]] method</span><a class="self-link" href="#named-properties-object-preventextensions"></a></h5>
    <p>When the [[PreventExtensions]] internal method of a <a data-link-type="dfn" href="#dfn-named-properties-object" id="ref-for-dfn-named-properties-object-12">named properties object</a> is called,
-it must return <emu-val>true</emu-val>.</p>
+the following steps are taken:</p>
+   <ol class="algorithm">
+    <li data-md="">
+     <p>Return <emu-val>false</emu-val>.</p>
+   </ol>
+   <p class="note" role="note">Note: this keeps <a data-link-type="dfn" href="#dfn-named-properties-object" id="ref-for-dfn-named-properties-object-13">named properties object</a> extensible by
+turning [[PreventExtensions]] into an noop.</p>
    <h4 class="heading settled" data-level="3.6.5" id="es-constants"><span class="secno">3.6.5. </span><span class="content">Constants</span><a class="self-link" href="#es-constants"></a></h4>
    <p>For each <a data-link-type="dfn" href="#dfn-exposed" id="ref-for-dfn-exposed-4">exposed</a> <a data-link-type="dfn" href="#dfn-constant" id="ref-for-dfn-constant-25">constant</a> defined on
 an <a data-link-type="dfn" href="#dfn-interface" id="ref-for-dfn-interface-97">interface</a> <var>A</var>, there
@@ -11404,7 +11410,7 @@ by the [[GetOwnProperty]] internal method.</p>
    <p>However, when the [<code class="idl"><a data-link-type="idl" href="#Global" id="ref-for-Global-93">Global</a></code>] or
 [<code class="idl"><a data-link-type="idl" href="#Global" id="ref-for-Global-94">PrimaryGlobal</a></code>] <a data-link-type="dfn" href="#dfn-extended-attribute" id="ref-for-dfn-extended-attribute-99">extended attribute</a> has been used,
 named properties are not exposed on the object but on another object
-in the prototype chain, the <a data-link-type="dfn" href="#dfn-named-properties-object" id="ref-for-dfn-named-properties-object-13">named properties object</a>.</p>
+in the prototype chain, the <a data-link-type="dfn" href="#dfn-named-properties-object" id="ref-for-dfn-named-properties-object-14">named properties object</a>.</p>
    <p>It is permissible for an object to implement multiple interfaces that support indexed properties.
 However, if so, and there are conflicting definitions as to the object’s <a data-link-type="dfn" href="#dfn-supported-property-indices" id="ref-for-dfn-supported-property-indices-4">supported property indices</a>,
 or if one of the interfaces is a <a data-link-type="dfn" href="#dfn-supplemental-interface" id="ref-for-dfn-supplemental-interface-8">supplemental interface</a> for the
@@ -11455,7 +11461,7 @@ operates as follows, with property name <var>P</var> and object <var>O</var>:</p
      <p>While <var>prototype</var> is not null:</p>
      <ol>
       <li data-md="">
-       <p>If <var>prototype</var> is not a <a data-link-type="dfn" href="#dfn-named-properties-object" id="ref-for-dfn-named-properties-object-14">named properties object</a>,
+       <p>If <var>prototype</var> is not a <a data-link-type="dfn" href="#dfn-named-properties-object" id="ref-for-dfn-named-properties-object-15">named properties object</a>,
 and <var>prototype</var> has an own property named <var>P</var>, then return false.</p>
       <li data-md="">
        <p>Set <var>prototype</var> to be the value of the internal [[Prototype]] property of <var>prototype</var>.</p>
@@ -11763,24 +11769,31 @@ values passed to [[Call]]:</p>
      <p>Return the result of <a data-link-type="dfn" href="#dfn-convert-idl-to-ecmascript-value" id="ref-for-dfn-convert-idl-to-ecmascript-value-59">converting</a> the return value from those actions to an ECMAScript value of the type <var>operation</var> is declared to return (or <emu-val>undefined</emu-val> if <var>operation</var> is declared to return <code class="idl"><a data-link-type="idl" href="#idl-void" id="ref-for-idl-void-6">void</a></code>).</p>
    </ol>
    <h4 class="heading settled" data-level="3.8.10" id="preventextensions"><span class="secno">3.8.10. </span><span class="content">Platform object [[PreventExtensions]] method</span><a class="self-link" href="#preventextensions"></a></h4>
-   <p>The internal [[PreventExtensions]] method of every <a data-link-type="dfn" href="#dfn-platform-object" id="ref-for-dfn-platform-object-58">platform object</a> <var>O</var> that implements an <a data-link-type="dfn" href="#dfn-interface" id="ref-for-dfn-interface-144">interface</a> which <a data-link-type="dfn" href="#dfn-support-indexed-properties" id="ref-for-dfn-support-indexed-properties-18">supports indexed</a> or <a data-link-type="dfn" href="#dfn-support-named-properties" id="ref-for-dfn-support-named-properties-14">named properties</a> must behave as follows when called:</p>
+   <p>When the [[PreventExtensions]] internal method of a <a data-link-type="dfn" href="#dfn-platform-object" id="ref-for-dfn-platform-object-58">platform object</a> <var>O</var> is called,
+the following steps are taken:</p>
    <ol class="algorithm">
     <li data-md="">
-     <p>Return <emu-val>true</emu-val>.</p>
+     <p>If <var>O</var> <a data-link-type="dfn" href="#dfn-support-indexed-properties" id="ref-for-dfn-support-indexed-properties-18">supports indexed properties</a> or <var>O</var> <a data-link-type="dfn" href="#dfn-support-named-properties" id="ref-for-dfn-support-named-properties-14">supports named properties</a>, 
+return <emu-val>false</emu-val>.</p>
+    <li data-md="">
+     <p>Return <a data-link-type="dfn" href="https://tc39.github.io/ecma262/#sec-ordinarypreventextensions">OrdinaryPreventExtensions</a>(<var>O</var>).</p>
    </ol>
+   <p class="note" role="note">Note: this turns the internal [[PreventExtensions]] method
+of <a data-link-type="dfn" href="#dfn-platform-object" id="ref-for-dfn-platform-object-59">platform objects</a> which <a data-link-type="dfn" href="#dfn-support-indexed-properties" id="ref-for-dfn-support-indexed-properties-19">support indexed</a> or <a data-link-type="dfn" href="#dfn-support-named-properties" id="ref-for-dfn-support-named-properties-15">named properties</a> into a noop,
+keeping them extensible, as failing to do so would make them non-functional.</p>
    <h4 class="heading settled" data-level="3.8.11" id="property-enumeration"><span class="secno">3.8.11. </span><span class="content">Property enumeration</span><a class="self-link" href="#property-enumeration"></a></h4>
    <p>This document does not define a complete property enumeration order
-for all <a data-link-type="dfn" href="#dfn-platform-object" id="ref-for-dfn-platform-object-59">platform objects</a> implementing <a data-link-type="dfn" href="#dfn-interface" id="ref-for-dfn-interface-145">interfaces</a> (or for <a href="#es-exception-objects" id="ref-for-es-exception-objects-1">platform objects representing exceptions</a>).
-However, if a platform object implements an interface that <a data-link-type="dfn" href="#dfn-support-indexed-properties" id="ref-for-dfn-support-indexed-properties-19">supports indexed</a> or <a data-link-type="dfn" href="#dfn-support-named-properties" id="ref-for-dfn-support-named-properties-15">named properties</a>, then
+for all <a data-link-type="dfn" href="#dfn-platform-object" id="ref-for-dfn-platform-object-60">platform objects</a> implementing <a data-link-type="dfn" href="#dfn-interface" id="ref-for-dfn-interface-144">interfaces</a> (or for <a href="#es-exception-objects" id="ref-for-es-exception-objects-1">platform objects representing exceptions</a>).
+However, if a platform object implements an interface that <a data-link-type="dfn" href="#dfn-support-indexed-properties" id="ref-for-dfn-support-indexed-properties-20">supports indexed</a> or <a data-link-type="dfn" href="#dfn-support-named-properties" id="ref-for-dfn-support-named-properties-16">named properties</a>, then
 properties on the object must be
 enumerated in the following order:</p>
    <ol>
     <li data-md="">
-     <p>If the object <a data-link-type="dfn" href="#dfn-support-indexed-properties" id="ref-for-dfn-support-indexed-properties-20">supports indexed properties</a>, then
+     <p>If the object <a data-link-type="dfn" href="#dfn-support-indexed-properties" id="ref-for-dfn-support-indexed-properties-21">supports indexed properties</a>, then
 the object’s <a data-link-type="dfn" href="#dfn-supported-property-indices" id="ref-for-dfn-supported-property-indices-8">supported property indices</a> are
 enumerated first, in numerical order.</p>
     <li data-md="">
-     <p>If the object <a data-link-type="dfn" href="#dfn-support-named-properties" id="ref-for-dfn-support-named-properties-16">supports named properties</a> and doesn’t implement an <a data-link-type="dfn" href="#dfn-interface" id="ref-for-dfn-interface-146">interface</a> with the
+     <p>If the object <a data-link-type="dfn" href="#dfn-support-named-properties" id="ref-for-dfn-support-named-properties-17">supports named properties</a> and doesn’t implement an <a data-link-type="dfn" href="#dfn-interface" id="ref-for-dfn-interface-145">interface</a> with the
 [<code class="idl"><a data-link-type="idl" href="#LegacyUnenumerableNamedProperties" id="ref-for-LegacyUnenumerableNamedProperties-7">LegacyUnenumerableNamedProperties</a></code>] <a data-link-type="dfn" href="#dfn-extended-attribute" id="ref-for-dfn-extended-attribute-108">extended attribute</a>, then
 the object’s <a data-link-type="dfn" href="#dfn-supported-property-names" id="ref-for-dfn-supported-property-names-7">supported property names</a> that
 are visible according to the <a data-link-type="dfn" href="#dfn-named-property-visibility" id="ref-for-dfn-named-property-visibility-4">named property visibility algorithm</a> are enumerated next, in the order given in the definition of the set of supported property names.</p>
@@ -11818,7 +11831,7 @@ is the result of invoking [[Get]] on the object with a
 property name that is that identifier.</p>
    </ul>
    <p>Note that ECMAScript objects need not have
-properties corresponding to <a data-link-type="dfn" href="#dfn-constant" id="ref-for-dfn-constant-29">constants</a> on them to be considered as <a data-link-type="dfn" href="#dfn-user-object" id="ref-for-dfn-user-object-9">user objects</a> implementing <a data-link-type="dfn" href="#dfn-interface" id="ref-for-dfn-interface-147">interfaces</a> that happen
+properties corresponding to <a data-link-type="dfn" href="#dfn-constant" id="ref-for-dfn-constant-29">constants</a> on them to be considered as <a data-link-type="dfn" href="#dfn-user-object" id="ref-for-dfn-user-object-9">user objects</a> implementing <a data-link-type="dfn" href="#dfn-interface" id="ref-for-dfn-interface-146">interfaces</a> that happen
 to have constants declared on them.</p>
    <p>A <dfn class="dfn-paneled" data-dfn-type="dfn" data-export="" id="dfn-single-operation-callback-interface">single operation callback interface</dfn> is
 a <a data-link-type="dfn" href="#dfn-callback-interface" id="ref-for-dfn-callback-interface-27">callback interface</a> that:</p>
@@ -12198,7 +12211,7 @@ attributes <span class="descriptor">{ [[Writable]]: <emu-val>false</emu-val>, [[
    <h3 class="heading settled dfn-paneled" data-dfn-type="dfn" data-level="3.13" data-lt="Exception objects" data-noexport="" id="es-exception-objects"><span class="secno">3.13. </span><span class="content">Exception objects</span></h3>
    <p><a data-link-type="dfn" href="#dfn-simple-exception" id="ref-for-dfn-simple-exception-5">Simple exceptions</a> are represented
 by native ECMAScript objects of the corresponding type.</p>
-   <p><code class="idl"><a data-link-type="idl" href="#dfn-DOMException" id="ref-for-dfn-DOMException-28">DOMExceptions</a></code> are represented by <a data-link-type="dfn" href="#dfn-platform-object" id="ref-for-dfn-platform-object-60">platform objects</a> that inherit from
+   <p><code class="idl"><a data-link-type="idl" href="#dfn-DOMException" id="ref-for-dfn-DOMException-28">DOMExceptions</a></code> are represented by <a data-link-type="dfn" href="#dfn-platform-object" id="ref-for-dfn-platform-object-61">platform objects</a> that inherit from
 the <a data-link-type="dfn" href="#dfn-DOMException-prototype-object" id="ref-for-dfn-DOMException-prototype-object-3">DOMException prototype object</a>.</p>
    <p>Every platform object representing a DOMException in ECMAScript is associated with a global environment, just
 as the <a data-link-type="dfn" href="#dfn-initial-object" id="ref-for-dfn-initial-object-5">initial objects</a> are.
@@ -12225,7 +12238,7 @@ as the <emu-val>this</emu-val> value in the top-most call
 on the ECMAScript call stack where <var>F</var> corresponds to an IDL <a data-link-type="dfn" href="#dfn-attribute" id="ref-for-dfn-attribute-78">attribute</a>, <a data-link-type="dfn" href="#dfn-operation" id="ref-for-dfn-operation-77">operation</a>, <a data-link-type="dfn" href="#idl-indexed-properties" id="ref-for-idl-indexed-properties-3">indexed property</a>, <a data-link-type="dfn" href="#idl-named-properties" id="ref-for-idl-named-properties-3">named property</a>, <a href="#Constructor" id="ref-for-Constructor-23">constructor</a>, <a data-link-type="dfn" href="#dfn-named-constructor" id="ref-for-dfn-named-constructor-5">named constructor</a> or <a data-link-type="dfn" href="#dfn-stringifier" id="ref-for-dfn-stringifier-8">stringifier</a>.</p>
     <li data-md="">
      <p>If <var>F</var> corresponds to an attribute, operation or stringifier, then return
-the global environment associated with the <a data-link-type="dfn" href="#dfn-interface" id="ref-for-dfn-interface-148">interface</a> that definition appears on.</p>
+the global environment associated with the <a data-link-type="dfn" href="#dfn-interface" id="ref-for-dfn-interface-147">interface</a> that definition appears on.</p>
     <li data-md="">
      <p>Otherwise, if <var>F</var> corresponds to an indexed or named property, then return
 the global environment associated with the interface that
@@ -12343,7 +12356,7 @@ must propagate to the caller, and if
 not caught there, to its caller, and so on.</p>
    <div class="example" id="example-1432e05c">
     <a class="self-link" href="#example-1432e05c"></a> 
-    <p>The following <a data-link-type="dfn" href="#dfn-idl-fragment" id="ref-for-dfn-idl-fragment-45">IDL fragment</a> defines two <a data-link-type="dfn" href="#dfn-interface" id="ref-for-dfn-interface-149">interfaces</a> and an <a data-link-type="dfn" href="#dfn-exception" id="ref-for-dfn-exception-1">exception</a>.
+    <p>The following <a data-link-type="dfn" href="#dfn-idl-fragment" id="ref-for-dfn-idl-fragment-45">IDL fragment</a> defines two <a data-link-type="dfn" href="#dfn-interface" id="ref-for-dfn-interface-148">interfaces</a> and an <a data-link-type="dfn" href="#dfn-exception" id="ref-for-dfn-exception-1">exception</a>.
     The <code>valueOf</code> attribute on <code class="idl">ExceptionThrower</code> is defined to throw an exception whenever an attempt is made
     to get its value.</p>
 <pre class="highlight"><span class="kt">interface</span> <span class="nv">Dahut</span> {
@@ -12574,7 +12587,7 @@ and “<span class="input">.</span>” is tokenized as the quoted terminal symbo
 used in the grammar and the values used for <emu-t><a href="#prod-identifier">identifier</a></emu-t> terminals.  Thus, for
 example, the input text “<span class="input">Const</span>” is tokenized as
 an <emu-t><a href="#prod-identifier">identifier</a></emu-t> rather than the
-terminal symbol <emu-t>const</emu-t>, an <a data-link-type="dfn" href="#dfn-interface" id="ref-for-dfn-interface-150">interface</a> with <a data-link-type="dfn" href="#dfn-identifier" id="ref-for-dfn-identifier-92">identifier</a> “A” is distinct from one named “a”, and an <a data-link-type="dfn" href="#dfn-extended-attribute" id="ref-for-dfn-extended-attribute-110">extended attribute</a> [<code class="idl">constructor</code>] will not be recognized as
+terminal symbol <emu-t>const</emu-t>, an <a data-link-type="dfn" href="#dfn-interface" id="ref-for-dfn-interface-149">interface</a> with <a data-link-type="dfn" href="#dfn-identifier" id="ref-for-dfn-identifier-92">identifier</a> “A” is distinct from one named “a”, and an <a data-link-type="dfn" href="#dfn-extended-attribute" id="ref-for-dfn-extended-attribute-110">extended attribute</a> [<code class="idl">constructor</code>] will not be recognized as
 the [<code class="idl"><a data-link-type="idl" href="#Constructor" id="ref-for-Constructor-24">Constructor</a></code>]
 extended attribute.</p>
    <p>Implicitly, any number of <emu-t><a href="#prod-whitespace">whitespace</a></emu-t> and <emu-t><a href="#prod-comment">comment</a></emu-t> terminals are allowed between every other terminal
@@ -13262,6 +13275,7 @@ language binding.</p>
      <li><a href="https://tc39.github.io/ecma262/#sec-objectcreate">objectcreate</a>
      <li><a href="https://tc39.github.io/ecma262/#sec-ordinarydefineownproperty">ordinarydefineownproperty</a>
      <li><a href="https://tc39.github.io/ecma262/#sec-ordinarygetownproperty">ordinarygetownproperty</a>
+     <li><a href="https://tc39.github.io/ecma262/#sec-ordinarypreventextensions">ordinarypreventextensions</a>
      <li><a href="https://tc39.github.io/ecma262/#sec-own-property">own property</a>
      <li><a href="https://tc39.github.io/ecma262/#sec-property-descriptor-specification-type">property descriptor</a>
      <li><a href="https://tc39.github.io/ecma262/#sec-code-realms">realm</a>
@@ -13530,12 +13544,11 @@ language binding.</p>
     <li><a href="#ref-for-dfn-interface-138">3.8.7. Platform object [[DefineOwnProperty]] method</a> <a href="#ref-for-dfn-interface-139">(2)</a> <a href="#ref-for-dfn-interface-140">(3)</a>
     <li><a href="#ref-for-dfn-interface-141">3.8.8. Platform object [[Delete]] method</a> <a href="#ref-for-dfn-interface-142">(2)</a>
     <li><a href="#ref-for-dfn-interface-143">3.8.9. Platform object [[Call]] method</a>
-    <li><a href="#ref-for-dfn-interface-144">3.8.10. Platform object [[PreventExtensions]] method</a>
-    <li><a href="#ref-for-dfn-interface-145">3.8.11. Property enumeration</a> <a href="#ref-for-dfn-interface-146">(2)</a>
-    <li><a href="#ref-for-dfn-interface-147">3.9. User objects implementing callback interfaces</a>
-    <li><a href="#ref-for-dfn-interface-148">3.14. Creating and throwing exceptions</a>
-    <li><a href="#ref-for-dfn-interface-149">3.15. Handling exceptions</a>
-    <li><a href="#ref-for-dfn-interface-150">IDL grammar</a>
+    <li><a href="#ref-for-dfn-interface-144">3.8.11. Property enumeration</a> <a href="#ref-for-dfn-interface-145">(2)</a>
+    <li><a href="#ref-for-dfn-interface-146">3.9. User objects implementing callback interfaces</a>
+    <li><a href="#ref-for-dfn-interface-147">3.14. Creating and throwing exceptions</a>
+    <li><a href="#ref-for-dfn-interface-148">3.15. Handling exceptions</a>
+    <li><a href="#ref-for-dfn-interface-149">IDL grammar</a>
    </ul>
   </aside>
   <aside class="dfn-panel" data-for="dfn-interface-member">
@@ -14019,8 +14032,8 @@ language binding.</p>
     <li><a href="#ref-for-dfn-support-indexed-properties-12">3.8.6. Platform object [[Set]] method</a> <a href="#ref-for-dfn-support-indexed-properties-13">(2)</a>
     <li><a href="#ref-for-dfn-support-indexed-properties-14">3.8.7. Platform object [[DefineOwnProperty]] method</a> <a href="#ref-for-dfn-support-indexed-properties-15">(2)</a>
     <li><a href="#ref-for-dfn-support-indexed-properties-16">3.8.8. Platform object [[Delete]] method</a> <a href="#ref-for-dfn-support-indexed-properties-17">(2)</a>
-    <li><a href="#ref-for-dfn-support-indexed-properties-18">3.8.10. Platform object [[PreventExtensions]] method</a>
-    <li><a href="#ref-for-dfn-support-indexed-properties-19">3.8.11. Property enumeration</a> <a href="#ref-for-dfn-support-indexed-properties-20">(2)</a>
+    <li><a href="#ref-for-dfn-support-indexed-properties-18">3.8.10. Platform object [[PreventExtensions]] method</a> <a href="#ref-for-dfn-support-indexed-properties-19">(2)</a>
+    <li><a href="#ref-for-dfn-support-indexed-properties-20">3.8.11. Property enumeration</a> <a href="#ref-for-dfn-support-indexed-properties-21">(2)</a>
    </ul>
   </aside>
   <aside class="dfn-panel" data-for="dfn-supported-property-indices">
@@ -14073,8 +14086,8 @@ language binding.</p>
     <li><a href="#ref-for-dfn-support-named-properties-8">3.8.6. Platform object [[Set]] method</a> <a href="#ref-for-dfn-support-named-properties-9">(2)</a>
     <li><a href="#ref-for-dfn-support-named-properties-10">3.8.7. Platform object [[DefineOwnProperty]] method</a> <a href="#ref-for-dfn-support-named-properties-11">(2)</a>
     <li><a href="#ref-for-dfn-support-named-properties-12">3.8.8. Platform object [[Delete]] method</a> <a href="#ref-for-dfn-support-named-properties-13">(2)</a>
-    <li><a href="#ref-for-dfn-support-named-properties-14">3.8.10. Platform object [[PreventExtensions]] method</a>
-    <li><a href="#ref-for-dfn-support-named-properties-15">3.8.11. Property enumeration</a> <a href="#ref-for-dfn-support-named-properties-16">(2)</a>
+    <li><a href="#ref-for-dfn-support-named-properties-14">3.8.10. Platform object [[PreventExtensions]] method</a> <a href="#ref-for-dfn-support-named-properties-15">(2)</a>
+    <li><a href="#ref-for-dfn-support-named-properties-16">3.8.11. Property enumeration</a> <a href="#ref-for-dfn-support-named-properties-17">(2)</a>
    </ul>
   </aside>
   <aside class="dfn-panel" data-for="dfn-supported-property-names">
@@ -14633,9 +14646,9 @@ language binding.</p>
     <li><a href="#ref-for-dfn-platform-object-55">3.8.7. Platform object [[DefineOwnProperty]] method</a>
     <li><a href="#ref-for-dfn-platform-object-56">3.8.8. Platform object [[Delete]] method</a>
     <li><a href="#ref-for-dfn-platform-object-57">3.8.9. Platform object [[Call]] method</a>
-    <li><a href="#ref-for-dfn-platform-object-58">3.8.10. Platform object [[PreventExtensions]] method</a>
-    <li><a href="#ref-for-dfn-platform-object-59">3.8.11. Property enumeration</a>
-    <li><a href="#ref-for-dfn-platform-object-60">3.13. Exception objects</a>
+    <li><a href="#ref-for-dfn-platform-object-58">3.8.10. Platform object [[PreventExtensions]] method</a> <a href="#ref-for-dfn-platform-object-59">(2)</a>
+    <li><a href="#ref-for-dfn-platform-object-60">3.8.11. Property enumeration</a>
+    <li><a href="#ref-for-dfn-platform-object-61">3.13. Exception objects</a>
    </ul>
   </aside>
   <aside class="dfn-panel" data-for="dfn-user-object">
@@ -16049,8 +16062,8 @@ language binding.</p>
     <li><a href="#ref-for-dfn-named-properties-object-9">3.6.4.2. Named properties object [[DefineOwnProperty]] method</a>
     <li><a href="#ref-for-dfn-named-properties-object-10">3.6.4.3. Named properties object [[Delete]] method</a>
     <li><a href="#ref-for-dfn-named-properties-object-11">3.6.4.4. Named properties object [[SetPrototypeOf]] method</a>
-    <li><a href="#ref-for-dfn-named-properties-object-12">3.6.4.5. Named properties object [[PreventExtensions]] method</a>
-    <li><a href="#ref-for-dfn-named-properties-object-13">3.8.1. Indexed and named properties</a> <a href="#ref-for-dfn-named-properties-object-14">(2)</a>
+    <li><a href="#ref-for-dfn-named-properties-object-12">3.6.4.5. Named properties object [[PreventExtensions]] method</a> <a href="#ref-for-dfn-named-properties-object-13">(2)</a>
+    <li><a href="#ref-for-dfn-named-properties-object-14">3.8.1. Indexed and named properties</a> <a href="#ref-for-dfn-named-properties-object-15">(2)</a>
    </ul>
   </aside>
   <aside class="dfn-panel" data-for="dfn-attribute-getter">
