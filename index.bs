@@ -11236,8 +11236,9 @@ with the following prose definition:
     1.  Let |callbackWrapper| be a <emu-val>Function</emu-val> that, when invoked, behaves as follows:
         1.  Let |v| and |k| be the first two arguments passed to the function.
         1.  Let |thisArg| be the <emu-val>this</emu-val> value.
-        1.  Call the \[[Call]] internal method of |callbackFn| with |thisArg| as |thisArgument|
-            and |v|, |k| and |object| as |argumentsList|.
+        1.  Let |arguments| be an empty List of ECMAScript values.
+        1.  Append |v|, |k|, and |object| to |arguments|.
+        1.  [=Call=](|callbackFn|, |thisArg|, |arguments|).
 
         Note: The |callbackWrapper| function simply calls the incoming |callbackFn|
         with |object| as the third argument rather than its internal \[[BackingMap]] or \[[BackingSet]] object.
@@ -11250,8 +11251,9 @@ with the following prose definition:
     1.  Let |forEach| be the result of calling the \[[Get]] internal method of
         |backing| with “forEach” and |backing| as arguments.
     1.  If [=IsCallable=](|forEach|) is <emu-val>false</emu-val>, <a lt="es throw">throw a <emu-val>TypeError</emu-val></a>.
-    1.  Call the \[[Call]] internal method of |forEach| with |backing| as |thisArgument|
-        and |callbackWrapper| and |thisArg| as |argumentsList|.
+    1.  Let |arguments| be an empty List of ECMAScript values.
+    1.  Append |callbackWrapper| and |thisArg| to |arguments|.
+    1.  [=Call=](|forEach|, |backing|, |arguments|).
     1.  Return <emu-val>undefined</emu-val>.
 </div>
 
@@ -11519,7 +11521,7 @@ These additional properties are described in the sub-sections below.
     1.  Let |map| be the <emu-val>Map</emu-val> object that is the value of |O|’s \[[BackingMap]] [=internal slot=].
     1.  Let |function| be the result of calling the \[[Get]] internal method of |map| passing |name| and |map| as arguments.
     1.  If [=IsCallable=](|function|) is <emu-val>false</emu-val>, then <a lt="es throw">throw a <emu-val>TypeError</emu-val></a>.
-    1.  Return the result of calling the \[[Call]] internal method of |function| with |map| as |thisArg| and |arguments| as |argumentsList|.
+    1.  Return [=Call=](|function|, |map|, |arguments|).
 </div>
 
 
@@ -11605,7 +11607,9 @@ For both of “get” and “has”, there must exist a property with that name 
         1.  Let |keyArg| be the first argument passed to this function, or <emu-val>undefined</emu-val> if not supplied.
         1.  Let |keyIDL| be the result of [=converted to an IDL value|converting=] |keyArg| to an IDL value of type |keyType|.
         1.  Let |key| be the result of [=converted to ECMAScript values|converting=] |keyIDL| to an ECMAScript value.
-        1.  Return the result of calling the \[[Call]] internal method of |function| with |map| as |thisArg| and the single value |key| as |argumentsList|.
+        1.  Let |arguments| be an empty List of ECMAScript values.
+        1.  Append |key| to |arguments|.
+        1.  Return [=Call=](|function|, |map|, |arguments|).
     </div>
 
 The value of the <emu-val>Function</emu-val> objects’ “length” properties is the <emu-val>Number</emu-val> value <emu-val>1</emu-val>.
@@ -11662,7 +11666,9 @@ must exist on |A|’s
         1.  Let |keyArg| be the first argument passed to this function, or <emu-val>undefined</emu-val> if not supplied.
         1.  Let |keyIDL| be the result of [=converted to an IDL value|converting=] |keyArg| to an IDL value of type |keyType|.
         1.  Let |key| be the result of [=converted to ECMAScript values|converting=] |keyIDL| to an ECMAScript value.
-        1.  Return the result of calling the \[[Call]] internal method of |function| with |map| as |thisArg| and the single value |key| as |argumentsList|.
+        1.  Let |arguments| be an empty List of ECMAScript values.
+        1.  Append |key| to |arguments|.
+        1.  Return [=Call=](|function|, |map|, |arguments|).
     </div>
 
 The value of the <emu-val>Function</emu-val> object’s “length” property is the <emu-val>Number</emu-val> value <emu-val>1</emu-val>.
@@ -11701,8 +11707,9 @@ must exist on |A|’s [=interface prototype object=]:
         1.  Let |valueIDL| be the result of [=converted to an IDL value|converting=] |valueArg| to an IDL value of type |valueType|.
         1.  Let |key| be the result of [=converted to ECMAScript values|converting=] |keyIDL| to an ECMAScript value.
         1.  Let |value| be the result of [=converted to ECMAScript values|converting=] |valueIDL| to an ECMAScript value.
-        1.  Let |result| be the result of calling the \[[Call]] internal method of |function| with |map| as |thisArg| and |key| and |value| as |argumentsList|.
-        1.  Assert: |result| is not an abrupt completion.
+        1.  Let |arguments| be an empty List of ECMAScript values.
+        1.  Append |key| and |value| to |arguments|.
+        1.  [=!=] [=Call=](|function|, |map|, |arguments|).
         1.  Return |O|.
     </div>
 
@@ -11749,8 +11756,7 @@ These additional properties are described in the sub-sections below.
         passing |name| and |set| as arguments.
     1.  If [=IsCallable=](|function|) is <emu-val>false</emu-val>,
         then <a lt="es throw">throw a <emu-val>TypeError</emu-val></a>.
-    1.  Return the result of calling the \[[Call]] internal method of |function|
-        with |set| as |thisArg| and |arguments| as |argumentsList|.
+    1.  Return [=Call=](|function|, |set|, |arguments|).
 </div>
 
 
@@ -11834,7 +11840,9 @@ with the following characteristics:
         1.  Let |arg| be the first argument passed to this function, or <emu-val>undefined</emu-val> if not supplied.
         1.  Let |idlValue| be the result of [=converted to an IDL value|converting=] |arg| to an IDL value of type |type|.
         1.  Let |value| be the result of [=converted to ECMAScript values|converting=] |idlValue| to an ECMAScript value.
-        1.  Return the result of calling the \[[Call]] internal method of |function| with |set| as |thisArg| and the single value |value| as |argumentsList|.
+        1.  Let |arguments| be an empty List of ECMAScript values.
+        1.  Append |value| to |arguments|.
+        1.  [=Call=](|function|, |set|, |arguments|).
     </div>
 
 The value of the <emu-val>Function</emu-val> object’s “length” property is a <emu-val>Number</emu-val> value <emu-val>1</emu-val>.
@@ -11876,12 +11884,11 @@ must exist on |A|’s
         1.  Let |arg| be the first argument passed to this function, or <emu-val>undefined</emu-val> if not supplied.
         1.  Let |idlValue| be the result of [=converted to an IDL value|converting=] |arg| to an IDL value of type |type|.
         1.  Let |value| be the result of [=converted to ECMAScript values|converting=] |idlValue| to an ECMAScript value.
-        1.  Let |result| be the result of calling the \[[Call]] internal method of |function| with |set| as |thisArg| and the single value |value| as |argumentsList|.
-        1.  Assert: |result| is not an abrupt completion.
-        1.  If |name| is "delete", then:
-            1.  Return |result|.
-        1.  Otherwise:
-            1.  Return |O|.
+        1.  Let |arguments| be an empty List of ECMAScript values.
+        1.  Append |value| to |arguments|.
+        1.  Let |result| be [=!=] [=Call=](|function|, |set|, |arguments|).
+        1.  If |name| is "delete", then retun |result|.
+        1.  Otherwise, return |O|.
     </div>
 
 The value of the <emu-val>Function</emu-val> object’s “length” property is the <emu-val>Number</emu-val> value <emu-val>1</emu-val>.
