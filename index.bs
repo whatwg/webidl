@@ -129,6 +129,7 @@ urlPrefix: https://tc39.github.io/ecma262/; spec: ECMA-262
         text: typed arrays; url: sec-typedarray-objects
         text: GetMethod; url: sec-getmethod
         text: @@unscopables; url: sec-well-known-symbols
+        text: NewTarget; url: sec-built-in-function-objects
 </pre>
 
 <style>
@@ -8214,7 +8215,7 @@ extended attributes must not be specified on the same interface.
 The [{{Constructor}}] extended attribute
 must not be used on a [=callback interface=].
 
-See [[#es-interface-call]] for details on how a constructor
+See [[#es-constructible-interfaces]] for details on how a constructor
 for an interface is to be implemented.
 
 <div class="example">
@@ -10273,25 +10274,27 @@ Note: Remember that interface objects for callback interfaces only exist if they
 when they do exist, they are not [=function objects=].
 
 
-<h5 id="es-interface-call">Interface object \[[Call]] method</h5>
+<h5 id="es-constructible-interfaces" oldids="es-interface-call">Constructible Interfaces</h5>
 
-If the [=interface=] is declared with a
-[{{Constructor}}] [=extended attribute=],
-then the [=interface object=]
-can be called as a function to create an object that implements that
-interface.  Interfaces that do not have a constructor will throw
-an exception when called as a function.
+If the [=interface=] is declared with a [{{Constructor}}] [=extended attribute=],
+then the [=interface object=] can be called as a constructor
+to create an object that implements that interface.
+Calling that interface as a function will throw an exception.
 
-<div algorithm="to invoke the internal [[Call]] method of interface objects">
+Interfaces that are not declared with a [{{Constructor}}] [=extended attribute=] will throw when called,
+both as a function and as a constructor.
 
-    The internal \[[Call]] method
-    of the interface object behaves as follows, assuming
-    |arg|<sub>0..|n|−1</sub> is the list
-    of argument values passed to the constructor, and |I|
-    is the [=interface=]:
+<div algorithm="to construct an object implementing an interface">
+
+    When evaluating the [=function object=] |F|,
+    which is the interface object for a given non-callback [=interface=] |I|,
+    assuming |arg|<sub>0..|n|−1</sub> as the list of argument values passed |F|,
+    the following steps must be taken:
 
     1.  If |I| was not declared with a [{{Constructor}}]
         [=extended attribute=], then
+        <a lt="es throw">throw a <emu-val>TypeError</emu-val></a>.
+    1.  If [=NewTarget=] is <emu-val>undefined</emu-val>, then
         <a lt="es throw">throw a <emu-val>TypeError</emu-val></a>.
     1.  Let |id| be the identifier of interface |I|.
     1.  Initialize |S| to the
@@ -10303,18 +10306,13 @@ an exception when called as a function.
         |arg|<sub>0..|n|−1</sub> to the
         [=overload resolution algorithm=].
     1.  Let |R| be the result of performing the actions listed in the description of
-        |constructor| with |values| as the argument values.
-    1.  Return the result of [=converted to an ECMAScript value|converting=]
+        |constructor| with |values| as the argument values. Rethrow any exceptions.
+    1.  Let |O| be the result of [=converted to an ECMAScript value|converting=]
         |R| to an ECMAScript [=interface type=] value |I|.
+    1.  Assert: |O| is an object that implements |I|.
+    1.  Assert: |O|.\[[Realm]] is equal to |F|.\[[Realm]].
+    1.  Return |O|.
 </div>
-
-If the internal \[[Call]] method
-of the [=interface object=]
-returns normally, then it must
-return an object that implements interface |I|.
-This object also must be
-associated with the ECMAScript global environment associated
-with the interface object.
 
 <div algorithm="determine value of length property of non-callback interfaces">
 
