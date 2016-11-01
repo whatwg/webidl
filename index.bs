@@ -934,9 +934,8 @@ is all of those defined in this document that are applicable to
 [{{Exposed}}],
 [{{Global}}],
 [{{OverrideBuiltins}}],
-[{{PrimaryGlobal}}],
-[{{SecureContext}}] and
-[{{Unforgeable}}].
+[{{PrimaryGlobal}}], and
+[{{SecureContext}}].
 
 Any [=extended attribute=] specified
 on a [=partial interface=] definition
@@ -954,9 +953,8 @@ The following extended attributes are applicable to interfaces:
 [{{NamedConstructor}}],
 [{{NoInterfaceObject}}],
 [{{OverrideBuiltins}}],
-[{{PrimaryGlobal}}],
-[{{SecureContext}}],
-[{{Unforgeable}}].
+[{{PrimaryGlobal}}], and
+[{{SecureContext}}].
 
 <div data-fill-with="grammar-CallbackOrInterface"></div>
 
@@ -6496,7 +6494,6 @@ and comprise the following:
 *   <a href="#es-stringifier">the <emu-val>Function</emu-val> objects that correspond to stringifiers</a>
 *   <a href="#es-serializer">the <emu-val>Function</emu-val> objects that correspond to serializers</a>
 *   <a href="#es-iterators">the <emu-val>Function</emu-val> objects that correspond to iterators</a>
-*   [=default unforgeable valueOf functions=]
 *   [=map size getters=]
 *   [=DOMException constructor objects=]
 *   [=DOMException prototype objects=]
@@ -9739,33 +9736,10 @@ property value being returned.  In particular, the property will be
 non-configurable and will exist as an own property on the object
 itself rather than on its prototype.
 
-If the [{{Unforgeable}}]
-[=extended attribute=]
-appears on an [=interface=],
-it indicates that all of the non-[=Static attributes|static=]
-[=attributes=]
-and non-[=static operations|static=]
-[=operations=] declared on
-that interface and its [=consequential interfaces=]
-will be similarly reflected as own ECMAScript properties on objects
-that implement the interface, rather than on the prototype.
-
-An attribute or operation is said to be <dfn id="dfn-unforgeable-on-an-interface" export>unforgeable</dfn>
-on a given interface |A| if any of the following are true:
-
-*   The attribute or operation is declared on |A| or one
-    of |A|’s [=consequential interfaces=],
-    and is annotated with the [{{Unforgeable}}]
-    [=extended attribute=].
-*   The attribute or operation is declared on |A| or one
-    of |A|’s [=consequential interfaces=],
-    and that interface is annotated with the [{{Unforgeable}}]
-    [=extended attribute=].
-*   There exists an interface |B|, which is either |A| or one of
-    |A|’s [=consequential interfaces=],
-    |B| is annotated with the [{{Unforgeable}}]
-    [=extended attribute=],
-    and the attribute or operation is declared on one of |B|’s consequential interfaces.
+An attribute or operation is said to be
+<dfn id="dfn-unforgeable-on-an-interface" export>unforgeable</dfn> on a given interface |A| if the
+attribute or operation is declared on |A| or one of |A|’s [=consequential interfaces=], and is
+annotated with the [{{Unforgeable}}] [=extended attribute=].
 
 The [{{Unforgeable}}]
 extended attribute must
@@ -9773,9 +9747,8 @@ extended attribute must
 
 The [{{Unforgeable}}]
 extended attribute must not appear on
-anything other than an [=attribute=],
-non-[=static operations|static=] [=operation=]
-or an [=interface=].  If it does
+anything other than an [=attribute=] or a
+non-[=static operations|static=] [=operation=]. If it does
 appear on an [=operation=], then
 it must appear on all operations with
 the same [=identifier=] on that interface.
@@ -9805,26 +9778,6 @@ must not have a non-static attribute or
         B2 implements Mixin;
         interface Mixin {
           void x();  // Invalid; B2's copy of x would be shadowed by A1's x.
-        };
-
-        [Unforgeable]
-        interface A2 {
-          readonly attribute DOMString x;
-        };
-        interface B3 : A2 {
-          void x();  // Invalid; would be shadowed by A2's x.
-        };
-
-        interface B4 : A2 { };
-        B4 implements Mixin;
-        interface Mixin {
-          void x();  // Invalid; B4's copy of x would be shadowed by A2's x.
-        };
-
-        interface A3 { };
-        A3 implements A2;
-        interface B5 : A3 {
-          void x();  // Invalid; would be shadowed by A3's mixed-in copy of A2's x.
         };
     </pre>
 </div>
@@ -12056,44 +12009,6 @@ updated to be the [=interface prototype object=]
 of the [=primary interface=]
 from the [=platform object=]’s newly associated global environment.
 
-Every platform object that implements an [{{Unforgeable}}]-annotated
-interface and which does not have a [=stringifier=]
-that is [=unforgeable=] on any of the
-interfaces it implements must have a property with the
-following characteristics:
-
-*   The name of the property is “toString”.
-*   The property has attributes <span class="prop-desc">{ \[[Writable]]: <emu-val>false</emu-val>, \[[Enumerable]]: <emu-val>true</emu-val>, \[[Configurable]]: <emu-val>false</emu-val> }</span>.
-*   The value of the property is [=%ObjProto_toString%=], the initial value of Object.prototype.toString.
-
-Every platform object that implements an [{{Unforgeable}}]-annotated
-interface and which does not have a [=serializer=]
-that is [=unforgeable=] on any of the
-interfaces it implements must have a property with the
-following characteristics:
-
-*   The name of the property is “toJSON”.
-*   The property has attributes <span class="prop-desc">{ \[[Writable]]: <emu-val>false</emu-val>, \[[Enumerable]]: <emu-val>true</emu-val>, \[[Configurable]]: <emu-val>false</emu-val> }</span>.
-*   The value of the property is <emu-val>undefined</emu-val>.
-
-Every platform object that implements an [{{Unforgeable}}]-annotated
-interface must have a property with the
-following characteristics:
-
-*   The name of the property is “valueOf”.
-*   The property has attributes <span class="prop-desc">{ \[[Writable]]: <emu-val>false</emu-val>, \[[Enumerable]]: <emu-val>true</emu-val>, \[[Configurable]]: <emu-val>false</emu-val> }</span>.
-*   <div algorithm="to invoke the valueOf method of platform objects">
-        The value of the property is a <emu-val>Function</emu-val> object whose behavior is as follows:
-
-        1. Return the <emu-val>this</emu-val> value.
-    </div>
-    This <emu-val>Function</emu-val> object is the
-    <dfn id="dfn-default-unforgeable-valueOf-function" export>default unforgeable valueOf function</dfn>.
-*   The value of the <emu-val>Function</emu-val> object’s “length”
-    property is the <emu-val>Number</emu-val> value <emu-val>0</emu-val>.
-*   The value of the <emu-val>Function</emu-val> object’s “name” property is the
-    <emu-val>String</emu-val> value “valueOf”.
-
 The [=class string=] of
 a platform object that implements one or more interfaces
 must be the [=identifier=] of
@@ -12150,11 +12065,7 @@ A property name is an <dfn id="dfn-unforgeable-property-name" export>unforgeable
 given platform object if the object implements an [=interface=] that
 has an [=interface member=] with that identifier
 and that interface member is [=unforgeable=] on any of
-the interfaces that |O| implements.  If the object implements an
-[{{Unforgeable}}]-annotated
-[=interface=], then “toString” and “valueOf” are
-also [=unforgeable property names=]
-on that object.
+the interfaces that |O| implements.
 
 <div algorithm>
 
