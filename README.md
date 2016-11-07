@@ -27,7 +27,7 @@ The specification is written in [Bikeshed](https://github.com/tabatkins/bikeshed
 ### Breaking changes should be filed against:
 
 *   Rendering engines
-    *   [Gecko](https://bugzilla.mozilla.org/enter_bug.cgi?product=Core&component=DOM&cc=bzbarsky@mit.edu).
+    *   [Gecko](https://bugzilla.mozilla.org/enter_bug.cgi?product=Core&component=DOM&cc=bzbarsky@mit.edu)
     *   [WebKit](https://bugs.webkit.org)
     *   [Chromium](https://crbug.com)
     *   [Edge](https://developer.microsoft.com/en-us/microsoft-edge/platform/issues/)
