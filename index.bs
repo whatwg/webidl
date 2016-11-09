@@ -10782,53 +10782,56 @@ For [=namespaces=], the properties corresponding to each declared operation are 
 [[#namespace-object]]. (We hope to eventually move interfaces to the same explicit
 property-installation style as namespaces.)
 
-To <dfn id="dfn-create-operation-function" lt="creating an operation function">create an operation function</dfn>,
-given an [=operation=] |op|, a [=namespace=] or [=interface=] |target|, and a [=Realm=] |realm|:
+<div algorithm>
+    To <dfn id="dfn-create-operation-function" lt="creating an operation function">create an operation function</dfn>,
+    given an [=operation=] |op|, a [=namespace=] or [=interface=] |target|, and a [=Realm=] |realm|:
 
-1.  Let |id| be |op|'s [=identifier=].
-1.  Let |steps| be the following series of steps, given function argument
-    values |arg|<sub>0..|n|−1</sub>:
-    1.  Try running the following steps:
-        1.  Let |O| be <emu-val>null</emu-val>.
-        1.  If |target| is an [=interface=], and |op| is not a [=static operation=]:
-            1.  If the <emu-val>this</emu-val> value is <emu-val>null</emu-val> or
-                <emu-val>undefined</emu-val>, set |O| to |realm|'s [=Realm/global object=]. (This
-                will subsequently cause a <emu-val>TypeError</emu-val> in a few steps, if the global
-                object does not implement |target|.)
-                <!-- https://www.w3.org/Bugs/Public/show_bug.cgi?id=18547#c9 -->
-            1.  Otherwise, set |O| to the <emu-val>this</emu-val> value.
-            1.  If |O| is a [=platform object=], then [=perform a security check=], passing |O|,
-                |id|, and "method".
-            1.  If |O| is not a [=platform object=] that implements the interface |target|,
-                <a lt="es throw">throw a <emu-val>TypeError</emu-val></a>.
-        1.  Let |S| be the [=effective overload set=] for [=regular operations=] (if |op| is a
-            regular operation) or for [=static operations=] (if |op| is a static operation) with
-            [=identifier=] |id| on |target| and with argument count |n|.
-        1.  Let &lt;|operation|, |values|&gt; be the result of passing
-            |S| and |arg|<sub>0..|n|−1</sub> to the [=overload resolution algorithm=].
-        1.  Let |R| be the result of performing the actions listed in the
-            description of |operation|, on |O| if |O| is not <emu-val>null</emu-val>, with |values|
-            as the argument values.
-        1.  Return the result of [=converted to an ECMAScript value|converting=] |R| to
-            an ECMAScript value of the type |op| is declared to return.
+    1.  Let |id| be |op|'s [=identifier=].
+    1.  Let |steps| be the following series of steps, given function argument
+        values |arg|<sub>0..|n|−1</sub>:
+        1.  Try running the following steps:
+            1.  Let |O| be <emu-val>null</emu-val>.
+            1.  If |target| is an [=interface=], and |op| is not a [=static operation=]:
+                1.  If the <emu-val>this</emu-val> value is <emu-val>null</emu-val> or
+                    <emu-val>undefined</emu-val>, set |O| to |realm|'s [=Realm/global object=]. (This
+                    will subsequently cause a <emu-val>TypeError</emu-val> in a few steps, if the global
+                    object does not implement |target|.)
+                    <!-- https://www.w3.org/Bugs/Public/show_bug.cgi?id=18547#c9 -->
+                1.  Otherwise, set |O| to the <emu-val>this</emu-val> value.
+                1.  If |O| is a [=platform object=], then [=perform a security check=], passing |O|,
+                    |id|, and "method".
+                1.  If |O| is not a [=platform object=] that implements the interface |target|,
+                    <a lt="es throw">throw a <emu-val>TypeError</emu-val></a>.
+            1.  Let |S| be the [=effective overload set=] for [=regular operations=] (if |op| is a
+                regular operation) or for [=static operations=] (if |op| is a static operation) with
+                [=identifier=] |id| on |target| and with argument count |n|.
+            1.  Let &lt;|operation|, |values|&gt; be the result of passing
+                |S| and |arg|<sub>0..|n|−1</sub> to the [=overload resolution algorithm=].
+            1.  Let |R| be the result of performing the actions listed in the
+                description of |operation|, on |O| if |O| is not <emu-val>null</emu-val>, with |values|
+                as the argument values.
+            1.  Return the result of [=converted to an ECMAScript value|converting=] |R| to
+                an ECMAScript value of the type |op| is declared to return.
 
-    And then, if an exception was thrown:
+        And then, if an exception was thrown:
 
-    1.  If the operation has a [=return type=]
-        that is a [=promise type=], then:
-        1.  Let |reject| be the initial value of [=%Promise%=].reject.
-        1.  Return the result of calling |reject| with [=%Promise%=] as the <emu-val>this</emu-val> object
-            and the exception as the single argument value.
-    1.  Otherwise, end these steps and allow the exception to propagate.
-1.  Let |F| be [=!=] [=CreateBuiltinFunction=](|realm|,
-    |steps|, the [=%FunctionPrototype%=] of |realm|).
-1.  Perform [=!=] [=SetFunctionName=](|F|, |id|).
-1.  Let |S| be the [=effective overload set=] for [=regular operations=] (if |op| is a regular
-    operation) or for [=static operations=] (if |op| is a static operation) with [=identifier=] |id|
-    on |target| and with argument count 0.
-1.  Let |length| be the length of the shortest argument list in the entries in |S|.
-1.  Perform [=!=] [=DefinePropertyOrThrow=](|F|, "length",
-    PropertyDescriptor<span class="prop-desc">{\[[Value]]: |length|, \[[Writable]]: <emu-val>false</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val>}</span>).
+        1.  If |op| has a [=return type=]
+            that is a [=promise type=], then:
+            1.  Let |reject| be the initial value of [=%Promise%=].reject.
+            1.  Return the result of calling |reject| with [=%Promise%=] as the <emu-val>this</emu-val> object
+                and the exception as the single argument value.
+        1.  Otherwise, end these steps and allow the exception to propagate.
+    1.  Let |F| be [=!=] [=CreateBuiltinFunction=](|realm|,
+        |steps|, the [=%FunctionPrototype%=] of |realm|).
+    1.  Perform [=!=] [=SetFunctionName=](|F|, |id|).
+    1.  Let |S| be the [=effective overload set=] for [=regular operations=] (if |op| is a regular
+        operation) or for [=static operations=] (if |op| is a static operation) with [=identifier=] |id|
+        on |target| and with argument count 0.
+    1.  Let |length| be the length of the shortest argument list in the entries in |S|.
+    1.  Perform [=!=] [=DefinePropertyOrThrow=](|F|, "length",
+        PropertyDescriptor<span class="prop-desc">{\[[Value]]: |length|, \[[Writable]]: <emu-val>false</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val>}</span>).
+    1.  Return |F|.
+</div>
 
 <h5 id="es-stringifier">Stringifiers</h5>
 
