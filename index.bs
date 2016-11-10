@@ -7234,7 +7234,7 @@ the object (or its prototype chain) correspond to [=dictionary members=].
 
     An ECMAScript value |V| is [=converted to an IDL value|converted=]
     to an IDL [=dictionary type=] value by
-    running the following algorithm (where |D| is the [=dictionary=]):
+    running the following algorithm (where |D| is the [=dictionary type=]):
 
     1.  If [=Type=](|V|) is not Undefined, Null or Object, then <a lt="es throw">throw a <emu-val>TypeError</emu-val></a>.
     1.  Let |dict| be an empty dictionary value of type |D|;
@@ -7249,19 +7249,18 @@ the object (or its prototype chain) correspond to [=dictionary members=].
                 <dl class="switch">
                      :  Undefined
                      :  Null
-                     :: |value| is <emu-val>undefined</emu-val>.
+                     :: <emu-val>undefined</emu-val>
                      :  anything else
-                     :: |value| is the result of calling the \[[Get]] internal method of |V| passing |key| and |V| as arguments.
+                     :: [=?=] [=Get=](|V|, |key|)
                 </dl>
             1.  If |value| is not <emu-val>undefined</emu-val>, then:
                 1.  Let |idlValue| be the result of [=converted to an IDL value|converting=] |value| to an IDL value whose type is the type |member| is declared to be of.
                 1.  Set the dictionary member on |dict| with key name |key| to the value |idlValue|.  This dictionary member is considered to be [=present=].
-            1.  Otherwise, if |value| is <emu-val>undefined</emu-val> but the [=dictionary member=] has a [=dictionary member/default value=], then:
-                1.  Let |idlValue| be the dictionary member’s default value.
+            1.  Otherwise, if |value| is <emu-val>undefined</emu-val> but |member| has a [=dictionary member/default value=], then:
+                1.  Let |idlValue| be |member|’s default value.
                 1.  Set the dictionary member on |dict| with key name |key| to the value |idlValue|.  This dictionary member is considered to be [=present=].
             1.  Otherwise, if |value| is
-                <emu-val>undefined</emu-val> and the
-                [=dictionary member=] is a
+                <emu-val>undefined</emu-val> and |member| is a
                 [=required dictionary member=], then throw a <emu-val>TypeError</emu-val>.
     1.  Return |dict|.
 </div>
@@ -7275,7 +7274,7 @@ up on the ECMAScript object are not necessarily the same as the object’s prope
     to an ECMAScript <emu-val>Object</emu-val> value by
     running the following algorithm (where |D| is the [=dictionary=]):
 
-    1.  Let |O| be a new <emu-val>Object</emu-val> value created as if by the expression <code>({})</code>.
+    1.  Let |O| be [=!=] [=ObjectCreate=]([=%ObjectPrototype%=]).
     1.  Let |dictionaries| be a list consisting of |D| and all of |D|’s [=inherited dictionaries=],
         in order from least to most derived.
     1.  For each dictionary |dictionary| in |dictionaries|, in order:
@@ -7284,7 +7283,7 @@ up on the ECMAScript object are not necessarily the same as the object’s prope
             1.  If the dictionary member named |key| is [=present=] in |V|, then:
                 1.  Let |idlValue| be the value of |member| on |V|.
                 1.  Let |value| be the result of [=converted to an ECMAScript value|converting=] |idlValue| to an ECMAScript value.
-                1.  Call [=CreateDataProperty=](|O|, |key|, |value|).
+                1.  Perform [=!=] [=CreateDataProperty=](|O|, |key|, |value|).
     1.  Return |O|.
 </div>
 
