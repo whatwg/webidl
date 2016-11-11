@@ -6510,70 +6510,6 @@ when passed to a [=platform object=] expecting that type, and how IDL values
 of that type are <dfn id="dfn-convert-idl-to-ecmascript-value" export lt="converted to an ECMAScript value|converted to ECMAScript values">converted to ECMAScript values</dfn>
 when returned from a platform object.
 
-<div algorithm>
-
-    <dfn lt="IntegerPart" abstract-op>IntegerPart(|n|)</dfn>:
-
-    1.  Let |r| be [=floor=]([=abs=](|n|))
-    1.  If |n| &lt; 0, then return -1 × |r|.
-    1.  Otherwise return |r|.
-</div>
-
-<div algorithm>
-    <dfn lt="ConvertToInt" abstract-op>ConvertToInt(|V|, |bitLength|, |type|)</dfn>:
-    1.  If |bitLength| is 64, then:
-        1.  Let |upperBound| be 2<sup>53</sup> − 1.
-        1.  If |type| is "unsigned", then let |lowerBound| be 0.
-        1.  Otherwise let |lowerBound| be −2<sup>53</sup>.
-
-            Note: in ECMAScript, all numbers including integers are represented as
-            double-precision 64 bit IEEE 754 floating point numbers.
-
-            Issue: Complete this explanation once I understand why we're only concerned
-            about this when clamping and not for all values.
-
-    1.  Otherwise, if |type| is "unsigned", then:
-        1.  Let |lowerBound| be 0.
-        1.  Let |upperBound| be 2<sup>|bitLength|</sup> − 1.
-    1.  Otherwise:
-        1.  Let |lowerBound| be -2<sup>|bitLength − 1|</sup>.
-        1.  Let |upperBound| be 2<sup>|bitLength − 1|</sup> − 1.
-    1.  Set |x| to [=?=] [=ToNumber=](|V|).
-    1.  If the conversion to an IDL value is being performed due to any of the following:
-        *   |V| is being assigned to an [=attribute=] annotated with the [{{EnforceRange}}] [=extended attribute=],
-        *   |V| is being passed as an [=operation=] argument annotated with the [{{EnforceRange}}] extended attribute, or
-        *   |V| is being used as the value of a [=dictionary member=] annotated with the [{{EnforceRange}}] extended attribute,
-
-        then:
-
-        1.  If |x| is <emu-val>NaN</emu-val>, +∞, or −∞,
-            then <a lt="es throw">throw a <emu-val>TypeError</emu-val></a>.
-        1.  Set |x| to [=!=] <a abstract-op>IntegerPart</a>(|x|).
-        1.  If |x| &lt; |lowerBound| or |x| &gt; |upperBound|,
-            then <a lt="es throw">throw a <emu-val>TypeError</emu-val></a>.
-        1.  Return |x|.
-
-    1.  If |x| is not <emu-val>NaN</emu-val> and the conversion to an IDL value is being performed due to any of the following:
-        *   |V| is being assigned to an [=attribute=] annotated with the [{{Clamp}}] [=extended attribute=],
-        *   |V| is being passed as an [=operation=] argument annotated with the [{{Clamp}}] extended attribute, or
-        *   |V| is being used as the value of a [=dictionary member=] annotated with the [{{Clamp}}] extended attribute,
-
-        then:
-
-        1.  Set |x| to [=min=]([=max=](|x|, |lowerBound|), |upperBound|).
-        1.  Round |x| to the nearest integer, choosing the even integer if it lies halfway between two,
-            and choosing +0 rather than −0.
-        1.  Return |x|.
-    1.  If |x| is <emu-val>NaN</emu-val>, +0, −0, +∞, or −∞,
-        then return 0.
-    1.  Set |x| to [=!=] <a abstract-op>IntegerPart</a>(|x|).
-    1.  Set |x| to |x| [=modulo=] 2<sup>|bitLength|</sup>.
-    1.  If |type| is "unsigned" and |x| ≥ 2<sup>|bitLength| − 1</sup>,
-        then return |x| − 2<sup>|bitLength|</sup>.
-    1.  Otherwise, return |x|.
-</div>
-
-
 
 <h4 id="es-any">any</h4>
 
@@ -6665,7 +6601,9 @@ may return any value, which will be discarded.
     <emu-val>false</emu-val> value.
 </p>
 
-<h4 id="es-byte">byte</h4>
+<h4 id="es-integer-types">Integer types</h4>
+
+<h5 id="es-byte">byte</h5>
 
 <div id="es-to-byte" algorithm="convert an ECMAScript value to byte">
 
@@ -6685,7 +6623,7 @@ may return any value, which will be discarded.
 </p>
 
 
-<h4 id="es-octet">octet</h4>
+<h5 id="es-octet">octet</h5>
 
 <div id="es-to-octet" algorithm="convert an ECMAScript value to octet">
 
@@ -6706,7 +6644,7 @@ may return any value, which will be discarded.
 </p>
 
 
-<h4 id="es-short">short</h4>
+<h5 id="es-short">short</h5>
 
 <div id="es-to-short" algorithm="convert an ECMAScript value to short">
 
@@ -6728,7 +6666,7 @@ may return any value, which will be discarded.
 </p>
 
 
-<h4 id="es-unsigned-short">unsigned short</h4>
+<h5 id="es-unsigned-short">unsigned short</h5>
 
 <div id="es-to-unsigned-short" algorithm="convert an ECMAScript value to unsigned short">
 
@@ -6749,7 +6687,7 @@ may return any value, which will be discarded.
 </p>
 
 
-<h4 id="es-long">long</h4>
+<h5 id="es-long">long</h5>
 
 <div id="es-to-long" algorithm="convert an ECMAScript value to long">
 
@@ -6770,7 +6708,7 @@ may return any value, which will be discarded.
 </p>
 
 
-<h4 id="es-unsigned-long">unsigned long</h4>
+<h5 id="es-unsigned-long">unsigned long</h5>
 
 <div id="es-to-unsigned-long" algorithm="convert an ECMAScript value to unsigned long">
 
@@ -6791,7 +6729,7 @@ may return any value, which will be discarded.
 </p>
 
 
-<h4 id="es-long-long">long long</h4>
+<h5 id="es-long-long">long long</h5>
 
 <div id="es-to-long-long" algorithm="convert an ECMAScript value to long long">
 
@@ -6816,7 +6754,7 @@ may return any value, which will be discarded.
 </p>
 
 
-<h4 id="es-unsigned-long-long">unsigned long long</h4>
+<h5 id="es-unsigned-long-long">unsigned long long</h5>
 
 <div id="es-to-unsigned-long-long" algorithm="convert an ECMAScript value to unsigned long long">
 
@@ -6839,6 +6777,71 @@ may return any value, which will be discarded.
     represent exactly the same value as the
     {{unsigned long long}}.
 </p>
+
+<h5 id="es-integer-types-abstract-ops">Abstract operations</h5>
+
+<div algorithm>
+
+    <dfn lt="IntegerPart" abstract-op>IntegerPart(|n|)</dfn>:
+
+    1.  Let |r| be [=floor=]([=abs=](|n|))
+    1.  If |n| &lt; 0, then return -1 × |r|.
+    1.  Otherwise return |r|.
+</div>
+
+<div algorithm>
+    <dfn lt="ConvertToInt" abstract-op>ConvertToInt(|V|, |bitLength|, |type|)</dfn>:
+    1.  If |bitLength| is 64, then:
+        1.  Let |upperBound| be 2<sup>53</sup> − 1.
+        1.  If |type| is "unsigned", then let |lowerBound| be 0.
+        1.  Otherwise let |lowerBound| be −2<sup>53</sup>.
+
+            Note: in ECMAScript, all numbers including integers are represented as
+            double-precision 64 bit IEEE 754 floating point numbers.
+
+            Issue: Complete this explanation once I understand why we're only concerned
+            about this when clamping and not for all values.
+
+    1.  Otherwise, if |type| is "unsigned", then:
+        1.  Let |lowerBound| be 0.
+        1.  Let |upperBound| be 2<sup>|bitLength|</sup> − 1.
+    1.  Otherwise:
+        1.  Let |lowerBound| be -2<sup>|bitLength − 1|</sup>.
+        1.  Let |upperBound| be 2<sup>|bitLength − 1|</sup> − 1.
+    1.  Set |x| to [=?=] [=ToNumber=](|V|).
+    1.  If the conversion to an IDL value is being performed due to any of the following:
+        *   |V| is being assigned to an [=attribute=] annotated with the [{{EnforceRange}}] [=extended attribute=],
+        *   |V| is being passed as an [=operation=] argument annotated with the [{{EnforceRange}}] extended attribute, or
+        *   |V| is being used as the value of a [=dictionary member=] annotated with the [{{EnforceRange}}] extended attribute,
+
+        then:
+
+        1.  If |x| is <emu-val>NaN</emu-val>, +∞, or −∞,
+            then <a lt="es throw">throw a <emu-val>TypeError</emu-val></a>.
+        1.  Set |x| to [=!=] <a abstract-op>IntegerPart</a>(|x|).
+        1.  If |x| &lt; |lowerBound| or |x| &gt; |upperBound|,
+            then <a lt="es throw">throw a <emu-val>TypeError</emu-val></a>.
+        1.  Return |x|.
+
+    1.  If |x| is not <emu-val>NaN</emu-val> and the conversion to an IDL value is being performed due to any of the following:
+        *   |V| is being assigned to an [=attribute=] annotated with the [{{Clamp}}] [=extended attribute=],
+        *   |V| is being passed as an [=operation=] argument annotated with the [{{Clamp}}] extended attribute, or
+        *   |V| is being used as the value of a [=dictionary member=] annotated with the [{{Clamp}}] extended attribute,
+
+        then:
+
+        1.  Set |x| to [=min=]([=max=](|x|, |lowerBound|), |upperBound|).
+        1.  Round |x| to the nearest integer, choosing the even integer if it lies halfway between two,
+            and choosing +0 rather than −0.
+        1.  Return |x|.
+    1.  If |x| is <emu-val>NaN</emu-val>, +0, −0, +∞, or −∞,
+        then return 0.
+    1.  Set |x| to [=!=] <a abstract-op>IntegerPart</a>(|x|).
+    1.  Set |x| to |x| [=modulo=] 2<sup>|bitLength|</sup>.
+    1.  If |type| is "unsigned" and |x| ≥ 2<sup>|bitLength| − 1</sup>,
+        then return |x| − 2<sup>|bitLength|</sup>.
+    1.  Otherwise, return |x|.
+</div>
 
 
 <h4 id="es-float">float</h4>
