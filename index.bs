@@ -43,6 +43,7 @@ urlPrefix: https://tc39.github.io/ecma262/; spec: ECMA-262
         text: ToUint32; url: sec-touint32
         text: ToString; url: sec-tostring
         text: ToObject; url: sec-toobject
+        text: isFinite; url: sec-isfinite-number
         text: IsAccessorDescriptor; url: sec-isaccessordescriptor
         text: IsDataDescriptor; url: sec-isdatadescriptor
         url: sec-ecmascript-data-types-and-values
@@ -51,6 +52,8 @@ urlPrefix: https://tc39.github.io/ecma262/; spec: ECMA-262
         url: sec-algorithm-conventions
             text: sign
             text: floor
+            text: min
+            text: max
             text: abs
             text: modulo
             text: !
@@ -6507,6 +6510,78 @@ when passed to a [=platform object=] expecting that type, and how IDL values
 of that type are <dfn id="dfn-convert-idl-to-ecmascript-value" export lt="converted to an ECMAScript value|converted to ECMAScript values">converted to ECMAScript values</dfn>
 when returned from a platform object.
 
+<div algorithm>
+
+    <dfn lt="AssertFinite" abstract-op>AssertFinite(|v|)</dfn>:
+
+    1.  Let |r| be [=!=][=isFinite=](|v|).
+    1.  If |r| is <emu-val>false</emu-val>,
+        then <a lt="es throw">throw a <emu-val>TypeError</emu-val></a>.
+</div>
+
+<div algorithm>
+
+    <dfn lt="IntegerPart" abstract-op>IntegerPart(|n|)</dfn>:
+
+    1.  Let |r| be [=floor=]([=abs=](|n|))
+    1.  If |n| &lt; 0, then return -1 * |r|.
+    1.  Otherwise return |r|.
+</div>
+
+<div algorithm>
+    <dfn lt="ConvertToInt" abstract-op>ConvertToInt(|V|, |bitLength|, |type|)</dfn>:
+    1.  If |bitLength| is 64, then:
+        1.  Let |upperBound| be 2<sup>53</sup> - 1.
+        1.  If |type| is "unsigned", then let |lowerBound| be 0.
+        1.  Otherwise let |lowerBound| be −2<sup>53</sup>.
+
+            Note: in ECMAScript, all numbers including integers are represented as
+            double-precision 64 bit IEEE 754 floating point numbers.
+
+            Issue: Complete this explanation once I understand why we're only concerned
+            about this when clamping and not for all values.
+
+    1.  Otherwise, if |type| is "unsigned", then:
+        1.  Let |lowerBound| be 0.
+        1.  Let |upperBound| be 2<sup>|bitLength|</sup> - 1.
+    1.  Otherwise:
+        1.  Let |lowerBound| be -2<sup>|bitLength - 1|</sup>.
+        1.  Let |upperBound| be 2<sup>|bitLength - 1|</sup> - 1.
+    1.  Initialize |x| to [=ToNumber=](|V|).
+    1.  If the conversion to an IDL value is being performed due to any of the following:
+        *   |V| is being assigned to an [=attribute=] annotated with the [{{EnforceRange}}] [=extended attribute=],
+        *   |V| is being passed as an [=operation=] argument annotated with the [{{EnforceRange}}] extended attribute, or
+        *   |V| is being used as the value of a [=dictionary member=] annotated with the [{{EnforceRange}}] extended attribute,
+
+        then:
+
+        1.  Perform [=?=]<a abstract-op>AssertFinite</a>(|x|).
+        1.  Set |x| to [=!=]<a abstract-op>IntegerPart</a>(|x|).
+        1.  If |x| &lt; |lowerBound| or |x| &gt; |upperBound|,
+            then <a lt="es throw">throw a <emu-val>TypeError</emu-val></a>.
+        1.  Return |x|.
+
+    1.  If |x| is not <emu-val>NaN</emu-val> and the conversion to an IDL value is being performed due to any of the following:
+        *   |V| is being assigned to an [=attribute=] annotated with the [{{Clamp}}] [=extended attribute=],
+        *   |V| is being passed as an [=operation=] argument annotated with the [{{Clamp}}] extended attribute, or
+        *   |V| is being used as the value of a [=dictionary member=] annotated with the [{{Clamp}}] extended attribute,
+
+        then:
+
+        1.  Set |x| to [=min=]([=max=](|x|, |lowerBound|), |upperBound|).
+        1.  Round |x| to the nearest integer, choosing the even integer if it lies halfway between two,
+            and choosing +0 rather than −0.
+        1.  Return |x|.
+    1.  If |x| is <emu-val>NaN</emu-val>, +0, −0, +∞, or −∞,
+        then return 0.
+    1.  Set |x| to [=!=]<a abstract-op>IntegerPart</a>(|x|).
+    1.  Set |x| to |x| [=modulo=](2<sup>|bitLength|</sup>).
+    1.  If |type| is "unsigned" and |x| ≥ 2<sup>|bitLength| - 1</sup>,
+        then return |x| − 2<sup>|bitLength|</sup>.
+    1.  Otherwise, return |x|.
+</div>
+
+
 
 <h4 id="es-any">any</h4>
 
@@ -6605,33 +6680,8 @@ may return any value, which will be discarded.
     An ECMAScript value |V| is [=converted to an IDL value|converted=]
     to an IDL {{byte}} value by running the following algorithm:
 
-    1.  Initialize |x| to [=ToNumber=](|V|).
-    1.  If the conversion to an IDL value is being performed due to any of the following:
-        *   |V| is being assigned to an [=attribute=] annotated with the [{{EnforceRange}}] [=extended attribute=],
-        *   |V| is being passed as an [=operation=] argument annotated with the [{{EnforceRange}}] extended attribute, or
-        *   |V| is being used as the value of a [=dictionary member=] annotated with the [{{EnforceRange}}] extended attribute,
-
-        then:
-
-        1.  If |x| is <emu-val>NaN</emu-val>, +∞, or −∞, then <a lt="es throw">throw a <emu-val>TypeError</emu-val></a>.
-        1.  Set |x| to [=sign=](|x|) * [=floor=]([=abs=](|x|)).
-        1.  If |x| &lt; −2<sup>7</sup> or |x| &gt; 2<sup>7</sup> − 1, then <a lt="es throw">throw a <emu-val>TypeError</emu-val></a>.
-        1.  Return the IDL {{byte}} value that represents the same numeric value as |x|.
-    1.  If |x| is not <emu-val>NaN</emu-val> and the conversion to an IDL value is being performed due to any of the following:
-        *   |V| is being assigned to an [=attribute=] annotated with the [{{Clamp}}] [=extended attribute=],
-        *   |V| is being passed as an [=operation=] argument annotated with the [{{Clamp}}] extended attribute, or
-        *   |V| is being used as the value of a [=dictionary member=] annotated with the [{{Clamp}}] extended attribute,
-
-        then:
-
-        1.  Set |x| to min(max(|x|, −2<sup>7</sup>), 2<sup>7</sup> − 1).
-        1.  Round |x| to the nearest integer, choosing the even integer if it lies halfway between two, and choosing +0 rather than −0.
-        1.  Return the IDL {{byte}} value that represents the same numeric value as |x|.
-    1.  If |x| is <emu-val>NaN</emu-val>, +0, −0, +∞, or −∞, then return the IDL {{byte}} value that represents 0.
-    1.  Set |x| to [=sign=](|x|) * [=floor=]([=abs=](|x|)).
-    1.  Set |x| to |x| [=modulo=] 2<sup>8</sup>.
-    1.  If |x| ≥ 2<sup>7</sup>, return the IDL {{byte}} value that represents the same numeric value as |x| − 2<sup>8</sup>.
-        Otherwise, return the IDL {{byte}} value that represents the same numeric value as |x|.
+    1.  Let |x| be [=?=]<a abstract-op>ConvertToInt</a>(|V|, 8, "signed").
+    1.  Return the IDL {{byte}} value that represents the same numeric value as |x|.
 </div>
 
 <p id="byte-to-es">
@@ -6650,31 +6700,7 @@ may return any value, which will be discarded.
     An ECMAScript value |V| is [=converted to an IDL value|converted=]
     to an IDL {{octet}} value by running the following algorithm:
 
-    1.  Initialize |x| to [=ToNumber=](|V|).
-    1.  If the conversion to an IDL value is being performed due to any of the following:
-        *   |V| is being assigned to an [=attribute=] annotated with the [{{EnforceRange}}] [=extended attribute=],
-        *   |V| is being passed as an [=operation=] argument annotated with the [{{EnforceRange}}] extended attribute, or
-        *   |V| is being used as the value of a [=dictionary member=] annotated with the [{{EnforceRange}}] extended attribute,
-
-        then:
-
-        1.  If |x| is <emu-val>NaN</emu-val>, +∞, or −∞, then <a lt="es throw">throw a <emu-val>TypeError</emu-val></a>.
-        1.  Set |x| to [=sign=](|x|) * [=floor=]([=abs=](|x|)).
-        1.  If |x| &lt; 0 or |x| &gt; 2<sup>8</sup> − 1, then <a lt="es throw">throw a <emu-val>TypeError</emu-val></a>.
-        1.  Return the IDL {{octet}} value that represents the same numeric value as |x|.
-    1.  If |x| is not <emu-val>NaN</emu-val> and the conversion to an IDL value is being performed due to any of the following:
-        *   |V| is being assigned to an [=attribute=] annotated with the [{{Clamp}}] [=extended attribute=],
-        *   |V| is being passed as an [=operation=] argument annotated with the [{{Clamp}}] extended attribute, or
-        *   |V| is being used as the value of a [=dictionary member=] annotated with the [{{Clamp}}] extended attribute,
-
-        then:
-
-        1.  Set |x| to min(max(|x|, 0), 2<sup>8</sup> − 1).
-        1.  Round |x| to the nearest integer, choosing the even integer if it lies halfway between two, and choosing +0 rather than −0.
-        1.  Return the IDL {{octet}} value that represents the same numeric value as |x|.
-    1.  If |x| is <emu-val>NaN</emu-val>, +0, −0, +∞, or −∞, then return the IDL {{octet}} value that represents 0.
-    1.  Set |x| to [=sign=](|x|) * [=floor=]([=abs=](|x|)).
-    1.  Set |x| to |x| [=modulo=] 2<sup>8</sup>.
+    1.  Let |x| be [=?=]<a abstract-op>ConvertToInt</a>(|V|, 8, "unsigned").
     1.  Return the IDL {{octet}} value that represents the same numeric value as |x|.
 </div>
 
@@ -6695,33 +6721,9 @@ may return any value, which will be discarded.
     An ECMAScript value |V| is [=converted to an IDL value|converted=]
     to an IDL {{short}} value by running the following algorithm:
 
-    1.  Initialize |x| to [=ToNumber=](|V|).
-    1.  If the conversion to an IDL value is being performed due to any of the following:
-        *   |V| is being assigned to an [=attribute=] annotated with the [{{EnforceRange}}] [=extended attribute=],
-        *   |V| is being passed as an [=operation=] argument annotated with the [{{EnforceRange}}] extended attribute, or
-        *   |V| is being used as the value of a [=dictionary member=] annotated with the [{{EnforceRange}}] extended attribute,
+    1.  Let |x| be [=?=]<a abstract-op>ConvertToInt</a>(|V|, 16, "signed").
+    1.  Return the IDL {{short}} value that represents the same numeric value as |x|.
 
-        then:
-
-        1.  If |x| is <emu-val>NaN</emu-val>, +∞, or −∞, then <a lt="es throw">throw a <emu-val>TypeError</emu-val></a>.
-        1.  Set |x| to [=sign=](|x|) * [=floor=]([=abs=](|x|)).
-        1.  If |x| &lt; −2<sup>15</sup> or |x| &gt; 2<sup>15</sup> − 1, then <a lt="es throw">throw a <emu-val>TypeError</emu-val></a>.
-        1.  Return the IDL {{short}} value that represents the same numeric value as |x|.
-    1.  If |x| is not <emu-val>NaN</emu-val> and the conversion to an IDL value is being performed due to any of the following:
-        *   |V| is being assigned to an [=attribute=] annotated with the [{{Clamp}}] [=extended attribute=],
-        *   |V| is being passed as an [=operation=] argument annotated with the [{{Clamp}}] extended attribute, or
-        *   |V| is being used as the value of a [=dictionary member=] annotated with the [{{Clamp}}] extended attribute,
-
-        then:
-
-        1.  Set |x| to min(max(|x|, −2<sup>15</sup>), 2<sup>15</sup> − 1).
-        1.  Round |x| to the nearest integer, choosing the even integer if it lies halfway between two, and choosing +0 rather than −0.
-        1.  Return the IDL {{short}} value that represents the same numeric value as |x|.
-    1.  If |x| is <emu-val>NaN</emu-val>, +0, −0, +∞, or −∞, then return the IDL {{short}} value that represents 0.
-    1.  Set |x| to [=sign=](|x|) * [=floor=]([=abs=](|x|)).
-    1.  Set |x| to |x| [=modulo=] 2<sup>16</sup>.
-    1.  If |x| ≥ 2<sup>15</sup>, return the IDL {{short}} value that represents the same numeric value as |x| − 2<sup>16</sup>.
-        Otherwise, return the IDL {{short}} value that represents the same numeric value as |x|.
 </div>
 
 <p id="short-to-es">
@@ -6741,30 +6743,8 @@ may return any value, which will be discarded.
     An ECMAScript value |V| is [=converted to an IDL value|converted=]
     to an IDL {{unsigned short}} value by running the following algorithm:
 
-    1.  Initialize |x| to [=ToNumber=](|V|).
-    1.  If the conversion to an IDL value is being performed due to any of the following:
-        *   |V| is being assigned to an [=attribute=] annotated with the [{{EnforceRange}}] [=extended attribute=],
-        *   |V| is being passed as an [=operation=] argument annotated with the [{{EnforceRange}}] extended attribute, or
-        *   |V| is being used as the value of a [=dictionary member=] annotated with the [{{EnforceRange}}] extended attribute,
-
-        then:
-
-        1.  If |x| is <emu-val>NaN</emu-val>, +∞, or −∞, then <a lt="es throw">throw a <emu-val>TypeError</emu-val></a>.
-        1.  Set |x| to [=sign=](|x|) * [=floor=]([=abs=](|x|)).
-        1.  If |x| &lt; 0 or |x| &gt; 2<sup>16</sup> − 1, then <a lt="es throw">throw a <emu-val>TypeError</emu-val></a>.
-        1.  Return the IDL {{unsigned short}} value that represents the same numeric value as |x|.
-    1.  If |x| is not <emu-val>NaN</emu-val> and the conversion to an IDL value is being performed due to any of the following:
-        *   |V| is being assigned to an [=attribute=] annotated with the [{{Clamp}}] [=extended attribute=],
-        *   |V| is being passed as an [=operation=] argument annotated with the [{{Clamp}}] extended attribute, or
-        *   |V| is being used as the value of a [=dictionary member=] annotated with the [{{Clamp}}] extended attribute,
-
-        then:
-
-        1.  Set |x| to min(max(|x|, 0), 2<sup>16</sup> − 1).
-        1.  Round |x| to the nearest integer, choosing the even integer if it lies halfway between two, and choosing +0 rather than −0.
-        1.  Return the IDL {{unsigned short}} value that represents the same numeric value as |x|.
-    1.  Set |x| to [=ToUint16=](|x|).
-    1.  Return the IDL {{unsigned short}} value that represents the same numeric value as |x|.
+    1.  Let |x| be [=?=]<a abstract-op>ConvertToInt</a>(|V|, 16, "unsigned").
+    1.  Return the IDL {{short}} value that represents the same numeric value as |x|.
 </div>
 
 <p id="unsigned-short-to-es">
@@ -6784,29 +6764,7 @@ may return any value, which will be discarded.
     An ECMAScript value |V| is [=converted to an IDL value|converted=]
     to an IDL {{long}} value by running the following algorithm:
 
-    1.  Initialize |x| to [=ToNumber=](|V|).
-    1.  If the conversion to an IDL value is being performed due to any of the following:
-        *   |V| is being assigned to an [=attribute=] annotated with the [{{EnforceRange}}] [=extended attribute=],
-        *   |V| is being passed as an [=operation=] argument annotated with the [{{EnforceRange}}] extended attribute, or
-        *   |V| is being used as the value of a [=dictionary member=] annotated with the [{{EnforceRange}}] extended attribute,
-
-        then:
-
-        1.  If |x| is <emu-val>NaN</emu-val>, +∞, or −∞, then <a lt="es throw">throw a <emu-val>TypeError</emu-val></a>.
-        1.  Set |x| to [=sign=](|x|) * [=floor=]([=abs=](|x|)).
-        1.  If |x| &lt; −2<sup>31</sup> or |x| &gt; 2<sup>31</sup> − 1, then <a lt="es throw">throw a <emu-val>TypeError</emu-val></a>.
-        1.  Return the IDL {{long}} value that represents the same numeric value as |x|.
-    1.  If |x| is not <emu-val>NaN</emu-val> and the conversion to an IDL value is being performed due to any of the following:
-        *   |V| is being assigned to an [=attribute=] annotated with the [{{Clamp}}] [=extended attribute=],
-        *   |V| is being passed as an [=operation=] argument annotated with the [{{Clamp}}] extended attribute, or
-        *   |V| is being used as the value of a [=dictionary member=] annotated with the [{{Clamp}}] extended attribute,
-
-        then:
-
-        1.  Set |x| to min(max(|x|, −2<sup>31</sup>), 2<sup>31</sup> − 1).
-        1.  Round |x| to the nearest integer, choosing the even integer if it lies halfway between two, and choosing +0 rather than −0.
-        1.  Return the IDL {{long}} value that represents the same numeric value as |x|.
-    1.  Set |x| to [=ToInt32=](|x|).
+    1.  Let |x| be [=?=]<a abstract-op>ConvertToInt</a>(|V|, 32, "signed").
     1.  Return the IDL {{long}} value that represents the same numeric value as |x|.
 </div>
 
@@ -6827,30 +6785,8 @@ may return any value, which will be discarded.
     An ECMAScript value |V| is [=converted to an IDL value|converted=]
     to an IDL {{unsigned long}} value  by running the following algorithm:
 
-    1.  Initialize |x| to [=ToNumber=](|V|).
-    1.  If the conversion to an IDL value is being performed due to any of the following:
-        *   |V| is being assigned to an [=attribute=] annotated with the [{{EnforceRange}}] [=extended attribute=],
-        *   |V| is being passed as an [=operation=] argument annotated with the [{{EnforceRange}}] extended attribute, or
-        *   |V| is being used as the value of a [=dictionary member=] annotated with the [{{EnforceRange}}] extended attribute,
-
-        then:
-
-        1.  If |x| is <emu-val>NaN</emu-val>, +∞, or −∞, then <a lt="es throw">throw a <emu-val>TypeError</emu-val></a>.
-        1.  Set |x| to [=sign=](|x|) * [=floor=]([=abs=](|x|)).
-        1.  If |x| &lt; 0 or |x| &gt; 2<sup>32</sup> − 1, then <a lt="es throw">throw a <emu-val>TypeError</emu-val></a>.
-        1.  Return the IDL {{unsigned long}} value that represents the same numeric value as |x|.
-    1.  If |x| is not <emu-val>NaN</emu-val> and the conversion to an IDL value is being performed due to any of the following:
-        *   |V| is being assigned to an [=attribute=] annotated with the [{{Clamp}}] [=extended attribute=],
-        *   |V| is being passed as an [=operation=] argument annotated with the [{{Clamp}}] extended attribute, or
-        *   |V| is being used as the value of a [=dictionary member=] annotated with the [{{Clamp}}] extended attribute,
-
-        then:
-
-        1.  Set |x| to min(max(|x|, 0), 2<sup>32</sup> − 1).
-        1.  Round |x| to the nearest integer, choosing the even integer if it lies halfway between two, and choosing +0 rather than −0.
-        1.  Return the IDL {{unsigned long}} value that represents the same numeric value as |x|.
-    1.  Set |x| to [=ToUint32=](|x|).
-    1.  Return the IDL {{unsigned long}} value that represents the same numeric value as |x|.
+    1.  Let |x| be [=?=]<a abstract-op>ConvertToInt</a>(|V|, 32, "unsigned").
+    1.  Return the IDL {{long}} value that represents the same numeric value as |x|.
 </div>
 
 <p id="unsigned-long-to-es">
@@ -6870,33 +6806,8 @@ may return any value, which will be discarded.
     An ECMAScript value |V| is [=converted to an IDL value|converted=]
     to an IDL {{long long}} value by running the following algorithm:
 
-    1.  Initialize |x| to [=ToNumber=](|V|).
-    1.  If the conversion to an IDL value is being performed due to any of the following:
-        *   |V| is being assigned to an [=attribute=] annotated with the [{{EnforceRange}}] [=extended attribute=],
-        *   |V| is being passed as an [=operation=] argument annotated with the [{{EnforceRange}}] extended attribute, or
-        *   |V| is being used as the value of a [=dictionary member=] annotated with the [{{EnforceRange}}] extended attribute,
-
-        then:
-
-        1.  If |x| is <emu-val>NaN</emu-val>, +∞, or −∞, then <a lt="es throw">throw a <emu-val>TypeError</emu-val></a>.
-        1.  Set |x| to [=sign=](|x|) * [=floor=]([=abs=](|x|)).
-        1.  If |x| &lt; −2<sup>53</sup> + 1 or |x| &gt; 2<sup>53</sup> − 1, then <a lt="es throw">throw a <emu-val>TypeError</emu-val></a>.
-        1.  Return the IDL {{long long}} value that represents the same numeric value as |x|.
-    1.  If |x| is not <emu-val>NaN</emu-val> and the conversion to an IDL value is being performed due to any of the following:
-        *   |V| is being assigned to an [=attribute=] annotated with the [{{Clamp}}] [=extended attribute=],
-        *   |V| is being passed as an [=operation=] argument annotated with the [{{Clamp}}] extended attribute, or
-        *   |V| is being used as the value of a [=dictionary member=] annotated with the [{{Clamp}}] extended attribute,
-
-        then:
-
-        1.  Set |x| to min(max(|x|, −2<sup>53</sup> + 1), 2<sup>53</sup> − 1).
-        1.  Round |x| to the nearest integer, choosing the even integer if it lies halfway between two, and choosing +0 rather than −0.
-        1.  Return the IDL {{long long}} value that represents the same numeric value as |x|.
-    1.  If |x| is <emu-val>NaN</emu-val>, +0, −0, +∞, or −∞, then return the IDL {{long long}} value that represents 0.
-    1.  Set |x| to [=sign=](|x|) * [=floor=]([=abs=](|x|)).
-    1.  Set |x| to |x| [=modulo=] 2<sup>64</sup>.
-    1.  If |x| is greater than or equal to 2<sup>63</sup>, then set |x| to |x| − 2<sup>64</sup>.
-    1.  Return the IDL {{long long}} value that represents the same numeric value as |x|.
+    1.  Let |x| be [=?=]<a abstract-op>ConvertToInt</a>(|V|, 64, "signed").
+    1.  Return the IDL {{long}} value that represents the same numeric value as |x|.
 </div>
 
 <p id="long-long-to-es">
@@ -6920,32 +6831,8 @@ may return any value, which will be discarded.
     An ECMAScript value |V| is [=converted to an IDL value|converted=]
     to an IDL {{unsigned long long}} value by running the following algorithm:
 
-    1.  Initialize |x| to [=ToNumber=](|V|).
-    1.  If the conversion to an IDL value is being performed due to any of the following:
-        *   |V| is being assigned to an [=attribute=] annotated with the [{{EnforceRange}}] [=extended attribute=],
-        *   |V| is being passed as an [=operation=] argument annotated with the [{{EnforceRange}}] extended attribute, or
-        *   |V| is being used as the value of a [=dictionary member=] annotated with the [{{EnforceRange}}] extended attribute,
-
-        then:
-
-        1.  If |x| is <emu-val>NaN</emu-val>, +∞, or −∞, then <a lt="es throw">throw a <emu-val>TypeError</emu-val></a>.
-        1.  Set |x| to [=sign=](|x|) * [=floor=]([=abs=](|x|)).
-        1.  If |x| &lt; 0 or |x| &gt; 2<sup>53</sup> − 1, then <a lt="es throw">throw a <emu-val>TypeError</emu-val></a>.
-        1.  Return the IDL {{unsigned long long}} value that represents the same numeric value as |x|.
-    1.  If |x| is not <emu-val>NaN</emu-val> and the conversion to an IDL value is being performed due to any of the following:
-        *   |V| is being assigned to an [=attribute=] annotated with the [{{Clamp}}] [=extended attribute=],
-        *   |V| is being passed as an [=operation=] argument annotated with the [{{Clamp}}] extended attribute, or
-        *   |V| is being used as the value of a [=dictionary member=] annotated with the [{{Clamp}}] extended attribute,
-
-        then:
-
-        1.  Set |x| to min(max(|x|, 0), 2<sup>53</sup> − 1).
-        1.  Round |x| to the nearest integer, choosing the even integer if it lies halfway between two, and choosing +0 rather than −0.
-        1.  Return the IDL {{unsigned long long}} value that represents the same numeric value as |x|.
-    1.  If |x| is <emu-val>NaN</emu-val>, +0, −0, +∞, or −∞, then return the IDL {{unsigned long long}} value that represents 0.
-    1.  Set |x| to [=sign=](|x|) * [=floor=]([=abs=](|x|)).
-    1.  Set |x| to |x| [=modulo=] 2<sup>64</sup>.
-    1.  Return the IDL {{unsigned long long}} value that represents the same numeric value as |x|.
+    1.  Let |x| be [=?=]<a abstract-op>ConvertToInt</a>(|V|, 64, "unsigned").
+    1.  Return the IDL {{long}} value that represents the same numeric value as |x|.
 </div>
 
 <p id="unsigned-long-long-to-es">
@@ -6970,8 +6857,7 @@ may return any value, which will be discarded.
     to an IDL {{float}} value by running the following algorithm:
 
     1.  Let |x| be [=ToNumber=](|V|).
-    1.  If |x| is <emu-val>NaN</emu-val>, <emu-val>+Infinity</emu-val> or
-        <emu-val>−Infinity</emu-val>, then <a lt="es throw">throw a <emu-val>TypeError</emu-val></a>.
+    1.  Perform [=?=]<a abstract-op>AssertFinite</a>(|x|).
     1.  Let |S| be the set of finite IEEE 754 single-precision floating
         point values except −0, but with two special values added: 2<sup>128</sup> and
         −2<sup>128</sup>.
@@ -7043,8 +6929,7 @@ value when its bit pattern is interpreted as an unsigned 32 bit integer.
     to an IDL {{double}} value by running the following algorithm:
 
     1.  Let |x| be [=ToNumber=](|V|).
-    1.  If |x| is <emu-val>NaN</emu-val>, <emu-val>+Infinity</emu-val> or
-        <emu-val>−Infinity</emu-val>, then <a lt="es throw">throw a <emu-val>TypeError</emu-val></a>.
+    1.  Perform [=?=]<a abstract-op>AssertFinite</a>(|x|).
     1.  Return the IDL {{double}} value
         that has the same numeric value as |x|.
 </div>
