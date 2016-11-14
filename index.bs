@@ -2135,8 +2135,7 @@ as if it were a function.
 [=support indexed properties|supports indexed=] or
 [=support named properties|named properties=].
 
-Note: This artificial restriction allows bundling all the interfaces
-which support these various legacy [=extended attributes=]
+Note: This artificial restriction allows bundling all interfaces with exotic object behavior
 into a single [=platform object=] category: [=legacy platform objects=].
 This is possible because all existing interfaces which have a [=legacy caller=]
 also [=support indexed properties|supports indexed=] or
@@ -8389,7 +8388,7 @@ If the [{{Global}}] or [{{PrimaryGlobal}}] [=extended attributes=] is
 used on an [=interface=], then:
 
 *   The interface must not define a [=named property setter=].
-*   The interface must not define an [=indexed property getter=].
+*   The interface must not define [=indexed property getters=] or [=indexed property setter|setters=].
 *   The interface must not also be declared with the [{{OverrideBuiltins}}]
     extended attribute.
 *   The interface must not [=interface/inherit=] from another interface with the
@@ -8619,7 +8618,7 @@ If the [{{LegacyUnenumerableNamedProperties}}]
 extended attribute is specified on an interface, then it applies to all its derived interfaces and
 must not be specified on any of them.
 
-See [[#property-enumeration]]
+See [[#legacy-platform-object-property-enumeration]]
 for the specific requirements that the use of
 [{{LegacyUnenumerableNamedProperties}}]
 entails.
@@ -10376,7 +10375,7 @@ is the concatenation of the [=interface=]’s
 [=identifier=] and the string “Properties”.
 
 
-<h5 id="named-properties-object-getownproperty">Named properties object \[[GetOwnProperty]] method</h5>
+<h5 id="named-properties-object-getownproperty">\[[GetOwnProperty]]</h5>
 
 <div algorithm="to invoke the internal [[GetOwnProperty]] method of named properties object">
 
@@ -10417,7 +10416,7 @@ is the concatenation of the [=interface=]’s
 </div>
 
 
-<h5 id="named-properties-object-defineownproperty">Named properties object \[[DefineOwnProperty]] method</h5>
+<h5 id="named-properties-object-defineownproperty">\[[DefineOwnProperty]]</h5>
 
 <div algorithm="to invoke the internal [[DefineOwnProperty]] method of named properties object">
 
@@ -10427,7 +10426,7 @@ is the concatenation of the [=interface=]’s
     1.  Return <emu-val>false</emu-val>.
 </div>
 
-<h5 id="named-properties-object-delete">Named properties object \[[Delete]] method</h5>
+<h5 id="named-properties-object-delete">\[[Delete]]</h5>
 
 <div algorithm="to invoke the internal [[Delete]] method of named properties object">
 
@@ -10438,14 +10437,14 @@ is the concatenation of the [=interface=]’s
 </div>
 
 
-<h5 id="named-properties-object-setprototypeof">Named properties object \[[SetPrototypeOf]] method</h5>
+<h5 id="named-properties-object-setprototypeof">\[[SetPrototypeOf]]</h5>
 
 When the \[[SetPrototypeOf]] internal method of a [=named properties object=] is
 called, the same algorithm must be executed as is defined for the \[[SetPrototypeOf]] internal method of an
 [=immutable prototype exotic object=].
 
 
-<h5 id="named-properties-object-preventextensions">Named properties object \[[PreventExtensions]] method</h5>
+<h5 id="named-properties-object-preventextensions">\[[PreventExtensions]]</h5>
 
 <div algorithm="to invoke the internal [[PreventExtensions]] method of named properties object">
 
@@ -11780,10 +11779,10 @@ of the platform object.
 
 <h3 id="es-legacy-platform-objects" oldids="indexed-and-named-properties">Legacy platform objects</h3>
 
-[=Legacy platform objects=] will appear to have additional properties that correspond to the
+[=Legacy platform objects=] will appear to have additional properties that correspond to their
 [=indexed properties|indexed=] and [=named properties=].  These properties are not “real” own
 properties on the object, but are made to look like they are by being exposed
-by the \[[GetOwnProperty]] internal method.
+by the <a href="#legacy-platform-object-getownproperty">\[[GetOwnProperty]] internal method</a> .
 
 It is permissible for an object to implement multiple interfaces that support indexed properties.
 However, if so, and there are conflicting definitions as to the object’s
@@ -11801,6 +11800,205 @@ when indexing the object with an array index.  Similarly for
 This way, the definitions of these special operations from
 ancestor interfaces can be overridden.
 
+A property name is an <dfn id="dfn-unforgeable-property-name" export>unforgeable property name</dfn> on a
+given platform object if the object implements an [=interface=] that
+has an [=interface member=] with that identifier
+and that interface member is [=unforgeable=] on any of
+the interfaces that |O| implements.
+
+Support for [=getters=] is handled by the <a href="#legacy-platform-object-getownproperty">legacy platform object \[[GetOwnProperty]] method</a>,
+and for [=setters=] by the <a href="#legacy-platform-object-defineownproperty">legacy platform object \[[DefineOwnProperty]] method</a>
+and the <a href="#legacy-platform-object-set">legacy platform object \[[Set]] method</a>.
+
+
+<h4 id="legacy-platform-object-getownproperty" dfn oldids="getownproperty" lt=GetOwnProperty for="legacy platform object">\[[GetOwnProperty]]</h4>
+
+<div algorithm="to invoke the internal [[GetOwnProperty]] method of platform objects">
+
+    The internal \[[GetOwnProperty]] method of every [=legacy platform object=] |O|
+    must behave as follows when called with property name |P|:
+
+    1. Return <a abstract-op>LegacyPlatformObjectGetOwnProperty</a>(|O|, |P|, <emu-val>false</emu-val>).
+</div>
+
+
+<h4 id="legacy-platform-object-set" oldids="platformobjectset">\[[Set]]</h4>
+
+<div algorithm="to invoke the internal [[Set]] method of legacy platform objects">
+
+    The internal \[[Set]] method of every [=legacy platform object=] |O|
+    must behave as follows when called with
+    property name |P|, value |V|, and ECMAScript language value |Receiver|:
+
+    1.  If |O| and |Receiver| are the same object, then:
+        1.  If |O| [=support indexed properties|supports indexed properties=], |P| is an [=array index property name=], and |O| implements an interface with an [=indexed property setter=], then:
+            1.  [=Invoke the indexed property setter=] with |P| and |V|.
+            1.  Return <emu-val>true</emu-val>.
+        1.  If |O| [=support named properties|supports named properties=], [=Type=](|P|) is String,
+            |P| is not an [=array index property name=],
+            and |O| implements an interface with a [=named property setter=], then:
+            1.  [=Invoke the named property setter=] with |P| and |V|.
+            1.  Return <emu-val>true</emu-val>.
+    1.  Let |ownDesc| be <a abstract-op>LegacyPlatformObjectGetOwnProperty</a>(|O|, |P|, <emu-val>true</emu-val>).
+    1.  Perform steps 3-11 of the [=default [[Set]] internal method=].
+</div>
+
+<h4 id="legacy-platform-object-setprototypeof" oldids="platformobjectsetprototypeof">\[[SetPrototypeOf]]</h4>
+
+The internal \[[SetPrototypeOf]] method of every [=legacy platform object=]
+that implements an [=interface=] with the [{{Global}}] or [{{PrimaryGlobal}}]
+[=extended attribute=] must execute the same algorithm as is defined for the
+\[[SetPrototypeOf]] internal method of an [=immutable prototype exotic object=].
+
+Note: For {{Window}} objects, it is unobservable whether this is implemented, since the presence of
+the {{WindowProxy}} object ensures that \[[SetPrototypeOf]] is never called on a {{Window}} object
+directly. For other global objects, however, this is necessary.
+
+
+<h4 id="legacy-platform-object-defineownproperty" oldids="defineownproperty" algorithm>\[[DefineOwnProperty]]</h4>
+
+<div algorithm="to invoke the internal [[DefineOwnProperty]] method of legacy platform objects">
+
+    When the internal \[[DefineOwnProperty]] method of a [=legacy platform object=] |O|
+    is called with property key |P| and [=Property Descriptor=] |Desc|,
+    the following steps must be taken:
+
+    1.  If |O| [=support indexed properties|supports indexed properties=] and
+        |P| is an [=array index property name=], then:
+        1.  If the result of calling [=IsDataDescriptor=](|Desc|) is
+            <emu-val>false</emu-val>, then return
+            <emu-val>false</emu-val>.
+        1.  If |O| does not implement an interface with an
+            [=indexed property setter=], then return <emu-val>false</emu-val>.
+        1.  [=Invoke the indexed property setter=] with |P| and |Desc|.\[[Value]].
+        1.  Return <emu-val>true</emu-val>.
+    1.  If |O| [=support named properties|supports named properties=],
+        |O| does not implement an [=interface=] with the
+        [{{Global}}] or [{{PrimaryGlobal}}] [=extended attribute=]
+        and |P| is not an [=unforgeable property name=]
+        of |O|, then:
+        1.  Let |creating| be true if |P| is not a [=supported property name=], and false otherwise.
+        1.  If |O| implements an interface with the [{{OverrideBuiltins}}]
+            [=extended attribute=] or |O| does not have an own property
+            named |P|, then:
+            1.  If |creating| is false and |O| does not implement an
+                interface with a [=named property setter=], then return <emu-val>false</emu-val>.
+            1.  If |O| implements an interface with a
+                [=named property setter=], then:
+                1.  If the result of calling [=IsDataDescriptor=](|Desc|) is
+                    <emu-val>false</emu-val>, then return
+                    <emu-val>false</emu-val>.
+                1.  [=Invoke the named property setter=] with |P| and |Desc|.\[[Value]].
+                1.  Return <emu-val>true</emu-val>.
+    1.  If |O| does not implement an
+        [=interface=] with the
+        [{{Global}}] or
+        [{{PrimaryGlobal}}]
+        [=extended attribute=], then set
+        |Desc|.\[[Configurable]] to
+        <emu-val>true</emu-val>.
+    1.  Return [=OrdinaryDefineOwnProperty=](|O|, |P|, |Desc|).
+</div>
+
+
+<h4 id="legacy-platform-object-delete" oldids="delete">\[[Delete]]</h4>
+
+<div algorithm="to invoke the internal [[Delete]] method of legacy platform objects">
+
+    The internal \[[Delete]] method of every [=legacy platform object=] |O|
+    must behave as follows when called with property name |P|.
+
+    1.  If |O| [=support indexed properties|supports indexed properties=] and
+        |P| is an [=array index property name=], then:
+        1.  Let |index| be the result of calling [=ToUint32=](|P|).
+        1.  If |index| is not a [=supported property indices|supported property index=], then return <emu-val>true</emu-val>.
+        1.  Return <emu-val>false</emu-val>.
+    1.  If |O| [=support named properties|supports named properties=],
+        |O| does not implement an [=interface=] with the
+        [{{Global}}] or [{{PrimaryGlobal}}] [=extended attribute=]
+        and the result of calling the [=named property visibility algorithm=]
+        with property name |P| and object |O| is true, then:
+        1.  If |O| does not implement an interface with a [=named property deleter=], then return <emu-val>false</emu-val>.
+        1.  Let |operation| be the operation used to declare the named property deleter.
+        1.  If |operation| was defined without an [=identifier=], then:
+            1.  Perform the steps listed in the interface description to
+                [=delete an existing named property=]
+                with |P| as the name.
+            1.  If the steps indicated that the deletion failed, then return <emu-val>false</emu-val>.
+        1.  Otherwise, |operation| was defined with an identifier:
+            1.  Perform the steps listed in the description of |operation| with |P| as the only argument value.
+            1.  If |operation| was declared with a [=return type=] of {{boolean}}
+                and the steps returned <emu-val>false</emu-val>, then return <emu-val>false</emu-val>.
+        1.  Return <emu-val>true</emu-val>.
+    1.  If |O| has an own property with name |P|, then:
+        1.  If the property is not configurable, then return <emu-val>false</emu-val>.
+        1.  Otherwise, remove the property from |O|.
+    1.  Return <emu-val>true</emu-val>.
+</div>
+
+
+<h4 id="legacy-platform-object-call" oldids="call">\[[Call]]</h4>
+
+<div algorithm="to invoke the internal [[Call]] method of legacy platform objects">
+
+    The internal \[[Call]] method of [=legacy platform object=] that implements
+    an [=interface=] |I| must behave as follows,
+    assuming |arg|<sub>0..|n|−1</sub> is the list of argument values passed to \[[Call]]:
+
+    1.  If |I| has no [=legacy callers=],
+        <a lt="es throw">throw a <emu-val>TypeError</emu-val></a>.
+    1.  Initialize |S| to the [=effective overload set=]
+        for legacy callers on |I| and with argument count |n|.
+    1.  Let &lt;|operation|, |values|&gt; be the result of passing |S| and
+        |arg|<sub>0..|n|−1</sub> to the [=overload resolution algorithm=].
+    1.  Perform the actions listed in the description of the legacy caller |operation| with
+        |values| as the argument values.
+    1.  Return the result of [=converted to an ECMAScript value|converting=]
+        the return value from those actions to an ECMAScript value of the type
+        |operation| is declared to return (or <emu-val>undefined</emu-val>
+        if |operation| is declared to return {{void}}).
+</div>
+
+
+<h4 id="legacy-platform-object-preventextensions" oldids="preventextensions">\[[PreventExtensions]]</h4>
+
+<div algorithm="to invoke the internal [[PreventExtensions]] method of legacy platform objects">
+
+    When the \[[PreventExtensions]] internal method of a [=legacy platform object=] is called,
+    the following steps are taken:
+
+    1.  Return <emu-val>false</emu-val>.
+
+    Note: this keeps [=legacy platform objects=] extensible by
+    making \[[PreventExtensions]] fail for them.
+</div>
+
+
+<h4 id="legacy-platform-object-property-enumeration" oldids="property-enumeration">Property enumeration</h4>
+
+This document does not define a complete property enumeration order
+for [=platform objects=] implementing [=interfaces=]
+(or for <a href="#es-exception-objects">platform objects representing exceptions</a>).
+However, for [=legacy platform objects=],
+properties on the object must be
+enumerated in the following order:
+
+1.  If the object [=support indexed properties|supports indexed properties=], then
+    the object’s [=supported property indices=] are
+    enumerated first, in numerical order.
+1.  If the object [=support named properties|supports named properties=] and doesn't implement an [=interface=] with the
+    [{{LegacyUnenumerableNamedProperties}}]
+    [=extended attribute=], then
+    the object’s [=supported property names=] that
+    are visible according to the [=named property visibility algorithm=]
+    are enumerated next, in the order given in the definition of the set of supported property names.
+1.  Finally, any enumerable own properties or properties from the object’s prototype chain are then enumerated,
+    in no defined order.
+
+Note: Future versions of the ECMAScript specification may define a total order for property enumeration.
+
+<h4 id="legacy-platform-object-abstract-ops">Abstract operations</h4>
+
 <div algorithm>
 
     The name of each property that appears to exist due to an object supporting indexed properties
@@ -11813,12 +12011,6 @@ ancestor interfaces can be overridden.
     1.  If |s| ≠ |P| or |i| = 2<sup>32</sup> − 1, then return <emu-val>false</emu-val>.
     1.  Return <emu-val>true</emu-val>.
 </div>
-
-A property name is an <dfn id="dfn-unforgeable-property-name" export>unforgeable property name</dfn> on a
-given platform object if the object implements an [=interface=] that
-has an [=interface member=] with that identifier
-and that interface member is [=unforgeable=] on any of
-the interfaces that |O| implements.
 
 <div algorithm>
 
@@ -11843,33 +12035,69 @@ the interfaces that |O| implements.
             and |prototype| has an own property named |P|, then return false.
         1.  Set |prototype| to be the value of the internal \[[Prototype]] property of |prototype|.
     1.  Return true.
-
-    <div class="note">
-
-        This should ensure that for objects with named properties, property resolution is done in the following order:
-
-        1.  Indexed properties.
-        1.  Own properties, including unforgeable attributes and operations.
-        1.  Then, if [{{OverrideBuiltins}}]:
-            1.  Named properties.
-            1.  Properties from the prototype chain.
-        1.  Otherwise, if not [{{OverrideBuiltins}}]:
-            1.  Properties from the prototype chain.
-            1.  Named properties.
-    </div>
 </div>
 
-Support for [=getters=] is handled by the <a href="#legacy-platform-object-getownproperty">legacy platform object \[[GetOwnProperty]] method</a>,
-and for [=setters=] by the <a href="#legacy-platform-object-defineownproperty">legacy platform object \[[DefineOwnProperty]] method</a>,
-and the <a href="#legacy-platform-object-set">legacy platform object \[[Set]] method</a>.
+<div class="note">
 
+    This should ensure that for objects with named properties, property resolution is done in the following order:
 
-<h4 id="getownproperty-guts" lt="LegacyPlatformObjectGetOwnProperty" dfn>The LegacyPlatformObjectGetOwnProperty abstract operation</h4>
+    1.  Indexed properties.
+    1.  Own properties, including unforgeable attributes and operations.
+    1.  Then, if [{{OverrideBuiltins}}]:
+        1.  Named properties.
+        1.  Properties from the prototype chain.
+    1.  Otherwise, if not [{{OverrideBuiltins}}]:
+        1.  Properties from the prototype chain.
+        1.  Named properties.
+</div>
 
-<div algorithm="LegacyPlatformObjectGetOwnProperty abstract operation">
+<div algorithm>
 
-    The LegacyPlatformObjectGetOwnProperty abstract operation performs the following steps when
-    called with an object |O|, a property name |P|, and a boolean |ignoreNamedProps| value:
+    To <dfn id="invoke-indexed-setter" oldids="invoking-indexed-setter" export lt="invoke the indexed property setter">invoke an indexed property setter</dfn>
+    with property name |P| and ECMAScript value |V|, the following steps must be performed:
+
+    1.  Let |index| be the result of calling [=ToUint32=](|P|).
+    1.  Let |creating| be true if |index| is not a [=supported property indices|supported property index=],
+        and false otherwise.
+    1.  Let |operation| be the operation used to declare the indexed property setter.
+    1.  Let |T| be the type of the second argument of |operation|.
+    1.  Let |value| be the result of [=converted to an IDL value|converting=] |V| to an IDL value of type |T|.
+    1.  If |operation| was defined without an [=identifier=], then:
+        1.  If |creating| is true, then perform the steps listed in the interface description to
+            [=set the value of a new indexed property=]
+            with |index| as the index and |value| as the value.
+        1.  Otherwise, |creating| is false.  Perform the steps listed in the interface description to
+            [=set the value of an existing indexed property=]
+            with |index| as the index and |value| as the value.
+    1.  Otherwise, |operation| was defined with an identifier.  Perform the steps listed in the description of
+        |operation| with |index| and |value| as the two argument values.
+</div>
+
+<div algorithm>
+
+    To <dfn id="invoke-named-setter" oldids="invoking-named-setter" export lt="invoke the named property setter">invoke a named property setter</dfn>
+    with property name |P| and ECMAScript value |V|, the following steps must be performed:
+
+    1.  Let |creating| be true if |P| is not a [=supported property name=], and false otherwise.
+    1.  Let |operation| be the operation used to declare the named property setter.
+    1.  Let |T| be the type of the second argument of |operation|.
+    1.  Let |value| be the result of [=converted to an IDL value|converting=] |V| to an IDL value of type |T|.
+    1.  If |operation| was defined without an [=identifier=], then:
+        1.  If |creating| is true, then perform the steps listed in the interface description to
+            [=set the value of a new named property=]
+            with |P| as the name and |value| as the value.
+        1.  Otherwise, |creating| is false.  Perform the steps listed in the interface description to
+            [=set the value of an existing named property=]
+            with |P| as the name and |value| as the value.
+    1.  Otherwise, |operation| was defined with an identifier.  Perform the steps listed in the description of
+        |operation| with |P| and |value| as the two argument values.
+</div>
+
+<div algorithm>
+
+    The <dfn id="LegacyPlatformObjectGetOwnProperty" oldids="getownproperty-guts" abstract-op>LegacyPlatformObjectGetOwnProperty</dfn>
+    abstract operation performs the following steps when called with
+    an object |O|, a property name |P|, and a boolean |ignoreNamedProps| value:
 
     1.  If |O| [=support indexed properties|supports indexed properties=]
         and |P| is an [=array index property name=], then:
@@ -11918,245 +12146,6 @@ and the <a href="#legacy-platform-object-set">legacy platform object \[[Set]] me
         1.  Return |desc|.
     1.  Return [=OrdinaryGetOwnProperty=](|O|, |P|).
 </div>
-
-
-<h4 id="legacy-platform-object-getownproperty" oldids="getownproperty">Legacy platform object \[[GetOwnProperty]] method</h4>
-
-<div algorithm="to invoke the internal [[GetOwnProperty]] method of platform objects">
-
-    The internal \[[GetOwnProperty]] method of every [=legacy platform object=] |O|
-    must behave as follows when called with property name |P|:
-
-    1. Return [=LegacyPlatformObjectGetOwnProperty=](|O|, |P|, <emu-val>false</emu-val>).
-</div>
-
-
-<h4 id="invoking-indexed-setter">Invoking a legacy platform object indexed property setter</h4>
-
-<div algorithm>
-
-    To <dfn id="invoke-indexed-setter" export lt="invoke the indexed property setter">invoke an indexed property setter</dfn>
-    with property name |P| and ECMAScript value |V|, the following steps must be performed:
-
-    1.  Let |index| be the result of calling [=ToUint32=](|P|).
-    1.  Let |creating| be true if |index| is not a [=supported property indices|supported property index=],
-        and false otherwise.
-    1.  Let |operation| be the operation used to declare the indexed property setter.
-    1.  Let |T| be the type of the second argument of |operation|.
-    1.  Let |value| be the result of [=converted to an IDL value|converting=] |V| to an IDL value of type |T|.
-    1.  If |operation| was defined without an [=identifier=], then:
-        1.  If |creating| is true, then perform the steps listed in the interface description to
-            [=set the value of a new indexed property=]
-            with |index| as the index and |value| as the value.
-        1.  Otherwise, |creating| is false.  Perform the steps listed in the interface description to
-            [=set the value of an existing indexed property=]
-            with |index| as the index and |value| as the value.
-    1.  Otherwise, |operation| was defined with an identifier.  Perform the steps listed in the description of
-        |operation| with |index| and |value| as the two argument values.
-</div>
-
-
-<h4 id="invoking-named-setter">Invoking a legacy platform object named property setter</h4>
-
-<div algorithm>
-
-    To <dfn id="invoke-named-setter" export lt="invoke the named property setter">invoke a named property setter</dfn>
-    with property name |P| and ECMAScript value |V|, the following steps must be performed:
-
-    1.  Let |creating| be true if |P| is not a [=supported property name=], and false otherwise.
-    1.  Let |operation| be the operation used to declare the named property setter.
-    1.  Let |T| be the type of the second argument of |operation|.
-    1.  Let |value| be the result of [=converted to an IDL value|converting=] |V| to an IDL value of type |T|.
-    1.  If |operation| was defined without an [=identifier=], then:
-        1.  If |creating| is true, then perform the steps listed in the interface description to
-            [=set the value of a new named property=]
-            with |P| as the name and |value| as the value.
-        1.  Otherwise, |creating| is false.  Perform the steps listed in the interface description to
-            [=set the value of an existing named property=]
-            with |P| as the name and |value| as the value.
-    1.  Otherwise, |operation| was defined with an identifier.  Perform the steps listed in the description of
-        |operation| with |P| and |value| as the two argument values.
-</div>
-
-
-<h4 id="legacy-platform-object-set" oldids="platformobjectset">Legacy platform object \[[Set]] method</h4>
-
-<div algorithm="to invoke the internal [[Set]] method of legacy platform objects">
-
-    The internal \[[Set]] method of every [=legacy platform object=] |O|
-    must behave as follows when called with
-    property name |P|, value |V|, and ECMAScript language value |Receiver|:
-
-    1.  If |O| and |Receiver| are the same object, then:
-        1.  If |O| [=support indexed properties|supports indexed properties=], |P| is an [=array index property name=], and |O| implements an interface with an [=indexed property setter=], then:
-            1.  [=Invoke the indexed property setter=] with |P| and |V|.
-            1.  Return <emu-val>true</emu-val>.
-        1.  If |O| [=support named properties|supports named properties=], [=Type=](|P|) is String,
-            |P| is not an [=array index property name=],
-            and |O| implements an interface with a [=named property setter=], then:
-            1.  [=Invoke the named property setter=] with |P| and |V|.
-            1.  Return <emu-val>true</emu-val>.
-    1.  Let |ownDesc| be [=LegacyPlatformObjectGetOwnProperty=](|O|, |P|, <emu-val>true</emu-val>).
-    1.  Perform steps 3-11 of the [=default [[Set]] internal method=].
-</div>
-
-<h4 id="legacy-platform-object-setprototypeof" oldids="platformobjectsetprototypeof">Legacy platform object \[[SetPrototypeOf]] method</h4>
-
-<div algorithm="to invoke the internal [[SetPrototypeOf]] method of legacy platform objects">
-
-    The internal \[[SetPrototypeOf]] method of every [=legacy platform object=]
-    that implements an [=interface=] with the [{{Global}}] or [{{PrimaryGlobal}}]
-    [=extended attribute=] must execute the same algorithm as is defined for the
-    \[[SetPrototypeOf]] internal method of an [=immutable prototype exotic object=].
-</div>
-
-Note: For {{Window}} objects, it is unobservable whether this is implemented, since the presence of
-the {{WindowProxy}} object ensures that \[[SetPrototypeOf]] is never called on a {{Window}} object
-directly. For other global objects, however, this is necessary.
-
-
-<h4 id="legacy-platform-object-defineownproperty" oldids="defineownproperty">Legacy platform object \[[DefineOwnProperty]] method</h4>
-
-<div algorithm="to invoke the internal [[DefineOwnProperty]] method of legacy platform objects">
-
-    When the internal \[[DefineOwnProperty]] method of a [=legacy platform object=] |O|
-    is called with property key |P| and [=Property Descriptor=] |Desc|,
-    the following steps must be taken:
-
-    1.  If |O| [=support indexed properties|supports indexed properties=] and
-        |P| is an [=array index property name=], then:
-        1.  If the result of calling [=IsDataDescriptor=](|Desc|) is
-            <emu-val>false</emu-val>, then return
-            <emu-val>false</emu-val>.
-        1.  If |O| does not implement an interface with an
-            [=indexed property setter=], then return <emu-val>false</emu-val>.
-        1.  [=Invoke the indexed property setter=] with |P| and |Desc|.\[[Value]].
-        1.  Return <emu-val>true</emu-val>.
-    1.  If |O| [=support named properties|supports named properties=],
-        |O| does not implement an [=interface=] with the
-        [{{Global}}] or [{{PrimaryGlobal}}] [=extended attribute=]
-        and |P| is not an [=unforgeable property name=]
-        of |O|, then:
-        1.  Let |creating| be true if |P| is not a [=supported property name=], and false otherwise.
-        1.  If |O| implements an interface with the [{{OverrideBuiltins}}]
-            [=extended attribute=] or |O| does not have an own property
-            named |P|, then:
-            1.  If |creating| is false and |O| does not implement an
-                interface with a [=named property setter=], then return <emu-val>false</emu-val>.
-            1.  If |O| implements an interface with a
-                [=named property setter=], then:
-                1.  If the result of calling [=IsDataDescriptor=](|Desc|) is
-                    <emu-val>false</emu-val>, then return
-                    <emu-val>false</emu-val>.
-                1.  [=Invoke the named property setter=] with |P| and |Desc|.\[[Value]].
-                1.  Return <emu-val>true</emu-val>.
-    1.  If |O| does not implement an
-        [=interface=] with the
-        [{{Global}}] or
-        [{{PrimaryGlobal}}]
-        [=extended attribute=], then set
-        |Desc|.\[[Configurable]] to
-        <emu-val>true</emu-val>.
-    1.  Return [=OrdinaryDefineOwnProperty=](|O|, |P|, |Desc|).
-</div>
-
-
-<h4 id="legacy-platform-object-delete" oldids="delete">Legacy platform object \[[Delete]] method</h4>
-
-<div algorithm="to invoke the internal [[Delete]] method of legacy platform objects">
-
-    The internal \[[Delete]] method of every [=legacy platform object=] |O|
-    must behave as follows when called with property name |P|.
-
-    1.  If |O| [=support indexed properties|supports indexed properties=] and
-        |P| is an [=array index property name=], then:
-        1.  Let |index| be the result of calling [=ToUint32=](|P|).
-        1.  If |index| is not a [=supported property indices|supported property index=], then return <emu-val>true</emu-val>.
-        1.  Return <emu-val>false</emu-val>.
-    1.  If |O| [=support named properties|supports named properties=],
-        |O| does not implement an [=interface=] with the
-        [{{Global}}] or [{{PrimaryGlobal}}] [=extended attribute=]
-        and the result of calling the [=named property visibility algorithm=]
-        with property name |P| and object |O| is true, then:
-        1.  If |O| does not implement an interface with a [=named property deleter=], then return <emu-val>false</emu-val>.
-        1.  Let |operation| be the operation used to declare the named property deleter.
-        1.  If |operation| was defined without an [=identifier=], then:
-            1.  Perform the steps listed in the interface description to
-                [=delete an existing named property=]
-                with |P| as the name.
-            1.  If the steps indicated that the deletion failed, then return <emu-val>false</emu-val>.
-        1.  Otherwise, |operation| was defined with an identifier:
-            1.  Perform the steps listed in the description of |operation| with |P| as the only argument value.
-            1.  If |operation| was declared with a [=return type=] of {{boolean}}
-                and the steps returned <emu-val>false</emu-val>, then return <emu-val>false</emu-val>.
-        1.  Return <emu-val>true</emu-val>.
-    1.  If |O| has an own property with name |P|, then:
-        1.  If the property is not configurable, then return <emu-val>false</emu-val>.
-        1.  Otherwise, remove the property from |O|.
-    1.  Return <emu-val>true</emu-val>.
-</div>
-
-
-<h4 id="legacy-platform-object-call" oldids="call">Legacy platform object \[[Call]] method</h4>
-
-<div algorithm="to invoke the internal [[Call]] method of legacy platform objects">
-
-    The internal \[[Call]] method of [=legacy platform object=] that implements
-    an [=interface=] |I| must behave as follows,
-    assuming |arg|<sub>0..|n|−1</sub> is the list of argument values passed to \[[Call]]:
-
-    1.  If |I| has no [=legacy callers=],
-        <a lt="es throw">throw a <emu-val>TypeError</emu-val></a>.
-    1.  Initialize |S| to the [=effective overload set=]
-        for legacy callers on |I| and with argument count |n|.
-    1.  Let &lt;|operation|, |values|&gt; be the result of passing |S| and
-        |arg|<sub>0..|n|−1</sub> to the [=overload resolution algorithm=].
-    1.  Perform the actions listed in the description of the legacy caller |operation| with
-        |values| as the argument values.
-    1.  Return the result of [=converted to an ECMAScript value|converting=]
-        the return value from those actions to an ECMAScript value of the type
-        |operation| is declared to return (or <emu-val>undefined</emu-val>
-        if |operation| is declared to return {{void}}).
-</div>
-
-
-<h4 id="legacy-platform-object-preventextensions" oldids="preventextensions">Legacy platform object \[[PreventExtensions]] method</h4>
-
-<div algorithm="to invoke the internal [[PreventExtensions]] method of legacy platform objects">
-
-    When the \[[PreventExtensions]] internal method of a [=legacy platform object=] is called,
-    the following steps are taken:
-
-    1.  return <emu-val>false</emu-val>.
-
-    Note: this keeps [=legacy platform objects=] extensible by
-    making \[[PreventExtensions]] fail for them.
-</div>
-
-
-<h4 id="property-enumeration">Property enumeration</h4>
-
-This document does not define a complete property enumeration order
-for [=platform objects=] implementing [=interfaces=]
-(or for <a href="#es-exception-objects">platform objects representing exceptions</a>).
-However, for [=legacy platform objects=],
-properties on the object must be
-enumerated in the following order:
-
-1.  If the object [=support indexed properties|supports indexed properties=], then
-    the object’s [=supported property indices=] are
-    enumerated first, in numerical order.
-1.  If the object [=support named properties|supports named properties=] and doesn't implement an [=interface=] with the
-    [{{LegacyUnenumerableNamedProperties}}]
-    [=extended attribute=], then
-    the object’s [=supported property names=] that
-    are visible according to the [=named property visibility algorithm=]
-    are enumerated next, in the order given in the definition of the set of supported property names.
-1.  Finally, any enumerable own properties or properties from the object’s prototype chain are then enumerated,
-    in no defined order.
-
-Note: Future versions of the ECMAScript specification may define a total order for property enumeration.
-
 
 <h3 id="es-user-objects">User objects implementing callback interfaces</h3>
 
