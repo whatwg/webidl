@@ -4427,47 +4427,45 @@ user agent-defined value that provides human readable details of the error.
 
 There are two kinds of exceptions available to be thrown from specifications.
 The first is a <dfn id="dfn-simple-exception" export>simple exception</dfn>, which
-is identified by one of the following names:
+is identified by one of the following types:
 
-*   "<dfn exception><code>Error</code></dfn>"
-*   "<dfn exception><code>EvalError</code></dfn>"
-*   "<dfn exception><code>RangeError</code></dfn>"
-*   "<dfn exception><code>ReferenceError</code></dfn>"
-*   "<dfn exception><code>TypeError</code></dfn>"
-*   "<dfn exception><code>URIError</code></dfn>"
+*   <dfn exception>EvalError</dfn>
+*   <dfn exception>RangeError</dfn>
+*   <dfn exception>ReferenceError</dfn>
+*   <dfn exception>TypeError</dfn>
+*   <dfn exception>URIError</dfn>
 
-These correspond to all of the [=ECMAScript error objects=] (apart from
-<emu-val>SyntaxError</emu-val>, which is deliberately omitted as
-it is for use only by the ECMAScript parser).
-The meaning of
-each [=simple exception=] matches
-its corresponding <emu-val>Error</emu-val> object in the
+These correspond to all of the [=ECMAScript error objects=]
+(apart from <emu-val>SyntaxError</emu-val> and <emu-val>Error</emu-val>,
+which are deliberately omitted as they are reserved for use
+by the ECMAScript parser and by authors, respectively).
+The meaning of each [=simple exception=] matches
+its corresponding error object in the
 ECMAScript specification.
 
 The second kind of exception is a <dfn id="dfn-DOMException" interface export>DOMException</dfn>,
 which is an exception that encapsulates a name and an optional integer code,
 for compatibility with historically defined exceptions in the DOM.
 
-For [=simple exceptions=],
-the [=error name=] is the name
-of the exception.
-For a {{DOMException}},
-the [=error name=] must
-be one of the names listed in the [=error names table=]
-below.  The table also indicates the {{DOMException}}'s integer code
-for that error name, if it has one.
+For [=simple exceptions=], the [=error name=] is the type of the exception.
+For {{DOMException|DOMExceptions}}, the [=error name=] must be one of the names
+listed in the [=error names table=] below.
+The table also indicates the {{DOMException}}'s integer code for that error name,
+if it has one.
 
-There are two types that can be used to refer to
-exception objects: {{Error!!interface}}, which encompasses all exceptions,
+There are two types that can be used to refer to exception objects:
+{{Error!!interface}}, which encompasses all exceptions,
 and {{DOMException}} which includes just DOMException objects.
 This allows for example an [=operation=]
 to be declared to have a {{DOMException}}
 [=return type=] or an [=attribute=]
 to be of type {{Error!!interface}}.
 
-Exceptions can be <dfn id="dfn-create-exception" for="exception" export>created</dfn> by providing its
-[=error name=].
-Exceptions can also be <dfn id="dfn-throw" for="exception" export lt="throw|thrown">thrown</dfn>, by providing the
+[=Simple exceptions=] can be <dfn id="dfn-create-exception" for="exception" export>created</dfn>
+by providing their [=error name=].
+{{DOMException|DOMExceptions}} can be [=created=]
+by providing their [=error name=] followed by {{DOMException}}.
+Exceptions can also be <dfn id="dfn-throw" for="exception" export lt="throw">thrown</dfn>, by providing the
 same details required to [=created|create=] one.
 
 The resulting behavior from creating and throwing an exception is language binding-specific.
@@ -4478,33 +4476,22 @@ entails in the ECMAScript language binding.
 <div class="example">
 
     Here is are some examples of wording to use to create and throw exceptions.
-    To throw a new [=simple exception=] named
-    {{TypeError}}:
+    To throw a new [=simple exception=] named {{TypeError}}:
 
     <blockquote>
-
-        [=Throw=] a TypeError.
-
+        [=Throw=] a {{TypeError}}.
     </blockquote>
 
-    To throw a new {{DOMException}} with
-    [=error name=]
-    {{IndexSizeError}}:
+    To throw a new {{DOMException}} with [=error name=] "{{IndexSizeError!!exception}}":
 
     <blockquote>
-
-        [=Throw=] an IndexSizeError.
-
+        [=Throw=] an "{{IndexSizeError!!exception}}" {{DOMException}}.
     </blockquote>
 
-    To create a new {{DOMException}} with
-    [=error name=]
-    {{SyntaxError}}:
+    To create a new {{DOMException}} with [=error name=] "{{SyntaxError!!exception}}":
 
     <blockquote>
-
-        Let <var ignore>object</var> be a newly [=created=] SyntaxError.
-
+        Let <var ignore>object</var> be a newly [=created=] "{{SyntaxError!!exception}}" {{DOMException}}.
     </blockquote>
 </div>
 
@@ -4690,7 +4677,7 @@ Note: If an error name is not listed here, please file a bug as indicated at the
                     "<dfn id="domstringsizeerror" exception><code>DOMStringSizeError</code></dfn>"<br>
                     <dfn id="dom-domexception-domstring_size_err" for="DOMException" const><code>DOMSTRING_SIZE_ERR</code></dfn>&nbsp;(2)
                 </td>
-                <td>Use <emu-val>RangeError</emu-val>.</td>
+                <td>Use {{RangeError}}.</td>
             </tr>
             <tr>
                 <td>
@@ -4705,9 +4692,9 @@ Note: If an error name is not listed here, please file a bug as indicated at the
                     <dfn id="dom-domexception-invalid_access_err" for="DOMException" const><code>INVALID_ACCESS_ERR</code></dfn>&nbsp;(15)
                 </td>
                 <td>
-                    Use <emu-val>TypeError</emu-val> for invalid arguments,
-                    "{{NotSupportedError!!exception}}" for unsupported operations, and
-                    "{{NotAllowedError!!exception}}" for denied requests.
+                    Use {{TypeError}} for invalid arguments,
+                    "{{NotSupportedError!!exception}}" {{DOMException}} for unsupported operations, and
+                    "{{NotAllowedError!!exception}}" {{DOMException}} for denied requests.
                 </td>
             </tr>
             <tr>
@@ -4722,7 +4709,7 @@ Note: If an error name is not listed here, please file a bug as indicated at the
                     "<dfn id="typemismatcherror" exception><code>TypeMismatchError</code></dfn>"<br>
                     <dfn id="dom-domexception-type_mismatch_err" for="DOMException" const><code>TYPE_MISMATCH_ERR</code></dfn>&nbsp;(17)
                 </td>
-                <td>Use <emu-val>TypeError</emu-val>.</td>
+                <td>Use {{TypeError}}.</td>
             </tr>
         </tbody>
     </table>
@@ -6440,7 +6427,7 @@ it has characteristics as follows:
 </p>
 
 When an algorithm says to
-<dfn lt="es throw" export id="ecmascript-throw">throw a <emu-val><i>Something</i>Error</emu-val></dfn>
+<dfn lt="es throw" id="ecmascript-throw">throw</dfn> a <emu-val><i>Something</i>Error</emu-val>
 then this means to construct a new ECMAScript <emu-val><i>Something</i>Error</emu-val> object
 and to throw it, just as the algorithms in ECMA-262 do.
 
@@ -6866,10 +6853,10 @@ may return any value, which will be discarded.
         then:
 
         1.  If |x| is <emu-val>NaN</emu-val>, +∞, or −∞,
-            then <a lt="es throw">throw a <emu-val>TypeError</emu-val></a>.
+            then [=es throw|throw=] a <emu-val>TypeError</emu-val>.
         1.  Set |x| to [=!=] <a abstract-op>IntegerPart</a>(|x|).
         1.  If |x| &lt; |lowerBound| or |x| &gt; |upperBound|,
-            then <a lt="es throw">throw a <emu-val>TypeError</emu-val></a>.
+            then [=es throw|throw=] a <emu-val>TypeError</emu-val>.
         1.  Return |x|.
 
     1.  If |x| is not <emu-val>NaN</emu-val> and the conversion to an IDL value is being performed due to any of the following:
@@ -6902,7 +6889,7 @@ may return any value, which will be discarded.
 
     1.  Let |x| be [=?=] [=ToNumber=](|V|).
     1.  If |x| is <emu-val>NaN</emu-val>, +∞, or −∞,
-        then <a lt="es throw">throw a <emu-val>TypeError</emu-val></a>.
+        then [=es throw|throw=] a <emu-val>TypeError</emu-val>.
     1.  Let |S| be the set of finite IEEE 754 single-precision floating
         point values except −0, but with two special values added: 2<sup>128</sup> and
         −2<sup>128</sup>.
@@ -6911,7 +6898,7 @@ may return any value, which will be discarded.
         <em>even significand</em> if there are two [=equally close values=].
         (The two special values 2<sup>128</sup> and −2<sup>128</sup>
         are considered to have even significands for this purpose.)
-    1.  If |y| is 2<sup>128</sup> or −2<sup>128</sup>, then <a lt="es throw">throw a <emu-val>TypeError</emu-val></a>.
+    1.  If |y| is 2<sup>128</sup> or −2<sup>128</sup>, then [=es throw|throw=] a <emu-val>TypeError</emu-val>.
     1.  If |y| is +0 and |x| is negative, return −0.
     1.  Return |y|.
 </div>
@@ -6975,7 +6962,7 @@ value when its bit pattern is interpreted as an unsigned 32 bit integer.
 
     1.  Let |x| be [=?=] [=ToNumber=](|V|).
     1.  If |x| is <emu-val>NaN</emu-val>, +∞, or −∞,
-        then <a lt="es throw">throw a <emu-val>TypeError</emu-val></a>.
+        then [=es throw|throw=] a <emu-val>TypeError</emu-val>.
     1.  Return the IDL {{double}} value
         that has the same numeric value as |x|.
 </div>
@@ -7065,7 +7052,7 @@ value when its bit pattern is interpreted as an unsigned 64 bit integer.
 
     1.  Let |x| be [=ToString=](|V|).
     1.  If the value of any [=element=]
-        of |x| is greater than 255, then <a lt="es throw">throw a <emu-val>TypeError</emu-val></a>.
+        of |x| is greater than 255, then [=es throw|throw=] a <emu-val>TypeError</emu-val>.
     1.  Return an IDL {{ByteString}} value
         whose length is the length of |x|, and where the value of each element is
         the value of the corresponding element of |x|.
@@ -7115,7 +7102,7 @@ values are represented by ECMAScript <emu-val>Object</emu-val> values.
     An ECMAScript value |V| is [=converted to an IDL value|converted=]
     to an IDL {{object}} value by running the following algorithm:
 
-    1.  If [=Type=](|V|) is not Object, then <a lt="es throw">throw a <emu-val>TypeError</emu-val></a>.
+    1.  If [=Type=](|V|) is not Object, then [=es throw|throw=] a <emu-val>TypeError</emu-val>.
     1.  Return the IDL {{object}} value that is a reference to the same object as |V|.
 </div>
 
@@ -7138,12 +7125,12 @@ values are represented by ECMAScript <emu-val>Object</emu-val> or
     An ECMAScript value |V| is [=converted to an IDL value|converted=]
     to an IDL [=interface type=] value by running the following algorithm (where |I| is the [=interface=]):
 
-    1.  If [=Type=](|V|) is not Object, then <a lt="es throw">throw a <emu-val>TypeError</emu-val></a>.
+    1.  If [=Type=](|V|) is not Object, then [=es throw|throw=] a <emu-val>TypeError</emu-val>.
     1.  If |V| is a [=platform object=] that implements |I|, then return the IDL [=interface type=] value that represents a reference to that platform object.
     1.  If |V| is a [=user object=]
         that is considered to implement |I| according to the rules in [[#es-user-objects]], then return the IDL [=interface type=] value that represents a reference to that
         user object, with the [=incumbent settings object=] as the [=callback context=].
-    1.  <a lt="es throw">Throw a <emu-val>TypeError</emu-val></a>.
+    1.  [=es throw|Throw=] a <emu-val>TypeError</emu-val>.
 </div>
 
 <p id="interface-to-es">
@@ -7167,7 +7154,7 @@ the object (or its prototype chain) correspond to [=dictionary members=].
     to an IDL [=dictionary type=] value by
     running the following algorithm (where |D| is the [=dictionary type=]):
 
-    1.  If [=Type=](|V|) is not Undefined, Null or Object, then <a lt="es throw">throw a <emu-val>TypeError</emu-val></a>.
+    1.  If [=Type=](|V|) is not Undefined, Null or Object, then [=es throw|throw=] a <emu-val>TypeError</emu-val>.
     1.  Let |dict| be an empty dictionary value of type |D|;
         every [=dictionary member=]
         is initially considered to be [=present|not present=].
@@ -7232,7 +7219,7 @@ values.
 
     1.  Let |S| be the result of calling [=ToString=](|V|).
     1.  If |S| is not one of |E|’s [=enumeration values=],
-        then <a lt="es throw">throw a <emu-val>TypeError</emu-val></a>.
+        then [=es throw|throw=] a <emu-val>TypeError</emu-val>.
     1.  Return the enumeration value of type |E| that is equal to |S|.
 </div>
 
@@ -7263,7 +7250,7 @@ when they can be any object.
         whose type is a [=nullable type|nullable=]
         [=callback function=]
         that is annotated with [{{TreatNonObjectAsNull}}],
-        then <a lt="es throw">throw a <emu-val>TypeError</emu-val></a>.
+        then [=es throw|throw=] a <emu-val>TypeError</emu-val>.
     1.  Return the IDL [=callback function type=] value
         that represents a reference to the same object that |V| represents, with the
         [=incumbent settings object=] as the [=callback context=].
@@ -7331,12 +7318,12 @@ ECMAScript <emu-val>Array</emu-val> values.
     to an IDL <a lt="sequence type">sequence&lt;<var ignore>T</var>&gt;</a> value as follows:
 
     1.  If |V| is not an object,
-        <a lt="es throw">throw a <emu-val>TypeError</emu-val></a>.
+        [=es throw|throw=] a <emu-val>TypeError</emu-val>.
     1.  Let |method| be the result of
         [=GetMethod=](|V|, [=@@iterator=]).
     1.  [=ReturnIfAbrupt=](|method|).
     1.  If |method| is <emu-val>undefined</emu-val>,
-        <a lt="es throw">throw a <emu-val>TypeError</emu-val></a>.
+        [=es throw|throw=] a <emu-val>TypeError</emu-val>.
     1.  Return the result of [=creating a sequence from an iterable|creating a sequence=]
         from |V| and |method|.
 </div>
@@ -7483,7 +7470,7 @@ ECMAScript <emu-val>Object</emu-val> values.
     1.  If [=Type=](|O|) is Undefined or Null,
         return |result|.
     1.  If [=Type=](|O|) is not Object,
-        <a lt="es throw">throw a <emu-val>TypeError</emu-val></a>.
+        [=es throw|throw=] a <emu-val>TypeError</emu-val>.
     1.  Let |keys| be [=?=] |O|.\[[OwnPropertyKeys]]().
     1.  Repeat, for each element |key| of |keys| in [=List=] order:
         1.  Let |desc| be [=?=] |O|.\[[GetOwnProperty]](|key|).
@@ -7624,7 +7611,7 @@ objects.
         1.  Otherwise, return the result of performing any steps that were required to be run if the promise was rejected,
             with |reason| as the rejection reason.
     1.  Let |then| be the result of calling the internal \[[Get]] method of |promise| with property name “then”.
-    1.  If |then| is not [=callable=], then <a lt="es throw">throw a <emu-val>TypeError</emu-val></a>.
+    1.  If |then| is not [=callable=], then [=es throw|throw=] a <emu-val>TypeError</emu-val>.
     1.  Return the result of calling |then| with |promise| as the <emu-val>this</emu-val> value and |onFulfilled| and |onRejected|
         as its two arguments.
 </div>
@@ -7748,7 +7735,7 @@ that correspond to the union’s [=member types=].
     1.  If |types| includes a {{boolean}},
         then return the result of [=converted to an IDL value|converting=]
         |V| to {{boolean}}.
-    1.  <a lt="es throw">Throw a <emu-val>TypeError</emu-val></a>.
+    1.  [=es throw|Throw=] a <emu-val>TypeError</emu-val>.
 </div>
 
 <p id="union-to-es">
@@ -7776,7 +7763,7 @@ platform objects for {{DOMException|DOMExceptions}}.
 
     1.  If [=Type=](|V|) is not Object,
         or |V| does not have an \[[ErrorData]] [=internal slot=],
-        then <a lt="es throw">throw a <emu-val>TypeError</emu-val></a>.
+        then [=es throw|throw=] a <emu-val>TypeError</emu-val>.
     1.  Return the IDL {{Error!!interface}} value that is a reference
         to the same object as |V|.
 </div>
@@ -7801,7 +7788,7 @@ by platform objects for {{DOMException|DOMExceptions}}.
 
     1.  If [=Type=](|V|) is not Object,
         or |V| is not a platform object that represents a {{DOMException}},
-        then <a lt="es throw">throw a <emu-val>TypeError</emu-val></a>.
+        then [=es throw|throw=] a <emu-val>TypeError</emu-val>.
     1.  Return the IDL {{DOMException}} value that is a reference
         to the same object as |V|.
 </div>
@@ -7827,7 +7814,7 @@ are represented by objects of the corresponding ECMAScript class.
     1.  If [=Type=](|V|) is not Object,
         or |V| does not have an \[[ArrayBufferData]] [=internal slot=],
         or [=IsDetachedBuffer=](|V|) is true,
-        then <a lt="es throw">throw a <emu-val>TypeError</emu-val></a>.
+        then [=es throw|throw=] a <emu-val>TypeError</emu-val>.
     1.  Return the IDL {{ArrayBuffer}} value that is a reference
         to the same object as |V|.
 </div>
@@ -7839,7 +7826,7 @@ are represented by objects of the corresponding ECMAScript class.
 
     1.  If [=Type=](|V|) is not Object,
         or |V| does not have a \[[DataView]] [=internal slot=],
-        then <a lt="es throw">throw a <emu-val>TypeError</emu-val></a>.
+        then [=es throw|throw=] a <emu-val>TypeError</emu-val>.
     1.  Return the IDL {{DataView}} value that is a reference
         to the same object as |V|.
 </div>
@@ -7863,7 +7850,7 @@ are represented by objects of the corresponding ECMAScript class.
     1.  If [=Type=](|V|) is not Object,
         or |V| does not have a \[[TypedArrayName]] [=internal slot=]
         with a value equal to the name of |T|,
-        then <a lt="es throw">throw a <emu-val>TypeError</emu-val></a>.
+        then [=es throw|throw=] a <emu-val>TypeError</emu-val>.
     1.  Return the IDL value of type |T| that is a reference to the same object as |V|.
 </div>
 
@@ -7886,12 +7873,12 @@ a reference to the same object that the IDL value represents.
     1.  If |O| has a \[[ViewedArrayBuffer]] [=internal slot=], then:
         1.  Set |arrayBuffer| to the value of |O|’s \[[ViewedArrayBuffer]] [=internal slot=].
         1.  If |arrayBuffer| is <emu-val>undefined</emu-val>, then
-            <a lt="es throw">throw a <emu-val>TypeError</emu-val></a>.
+            [=es throw|throw=] a <emu-val>TypeError</emu-val>.
         1.  Set |offset| to the value of |O|’s \[[ByteOffset]] [=internal slot=].
         1.  Set |length| to the value of |O|’s \[[ByteLength]] [=internal slot=].
     1.  Otherwise, set |length| to the value of |O|’s \[[ArrayBufferByteLength]] [=internal slot=].
     1.  If [=IsDetachedBuffer=](|O|), then
-        <a lt="es throw">throw a <emu-val>TypeError</emu-val></a>.
+        [=es throw|throw=] a <emu-val>TypeError</emu-val>.
     1.  Let |data| be the value of |O|’s \[[ArrayBufferData]] [=internal slot=].
     1.  Return a reference to or copy of (as required) the |length| bytes in |data|
         starting at byte offset |offset|.
@@ -9748,7 +9735,7 @@ Note: The HTML Standard defines how a security check is performed. [[!HTML]]
     1.  Let |maxarg| be the length of the longest type list of the entries in |S|.
     1.  Initialize |argcount| to be min(|maxarg|, |n|).
     1.  Remove from |S| all entries whose type list is not of length |argcount|.
-    1.  If |S| is empty, then <a lt="es throw">throw a <emu-val>TypeError</emu-val></a>.
+    1.  If |S| is empty, then [=es throw|throw=] a <emu-val>TypeError</emu-val>.
     1.  Initialize |d| to −1.
     1.  Initialize |method| to <emu-val>undefined</emu-val>.
     1.  If there is more than one entry in |S|, then set
@@ -9936,7 +9923,7 @@ Note: The HTML Standard defines how a security check is performed. [[!HTML]]
 
         1.  Otherwise: if there is an entry in |S| that has {{any}} at position |i|
             of its type list, then remove from |S| all other entries.
-        1.  Otherwise: <a lt="es throw">throw a <emu-val>TypeError</emu-val></a>.
+        1.  Otherwise: [=es throw|throw=] a <emu-val>TypeError</emu-val>.
     1.  Let |callable| be the [=operation=] or [=extended attribute=]
         of the single entry in |S|.
     1.  If |i| = |d| and |method| is not <emu-val>undefined</emu-val>, then
@@ -10123,9 +10110,9 @@ both as a function and as a constructor.
 
     1.  If |I| was not declared with a [{{Constructor}}]
         [=extended attribute=], then
-        <a lt="es throw">throw a <emu-val>TypeError</emu-val></a>.
+        [=es throw|throw=] a <emu-val>TypeError</emu-val>.
     1.  If [=NewTarget=] is <emu-val>undefined</emu-val>, then
-        <a lt="es throw">throw a <emu-val>TypeError</emu-val></a>.
+        [=es throw|throw=] a <emu-val>TypeError</emu-val>.
     1.  Let |id| be the identifier of interface |I|.
     1.  Initialize |S| to the
         [=effective overload set=]
@@ -10178,7 +10165,7 @@ whose value is the identifier of the corresponding interface.
 
     1.  If |V| is not an object, return <emu-val>false</emu-val>.
     1.  Let |O| be the result of calling the \[[Get]] method of |A| with property name “prototype”.
-    1.  If |O| is not an object, <a lt="es throw">throw a <emu-val>TypeError</emu-val></a> exception.
+    1.  If |O| is not an object, [=es throw|throw=] a <emu-val>TypeError</emu-val> exception.
     1.  If |V| is a platform object that implements the
         interface for which |O| is the [=interface prototype object=],
         return <emu-val>true</emu-val>.
@@ -10559,7 +10546,7 @@ The characteristics of this property are as follows:
                 1.  If the [=attribute=] was specified with the
                     [{{LenientThis}}] [=extended attribute=],
                     then return <emu-val>undefined</emu-val>.
-                1.  Otherwise, <a lt="es throw">throw a <emu-val>TypeError</emu-val></a>.
+                1.  Otherwise, [=es throw|throw=] a <emu-val>TypeError</emu-val>.
             1.  Set |idlValue| to be the result of performing the actions listed in the description of the attribute that occur when getting
                 (or those listed in the description of the inherited attribute, if this attribute is declared to
                 [=inherit its getter=]),
@@ -10587,7 +10574,7 @@ The characteristics of this property are as follows:
         Otherwise, it is a <emu-val>Function</emu-val> object whose behavior when invoked is as follows:
 
         1.  If no arguments were passed to the <emu-val>Function</emu-val>, then
-            <a lt="es throw">throw a <emu-val>TypeError</emu-val></a>.
+            [=es throw|throw=] a <emu-val>TypeError</emu-val>.
         1.  Let |V| be the value of the first argument passed to the <emu-val>Function</emu-val>.
         1.  If the [=attribute=] is a [=regular attribute=], then:
             1.  Let |I| be the [=interface=]
@@ -10605,7 +10592,7 @@ The characteristics of this property are as follows:
             1.  If |validThis| is <emu-val>false</emu-val> and the
                 [=attribute=] was not specified with the
                 [{{LenientThis}}] [=extended attribute=],
-                then <a lt="es throw">throw a <emu-val>TypeError</emu-val></a>.
+                then [=es throw|throw=] a <emu-val>TypeError</emu-val>.
             1.  If the attribute is declared with a [{{Replaceable}}]
                 extended attribute, then:
                 1.  Let |P| be the identifier of the attribute.
@@ -10618,7 +10605,7 @@ The characteristics of this property are as follows:
                 extended attribute, then:
                 1.  Let |Q| be the result of calling the \[[Get]] method
                     on |O| using the identifier of the attribute as the property name.
-                1.  If |Q| is not an object, then <a lt="es throw">throw a <emu-val>TypeError</emu-val></a>.
+                1.  If |Q| is not an object, then [=es throw|throw=] a <emu-val>TypeError</emu-val>.
                 1.  Let |A| be the attribute identified by the [{{PutForwards}}] extended attribute.
                 1.  Call the \[[Put]] method on |Q|
                     using the identifier of |A| as the property name and |V| as the value.
@@ -10724,7 +10711,7 @@ property-installation style as namespaces.)
                 1.  If |O| is a [=platform object=], then [=perform a security check=], passing |O|,
                     |id|, and "method".
                 1.  If |O| is not a [=platform object=] that implements the interface |target|,
-                    <a lt="es throw">throw a <emu-val>TypeError</emu-val></a>.
+                    [=es throw|throw=] a <emu-val>TypeError</emu-val>.
             1.  Let |S| be the [=effective overload set=] for [=regular operations=] (if |op| is a
                 regular operation) or for [=static operations=] (if |op| is a static operation) with
                 [=identifier=] |id| on |target| and with argument count |n|.
@@ -10781,7 +10768,7 @@ then there must exist a property with the following characteristics:
             *   the [=identifier=] of the [=stringifier=], and
             *   the type “method”.
         1.  If |O| is not an object that implements the [=interface=]
-            on which the stringifier was declared, then <a lt="es throw">throw a <emu-val>TypeError</emu-val></a>.
+            on which the stringifier was declared, then [=es throw|throw=] a <emu-val>TypeError</emu-val>.
         1.  Let |V| be an uninitialized variable.
         1.  Depending on where <code>stringifier</code> was specified:
             <dl class="switch">
@@ -10836,7 +10823,7 @@ The location of the property is determined as follows:
         *   the [=identifier=] of the [=serializer=], and
         *   the type “method”.
     1.  If |O| is not an object that implements the [=interface=]
-        on which the serializer was declared, then <a lt="es throw">throw a <emu-val>TypeError</emu-val></a>.
+        on which the serializer was declared, then [=es throw|throw=] a <emu-val>TypeError</emu-val>.
     1.  Depending on how <code>serializer</code> was specified:
         <dl class="switch">
              :  on an [=operation=] with an identifier
@@ -10935,7 +10922,7 @@ then the <emu-val>Function</emu-val> object is [=%ArrayProto_values%=].
     1.  Let |interface| be the [=interface=]
         the [=iterable declaration=] is on.
     1.  If |object| is not a [=platform object=] that implements |interface|,
-        then <a lt="es throw">throw a <emu-val>TypeError</emu-val></a>.
+        then [=es throw|throw=] a <emu-val>TypeError</emu-val>.
     1.  Let |iterator| be a newly created [=default iterator object=]
         for |interface| with |object| as its target and iterator kind “key+value”.
     1.  Return |iterator|.
@@ -10957,7 +10944,7 @@ then the <emu-val>Function</emu-val> object is [=%ArrayProto_values%=].
         that implements the [=interface=]
         on which the [=maplike declaration=]
         or [=setlike declaration=] is defined,
-        then <a lt="es throw">throw a <emu-val>TypeError</emu-val></a>.
+        then [=es throw|throw=] a <emu-val>TypeError</emu-val>.
     1.  If the interface has a [=maplike declaration=], then:
         1.  Let |backing| be the value of the \[[BackingMap]] [=internal slot=] of |object|.
         1.  Return [=CreateMapIterator=](|backing|, <code>"key+value"</code>).
@@ -11050,9 +11037,9 @@ the initial value of the “forEach” data property of [=%ArrayPrototype%=].
         or [=setlike declaration=] is declared.
     1.  If |object| is not a [=platform object=]
         that implements |interface|,
-        then <a lt="es throw">throw a <emu-val>TypeError</emu-val></a>.
+        then [=es throw|throw=] a <emu-val>TypeError</emu-val>.
     1.  Let |callbackFn| be the value of the first argument passed to the function, or <emu-val>undefined</emu-val> if the argument was not supplied.
-    1.  If [=IsCallable=](|callbackFn|) is <emu-val>false</emu-val>, <a lt="es throw">throw a <emu-val>TypeError</emu-val></a>.
+    1.  If [=IsCallable=](|callbackFn|) is <emu-val>false</emu-val>, [=es throw|throw=] a <emu-val>TypeError</emu-val>.
     1.  Let |thisArg| be the value of the second argument passed to the function, or <emu-val>undefined</emu-val> if the argument was not supplied.
     1.  Let |backing| be the value of the \[[BackingMap]] [=internal slot=] of |object|,
         if the interface has a [=maplike declaration=],
@@ -11072,7 +11059,7 @@ the initial value of the “forEach” data property of [=%ArrayPrototype%=].
         </p>
     1.  Let |forEach| be the result of calling the \[[Get]] internal method of
         |backing| with “forEach” and |backing| as arguments.
-    1.  If [=IsCallable=](|forEach|) is <emu-val>false</emu-val>, <a lt="es throw">throw a <emu-val>TypeError</emu-val></a>.
+    1.  If [=IsCallable=](|forEach|) is <emu-val>false</emu-val>, [=es throw|throw=] a <emu-val>TypeError</emu-val>.
     1.  [=Call=](|forEach|, |backing|, «|callbackWrapper|, |thisArg|»).
     1.  Return <emu-val>undefined</emu-val>.
 </div>
@@ -11151,7 +11138,7 @@ the initial value of the “keys” data property of [=%ArrayPrototype%=].
         on which the [=iterable declaration=] is declared on.
     1.  If |object| is not a [=platform object=]
         that implements |interface|,
-        then <a lt="es throw">throw a <emu-val>TypeError</emu-val></a>.
+        then [=es throw|throw=] a <emu-val>TypeError</emu-val>.
     1.  Let |iterator| be a newly created [=default iterator object=]
         for |interface| with |object| as its target and iterator kind “key”.
     1.  Return |iterator|.
@@ -11200,7 +11187,7 @@ the value of the [=@@iterator=] property.
         on which the [=iterable declaration=] is declared on.
     1.  If |object| is not a [=platform object=]
         that implements |interface|,
-        then <a lt="es throw">throw a <emu-val>TypeError</emu-val></a>.
+        then [=es throw|throw=] a <emu-val>TypeError</emu-val>.
     1.  Let |iterator| be a newly created [=default iterator object=]
         for |interface| with |object| as its target and iterator kind “value”.
     1.  Return |iterator|.
@@ -11267,7 +11254,7 @@ must be [=%IteratorPrototype%=].
         *   the identifier “next”, and
         *   the type “method”.
     1.  If |object| is not a [=default iterator object=] for |interface|,
-        then <a lt="es throw">throw a <emu-val>TypeError</emu-val></a>.
+        then [=es throw|throw=] a <emu-val>TypeError</emu-val>.
     1.  Let |index| be |object|’s index.
     1.  Let |kind| be |object|’s kind.
     1.  Let |values| be the list of [=value pairs to iterate over=].
@@ -11333,10 +11320,10 @@ These additional properties are described in the sub-sections below.
         *   the platform object |O|,
         *   an identifier equal to |name|, and
         *   the type “method”.
-    1.  If |O| is not an object that implements <var ignore>A</var>, then <a lt="es throw">throw a <emu-val>TypeError</emu-val></a>.
+    1.  If |O| is not an object that implements <var ignore>A</var>, then [=es throw|throw=] a <emu-val>TypeError</emu-val>.
     1.  Let |map| be the <emu-val>Map</emu-val> object that is the value of |O|’s \[[BackingMap]] [=internal slot=].
     1.  Let |function| be the result of calling the \[[Get]] internal method of |map| passing |name| and |map| as arguments.
-    1.  If [=IsCallable=](|function|) is <emu-val>false</emu-val>, then <a lt="es throw">throw a <emu-val>TypeError</emu-val></a>.
+    1.  If [=IsCallable=](|function|) is <emu-val>false</emu-val>, then [=es throw|throw=] a <emu-val>TypeError</emu-val>.
     1.  Return [=Call=](|function|, |map|, |arguments|).
 </div>
 
@@ -11362,7 +11349,7 @@ with the following characteristics:
             *   the platform object |O|,
             *   the identifier “size”, and
             *   the type “getter”.
-        1.  If |O| is not an object that implements <var ignore>A</var>, then <a lt="es throw">throw a <emu-val>TypeError</emu-val></a>.
+        1.  If |O| is not an object that implements <var ignore>A</var>, then [=es throw|throw=] a <emu-val>TypeError</emu-val>.
         1.  Let |map| be the <emu-val>Map</emu-val> object that is the value of |O|’s \[[BackingMap]] [=internal slot=].
         1.  Return the result of calling the \[[Get]] internal method of |map| passing “size” and |map| as arguments.
     </div>
@@ -11414,7 +11401,7 @@ For both of “get” and “has”, there must exist a property with that name 
             *   the platform object |O|,
             *   an identifier equal to |name|, and
             *   the type “method”.
-        1.  If |O| is not an object that implements <var ignore>A</var>, then <a lt="es throw">throw a <emu-val>TypeError</emu-val></a>.
+        1.  If |O| is not an object that implements <var ignore>A</var>, then [=es throw|throw=] a <emu-val>TypeError</emu-val>.
         1.  Let |map| be the <emu-val>Map</emu-val> object that is the value of |O|’s \[[BackingMap]] [=internal slot=].
         1.  Let |keyType| be the key type specified in the [=maplike declaration=].
         1.  Let |function| be the result of calling the \[[Get]] internal method of |map| passing |name| and |map| as arguments.
@@ -11470,7 +11457,7 @@ must exist on |A|’s
             *   the platform object |O|,
             *   the identifier “delete”, and
             *   the type “method”.
-        1.  If |O| is not an object that implements <var ignore>A</var>, then <a lt="es throw">throw a <emu-val>TypeError</emu-val></a>.
+        1.  If |O| is not an object that implements <var ignore>A</var>, then [=es throw|throw=] a <emu-val>TypeError</emu-val>.
         1.  Let |map| be the <emu-val>Map</emu-val> object that is the value of |O|’s \[[BackingMap]] [=internal slot=].
         1.  Let |keyType| be the key type specified in the [=maplike declaration=].
         1.  Let |function| be the result of calling the \[[Get]] internal method of |map| passing “delete” and |map| as arguments.
@@ -11505,7 +11492,7 @@ must exist on |A|’s [=interface prototype object=]:
             *   the platform object |O|,
             *   the identifier “set”, and
             *   the type “method”.
-        1.  If |O| is not an object that implements <var ignore>A</var>, then <a lt="es throw">throw a <emu-val>TypeError</emu-val></a>.
+        1.  If |O| is not an object that implements <var ignore>A</var>, then [=es throw|throw=] a <emu-val>TypeError</emu-val>.
         1.  Let |map| be the <emu-val>Map</emu-val> object that is the value of |O|’s \[[BackingMap]] [=internal slot=].
         1.  Let |keyType| and |valueType| be the key and value types specified in the [=maplike declaration=].
         1.  Let |function| be the result of calling the \[[Get]] internal method of |map| passing “set” and |map| as arguments.
@@ -11553,13 +11540,13 @@ These additional properties are described in the sub-sections below.
         *   an identifier equal to |name|, and
         *   the type “method”.
     1.  If |O| is not an object that implements <var ignore>A</var>,
-        then <a lt="es throw">throw a <emu-val>TypeError</emu-val></a>.
+        then [=es throw|throw=] a <emu-val>TypeError</emu-val>.
     1.  Let |set| be the <emu-val>Set</emu-val> object that is
         the value of |O|’s \[[BackingSet]] [=internal slot=].
     1.  Let |function| be the result of calling the \[[Get]] internal method of |set|
         passing |name| and |set| as arguments.
     1.  If [=IsCallable=](|function|) is <emu-val>false</emu-val>,
-        then <a lt="es throw">throw a <emu-val>TypeError</emu-val></a>.
+        then [=es throw|throw=] a <emu-val>TypeError</emu-val>.
     1.  Return [=Call=](|function|, |set|, |arguments|).
 </div>
 
@@ -11583,7 +11570,7 @@ with the following characteristics:
             *   the platform object |O|,
             *   the identifier “size”, and
             *   the type “getter”.
-        1.  If |O| is not an object that implements <var ignore>A</var>, then <a lt="es throw">throw a <emu-val>TypeError</emu-val></a>.
+        1.  If |O| is not an object that implements <var ignore>A</var>, then [=es throw|throw=] a <emu-val>TypeError</emu-val>.
         1.  Let |set| be the <emu-val>Set</emu-val> object that is the value of |O|’s \[[BackingSet]] [=internal slot=].
         1.  Return the result of calling the \[[Get]] internal method of |set| passing “size” and |set| as arguments.
     </div>
@@ -11635,7 +11622,7 @@ with the following characteristics:
             *   the platform object |O|,
             *   the identifier “has”, and
             *   the type “method”.
-        1.  If |O| is not an object that implements <var ignore>A</var>, then <a lt="es throw">throw a <emu-val>TypeError</emu-val></a>.
+        1.  If |O| is not an object that implements <var ignore>A</var>, then [=es throw|throw=] a <emu-val>TypeError</emu-val>.
         1.  Let |set| be the <emu-val>Set</emu-val> object that is the value of |O|’s \[[BackingSet]] [=internal slot=].
         1.  Let |type| be the value type specified in the [=setlike declaration=].
         1.  Let |function| be the result of calling the \[[Get]] internal method of |set| passing “has” and |set| as arguments.
@@ -11676,7 +11663,7 @@ must exist on |A|’s
             *   the platform object |O|,
             *   an identifier equal to |name|, and
             *   the type “method”.
-        1.  If |O| is not an object that implements <var ignore>A</var>, then <a lt="es throw">throw a <emu-val>TypeError</emu-val></a>.
+        1.  If |O| is not an object that implements <var ignore>A</var>, then [=es throw|throw=] a <emu-val>TypeError</emu-val>.
         1.  Let |set| be the <emu-val>Set</emu-val> object that is the value of |O|’s \[[BackingSet]] [=internal slot=].
         1.  Let |type| be the value type specified in the [=setlike declaration=].
         1.  Let |function| be the result of calling the \[[Get]] internal method of |set| passing |name| and |set| as arguments.
@@ -11759,7 +11746,7 @@ and similarly with their setters.
     Attempting to call <code>B.prototype.f</code> on an object that implements
     <code class="idl">A</code> (but not <code class="idl">B</code>) or one
     that implements <code class="idl">C</code> will result in a
-    {{TypeError}} being thrown.  However,
+    <emu-val>TypeError</emu-val> being thrown.  However,
     calling <code>A.prototype.f</code> on an object that implements
     <code class="idl">B</code> or one that implements <code class="idl">C</code>
     would succeed.  This is handled by the algorithm in [[#es-operations]]
@@ -11972,7 +11959,7 @@ and [[#legacy-platform-object-set]].
     assuming |arg|<sub>0..|n|−1</sub> is the list of argument values passed to \[[Call]]:
 
     1.  If |I| has no [=legacy callers=],
-        <a lt="es throw">throw a <emu-val>TypeError</emu-val></a>.
+        [=es throw|throw=] a <emu-val>TypeError</emu-val>.
     1.  Initialize |S| to the [=effective overload set=]
         for legacy callers on |I| and with argument count |n|.
     1.  Let &lt;|operation|, |values|&gt; be the result of passing |S| and
@@ -12620,7 +12607,7 @@ on exception objects too.
 
 <div algorithm="throw an exception">
 
-    When a [=simple exception=] or {{DOMException}} |E| is to be [=thrown=],
+    When a [=simple exception=] or {{DOMException}} |E| is to be [=throw|thrown=],
     with [=error name=] |N| and optional user agent-defined message |M|,
     the following steps must be followed:
 
