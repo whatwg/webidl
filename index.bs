@@ -1377,9 +1377,9 @@ ignored or an exception is thrown.
     };
 </pre>
 
-The type of an attribute that is not [=read only=] must not be a [=promise type=]. Additionally,
-the type of an attribute with any of the [=extended attributes=] [{{LenientThis}}],
-[{{PutForwards}}], [{{Replaceable}}], or [{{SameObject}}] must not be a [=promise type=].
+Attributes whose type is a [=promise type=] must be [=read only=]. Additionally, they cannot have
+any of the [=extended attributes=] [{{LenientThis}}], [{{PutForwards}}], [{{Replaceable}}], or
+[{{SameObject}}].
 
 A [=regular attribute=]
 that is not [=read only=]
@@ -10537,7 +10537,7 @@ The characteristics of this property are as follows:
     1.  Let |steps| be the following series of steps:
         1.  Try running the following steps:
             1.  Let |O| be <emu-val>null</emu-val>.
-            1.  If |attribute| is not a [=static attribute=]:
+            1.  If |attribute| is a [=regular attribute=]:
                 1.  If the <emu-val>this</emu-val> value is <emu-val>null</emu-val> or
                     <emu-val>undefined</emu-val>, set |O| to |realm|'s [=Realm/global object=].
                     (This will subsequently cause a <emu-val>TypeError</emu-val> in a few steps, if
@@ -10586,11 +10586,11 @@ The characteristics of this property are as follows:
         <emu-val>undefined</emu-val>; there is no [=attribute setter=] function.
     1.  Assert: |attribute|'s type is not a [=promise type=].
     1.  Let |steps| be the following series of steps:
-        1.  If no arguments were passed, then
+        1.  If no arguments were passed, then [=ECMAScript/throw=] a <emu-val>TypeError</emu-val>.
         1.  Let |V| be the value of the first argument passed.
         1.  Let |id| be |attribute|'s [=identifier=].
         1.  Let |O| be <emu-val>null</emu-val>.
-        1.  If |attribute| is not a [=static attribute=]:
+        1.  If |attribute| is a [=regular attribute=]:
             1.  If the <emu-val>this</emu-val> value is <emu-val>null</emu-val> or
                 <emu-val>undefined</emu-val>, set |O| to |realm|'s [=Realm/global object=].
                 (This will subsequently cause a <emu-val>TypeError</emu-val> in a few steps, if
@@ -10600,16 +10600,14 @@ The characteristics of this property are as follows:
             1.  Otherwise, set |O| to the <emu-val>this</emu-val> value.
             1.  If |O| is a [=platform object=], then [=perform a security check=], passing |O|,
                 |id|, and "setter".
-            1.  Let |validThis| be <emu-val>true</emu-val> if |O| is a [=platform object=] that
-                implements the interface |target|, or <emu-val>false</emu-val> otherwise.
-            1.  If |validThis| is <emu-val>false</emu-val> and |attribute| was not specified
-                with the [{{LenientThis}}] [=extended attribute=], then [=ECMAScript/throw=] a
-                <emu-val>TypeError</emu-val>.
+            1.  Let |validThis| be true if |O| is a [=platform object=] that implements the
+                interface |target|, or false otherwise.
+            1.  If |validThis| is false and |attribute| was not specified with the [{{LenientThis}}]
+                [=extended attribute=], then [=ECMAScript/throw=] a <emu-val>TypeError</emu-val>.
             1.  If |attribute| is declared with the [{{Replaceable}}] extended attribute, then:
                 1.  Perform [=?=] [=CreateDataProperty=](|O|, |id|, |V|).
                 1.  Return <emu-val>undefined</emu-val>.
-            1.  If |validThis| is <emu-val>false</emu-val>, then return
-                <emu-val>undefined</emu-val>.
+            1.  If |validThis| is false, then return <emu-val>undefined</emu-val>.
             1.  If |attribute| is declared with a [{{LenientSetter}}] extended attribute, then
                 return <emu-val>undefined</emu-val>.
             1.  If |attribute| is declared with a [{{PutForwards}}] extended attribute, then:
