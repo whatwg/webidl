@@ -6557,41 +6557,27 @@ Since the IDL {{any}} type
 is the union of all other IDL types, it can correspond to any
 ECMAScript value type.
 
-<p id="es-to-any">
-    How to [=converted to an IDL value|convert an ECMAScript value=] to an IDL {{any}} value depends on the type of the
-    ECMAScript value:
-</p>
+<div id="es-to-any" algorithm="convert an ECMAScript value to any">
 
-<dl class="switch">
-     :  The <emu-val>undefined</emu-val> value
-     :: The IDL value is an
-        {{object}} reference
-        to a special object that represents the ECMAScript
-        <emu-val>undefined</emu-val> value.
-     :  The <emu-val>null</emu-val> value
-     :: The IDL value is the <emu-val>null</emu-val>
-        {{object|object?}} reference.
-     :  A <emu-val>Boolean</emu-val> value
-     :: The IDL value is the
-        {{boolean}}
-        value that represents the same truth value.
-     :  A <emu-val>Number</emu-val> value
-     :: The IDL value is that which is obtained
-        by following the rules for converting the
-        <emu-val>Number</emu-val> to an IDL
-        {{unrestricted double}} value,
-        as described in [[#es-unrestricted-double]].
-     :  A <emu-val>String</emu-val> value
-     :: The IDL value is that which is obtained
-        by following the rules for converting the
-        <emu-val>String</emu-val> to an IDL
-        {{DOMString}} value,
-        as described in [[#es-DOMString]].
-     :  An {{object}} value
-     :: The IDL value is an
-        {{object}} value that
-        references the same object.
-</dl>
+    An ECMAScript value |V| is [=converted to an IDL value|converted=]
+    to an IDL {{any}} value by running the following algorithm:
+
+    1.  If |V| is <emu-val>undefined</emu-val>, then
+        return an {{object}} reference to a special object that represents
+        the ECMAScript <emu-val>undefined</emu-val> value.
+    1.  If |V| is <emu-val>null</emu-val>, then
+        return the <emu-val>null</emu-val> {{object|object?}} reference.
+    1.  If [=Type=](|V|) is Boolean, then
+        return the {{boolean}} value that represents the same truth value.
+    1.  If [=Type=](|V|) is Number, then
+        return the result of <a href="#es-to-unrestricted-double">converting</a> |V|
+        to an {{unrestricted double}}.
+    1.  If [=Type=](|V|) is String, then
+        return the result of <a href="#es-DOMString">converting</a> |V|
+        to a {{DOMString}}.
+    1.  If [=Type=](|V|) is Object, then
+        return an IDL {{object}} value that references |V|.
+</div>
 
 <p id="any-to-es">
     An IDL {{any}} value is
@@ -7321,7 +7307,7 @@ ECMAScript <emu-val>Array</emu-val> values.
     An ECMAScript value |V| is [=converted to an IDL value|converted=]
     to an IDL <a lt="sequence type">sequence&lt;<var ignore>T</var>&gt;</a> value as follows:
 
-    1.  If |V| is not an object,
+    1.  If [=Type=](|V|) is not Object,
         [=ECMAScript/throw=] a <emu-val>TypeError</emu-val>.
     1.  Let |method| be the result of
         [=GetMethod=](|V|, [=@@iterator=]).
@@ -10164,9 +10150,9 @@ whose value is the identifier of the corresponding interface.
     every [=interface object=] |A| must behave as follows,
     assuming |V| is the object argument passed to \[[HasInstance]]:
 
-    1.  If |V| is not an object, return <emu-val>false</emu-val>.
+    1.  If Type(|V|) is not Object, return <emu-val>false</emu-val>.
     1.  Let |O| be the result of calling the \[[Get]] method of |A| with property name “prototype”.
-    1.  If |O| is not an object, [=ECMAScript/throw=] a <emu-val>TypeError</emu-val> exception.
+    1.  If Type(|O|) is not Object, [=ECMAScript/throw=] a <emu-val>TypeError</emu-val> exception.
     1.  If |V| is a platform object that implements the
         interface for which |O| is the [=interface prototype object=],
         return <emu-val>true</emu-val>.
