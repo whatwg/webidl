@@ -1377,6 +1377,10 @@ ignored or an exception is thrown.
     };
 </pre>
 
+Attributes whose type is a [=promise type=] must be [=read only=]. Additionally, they cannot have
+any of the [=extended attributes=] [{{LenientThis}}], [{{PutForwards}}], [{{Replaceable}}], or
+[{{SameObject}}].
+
 A [=regular attribute=]
 that is not [=read only=]
 can be declared to <dfn id="dfn-inherit-getter" export>inherit its getter</dfn>
@@ -10518,126 +10522,138 @@ The characteristics of this property are as follows:
     where:
     *   |configurable| is <emu-val>false</emu-val> if the attribute was
         declared with the [{{Unforgeable}}] extended attribute and <emu-val>true</emu-val> otherwise;
-    *   |G| is the [=attribute getter=], defined below; and
-    *   |S| is the [=attribute setter=], also defined below.
-*   <div algorithm>
+    *   |G| is the [=attribute getter=] created given the attribute, the interface (or the interface
+        it's being mixed in to, if the interface is actually a mixin), and the [=relevant Realm=] of
+        the object that is the location of the property; and
+    *   |S| is the [=attribute setter=] created given the attribute, the interface (or the interface
+        it's being mixed in to, if the interface is actually a mixin), and the [=relevant Realm=] of
+        the object that is the location of the property.
 
-        The <dfn id="dfn-attribute-getter" export>attribute getter</dfn> is a <emu-val>Function</emu-val>
-        object whose behavior when invoked is as follows:
+<div algorithm>
 
-        1.  Let |idlValue| be an IDL value determined as follows.
-        1.  If the [=attribute=] is a [=regular attribute=], then:
-            1.  Let |I| be the [=interface=]
-                whose [=interface prototype object=]
-                this property corresponding to the attribute appears on.
+    The <dfn id="dfn-attribute-getter" export>attribute getter</dfn> is created as follows, given an
+    [=attribute=] |attribute|, an [=interface=] |target|, and a [=Realm=] |realm|:
 
-                Note: This means that even if an implements statement was used to make
-                an attribute available on the interface, |I| is the interface
-                on the left hand side of the implements statement, and not the one
-                that the attribute was originally declared on.
+    1.  Let |steps| be the following series of steps:
+        1.  Try running the following steps:
+            1.  Let |O| be <emu-val>null</emu-val>.
+            1.  If |attribute| is a [=regular attribute=]:
+                1.  If the <emu-val>this</emu-val> value is <emu-val>null</emu-val> or
+                    <emu-val>undefined</emu-val>, set |O| to |realm|'s [=Realm/global object=].
+                    (This will subsequently cause a <emu-val>TypeError</emu-val> in a few steps, if
+                    the global object does not implement |target| and [{{LenientThis}}] is not
+                    specified.)
+                    <!-- https://www.w3.org/Bugs/Public/show_bug.cgi?id=18547#c9 -->
+                1.  Otherwise, set |O| to the <emu-val>this</emu-val> value.
+                1.  If |O| is a [=platform object=], then [=perform a security check=], passing |O|,
+                    |attribute|'s [=identifier=], and "getter".
+                1.  If |O| is not a [=platform object=] that implements the interface |target|,
+                    then:
+                    1.  If |attribute| was specified with the [{{LenientThis}}]
+                        [=extended attribute=], then return <emu-val>undefined</emu-val>.
+                    1. Otherwise, [=ECMAScript/throw=] a <emu-val>TypeError</emu-val>.
+            1.  Let |R| be the result of performing the actions listed in the
+                description of |attribute| that occur on getting (or those listed in the description
+                of the inherited attribute, if this attribute is declared to
+                [=inherit its getter=]), on |O| if |O| is not <emu-val>null</emu-val>.
+            1.  Return the result of [=converted to an ECMAScript value|converting=] |R| to an
+                ECMAScript value of the type |attribute| is declared as.
 
-            1.  Let |O| be the <emu-val>this</emu-val> value.
-            1.  If |O| is a [=platform object=],
-                then [=perform a security check=], passing:
-                *   the platform object |O|,
-                *   the [=identifier=] of the [=attribute=], and
-                *   the type “getter”.
-            1.  If |O| is not a [=platform object=] that implements |I|, then:
-                1.  If the [=attribute=] was specified with the
-                    [{{LenientThis}}] [=extended attribute=],
-                    then return <emu-val>undefined</emu-val>.
-                1.  Otherwise, [=ECMAScript/throw=] a <emu-val>TypeError</emu-val>.
-            1.  Set |idlValue| to be the result of performing the actions listed in the description of the attribute that occur when getting
-                (or those listed in the description of the inherited attribute, if this attribute is declared to
-                [=inherit its getter=]),
-                with |O| as the object.
-        1.  Otherwise, the attribute is a [=static attribute=].
-            Set |idlValue| to be the result of performing the actions listed in the description of the attribute that occur when getting.
-        1.  Let |V| be the result of [=converted to an ECMAScript value|converting=]
-            |idlValue| to an ECMAScript value.
-        1.  Return |V|.
-    </div>
+        And then, if an exception was thrown:
 
-    The value of the <emu-val>Function</emu-val> object’s “length”
-    property is the <emu-val>Number</emu-val> value <emu-val>0</emu-val>.
+        1.  If |attribute|'s type is a [=promise type=], then:
+            1.  Let |reject| be the initial value of [=%Promise%=].reject.
+            1.  Return the result of calling |reject| with [=%Promise%=] as the
+                <emu-val>this</emu-val> object and the exception as the single argument value.
+        1.  Otherwise, end these steps and allow the exception to propagate.
+    1.  Let |F| be [=!=] [=CreateBuiltinFunction=](|realm|,
+        |steps|, the [=%FunctionPrototype%=] of |realm|).
+    1.  Let |name| be the string "get " prepended to |attribute|'s [=identifier=].
+    1.  Perform [=!=] [=SetFunctionName=](|F|, |name|).
+    1.  Perform [=!=] [=DefinePropertyOrThrow=](|F|, "length",
+        PropertyDescriptor<span class="prop-desc">{\[[Value]]: 0, \[[Writable]]: <emu-val>false</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val>}</span>).
+    1. Return |F|.
 
-    The value of the <emu-val>Function</emu-val> object’s “name”
-    property is a <emu-val>String</emu-val> whose value is the
-    concatenation of “get ” and the identifier of the attribute.
+</div>
 
-*   <div algorithm>
+<div algorithm>
 
-        The <dfn id="dfn-attribute-setter" export>attribute setter</dfn> is <emu-val>undefined</emu-val>
-        if the attribute is declared <code>readonly</code> and does not have a
-        [{{LenientThis}}], [{{PutForwards}}] or [{{Replaceable}}] [=extended attribute=]
-        declared on it.
-        Otherwise, it is a <emu-val>Function</emu-val> object whose behavior when invoked is as follows:
+    The <dfn id="dfn-attribute-setter" export>attribute setter</dfn> is created as follows, given an
+    [=attribute=] |attribute|, an [=interface=] |target|, and a [=Realm=] |realm|:
 
-        1.  If no arguments were passed to the <emu-val>Function</emu-val>, then
-            [=ECMAScript/throw=] a <emu-val>TypeError</emu-val>.
-        1.  Let |V| be the value of the first argument passed to the <emu-val>Function</emu-val>.
-        1.  If the [=attribute=] is a [=regular attribute=], then:
-            1.  Let |I| be the [=interface=]
-                whose [=interface prototype object=]
-                this property corresponding to the attribute appears on.
-            1.  Let |O| be the <emu-val>this</emu-val> value.
-            1.  If |O| is a [=platform object=],
-                then [=perform a security check=], passing:
-                *   the platform object |O|,
-                *   the [=identifier=] of the [=attribute=], and
-                *   the type “setter”.
-            1.  Let |validThis| be <emu-val>true</emu-val> if |O| is a
-                [=platform object=] that implements |I|, or
-                <emu-val>false</emu-val> otherwise.
-            1.  If |validThis| is <emu-val>false</emu-val> and the
-                [=attribute=] was not specified with the
-                [{{LenientThis}}] [=extended attribute=],
-                then [=ECMAScript/throw=] a <emu-val>TypeError</emu-val>.
-            1.  If the attribute is declared with a [{{Replaceable}}]
-                extended attribute, then:
-                1.  Let |P| be the identifier of the attribute.
-                1.  Call [=CreateDataProperty=](|O|, |P|, |V|).
+    1.  If |attribute| is [=read only=] and does not have a
+        [{{LenientThis}}], [{{PutForwards}}] or [{{Replaceable}}] [=extended attribute=], return
+        <emu-val>undefined</emu-val>; there is no [=attribute setter=] function.
+    1.  Assert: |attribute|'s type is not a [=promise type=].
+    1.  Let |steps| be the following series of steps:
+        1.  If no arguments were passed, then [=ECMAScript/throw=] a <emu-val>TypeError</emu-val>.
+        1.  Let |V| be the value of the first argument passed.
+        1.  Let |id| be |attribute|'s [=identifier=].
+        1.  Let |O| be <emu-val>null</emu-val>.
+        1.  If |attribute| is a [=regular attribute=]:
+            1.  If the <emu-val>this</emu-val> value is <emu-val>null</emu-val> or
+                <emu-val>undefined</emu-val>, set |O| to |realm|'s [=Realm/global object=].
+                (This will subsequently cause a <emu-val>TypeError</emu-val> in a few steps, if
+                the global object does not implement |target| and [{{LenientThis}}] is not
+                specified.)
+                <!-- https://www.w3.org/Bugs/Public/show_bug.cgi?id=18547#c9 -->
+            1.  Otherwise, set |O| to the <emu-val>this</emu-val> value.
+            1.  If |O| is a [=platform object=], then [=perform a security check=], passing |O|,
+                |id|, and "setter".
+            1.  Let |validThis| be true if |O| is a [=platform object=] that implements the
+                interface |target|, or false otherwise.
+            1.  If |validThis| is false and |attribute| was not specified with the [{{LenientThis}}]
+                [=extended attribute=], then [=ECMAScript/throw=] a <emu-val>TypeError</emu-val>.
+            1.  If |attribute| is declared with the [{{Replaceable}}] extended attribute, then:
+                1.  Perform [=?=] [=CreateDataProperty=](|O|, |id|, |V|).
                 1.  Return <emu-val>undefined</emu-val>.
-            1.  If |validThis| is <emu-val>false</emu-val>, then return <emu-val>undefined</emu-val>.
-            1.  If the attribute is declared with a [{{LenientSetter}}]
-                extended attribute, then return <emu-val>undefined</emu-val>.
-            1.  If the attribute is declared with a [{{PutForwards}}]
-                extended attribute, then:
-                1.  Let |Q| be the result of calling the \[[Get]] method
-                    on |O| using the identifier of the attribute as the property name.
-                1.  If |Q| is not an object, then [=ECMAScript/throw=] a <emu-val>TypeError</emu-val>.
-                1.  Let |A| be the attribute identified by the [{{PutForwards}}] extended attribute.
-                1.  Call the \[[Put]] method on |Q|
-                    using the identifier of |A| as the property name and |V| as the value.
+            1.  If |validThis| is false, then return <emu-val>undefined</emu-val>.
+            1.  If |attribute| is declared with a [{{LenientSetter}}] extended attribute, then
+                return <emu-val>undefined</emu-val>.
+            1.  If |attribute| is declared with a [{{PutForwards}}] extended attribute, then:
+                1.  Let |Q| be [=?=] [=Get=](|O|, |id|).
+                1.  If [=Type=](|Q|) is not Object, then [=ECMAScript/throw=] a
+                    <emu-val>TypeError</emu-val>.
+                1.  Let |forwardId| be the identifier argument of the [{{PutForwards}}] extended
+                    attribute.
+                1.  Perform [=?=] [=Set=](|Q|, |forwardId|, |V|).
                 1.  Return <emu-val>undefined</emu-val>.
-        1.  Let |idlValue| be an IDL value determined as follows:
-            *   If the type of the attribute is an [=enumeration=], then:
-                1.  Let |S| be the result of calling [=ToString=](|V|).
-                1.  If |S| is not one of the [=enumeration values|enumeration’s values=], then return <emu-val>undefined</emu-val>.
-                1.  The value of |idlValue| is the enumeration value equal to |S|.
-            *   Otherwise, the type of the attribute is not an [=enumeration=].
-                The value of |idlValue| is the result of [=converted to an IDL value|converting=]
-                |V| to an IDL value.
-        1.  If the attribute is a regular attribute, then perform the actions listed in the description of the attribute that occur when setting,
-            with |O| as the object and |idlValue| as the value.
-        1.  Otherwise, the attribute is a [=static attribute=].
-            Perform the actions listed in the description of the attribute that occur when setting with |idlValue| as the value.
-        1.  Return <emu-val>undefined</emu-val>.
-    </div>
+        1.  Let |idlValue| be determined as follows:
 
-    The value of the <emu-val>Function</emu-val> object’s “length”
-    property is the <emu-val>Number</emu-val> value <emu-val>1</emu-val>.
+            <dl class="switch">
+                <dt>|attribute|'s type is an [=enumeration=]</dt>
+                <dd>
+                    1.  Let |S| be [=?=] [=ToString=](|V|).
+                    1.  If |S| is not one of the [=enumeration values|enumeration’s values=], then
+                        return <emu-val>undefined</emu-val>.
+                    1.  Otherwise, |idlValue| is the enumeration value equal to |S|.
+                </dd>
 
-    The value of the <emu-val>Function</emu-val> object’s “name”
-    property is a <emu-val>String</emu-val> whose value is the
-    concatenation of “set ” and the identifier of the attribute.
+                <dt>Otherwise</dt>
+                <dd>
+                    |idlValue| is the result of [=converted to an IDL value|converting=] |V| to an
+                    IDL value of |attribute|'s type.
+                </dd>
+            </dl>
+
+        1.  Perform the actions listed in the description of |attribute| that occur on setting, on
+            |O| if |O| is not <emu-val>null</emu-val>.
+        1.  Return <emu-val>undefined</emu-val>
+    1.  Let |F| be [=!=] [=CreateBuiltinFunction=](|realm|,
+        |steps|, the [=%FunctionPrototype%=] of |realm|).
+    1.  Let |name| be the string "set " prepended to |id|.
+    1.  Perform [=!=] [=SetFunctionName=](|F|, |name|).
+    1.  Perform [=!=] [=DefinePropertyOrThrow=](|F|, "length",
+        PropertyDescriptor<span class="prop-desc">{\[[Value]]: 1, \[[Writable]]: <emu-val>false</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val>}</span>).
+    1. Return |F|.
+</div>
 
 Note: Although there is only a single property for an IDL attribute, since
 accessor property getters and setters are passed a <emu-val>this</emu-val>
 value for the object on which property corresponding to the IDL attribute is
 accessed, they are able to expose instance-specific data.
 
-Note: Note that attempting to assign to a property corresponding to a
+Note: Attempting to assign to a property corresponding to a
 [=read only=] [=attribute=]
 results in different behavior depending on whether the script doing so is in strict mode.
 When in strict mode, such an assignment will result in a <emu-val>TypeError</emu-val>
