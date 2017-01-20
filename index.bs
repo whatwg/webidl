@@ -6557,41 +6557,27 @@ Since the IDL {{any}} type
 is the union of all other IDL types, it can correspond to any
 ECMAScript value type.
 
-<p id="es-to-any">
-    How to [=converted to an IDL value|convert an ECMAScript value=] to an IDL {{any}} value depends on the type of the
-    ECMAScript value:
-</p>
+<div id="es-to-any" algorithm="convert an ECMAScript value to any">
 
-<dl class="switch">
-     :  The <emu-val>undefined</emu-val> value
-     :: The IDL value is an
-        {{object}} reference
-        to a special object that represents the ECMAScript
-        <emu-val>undefined</emu-val> value.
-     :  The <emu-val>null</emu-val> value
-     :: The IDL value is the <emu-val>null</emu-val>
-        {{object|object?}} reference.
-     :  A <emu-val>Boolean</emu-val> value
-     :: The IDL value is the
-        {{boolean}}
-        value that represents the same truth value.
-     :  A <emu-val>Number</emu-val> value
-     :: The IDL value is that which is obtained
-        by following the rules for converting the
-        <emu-val>Number</emu-val> to an IDL
-        {{unrestricted double}} value,
-        as described in [[#es-unrestricted-double]].
-     :  A <emu-val>String</emu-val> value
-     :: The IDL value is that which is obtained
-        by following the rules for converting the
-        <emu-val>String</emu-val> to an IDL
-        {{DOMString}} value,
-        as described in [[#es-DOMString]].
-     :  An {{object}} value
-     :: The IDL value is an
-        {{object}} value that
-        references the same object.
-</dl>
+    An ECMAScript value |V| is [=converted to an IDL value|converted=]
+    to an IDL {{any}} value by running the following algorithm:
+
+    1.  If |V| is <emu-val>undefined</emu-val>, then
+        return an {{object}} reference to a special object that represents
+        the ECMAScript <emu-val>undefined</emu-val> value.
+    1.  If |V| is <emu-val>null</emu-val>, then
+        return the <emu-val>null</emu-val> {{object|object?}} reference.
+    1.  If [=Type=](|V|) is Boolean, then
+        return the {{boolean}} value that represents the same truth value.
+    1.  If [=Type=](|V|) is Number, then
+        return the result of <a href="#es-to-unrestricted-double">converting</a> |V|
+        to an {{unrestricted double}}.
+    1.  If [=Type=](|V|) is String, then
+        return the result of <a href="#es-DOMString">converting</a> |V|
+        to a {{DOMString}}.
+    1.  If [=Type=](|V|) is Object, then
+        return an IDL {{object}} value that references |V|.
+</div>
 
 <p id="any-to-es">
     An IDL {{any}} value is
@@ -7321,7 +7307,7 @@ ECMAScript <emu-val>Array</emu-val> values.
     An ECMAScript value |V| is [=converted to an IDL value|converted=]
     to an IDL <a lt="sequence type">sequence&lt;<var ignore>T</var>&gt;</a> value as follows:
 
-    1.  If |V| is not an object,
+    1.  If [=Type=](|V|) is not Object,
         [=ECMAScript/throw=] a <emu-val>TypeError</emu-val>.
     1.  Let |method| be the result of
         [=GetMethod=](|V|, [=@@iterator=]).
@@ -7641,8 +7627,7 @@ that correspond to the union’s [=member types=].
         then return the IDL value <emu-val>null</emu-val>.
     1.  Let |types| be the [=flattened member types=]
         of the [=union type=].
-    1.  If |V| is <emu-val>null</emu-val> or
-        <emu-val>undefined</emu-val>, then:
+    1.  If |V| is <emu-val>null</emu-val> or <emu-val>undefined</emu-val>, then:
         1.  If |types| includes a [=dictionary type=], then return the
             result of [=converted to an IDL value|converting=] |V| to that dictionary type.
         1.  If |types| includes a [=record type=], then return the
@@ -7659,25 +7644,25 @@ that correspond to the union’s [=member types=].
             |V| to that type.
         1.  If |types| includes {{object}}, then return the IDL value
             that is a reference to the object |V|.
-    1.  If |V| is a native <emu-val>Error</emu-val> object (that is, it has an \[[ErrorData]] [=internal slot=]), then:
+    1.  If [=Type=](|V|) is Object and |V| has an \[[ErrorData]] [=internal slot=]), then:
         1.  If |types| includes {{Error!!interface}}, then return the
             result of [=converted to an IDL value|converting=]
             |V| to {{Error!!interface}}.
         1.  If |types| includes {{object}}, then return the IDL value
             that is a reference to the object |V|.
-    1.  If |V| is an object with an \[[ArrayBufferData]] [=internal slot=], then:
+    1.  If [=Type=](|V|) is Object and |V| has an \[[ArrayBufferData]] [=internal slot=], then:
         1.  If |types| includes {{ArrayBuffer}}, then return the
             result of [=converted to an IDL value|converting=]
             |V| to {{ArrayBuffer}}.
         1.  If |types| includes {{object}}, then return the IDL value
             that is a reference to the object |V|.
-    1.  If |V| is an object with a \[[DataView]] [=internal slot=], then:
+    1.  If [=Type=](|V|) is Object and |V| has a \[[DataView]] [=internal slot=], then:
         1.  If |types| includes {{DataView}}, then return the
             result of [=converted to an IDL value|converting=]
             |V| to {{DataView}}.
         1.  If |types| includes {{object}}, then return the IDL value
             that is a reference to the object |V|.
-    1.  If |V| is an object with a \[[TypedArrayName]] [=internal slot=], then:
+    1.  If [=Type=](|V|) is Object and |V| has a \[[TypedArrayName]] [=internal slot=], then:
         1.  If |types| includes a [=typed array type=]
             whose name is the value of |V|’s \[[TypedArrayName]] [=internal slot=], then return the
             result of [=converted to an IDL value|converting=]
@@ -7691,24 +7676,22 @@ that correspond to the union’s [=member types=].
             |V| to that callback function type.
         1.  If |types| includes {{object}}, then return the IDL value
             that is a reference to the object |V|.
-    1.  If |V| is any kind of object, then:
+    1.  If [=Type=](|V|) is Object, then:
         1.  If |types| includes a [=sequence type=], then
             1.  Let |method| be the result of
                 [=GetMethod=](|V|, [=@@iterator=]).
             1.  [=ReturnIfAbrupt=](|method|).
-            1.  If |method| is not
-                <emu-val>undefined</emu-val>,
+            1.  If |method| is not <emu-val>undefined</emu-val>,
                 return the result of
                 [=creating a sequence from an iterable|creating a sequence=]
                 of that type from |V| and |method|.
         1.  If |types| includes a [=frozen array type=], then
-            1.  Let |method| be the result of
-                [=GetMethod=](|V|, [=@@iterator=]).
+            1.  Let |method| be the result of [=GetMethod=](|V|, [=@@iterator=]).
             1.  [=ReturnIfAbrupt=](|method|).
-            1.  If |method| is not
-                <emu-val>undefined</emu-val>,
+            1.  If |method| is not <emu-val>undefined</emu-val>,
                 return the result of
-                [=Creating a frozen array from an iterable|creating a frozen array of that type from V and method=].
+                [=Creating a frozen array from an iterable|creating a frozen array=]
+                of that type from |V| and |method|.
         1.  If |types| includes a [=dictionary type=], then return the
             result of [=converted to an IDL value|converting=]
             |V| to that dictionary type.
@@ -7721,11 +7704,11 @@ that correspond to the union’s [=member types=].
             |V| to that interface type.
         1.  If |types| includes {{object}}, then return the IDL value
             that is a reference to the object |V|.
-    1.  If |V| is a <emu-val>Boolean</emu-val> value, then:
+    1.  If [=Type=](|V|) is Boolean, then:
         1.  If |types| includes a {{boolean}},
             then return the result of [=converted to an IDL value|converting=]
             |V| to {{boolean}}.
-    1.  If |V| is a <emu-val>Number</emu-val> value, then:
+    1.  If [=Type=](|V|) is Number, then:
         1.  If |types| includes a [=numeric type=],
             then return the result of [=converted to an IDL value|converting=]
             |V| to that [=numeric type=].
@@ -9802,7 +9785,7 @@ Note: The HTML Standard defines how a security check is performed. [[!HTML]]
 
             then remove from |S| all other entries.
 
-        1.  Otherwise: if |V| is an <emu-val>Error</emu-val> object (that is, it has an \[[ErrorData]] [=internal slot=]) and
+        1.  Otherwise: if [=Type=](|V|) is Object, |V| has an \[[ErrorData]] [=internal slot=], and
             there is an entry in |S| that has one of the following types at position |i| of its type list,
             *   {{Error!!interface}}
             *   {{object}}
@@ -9812,7 +9795,7 @@ Note: The HTML Standard defines how a security check is performed. [[!HTML]]
 
             then remove from |S| all other entries.
 
-        1.  Otherwise: if |V| is an object with an \[[ArrayBufferData]] [=internal slot=] and
+        1.  Otherwise: if [=Type=](|V|) is Object, |V| has an \[[ArrayBufferData]] [=internal slot=], and
             there is an entry in |S| that has one of the following types at position |i| of its type list,
             *   {{ArrayBuffer}}
             *   {{object}}
@@ -9822,7 +9805,7 @@ Note: The HTML Standard defines how a security check is performed. [[!HTML]]
 
             then remove from |S| all other entries.
 
-        1.  Otherwise: if |V| is an object with a \[[DataView]] [=internal slot=] and
+        1.  Otherwise: if [=Type=](|V|) is Object, |V| has a \[[DataView]] [=internal slot=], and
             there is an entry in |S| that has one of the following types at position |i| of its type list,
             *   {{DataView}}
             *   {{object}}
@@ -9832,7 +9815,7 @@ Note: The HTML Standard defines how a security check is performed. [[!HTML]]
 
             then remove from |S| all other entries.
 
-        1.  Otherwise: if |V| is an object with a \[[TypedArrayName]] [=internal slot=] and
+        1.  Otherwise: if [=Type=](|V|) is Object, |V| has a \[[TypedArrayName]] [=internal slot=], and
             there is an entry in |S| that has one of the following types at position |i| of its type list,
             *   a [=typed array type=] whose name
                 is equal to the value of |V|’s \[[TypedArrayName]] [=internal slot=]
@@ -9853,7 +9836,7 @@ Note: The HTML Standard defines how a security check is performed. [[!HTML]]
 
             then remove from |S| all other entries.
 
-        1.  Otherwise: if |V| is any kind of object, and
+        1.  Otherwise: if [=Type=](|V|) is Object and
             there is an entry in |S| that has one of the
             following types at position |i| of its type list,
             *   a [=sequence type=]
@@ -9871,7 +9854,7 @@ Note: The HTML Standard defines how a security check is performed. [[!HTML]]
             |method| is not <emu-val>undefined</emu-val>, then remove from |S| all
             other entries.
 
-        1.  Otherwise: if |V| is any kind of object, and
+        1.  Otherwise: if [=Type=](|V|) is Object and
             there is an entry in |S| that has one of the following types at position |i| of its type list,
             *   a [=callback interface=] type
             *   a [=dictionary type=]
@@ -9883,7 +9866,7 @@ Note: The HTML Standard defines how a security check is performed. [[!HTML]]
 
             then remove from |S| all other entries.
 
-        1.  Otherwise: if |V| is a <emu-val>Boolean</emu-val> value,
+        1.  Otherwise: if [=Type=](|V|) is Boolean
             and there is an entry in |S| that has one of the following types at position |i| of its type list,
             *   {{boolean}}
             *   a [=nullable type|nullable=] {{boolean}}
@@ -9892,7 +9875,7 @@ Note: The HTML Standard defines how a security check is performed. [[!HTML]]
 
             then remove from |S| all other entries.
 
-        1.  Otherwise: if |V| is a <emu-val>Number</emu-val> value,
+        1.  Otherwise: if [=Type=](|V|) is Number
             and there is an entry in |S| that has one of the following types at position |i| of its type list,
             *   a [=numeric type=]
             *   a [=nullable type|nullable=] [=numeric type=]
@@ -10167,9 +10150,9 @@ whose value is the identifier of the corresponding interface.
     every [=interface object=] |A| must behave as follows,
     assuming |V| is the object argument passed to \[[HasInstance]]:
 
-    1.  If |V| is not an object, return <emu-val>false</emu-val>.
+    1.  If Type(|V|) is not Object, return <emu-val>false</emu-val>.
     1.  Let |O| be the result of calling the \[[Get]] method of |A| with property name “prototype”.
-    1.  If |O| is not an object, [=ECMAScript/throw=] a <emu-val>TypeError</emu-val> exception.
+    1.  If Type(|O|) is not Object, [=ECMAScript/throw=] a <emu-val>TypeError</emu-val> exception.
     1.  If |V| is a platform object that implements the
         interface for which |O| is the [=interface prototype object=],
         return <emu-val>true</emu-val>.
