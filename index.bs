@@ -1336,7 +1336,8 @@ be retrieved and (in some cases) changed.  There are two kinds of attributes:
 
 If an attribute has no <emu-t>static</emu-t> keyword, then it declares a
 <dfn id="dfn-regular-attribute" export>regular attribute</dfn>.  Otherwise,
-it declares a [=static attribute=].
+it declares a [=static attribute=]. Note that in addition to being [=interface members=],
+[=read only=] [=regular attributes=] can be [=namespace members=] as well.
 
 The [=identifier=] of an
 [=attribute=]
@@ -3942,8 +3943,11 @@ associated behaviors.
     };
 </pre>
 
-A namespace is a specification of a set of <dfn id="dfn-namespace-member" export lt="namespace             member">namespace members</dfn> (matching <emu-nt><a href="#prod-NamespaceMembers">NamespaceMembers</a></emu-nt>), which are the [=regular operations=] that appear between the braces in
-the namespace declaration. These operations describe the behaviors packaged into the
+A namespace is a specification of a set of
+<dfn id="dfn-namespace-member" export lt="namespace member">namespace members</dfn>
+(matching <emu-nt><a href="#prod-NamespaceMembers">NamespaceMembers</a></emu-nt>), which are the
+[=regular operations=] and [=read only=] [=regular attributes=] that appear between the braces in
+the namespace declaration. These operations and attributes describe the behaviors packaged into the
 namespace.
 
 As with interfaces, the IDL for namespaces can be split into multiple parts by using
@@ -3992,15 +3996,17 @@ namespaces.
 <pre class="grammar" id="prod-NamespaceMember">
     NamespaceMember :
         ReturnType OperationRest
+        "readonly" AttributeRest
 </pre>
 
-<div class="example">
+<div class="example" id="example-namespace">
 
     The following [=IDL fragment=] defines an
     [=namespace=].
 
     <pre highlight="webidl">
         namespace VectorUtils {
+          readonly attribute Vector unit;
           double dotProduct(Vector x, Vector y);
           Vector crossProduct(Vector x, Vector y);
         };
@@ -4008,12 +4014,14 @@ namespaces.
 
     An ECMAScript implementation would then expose a global property named
     <code>VectorUtils</code> which was a simple object (with prototype
-    [=%ObjectPrototype%=]) with enumerable data properties for each declared operation:
+    [=%ObjectPrototype%=]) with enumerable data properties for each declared operation, and
+    enumerable get-only accessors for each declared attribute:
 
     <pre highlight="js">
         Object.getPrototypeOf(VectorUtils);                         // Evaluates to Object.prototype.
         Object.keys(VectorUtils);                                   // Evaluates to ["dotProduct", "crossProduct"].
         Object.getOwnPropertyDescriptor(VectorUtils, "dotProduct"); // Evaluates to { value: &lt;a function&gt;, enumerable: true, configurable: true, writable: true }.
+        Object.getOwnPropertyDescriptor(VectorUtils, "unit");       // Evaluates to { get: &lt;a function&gt;, enumerable: true, configurable: true }.
     </pre>
 </div>
 
@@ -8607,6 +8615,9 @@ extended attribute must not also be declared
 with the [{{PutForwards}}]
 or [{{Replaceable}}] extended attributes.
 
+The [{{LenientSetter}}] extended attribute must not be used on an attribute declared on a
+[=namespace=].
+
 See the <a href="#es-attributes">Attributes</a> section for how
 [{{LenientSetter}}] is to be implemented.
 
@@ -8656,6 +8667,9 @@ must
 [=takes no arguments|take no arguments=].
 It must not be used on a
 [=static attribute=].
+
+The [{{LenientThis}}] extended attribute must not be used on an attribute declared on a
+[=namespace=].
 
 <p class="advisement">
     Specifications should not use [{{LenientThis}}]
@@ -9050,7 +9064,7 @@ must not be used on a
 
 The [{{PutForwards}}] extended attribute
 must not be used on an attribute declared on
-a [=callback interface=].
+a [=callback interface=] or [=namespace=].
 
 See the <a href="#es-attributes">Attributes</a> section for how
 [{{PutForwards}}]
@@ -9500,6 +9514,9 @@ appear on an [=operation=], then
 it must appear on all operations with
 the same [=identifier=] on that interface.
 
+The [{{Unforgeable}}] extended attribute must not be used on an attribute declared on a
+[=namespace=].
+
 If an attribute or operation |X| is [=unforgeable=]
 on an interface |A|, and |A| is one of the
 [=inherited interfaces=]
@@ -9599,6 +9616,9 @@ The [{{Unscopable}}]
 extended attribute must not appear on
 anything other than a [=regular attribute=]
 or [=regular operation=].
+
+The [{{Unscopable}}] extended attribute must not be used on an attribute declared on a
+[=namespace=].
 
 See [[#interface-prototype-object]]
 for the specific requirements that the use of
@@ -10457,12 +10477,12 @@ The characteristics of this property are as follows:
 <div algorithm>
 
     The <dfn id="dfn-attribute-getter" export>attribute getter</dfn> is created as follows, given an
-    [=attribute=] |attribute|, an [=interface=] |target|, and a [=Realm=] |realm|:
+    [=attribute=] |attribute|, a [=namespace=] or [=interface=] |target|, and a [=Realm=] |realm|:
 
     1.  Let |steps| be the following series of steps:
         1.  Try running the following steps:
             1.  Let |O| be <emu-val>null</emu-val>.
-            1.  If |attribute| is a [=regular attribute=]:
+            1.  If |target| is an [=interface=], and |attribute| is a [=regular attribute=]:
                 1.  If the <emu-val>this</emu-val> value is <emu-val>null</emu-val> or
                     <emu-val>undefined</emu-val>, set |O| to |realm|'s [=Realm/global object=].
                     (This will subsequently cause a <emu-val>TypeError</emu-val> in a few steps, if
@@ -12371,6 +12391,12 @@ The characteristics of a namespace object are described in [[#namespace-object]]
 
     1.  Let |namespaceObject| be
         [=!=] [=ObjectCreate=](the [=%ObjectPrototype%=] of |realm|).
+    1.  For each [=exposed=] [=regular attribute=] |attr| that is a [=namespace member=] of this namespace,
+        1.  Let |F| be the result of creating an [=attribute getter=]
+            given |attr|, |namespace|,  and |realm|.
+        1.  Let |newDesc| be the PropertyDescriptor{\[[Get]]: |F|, \[[Enumerable]]: <emu-val>true</emu-val>,
+            \[[Configurable]]: <emu-val>true</emu-val>}.
+        1.  Perform [=!=] [=DefinePropertyOrThrow=](|namespaceObject|, |attr|'s [=identifier=], |newDesc|).
     1.  For each [=exposed=] [=regular operation=] |op| that is a [=namespace member=] of this namespace,
         1.  Let |F| be the result of [=creating an operation function|creating an operation function=]
             given |op|, |namespace|,  and |realm|.
