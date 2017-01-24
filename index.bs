@@ -6420,6 +6420,7 @@ These objects are termed the <dfn id="dfn-initial-object" export>initial objects
 and comprise the following:
 
 *   [=interface objects=]
+*   [=legacy callback interface objects=]
 *   [=named constructors=]
 *   [=interface prototype objects=]
 *   [=named properties objects=]
@@ -7979,7 +7980,7 @@ extended attributes must not be specified on the same interface.
 The [{{Constructor}}] extended attribute
 must not be used on a [=callback interface=].
 
-See [[#es-constructible-interfaces]] for details on how a constructor
+See [[#interface-object]] for details on how a constructor
 for an interface is to be implemented.
 
 <div class="example">
@@ -8726,18 +8727,20 @@ create objects that implement the interface.
 Multiple [{{NamedConstructor}}] extended
 attributes may appear on a given interface.
 
-The [{{NamedConstructor}}]
-extended attribute must either
+The [{{NamedConstructor}}] extended attribute must either
 [=takes an identifier|take an identifier=] or
 [=takes a named argument list|take a named argument list=].
-The first form, <code>[NamedConstructor=<emu-t class="regex"><a href="#prod-identifier">identifier</a></emu-t>]</code>, has the same meaning as
-using an empty argument list, <code>[NamedConstructor=<emu-t class="regex"><a href="#prod-identifier">identifier</a></emu-t>()]</code>.  For each
-[{{NamedConstructor}}] extended attribute
-on the interface, there will be a way to construct an object that implements
-the interface by passing the specified arguments to the constructor function
+The <emu-t class="regex"><a href="#prod-identifier">identifier</a></emu-t> that occurs directly after the
+“<emu-t>=</emu-t>” is the [{{NamedConstructor}}]'s <dfn lt="NamedConstructor identifier">identifier</dfn>.
+The first form, <code>[NamedConstructor=<emu-t class="regex"><a href="#prod-identifier">identifier</a></emu-t>]</code>,
+has the same meaning as using an empty argument list,
+<code>[NamedConstructor=<emu-t class="regex"><a href="#prod-identifier">identifier</a></emu-t>()]</code>.
+For each [{{NamedConstructor}}] extended attribute on the interface,
+there will be a way to construct an object that
+implements the interface by passing the specified arguments to the constructor function
 that is the value of the aforementioned property.
 
-The identifier used for the named constructor must not
+The [=NamedConstructor identifier|identifier=] used for the named constructor must not
 be the same as that used by an [{{NamedConstructor}}]
 extended attribute on another interface, must not
 be the same as an identifier of an interface
@@ -8857,10 +8860,7 @@ must not be specified on an interface that has any
 [=static operations=] defined on it.
 
 The [{{NoInterfaceObject}}] extended attribute
-must not be specified on a [=callback interface=]
-unless it has a [=constant=] declared on it.
-This is because callback interfaces without constants never have
-[=interface objects=].
+must not be specified on a [=callback interface=].
 
 An interface that does not have the [{{NoInterfaceObject}}] extended
 attribute specified must not inherit
@@ -9959,157 +9959,109 @@ Note: The HTML Standard defines how a security check is performed. [[!HTML]]
 
 <h3 id="es-interfaces">Interfaces</h3>
 
-For every [=interface=] that
-is [=exposed=] in a given
-ECMAScript global environment and:
-
-*   is a [=callback interface=]
-    that has [=constants=] declared on it, or
-*   is a non-callback [=interface=]
-    that is not declared with the [{{NoInterfaceObject}}]
-    [=extended attribute=],
-
-a corresponding property must exist on the
-ECMAScript environment's global object.
+For every non-callback [=interface=] that is [=exposed=] in
+a given ECMAScript global environment and that is not declared with
+the [{{NoInterfaceObject}}] [=extended attribute=],
+a corresponding property must exist on the ECMAScript environment's global object.
 The name of the property is the [=identifier=] of the interface,
 and its value is an object called the <dfn id="dfn-interface-object" export>interface object</dfn>.
-
 The property has the attributes { \[[Writable]]: <emu-val>true</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val> }.
 The characteristics of an interface object are described in [[#interface-object]].
 
-In addition, for every [{{NamedConstructor}}]
-extended attribute on an [=exposed=] interface, a corresponding property must
-exist on the ECMAScript global object.  The name of the property is the
-<emu-t class="regex"><a href="#prod-identifier">identifier</a></emu-t> that occurs directly after the
-“<emu-t>=</emu-t>”, and its value is an object called a
-<dfn id="dfn-named-constructor" export>named constructor</dfn>, which allows
-construction of objects that implement the interface.  The property has the
-attributes { \[[Writable]]: <emu-val>true</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val> }.
-The characteristics of a named constructor are described in
-[[#named-constructors]].
+In addition, for every [{{NamedConstructor}}] extended attribute on an [=exposed=] interface,
+a corresponding property must exist on the ECMAScript global object.
+The name of the property is the [{{NamedConstructor}}]'s [=NamedConstructor identifier|identifier=],
+and its value is an object called a <dfn id="dfn-named-constructor" export>named constructor</dfn>,
+which allows construction of objects that implement the interface.
+The property has the attributes
+{ \[[Writable]]: <emu-val>true</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val> }.
+The characteristics of a named constructor are described in [[#named-constructors]].
 
 
-<h4 id="interface-object">Interface object</h4>
+<h4 id="interface-object" oldids="es-interface-call,es-constructible-interfaces">Interface object</h4>
 
-The interface object for a given non-callback [=interface=]
-is a [=function object=].
-It has properties that correspond to
-the [=constants=] and
-[=static operations=]
-defined on that interface, as described in sections
-[[#es-constants]] and
-[[#es-operations]].
-
-The \[[Prototype]] internal property of
-an interface object for a non-callback interface is determined as
-follows:
-
-1.  If the interface inherits from some other interface, the value
-    of \[[Prototype]] is the interface
-    object for that other interface.
-1.  If the interface doesn't inherit from any other interface,
-    the value of \[[Prototype]] is
-    [=%FunctionPrototype%=].
-
-An interface object for a non-callback interface must have a property named “prototype”
-with attributes
-{ \[[Writable]]: <emu-val>false</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>false</emu-val> }
-whose value is an object called the <dfn id="dfn-interface-prototype-object" export>interface prototype object</dfn>.  This object has properties
-that correspond to the [=regular attributes=] and
-[=regular operations=] defined on the interface,
-and is described in more detail in
-[[#interface-prototype-object]].
-
-Note: Since an interface object for a non-callback interface is a [=function object=] the <code>typeof</code> operator will return
-"function" when applied to
-such an interface object.
-
-The internal \[[Prototype]] property
-of an interface object for a callback interface must be
-the Function.prototype object.
-
-Note: Remember that interface objects for callback interfaces only exist if they have
-[=constants=] declared on them;
-when they do exist, they are not [=function objects=].
-
-
-<h5 id="es-constructible-interfaces" oldids="es-interface-call">Constructible Interfaces</h5>
+The [=interface object=] for a given [=interface=] is a [=function object=]
+It has properties that correspond to the [=constants=] and [=static operations=]
+defined on that interface,
+as described in sections [[#es-constants]] and [[#es-operations]].
 
 If the [=interface=] is declared with a [{{Constructor}}] [=extended attribute=],
 then the [=interface object=] can be called as a constructor
 to create an object that implements that interface.
 Calling that interface as a function will throw an exception.
 
-Interfaces that are not declared with a [{{Constructor}}] [=extended attribute=] will throw when called,
+[=Interface objects=] whose [=interfaces=] are not declared
+with a [{{Constructor}}] [=extended attribute=] will throw when called,
 both as a function and as a constructor.
 
-<div algorithm="to construct an object implementing an interface">
+An [=interface object=] for a non-callback [=interface=]
+has an associated object called the [=interface prototype object=].
+This object has properties that correspond to
+the [=regular attributes=] and [=regular operations=] defined on the interface,
+and is described in more detail in [[#interface-prototype-object]].
 
-    When evaluating the [=function object=] |F|,
-    which is the interface object for a given non-callback [=interface=] |I|,
-    assuming |arg|<sub>0..|n|−1</sub> as the list of argument values passed |F|,
-    the following steps must be taken:
+Note: Since an [=interface object=] is a [=function object=]
+the <code>typeof</code> operator will return "function" when applied to an interface object.
 
-    1.  If |I| was not declared with a [{{Constructor}}]
-        [=extended attribute=], then
-        [=ECMAScript/throw=] a <emu-val>TypeError</emu-val>.
-    1.  If [=NewTarget=] is <emu-val>undefined</emu-val>, then
-        [=ECMAScript/throw=] a <emu-val>TypeError</emu-val>.
-    1.  Let |id| be the identifier of interface |I|.
-    1.  Initialize |S| to the
-        [=effective overload set=]
-        for constructors with [=identifier=]
-        |id| on [=interface=]
-        |I| and with argument count |n|.
-    1.  Let &lt;|constructor|, |values|&gt; be the result of passing |S| and
-        |arg|<sub>0..|n|−1</sub> to the
-        [=overload resolution algorithm=].
-    1.  Let |R| be the result of performing the actions listed in the description of
-        |constructor| with |values| as the argument values. Rethrow any exceptions.
-    1.  Let |O| be the result of [=converted to an ECMAScript value|converting=]
-        |R| to an ECMAScript [=interface type=] value |I|.
-    1.  Assert: |O| is an object that implements |I|.
-    1.  Assert: |O|.\[[Realm]] is equal to |F|.\[[Realm]].
-    1.  Return |O|.
+<div algorithm="to create an interface object">
+
+    The [=interface object=]
+    for a given non-callback [=interface=] |I| with [=identifier=] |id|
+    and [=Realm=] |realm| is created as follows:
+
+    1.  Let |steps| be the following steps:
+        1.  If |I| was not declared with a [{{Constructor}}] [=extended attribute=],
+            then [=ECMAScript/throw=] a <emu-val>TypeError</emu-val>.
+        1.  If [=NewTarget=] is <emu-val>undefined</emu-val>, then
+            [=ECMAScript/throw=] a <emu-val>TypeError</emu-val>.
+        1.  Let |arg|<sub>0..|n|−1</sub> be arguments.
+        1.  Let |id| be the identifier of interface |I|.
+        1.  Initialize |S| to the [=effective overload set=]
+            for constructors with [=identifier=] |id|
+            on [=interface=] |I| and with argument count |n|.
+        1.  Let &lt;|constructor|, |values|&gt; be the result
+            of passing |S| and |arg|<sub>0..|n|−1</sub>.
+            to the [=overload resolution algorithm=].
+        1.  Let |R| be the result of performing
+            the actions listed in the description of |constructor|
+            with |values| as the argument values.
+            Rethrow any exceptions.
+        1.  Let |O| be the result of [=converted to an ECMAScript value|converting=] |R|
+            to an ECMAScript [=interface type=] value |I|.
+        1.  Assert: |O| is an object that implements |I|.
+        1.  Assert: |O|.\[[Realm]] is equal to |F|.\[[Realm]].
+        1.  Return |O|.
+    1.  Let |proto| be the [=%FunctionPrototype%=] of |realm|.
+    1.  If |I| inherits from some other interface |P|,
+        then set |proto| to the [=interface object=] of |P|.
+    1.  Let |F| be [=!=] [=CreateBuiltinFunction=](|realm|, |steps|, |proto|).
+    1.  Perform [=!=] [=SetFunctionName=](|F|, |id|).
+    1.  Let |length| be 0.
+    1.  If |I| was declared with a [{{Constructor}}] [=extended attribute=], then
+        1.  Initialize |S| to the [=effective overload set=]
+            for constructors with [=identifier=] |id| on [=interface=] |I| and
+            with argument count 0.
+        1.  Set |length| to the length of the
+            shortest argument list of the entries in |S|.
+    1.  Perform [=!=] [=DefinePropertyOrThrow=](|F|, "length",
+        PropertyDescriptor{\[[Value]]: |length|, \[[Writable]]: <emu-val>false</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val>}).
+    1.  Let |obj| be the [=interface prototype object=] of [=interface=] |I|.
+    1.  Perform [=!=] [=DefinePropertyOrThrow=](|F|, "prototype",
+        PropertyDescriptor{\[[Value]]: |obj|, \[[Writable]]: <emu-val>false</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>false</emu-val>}).
 </div>
 
-<div algorithm="determine value of length property of non-callback interfaces">
-
-    Interface objects for non-callback interfaces must have a property named “length” with attributes
-    { \[[Writable]]: <emu-val>false</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val> }
-    whose value is a <emu-val>Number</emu-val>.
-    If the [{{Constructor}}] [=extended attribute=]
-    does not appear on the interface definition, then the value is 0.
-    Otherwise, the value is determined as follows:
-
-    1.  Let |id| be the identifier of interface |I|.
-    1.  Initialize |S| to the
-        [=effective overload set=]
-        for constructors with
-        [=identifier=]
-        |id| on [=interface=]
-        |I| and with argument count 0.
-    1.  Return the length of the shortest argument list of the entries in |S|.
-</div>
-
-All interface objects must have a
-property named “name” with attributes { \[[Writable]]: <emu-val>false</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val> }
-whose value is the identifier of the corresponding interface.
-
-
-<h5 id="es-interface-hasinstance">Interface object \[[HasInstance]] method</h5>
+<h5 id="es-interface-hasinstance">\[[HasInstance]]</h5>
 
 <div algorithm="to invoke the internal [[HasInstance]] method of interface objects">
 
-    The internal \[[HasInstance]] method of
-    every [=interface object=] |A| must behave as follows,
-    assuming |V| is the object argument passed to \[[HasInstance]]:
+    The internal \[[HasInstance]] method of every [=interface object=] |A|
+    must behave as follows, assuming |V| is the object argument passed to \[[HasInstance]]:
 
     1.  If Type(|V|) is not Object, return <emu-val>false</emu-val>.
-    1.  Let |O| be the result of calling the \[[Get]] method of |A| with property name “prototype”.
+    1.  Let |O| be [=?=] [=Get=](|A|, "prototype").
     1.  If Type(|O|) is not Object, [=ECMAScript/throw=] a <emu-val>TypeError</emu-val> exception.
-    1.  If |V| is a platform object that implements the
-        interface for which |O| is the [=interface prototype object=],
+    1.  If |V| is a [=platform object=] that implements the interface
+        for which |O| is the [=interface prototype object=],
         return <emu-val>true</emu-val>.
     1.  Repeat:
         1.  Set |V| to the value of the \[[Prototype]] internal property of |V|.
@@ -10129,87 +10081,67 @@ which allows construction of objects that
 implement the interface on which the
 [{{NamedConstructor}}] extended attributes appear.
 
-<div algorithm="named constructor">
+If the internal \[[Call]] method of the [=named constructor=] returns normally,
+then it must return an object that implements interface |I|.
+This object also must be associated with the ECMAScript global environment
+associated with the [=named constructor=].
 
-    It behaves as follows, assuming |arg|<sub>0..|n|−1</sub> is the list
-    of argument values passed to the constructor,
-    |id| is the identifier of the constructor specified in the
-    extended attribute [=takes a named argument list|named argument list=],
-    and |I| is the [=interface=] on which the
-    [{{NamedConstructor}}] extended attribute appears:
+<div algorithm="to create an named constructor">
 
-    1.  Initialize |S| to the
-        [=effective overload set=]
-        for constructors with [=identifier=]
-        |id| on [=interface=]
-        |I| and with argument count |n|.
-    1.  Let &lt;|constructor|, |values|&gt; be the result of passing |S| and
-        |arg|<sub>0..|n|−1</sub> to the
-        [=overload resolution algorithm=].
-    1.  Let |R| be the result of performing the actions listed in the description of
-        |constructor| with |values| as the argument values.
-    1.  Return the result of [=converted to an ECMAScript value|converting=]
-        |R| to an ECMAScript [=interface type=] value |I|.
+    Assuming |id| is the [=NamedConstructor identifier|identifier=] of the constructor
+    |I| is the [=interface=] on which the [{{NamedConstructor}}] extended attribute appears,
+    and |realm| is the [=Realm=], a [=named constructor=] is created as follows:
+
+    1.  Let |steps| be the following steps:
+        1.  If [=NewTarget=] is <emu-val>undefined</emu-val>, then
+            [=ECMAScript/throw=] a <emu-val>TypeError</emu-val>.
+        1.  Let |arg|<sub>0..|n|−1</sub> be arguments.
+        1.  Initialize |S| to the  [=effective overload set=]
+            for constructors with [=identifier=] |id| on [=interface=] |I|
+            and with argument count |n|.
+        1.  Let &lt;|constructor|, |values|&gt; be the result of passing |S| and
+            |arg|<sub>0..|n|−1</sub> to the
+            [=overload resolution algorithm=].
+        1.  Let |R| be the result of performing the actions listed in the description of
+            |constructor| with |values| as the argument values.
+        1.  Return the result of [=converted to an ECMAScript value|converting=]
+            |R| to an ECMAScript [=interface type=] value |I|.
+    1.  Let |F| be [=!=] [=CreateBuiltinFunction=](|realm|, |steps|, [=%FunctionPrototype%=] of |realm|).
+    1.  Perform [=!=] [=SetFunctionName=](|F|, |id|).
+    1.  Initialize |S| to the [=effective overload set=]
+        for constructors with identifier |id| on [=interface=] |I|
+        and with argument count 0.
+    1.  Let |length| be the length of the shortest argument list of the entries in |S|.
+    1.  Perform [=!=] [=DefinePropertyOrThrow=](|F|, "length",
+        PropertyDescriptor{\[[Value]]: |length|, \[[Writable]]: <emu-val>false</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val>}).
+    1.  Let |obj| be the [=interface prototype object=] of [=interface=] |I|.
+    1.  Perform [=!=] [=DefinePropertyOrThrow=](|F|, "prototype",
+        PropertyDescriptor{\[[Value]]: |obj|, \[[Writable]]: <emu-val>false</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>false</emu-val>}).
 </div>
-
-If the internal \[[Call]] method
-of the [=named constructor=]
-returns normally, then it must
-return an object that implements interface |I|.
-This object also must be
-associated with the ECMAScript global environment associated
-with the [=named constructor=].
-
-<div algorithm="determine value of length property of named constructors">
-
-    A named constructor must have a property named “length” with attributes
-    { \[[Writable]]: <emu-val>false</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val> }
-    whose value is a <emu-val>Number</emu-val> determined as follows:
-
-    1.  Initialize |S| to the [=effective overload set=] for constructors with
-        [=identifier=] <var ignore>id</var> on [=interface=] <var ignore>I</var> and with argument count 0.
-    1.  Return the length of the shortest argument list of the entries in |S|.
-</div>
-
-A named constructor must have a property named “name”
-with attributes { \[[Writable]]: <emu-val>false</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val> }
-whose value is the identifier used for the named constructor.
-
-A named constructor must also have a property named
-“prototype” with attributes
-{ \[[Writable]]: <emu-val>false</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>false</emu-val> }
-whose value is the [=interface prototype object=]
-for the [=interface=] on which the
-[{{NamedConstructor}}]
-[=extended attribute=]
-appears.
 
 
 <h4 id="interface-prototype-object">Interface prototype object</h4>
 
-There must exist an
-[=interface prototype object=] for every non-callback [=interface=]
-defined, regardless of whether the interface was declared with the
-[{{NoInterfaceObject}}]
-[=extended attribute=].
-The interface prototype object for a particular interface has
-properties that correspond to the [=regular attributes=]
-and [=regular operations=]
-defined on that interface.  These properties are described in more detail in
-sections [[#es-attributes]] and
-[[#es-operations]].
+There must exist an <dfn id="dfn-interface-prototype-object" export>interface prototype object</dfn>
+for every non-callback [=interface=] defined,
+regardless of whether the interface was declared
+with the [{{NoInterfaceObject}}] [=extended attribute=].
+The interface prototype object for a particular interface
+has properties that correspond to the [=regular attributes=] and [=regular operations=]
+defined on that interface.
+These properties are described in more detail
+in sections [[#es-attributes]] and [[#es-operations]].
 
 As with the [=interface object=],
-the interface prototype object also has properties that correspond to the
-[=constants=] defined on that
-interface, described in [[#es-operations]].
+the interface prototype object also has properties that
+correspond to the [=constants=] defined on that interface,
+described in [[#es-operations]].
 
-If the [{{NoInterfaceObject}}]
-extended attribute was not specified on the interface, then
-the interface prototype object must
-also have a property named “constructor” with attributes
-{ \[[Writable]]: <emu-val>true</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val> } whose value
-is a reference to the interface object for the interface.
+If the [{{NoInterfaceObject}}] extended attribute was not specified on the interface,
+then the interface prototype object must also
+have a property named “constructor” with attributes
+{ \[[Writable]]: <emu-val>true</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val> }
+whose value is a reference to the interface object for the interface.
 
 <div algorithm="value of internal prototype property">
 
@@ -10294,11 +10226,54 @@ of [=inherited interfaces=] for any
 other interface that is declared with one of these attributes, then the [=interface prototype object=]
 must be an [=immutable prototype exotic object=].
 
-The [=class string=] of an
-[=interface prototype object=]
-is the concatenation of the [=interface=]’s
-[=identifier=] and the string
-“Prototype”.
+The [=class string=] of an [=interface prototype object=] is the concatenation of
+the [=interface=]’s [=identifier=] and the string “Prototype”.
+
+
+<h4 id="legacy-callback-interface-object">Legacy callback interface object</h4>
+
+For every callback [=interface=] that is [=exposed=] in
+a given ECMAScript global environment
+and on which [=constants=] are defined,
+a corresponding property must exist on the ECMAScript environment's global object.
+The name of the property is the [=identifier=] of the interface,
+and its value is an object called the
+<dfn id="dfn-legacy-callback-interface-object" export>legacy callback interface object</dfn>.
+The property has the attributes { \[[Writable]]: <emu-val>true</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val> }.
+The characteristics of a legacy callback interface object are described in [[#legacy-callback-interface-object]].
+
+The [=legacy callback interface object=] for a given [=callback interface=]
+is a [=function object=].
+It has properties that correspond to the [=constants=] defined on that interface,
+as described in sections [[#es-constants]].
+
+Note: Since a legacy callback interface object is a [=function object=]
+the <code>typeof</code> operator will return "function"
+when applied to a [=legacy callback interface object=].
+
+<div algorithm="to create a legacy callback interface object">
+
+    The [=legacy callback interface object=]
+    for a given [=callback interface=] with [=identifier=] |id|
+    and [=Realm=] |realm| is created as follows:
+
+    1.  Let |steps| be the following steps:
+        1.  [=ECMAScript/throw=] a <emu-val>TypeError</emu-val>.
+    1.  Let |F| be [=!=] [=CreateBuiltinFunction=](|realm|, |steps|, the [=%FunctionPrototype%=] of |realm|).
+    1.  Perform [=!=] [=SetFunctionName=](|F|, |id|).
+    1.  Perform [=!=] [=DefinePropertyOrThrow=](|F|, "length",
+        PropertyDescriptor{\[[Value]]: 0, \[[Writable]]: <emu-val>false</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val>}).
+</div>
+
+<h5 id="es-legacy-callback-interface-object-hasinstance">\[[HasInstance]]</h5>
+
+<div algorithm="to invoke the internal [[HasInstance]] method of legacy callback interface objects">
+
+    The internal \[[HasInstance]] method of a [=legacy callback interface object=]
+    must behave as follows:
+
+    1.  [=ECMAScript/throw=] a <emu-val>TypeError</emu-val> exception.
+</div>
 
 
 <h4 id="named-properties-object">Named properties object</h4>
@@ -10432,7 +10407,8 @@ The property has the following characteristics:
 *   The property has attributes { \[[Writable]]: <emu-val>false</emu-val>, \[[Enumerable]]: <emu-val>true</emu-val>, \[[Configurable]]: <emu-val>false</emu-val> }.
 
 In addition, a property with the same characteristics must
-exist on the [=interface object=], if that object exists.
+exist on the [=interface object=] or the [=legacy callback interface object=],
+if either of those objects exists.
 
 
 <h4 id="es-attributes">Attributes</h4>
