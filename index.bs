@@ -10007,14 +10007,14 @@ the <code>typeof</code> operator will return "function" when applied to an inter
 
     The [=interface object=]
     for a given non-callback [=interface=] |I| with [=identifier=] |id|
-    and [=Realm=] |realm| is created as follows:
+    and in [=Realm=] |realm| is created as follows:
 
     1.  Let |steps| be the following steps:
         1.  If |I| was not declared with a [{{Constructor}}] [=extended attribute=],
             then [=ECMAScript/throw=] a <emu-val>TypeError</emu-val>.
         1.  If [=NewTarget=] is <emu-val>undefined</emu-val>, then
             [=ECMAScript/throw=] a <emu-val>TypeError</emu-val>.
-        1.  Let |arg|<sub>0..|n|−1</sub> be arguments.
+        1.  Let |arg|<sub>0..|n|−1</sub> be the passed arguments.
         1.  Let |id| be the identifier of interface |I|.
         1.  Initialize |S| to the [=effective overload set=]
             for constructors with [=identifier=] |id|
@@ -10031,10 +10031,10 @@ the <code>typeof</code> operator will return "function" when applied to an inter
         1.  Assert: |O| is an object that implements |I|.
         1.  Assert: |O|.\[[Realm]] is equal to |F|.\[[Realm]].
         1.  Return |O|.
-    1.  Let |proto| be the [=%FunctionPrototype%=] of |realm|.
+    1.  Let |constructorProto| be the [=%FunctionPrototype%=] of |realm|.
     1.  If |I| inherits from some other interface |P|,
-        then set |proto| to the [=interface object=] of |P|.
-    1.  Let |F| be [=!=] [=CreateBuiltinFunction=](|realm|, |steps|, |proto|).
+        then set |constructorProto| to the [=interface object=] of |P| in |realm|.
+    1.  Let |F| be [=!=] [=CreateBuiltinFunction=](|realm|, |steps|, |constructorProto|).
     1.  Perform [=!=] [=SetFunctionName=](|F|, |id|).
     1.  Let |length| be 0.
     1.  If |I| was declared with a [{{Constructor}}] [=extended attribute=], then
@@ -10045,9 +10045,9 @@ the <code>typeof</code> operator will return "function" when applied to an inter
             shortest argument list of the entries in |S|.
     1.  Perform [=!=] [=DefinePropertyOrThrow=](|F|, "length",
         PropertyDescriptor{\[[Value]]: |length|, \[[Writable]]: <emu-val>false</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val>}).
-    1.  Let |obj| be the [=interface prototype object=] of [=interface=] |I|.
+    1.  Let |proto| be the [=interface prototype object=] of [=interface=] |I|.
     1.  Perform [=!=] [=DefinePropertyOrThrow=](|F|, "prototype",
-        PropertyDescriptor{\[[Value]]: |obj|, \[[Writable]]: <emu-val>false</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>false</emu-val>}).
+        PropertyDescriptor{\[[Value]]: |proto|, \[[Writable]]: <emu-val>false</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>false</emu-val>}).
 </div>
 
 <h5 id="es-interface-hasinstance">\[[HasInstance]]</h5>
@@ -10075,27 +10075,25 @@ the <code>typeof</code> operator will return "function" when applied to an inter
 
 A [=named constructor=] that exists due to one or more
 [{{NamedConstructor}}] [=extended attributes=]
-with a given [=identifier=] is a [=function object=].
-It must have a \[[Call]] internal property,
-which allows construction of objects that
+with a given [=NamedConstructor identifier|identifier=] is a [=function object=].
+It allows constructing objects that
 implement the interface on which the
 [{{NamedConstructor}}] extended attributes appear.
 
-If the internal \[[Call]] method of the [=named constructor=] returns normally,
-then it must return an object that implements interface |I|.
+If the actions listed in the description of the constructor return normally,
+then the [=named constructor=] must return an object that implements interface |I|.
 This object also must be associated with the ECMAScript global environment
 associated with the [=named constructor=].
 
 <div algorithm="to create an named constructor">
 
-    Assuming |id| is the [=NamedConstructor identifier|identifier=] of the constructor
-    |I| is the [=interface=] on which the [{{NamedConstructor}}] extended attribute appears,
-    and |realm| is the [=Realm=], a [=named constructor=] is created as follows:
+    The [=named constructor=] with [=NamedConstructor identifier|identifier=] |id|
+    for a given [=interface=] |I| in Realm |realm| is created as follows:
 
     1.  Let |steps| be the following steps:
         1.  If [=NewTarget=] is <emu-val>undefined</emu-val>, then
             [=ECMAScript/throw=] a <emu-val>TypeError</emu-val>.
-        1.  Let |arg|<sub>0..|n|−1</sub> be arguments.
+        1.  Let |arg|<sub>0..|n|−1</sub> be the passed arguments.
         1.  Initialize |S| to the  [=effective overload set=]
             for constructors with [=identifier=] |id| on [=interface=] |I|
             and with argument count |n|.
@@ -10114,9 +10112,9 @@ associated with the [=named constructor=].
     1.  Let |length| be the length of the shortest argument list of the entries in |S|.
     1.  Perform [=!=] [=DefinePropertyOrThrow=](|F|, "length",
         PropertyDescriptor{\[[Value]]: |length|, \[[Writable]]: <emu-val>false</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val>}).
-    1.  Let |obj| be the [=interface prototype object=] of [=interface=] |I|.
+    1.  Let |proto| be the [=interface prototype object=] of [=interface=] |I|.
     1.  Perform [=!=] [=DefinePropertyOrThrow=](|F|, "prototype",
-        PropertyDescriptor{\[[Value]]: |obj|, \[[Writable]]: <emu-val>false</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>false</emu-val>}).
+        PropertyDescriptor{\[[Value]]: |proto|, \[[Writable]]: <emu-val>false</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>false</emu-val>}).
 </div>
 
 
@@ -10133,15 +10131,15 @@ These properties are described in more detail
 in sections [[#es-attributes]] and [[#es-operations]].
 
 As with the [=interface object=],
-the interface prototype object also has properties that
+the [=interface prototype object=] also has properties that
 correspond to the [=constants=] defined on that interface,
 described in [[#es-operations]].
 
 If the [{{NoInterfaceObject}}] extended attribute was not specified on the interface,
-then the interface prototype object must also
+then the [=interface prototype object=] must also
 have a property named “constructor” with attributes
 { \[[Writable]]: <emu-val>true</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val> }
-whose value is a reference to the interface object for the interface.
+whose value is a reference to the [=interface object=] for the interface.
 
 <div algorithm="value of internal prototype property">
 
@@ -10255,10 +10253,10 @@ when applied to a [=legacy callback interface object=].
 
     The [=legacy callback interface object=]
     for a given [=callback interface=] with [=identifier=] |id|
-    and [=Realm=] |realm| is created as follows:
+    and in [=Realm=] |realm| is created as follows:
 
     1.  Let |steps| be the following steps:
-        1.  [=ECMAScript/throw=] a <emu-val>TypeError</emu-val>.
+        1.  [=ECMAScript/Throw=] a <emu-val>TypeError</emu-val>.
     1.  Let |F| be [=!=] [=CreateBuiltinFunction=](|realm|, |steps|, the [=%FunctionPrototype%=] of |realm|).
     1.  Perform [=!=] [=SetFunctionName=](|F|, |id|).
     1.  Perform [=!=] [=DefinePropertyOrThrow=](|F|, "length",
@@ -10272,7 +10270,7 @@ when applied to a [=legacy callback interface object=].
     The internal \[[HasInstance]] method of a [=legacy callback interface object=]
     must behave as follows:
 
-    1.  [=ECMAScript/throw=] a <emu-val>TypeError</emu-val> exception.
+    1.  [=ECMAScript/Throw=] a <emu-val>TypeError</emu-val> exception.
 </div>
 
 
