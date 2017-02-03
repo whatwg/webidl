@@ -116,6 +116,7 @@ urlPrefix: https://tc39.github.io/ecma262/; spec: ECMA-262
         url: sec-code-realms
             text: Realm
             text: ECMAScript global environment
+        text: current Realm; url: current-realm
         text: Completion; url: sec-completion-record-specification-type
         text: ObjectCreate; url: sec-objectcreate
         text: CreateBuiltinFunction; url: sec-createbuiltinfunction
@@ -6385,8 +6386,8 @@ it has characteristics as follows:
 
 When an algorithm says to
 <dfn noexport lt="ECMAScript throw" local-lt="throw" for="ECMAScript" id="ecmascript-throw">throw</dfn> a <emu-val><i>Something</i>Error</emu-val>
-then this means to construct a new ECMAScript <emu-val><i>Something</i>Error</emu-val> object
-and to throw it, just as the algorithms in ECMA-262 do.
+then this means to construct a new ECMAScript <emu-val><i>Something</i>Error</emu-val> object in
+the [=current Realm=] and to throw it, just as the algorithms in ECMA-262 do.
 
 Note that algorithm steps can call in to other algorithms and abstract operations and
 not explicitly handle exceptions that are thrown from them.  When an exception
@@ -12515,128 +12516,77 @@ on exception objects too.
 
 <h3 id="es-creating-throwing-exceptions">Creating and throwing exceptions</h3>
 
-<div algorithm>
-
-    First, we define the <dfn id="dfn-current-global-environment" export>current global environment</dfn>
-    as the result of running the following algorithm:
-
-    1.  Let |F| be the <emu-val>Function</emu-val> object used
-        as the <emu-val>this</emu-val> value in the top-most call
-        on the ECMAScript call stack where |F| corresponds to an IDL
-        [=attribute=],
-        [=operation=],
-        [=indexed property=],
-        [=named property=],
-        <a href="#Constructor">constructor</a>,
-        [=named constructor=] or
-        [=stringifier=].
-    1.  If |F| corresponds to an attribute, operation or stringifier, then return
-        the global environment associated with the
-        [=interface=] that definition appears on.
-    1.  Otherwise, if |F| corresponds to an indexed or named property, then return
-        the global environment associated with the interface that
-        the indexed or named property getter, setter or deleter was defined on.
-    1.  Otherwise, if |F| is a named constructor for an interface, or is
-        an [=interface object=] for an
-        interface that is a constructor, then return the global environment
-        associated with that interface.
-    1.  Otherwise, |F| is an exception field getter. Return
-        the global environment associated with the exception on which the
-        exception field was defined.
-</div>
 
 <div algorithm="to create a simple exception or DOMException">
 
-    When a [=simple exception=] or {{DOMException}} |E| is to be [=created=],
-    with [=error name=] |N| and optional user agent-defined message |M|,
-    the following steps must be followed:
+    To [=create=] a [=simple exception=] or {{DOMException}} |E|, with a string giving the
+    [=error name=] |N| for the {{DOMException}} case and optionally a string giving a user
+    agent-defined message |M|:
 
-    1.  If |M| was not specified, let |M| be <emu-val>undefined</emu-val>. Otherwise, let it be the result of [=converted to an ECMAScript value|converting=] |M| to a <emu-val>String</emu-val> value.
-    1.  Let |N| be the result of [=converted to an ECMAScript value|converting=] |N| to a <emu-val>String</emu-val> value.
-    1.  Let |args| be a list of ECMAScript values.
+    1.  If |M| was not specified, let |M| be <emu-val>undefined</emu-val>.
+    1.  Let |args| be a list of ECMAScript values determined based on the type of |E|:
         <dl class="switch">
              :  |E| is {{DOMException}}
-             :: |args| is (<emu-val>undefined</emu-val>, |N|).
+             :: |args| is «|M|, |N|».
              :  |E| is a [=simple exception=]
-             :: |args| is (|M|)
+             :: |args| is «|M|».
         </dl>
-    1.  Let |G| be the [=current global environment=].
     1.  Let |X| be an object determined based on the type of |E|:
         <dl class="switch">
              :  |E| is {{DOMException}}
              :: |X| is the [=DOMException constructor object=]
-                from the global environment |G|.
+                from the [=current Realm=].
              :  |E| is a [=simple exception=]
              :: |X| is the constructor for the corresponding ECMAScript error
-                from the global environment |G|.
+                from the [=current Realm=].
         </dl>
-    1.  Let |O| be the result of calling |X| as a function
-        with |args| as the argument list.
-    1.  Return |O|.
+    1.  Return [=!=] [=Construct=](|X|, |args|).
 </div>
 
 <div algorithm="throw an exception">
 
-    When a [=simple exception=] or {{DOMException}} |E| is to be [=exception/throw|thrown=],
-    with [=error name=] |N| and optional user agent-defined message |M|,
-    the following steps must be followed:
+    To [=exception/throw=] a [=simple exception=] or {{DOMException}}, with a string giving the
+    [=error name=] for the {{DOMException}} case and optionally a string giving a user
+    agent-defined message:
 
-    1.  Let |O| be the result of [=created|creating=]
-        the specified exception |E| with [=error name=] |N| and
-        optional user agent-defined message |M|.
+    1.  Let |O| be the result of [=created|creating an exception=] with the same arguments.
     1.  Throw |O|.
 </div>
 
 <div class="note">
 
-    The above algorithms do not restrict [=Exception objects|platform objects representing exceptions=]
-    propagating out of a <emu-val>Function</emu-val> to be
-    ones that are associated with the global environment
-    where that <emu-val>Function</emu-val> object originated.
-    For example, consider the IDL:
+    The above algorithms restrict [=Exception objects|objects representing exceptions=] propagating
+    out of a <emu-val>Function</emu-val> to be ones that are associated with the [=Realm=] of that
+    <emu-val>Function</emu-val> object (i.e., the [=current Realm=] at the time the function
+    executes). For example, consider the IDL:
 
     <pre highlight="webidl">
-        interface A {
-
-          /**
-           * Calls computeSquareRoot on m, passing x as its argument.
-           */
-          double doComputation(MathUtils m, double x);
-        };
-
         interface MathUtils {
-          /**
-           * If x is negative, throws a <a href="#notsupportederror">NotSupportedError</a>.  Otherwise, returns
-           * the square root of x.
-           */
+          // If x is negative, throws a "<a href="#notsupportederror">NotSupportedError</a>" <a href="dfn-DOMException">DOMException</a>.
           double computeSquareRoot(double x);
         };
     </pre>
 
-    If we pass a <code class="idl">MathUtils</code> object from
-    a different global environment to doComputation, then the exception
-    thrown will be from that global environment:
+    If we apply <code class="idl">computeSquareRoot</code> to a <code class="idl">MathUtils</code>
+    object from a different [=Realm=], then the exception thrown will be from the [=Realm=] of the
+    method, not the object it is applied to:
 
     <pre highlight="js">
-        var a = getA();                           // An A object from this global environment.
-        var m = otherWindow.getMathUtils();       // A MathUtils object from a different global environment.
+        const myMU = window.getMathUtils();          // A MathUtils object from this Realm
+        const otherMU = otherWindow.getMathUtils();  // A MathUtils object from a different Realm
 
-        a instanceof Object;                      // Evaluates to true.
-        m instanceof Object;                      // Evaluates to false.
-        m instanceof otherWindow.Object;          // Evaluates to true.
+        myMU instanceof Object;                      // Evaluates to true.
+        otherMU instanceof Object;                   // Evaluates to false.
+        otherMU instanceof otherWindow.Object;       // Evaluates to true.
 
         try {
-          a.doComputation(m, -1);
+          otherMU.doComputation.call(myMU, -1);
         } catch (e) {
-          e instanceof DOMException;              // Evaluates to false.
-          e instanceof otherWindow.DOMException;  // Evaluates to true.
+          console.assert(!(e instanceof DOMException));
+          console.assert(e instanceof otherWindow.DOMException);
         }
     </pre>
 </div>
-
-Any requirements in this document to throw an instance of an ECMAScript built-in
-<emu-val>Error</emu-val> must use
-the built-in from the [=current global environment=].
 
 
 <h3 id="es-handling-exceptions">Handling exceptions</h3>

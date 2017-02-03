@@ -1177,7 +1177,7 @@ Possible extra rowspan handling
 		}
 	}
 </style>
-  <meta content="Bikeshed version 90eb18a0d2a7680cdd94ecc3b342163de5a3fd43" name="generator">
+  <meta content="Bikeshed version 03d78578ed8eff62da4ee0feae56c86cce1dbd7e" name="generator">
 <style>
         pre.set {
           font-size: 80%;
@@ -1567,7 +1567,7 @@ pre.idl.highlight { color: #708090; }
   <div class="head">
    <p data-fill-with="logo"><a class="logo" href="http://www.w3.org/"> <img alt="W3C" height="48" src="https://www.w3.org/StyleSheets/TR/2016/logos/W3C" width="72"> </a> </p>
    <h1 class="p-name no-ref" id="title">Web IDL</h1>
-   <h2 class="no-num no-toc no-ref heading settled" id="subtitle"><span class="content">Editor’s Draft, <time class="dt-updated" datetime="2017-02-03">3 February 2017</time></span></h2>
+   <h2 class="no-num no-toc no-ref heading settled" id="subtitle"><span class="content">Editor’s Draft, <time class="dt-updated" datetime="2017-02-06">6 February 2017</time></span></h2>
    <div data-fill-with="spec-metadata">
     <dl>
      <dt>This version:
@@ -6280,8 +6280,8 @@ it has characteristics as follows:</p>
    <p class="issue" id="issue-459a816a"><a class="self-link" href="#issue-459a816a"></a> The list above needs updating for the latest ES6 draft. </p>
    <p id="ecmascript-abstractop"> Algorithms in this section use the conventions described in <a data-link-type="dfn" href="https://tc39.github.io/ecma262/#sec-algorithm-conventions">ECMA-262 section 5.2</a>, such as the use of steps and substeps, the use of mathematical
     operations, and so on.  The <a data-link-type="dfn" href="https://tc39.github.io/ecma262/#sec-toboolean">ToBoolean</a>, <a data-link-type="dfn" href="https://tc39.github.io/ecma262/#sec-tonumber">ToNumber</a>, <a data-link-type="dfn" href="https://tc39.github.io/ecma262/#sec-touint16">ToUint16</a>, <a data-link-type="dfn" href="https://tc39.github.io/ecma262/#sec-toint32">ToInt32</a>, <a data-link-type="dfn" href="https://tc39.github.io/ecma262/#sec-touint32">ToUint32</a>, <a data-link-type="dfn" href="https://tc39.github.io/ecma262/#sec-tostring">ToString</a>, <a data-link-type="dfn" href="https://tc39.github.io/ecma262/#sec-toobject">ToObject</a>, <a data-link-type="dfn" href="https://tc39.github.io/ecma262/#sec-isaccessordescriptor">IsAccessorDescriptor</a> and <a data-link-type="dfn" href="https://tc39.github.io/ecma262/#sec-isdatadescriptor">IsDataDescriptor</a> abstract operations and the <a data-link-type="dfn" href="https://tc39.github.io/ecma262/#sec-ecmascript-data-types-and-values">Type(x)</a> notation referenced in this section are defined in ECMA-262 sections 6 and 7. </p>
-   <p>When an algorithm says to <dfn class="dfn-paneled" data-dfn-for="ECMAScript" data-dfn-type="dfn" data-local-lt="throw" data-lt="ECMAScript throw" data-noexport="" id="ecmascript-throw">throw</dfn> a <emu-val><i>Something</i>Error</emu-val> then this means to construct a new ECMAScript <emu-val><i>Something</i>Error</emu-val> object
-and to throw it, just as the algorithms in ECMA-262 do.</p>
+   <p>When an algorithm says to <dfn class="dfn-paneled" data-dfn-for="ECMAScript" data-dfn-type="dfn" data-local-lt="throw" data-lt="ECMAScript throw" data-noexport="" id="ecmascript-throw">throw</dfn> a <emu-val><i>Something</i>Error</emu-val> then this means to construct a new ECMAScript <emu-val><i>Something</i>Error</emu-val> object in
+the <a data-link-type="dfn" href="https://tc39.github.io/ecma262/#current-realm">current Realm</a> and to throw it, just as the algorithms in ECMA-262 do.</p>
    <p>Note that algorithm steps can call in to other algorithms and abstract operations and
 not explicitly handle exceptions that are thrown from them.  When an exception
 is thrown by an algorithm or abstract operation and it is not explicitly
@@ -12056,127 +12056,77 @@ If an implementation places non-standard properties on native <emu-val>Error</em
 stack traces or error line numbers, then these ought to be exposed
 on exception objects too.</p>
    <h3 class="heading settled" data-level="3.15" id="es-creating-throwing-exceptions"><span class="secno">3.15. </span><span class="content">Creating and throwing exceptions</span><a class="self-link" href="#es-creating-throwing-exceptions"></a></h3>
-   <div class="algorithm" data-algorithm="current global environment">
-    <p>First, we define the <dfn class="dfn-paneled" data-dfn-type="dfn" data-export="" id="dfn-current-global-environment">current global environment</dfn> as the result of running the following algorithm:</p>
-    <ol>
-     <li data-md="">
-      <p>Let <var>F</var> be the <emu-val>Function</emu-val> object used
-as the <emu-val>this</emu-val> value in the top-most call
-on the ECMAScript call stack where <var>F</var> corresponds to an IDL <a data-link-type="dfn" href="#dfn-attribute" id="ref-for-dfn-attribute-59">attribute</a>, <a data-link-type="dfn" href="#dfn-operation" id="ref-for-dfn-operation-62">operation</a>, <a data-link-type="dfn" href="#idl-indexed-properties" id="ref-for-idl-indexed-properties-4">indexed property</a>, <a data-link-type="dfn" href="#idl-named-properties" id="ref-for-idl-named-properties-4">named property</a>, <a href="#Constructor" id="ref-for-Constructor-24">constructor</a>, <a data-link-type="dfn" href="#dfn-named-constructor" id="ref-for-dfn-named-constructor-5">named constructor</a> or <a data-link-type="dfn" href="#dfn-stringifier" id="ref-for-dfn-stringifier-6">stringifier</a>.</p>
-     <li data-md="">
-      <p>If <var>F</var> corresponds to an attribute, operation or stringifier, then return
-the global environment associated with the <a data-link-type="dfn" href="#dfn-interface" id="ref-for-dfn-interface-142">interface</a> that definition appears on.</p>
-     <li data-md="">
-      <p>Otherwise, if <var>F</var> corresponds to an indexed or named property, then return
-the global environment associated with the interface that
-the indexed or named property getter, setter or deleter was defined on.</p>
-     <li data-md="">
-      <p>Otherwise, if <var>F</var> is a named constructor for an interface, or is
-an <a data-link-type="dfn" href="#dfn-interface-object" id="ref-for-dfn-interface-object-14">interface object</a> for an
-interface that is a constructor, then return the global environment
-associated with that interface.</p>
-     <li data-md="">
-      <p>Otherwise, <var>F</var> is an exception field getter. Return
-the global environment associated with the exception on which the
-exception field was defined.</p>
-    </ol>
-   </div>
    <div class="algorithm" data-algorithm="to create a simple exception or DOMException">
-    <p>When a <a data-link-type="dfn" href="#dfn-simple-exception" id="ref-for-dfn-simple-exception-7">simple exception</a> or <code class="idl"><a data-link-type="idl" href="#dfn-DOMException" id="ref-for-dfn-DOMException-38">DOMException</a></code> <var>E</var> is to be <a data-link-type="dfn" href="#dfn-create-exception" id="ref-for-dfn-create-exception-4">created</a>,
-    with <a data-link-type="dfn" href="#dfn-exception-error-name" id="ref-for-dfn-exception-error-name-7">error name</a> <var>N</var> and optional user agent-defined message <var>M</var>,
-    the following steps must be followed:</p>
+    <p>To <a data-link-type="dfn" href="#dfn-create-exception" id="ref-for-dfn-create-exception-4">create</a> a <a data-link-type="dfn" href="#dfn-simple-exception" id="ref-for-dfn-simple-exception-7">simple exception</a> or <code class="idl"><a data-link-type="idl" href="#dfn-DOMException" id="ref-for-dfn-DOMException-38">DOMException</a></code> <var>E</var>, with a string giving the <a data-link-type="dfn" href="#dfn-exception-error-name" id="ref-for-dfn-exception-error-name-7">error name</a> <var>N</var> for the <code class="idl"><a data-link-type="idl" href="#dfn-DOMException" id="ref-for-dfn-DOMException-39">DOMException</a></code> case and optionally a string giving a user
+    agent-defined message <var>M</var>:</p>
     <ol>
      <li data-md="">
-      <p>If <var>M</var> was not specified, let <var>M</var> be <emu-val>undefined</emu-val>. Otherwise, let it be the result of <a data-link-type="dfn" href="#dfn-convert-idl-to-ecmascript-value" id="ref-for-dfn-convert-idl-to-ecmascript-value-62">converting</a> <var>M</var> to a <emu-val>String</emu-val> value.</p>
+      <p>If <var>M</var> was not specified, let <var>M</var> be <emu-val>undefined</emu-val>.</p>
      <li data-md="">
-      <p>Let <var>N</var> be the result of <a data-link-type="dfn" href="#dfn-convert-idl-to-ecmascript-value" id="ref-for-dfn-convert-idl-to-ecmascript-value-63">converting</a> <var>N</var> to a <emu-val>String</emu-val> value.</p>
-     <li data-md="">
-      <p>Let <var>args</var> be a list of ECMAScript values.</p>
-      <dl class="switch">
-       <dt data-md="">
-        <p><var>E</var> is <code class="idl"><a data-link-type="idl" href="#dfn-DOMException" id="ref-for-dfn-DOMException-39">DOMException</a></code></p>
-       <dd data-md="">
-        <p><var>args</var> is (<emu-val>undefined</emu-val>, <var>N</var>).</p>
-       <dt data-md="">
-        <p><var>E</var> is a <a data-link-type="dfn" href="#dfn-simple-exception" id="ref-for-dfn-simple-exception-8">simple exception</a></p>
-       <dd data-md="">
-        <p><var>args</var> is (<var>M</var>)</p>
-      </dl>
-     <li data-md="">
-      <p>Let <var>G</var> be the <a data-link-type="dfn" href="#dfn-current-global-environment" id="ref-for-dfn-current-global-environment-1">current global environment</a>.</p>
-     <li data-md="">
-      <p>Let <var>X</var> be an object determined based on the type of <var>E</var>:</p>
+      <p>Let <var>args</var> be a list of ECMAScript values determined based on the type of <var>E</var>:</p>
       <dl class="switch">
        <dt data-md="">
         <p><var>E</var> is <code class="idl"><a data-link-type="idl" href="#dfn-DOMException" id="ref-for-dfn-DOMException-40">DOMException</a></code></p>
        <dd data-md="">
-        <p><var>X</var> is the <a data-link-type="dfn" href="#dfn-DOMException-constructor-object" id="ref-for-dfn-DOMException-constructor-object-5">DOMException constructor object</a> from the global environment <var>G</var>.</p>
+        <p><var>args</var> is «<var>M</var>, <var>N</var>».</p>
+       <dt data-md="">
+        <p><var>E</var> is a <a data-link-type="dfn" href="#dfn-simple-exception" id="ref-for-dfn-simple-exception-8">simple exception</a></p>
+       <dd data-md="">
+        <p><var>args</var> is «<var>M</var>».</p>
+      </dl>
+     <li data-md="">
+      <p>Let <var>X</var> be an object determined based on the type of <var>E</var>:</p>
+      <dl class="switch">
+       <dt data-md="">
+        <p><var>E</var> is <code class="idl"><a data-link-type="idl" href="#dfn-DOMException" id="ref-for-dfn-DOMException-41">DOMException</a></code></p>
+       <dd data-md="">
+        <p><var>X</var> is the <a data-link-type="dfn" href="#dfn-DOMException-constructor-object" id="ref-for-dfn-DOMException-constructor-object-5">DOMException constructor object</a> from the <a data-link-type="dfn" href="https://tc39.github.io/ecma262/#current-realm">current Realm</a>.</p>
        <dt data-md="">
         <p><var>E</var> is a <a data-link-type="dfn" href="#dfn-simple-exception" id="ref-for-dfn-simple-exception-9">simple exception</a></p>
        <dd data-md="">
         <p><var>X</var> is the constructor for the corresponding ECMAScript error
-from the global environment <var>G</var>.</p>
+from the <a data-link-type="dfn" href="https://tc39.github.io/ecma262/#current-realm">current Realm</a>.</p>
       </dl>
      <li data-md="">
-      <p>Let <var>O</var> be the result of calling <var>X</var> as a function
-with <var>args</var> as the argument list.</p>
-     <li data-md="">
-      <p>Return <var>O</var>.</p>
+      <p>Return <a data-link-type="dfn" href="https://tc39.github.io/ecma262/#sec-algorithm-conventions">!</a> <a data-link-type="dfn" href="https://tc39.github.io/ecma262/#sec-construct">Construct</a>(<var>X</var>, <var>args</var>).</p>
     </ol>
    </div>
    <div class="algorithm" data-algorithm="throw an exception">
-    <p>When a <a data-link-type="dfn" href="#dfn-simple-exception" id="ref-for-dfn-simple-exception-10">simple exception</a> or <code class="idl"><a data-link-type="idl" href="#dfn-DOMException" id="ref-for-dfn-DOMException-41">DOMException</a></code> <var>E</var> is to be <a data-link-type="dfn" href="#dfn-throw" id="ref-for-dfn-throw-3">thrown</a>,
-    with <a data-link-type="dfn" href="#dfn-exception-error-name" id="ref-for-dfn-exception-error-name-8">error name</a> <var>N</var> and optional user agent-defined message <var>M</var>,
-    the following steps must be followed:</p>
+    <p>To <a data-link-type="dfn" href="#dfn-throw" id="ref-for-dfn-throw-3">throw</a> a <a data-link-type="dfn" href="#dfn-simple-exception" id="ref-for-dfn-simple-exception-10">simple exception</a> or <code class="idl"><a data-link-type="idl" href="#dfn-DOMException" id="ref-for-dfn-DOMException-42">DOMException</a></code>, with a string giving the <a data-link-type="dfn" href="#dfn-exception-error-name" id="ref-for-dfn-exception-error-name-8">error name</a> for the <code class="idl"><a data-link-type="idl" href="#dfn-DOMException" id="ref-for-dfn-DOMException-43">DOMException</a></code> case and optionally a string giving a user
+    agent-defined message:</p>
     <ol>
      <li data-md="">
-      <p>Let <var>O</var> be the result of <a data-link-type="dfn" href="#dfn-create-exception" id="ref-for-dfn-create-exception-5">creating</a> the specified exception <var>E</var> with <a data-link-type="dfn" href="#dfn-exception-error-name" id="ref-for-dfn-exception-error-name-9">error name</a> <var>N</var> and
-optional user agent-defined message <var>M</var>.</p>
+      <p>Let <var>O</var> be the result of <a data-link-type="dfn" href="#dfn-create-exception" id="ref-for-dfn-create-exception-5">creating an exception</a> with the same arguments.</p>
      <li data-md="">
       <p>Throw <var>O</var>.</p>
     </ol>
    </div>
    <div class="note" role="note">
-    <p>The above algorithms do not restrict <a data-link-type="dfn" href="#es-exception-objects" id="ref-for-es-exception-objects-2">platform objects representing exceptions</a> propagating out of a <emu-val>Function</emu-val> to be
-    ones that are associated with the global environment
-    where that <emu-val>Function</emu-val> object originated.
-    For example, consider the IDL:</p>
-<pre class="highlight"><span class="kt">interface</span> <span class="nv">A</span> {
-
-  /**
-   * Calls computeSquareRoot on m, passing x as its argument.
-   */
-  <span class="kt">double</span> <span class="nv">doComputation</span>(<span class="n">MathUtils</span> <span class="nv">m</span>, <span class="kt">double</span> <span class="nv">x</span>);
-};
-
-<span class="kt">interface</span> <span class="nv">MathUtils</span> {
-  /**
-   * If x is negative, throws a <a href="#notsupportederror" id="ref-for-notsupportederror-2">NotSupportedError</a>.  Otherwise, returns
-   * the square root of x.
-   */
+    <p>The above algorithms restrict <a data-link-type="dfn" href="#es-exception-objects" id="ref-for-es-exception-objects-2">objects representing exceptions</a> propagating
+    out of a <emu-val>Function</emu-val> to be ones that are associated with the <a data-link-type="dfn" href="https://tc39.github.io/ecma262/#sec-code-realms">Realm</a> of that <emu-val>Function</emu-val> object (i.e., the <a data-link-type="dfn" href="https://tc39.github.io/ecma262/#current-realm">current Realm</a> at the time the function
+    executes). For example, consider the IDL:</p>
+<pre class="highlight"><span class="kt">interface</span> <span class="nv">MathUtils</span> {
+  // If x is negative, throws a "<a href="#notsupportederror" id="ref-for-notsupportederror-2">NotSupportedError</a>" <a href="dfn-DOMException">DOMException</a>.
   <span class="kt">double</span> <span class="nv">computeSquareRoot</span>(<span class="kt">double</span> <span class="nv">x</span>);
 };
 </pre>
-    <p>If we pass a <code class="idl">MathUtils</code> object from
-    a different global environment to doComputation, then the exception
-    thrown will be from that global environment:</p>
-<pre class="highlight"><span class="kd">var</span> a <span class="o">=</span> getA<span class="p">(</span><span class="p">)</span><span class="p">;</span>                           <span class="c1">// An A object from this global environment.
-</span><span class="kd">var</span> m <span class="o">=</span> otherWindow<span class="p">.</span>getMathUtils<span class="p">(</span><span class="p">)</span><span class="p">;</span>       <span class="c1">// A MathUtils object from a different global environment.
+    <p>If we apply <code class="idl">computeSquareRoot</code> to a <code class="idl">MathUtils</code> object from a different <a data-link-type="dfn" href="https://tc39.github.io/ecma262/#sec-code-realms">Realm</a>, then the exception thrown will be from the <a data-link-type="dfn" href="https://tc39.github.io/ecma262/#sec-code-realms">Realm</a> of the
+    method, not the object it is applied to:</p>
+<pre class="highlight"><span class="kr">const</span> myMU <span class="o">=</span> window<span class="p">.</span>getMathUtils<span class="p">(</span><span class="p">)</span><span class="p">;</span>          <span class="c1">// A MathUtils object from this Realm
+</span><span class="kr">const</span> otherMU <span class="o">=</span> otherWindow<span class="p">.</span>getMathUtils<span class="p">(</span><span class="p">)</span><span class="p">;</span>  <span class="c1">// A MathUtils object from a different Realm
 </span>
-a <span class="k">instanceof</span> Object<span class="p">;</span>                      <span class="c1">// Evaluates to true.
-</span>m <span class="k">instanceof</span> Object<span class="p">;</span>                      <span class="c1">// Evaluates to false.
-</span>m <span class="k">instanceof</span> otherWindow<span class="p">.</span>Object<span class="p">;</span>          <span class="c1">// Evaluates to true.
+myMU <span class="k">instanceof</span> Object<span class="p">;</span>                      <span class="c1">// Evaluates to true.
+</span>otherMU <span class="k">instanceof</span> Object<span class="p">;</span>                   <span class="c1">// Evaluates to false.
+</span>otherMU <span class="k">instanceof</span> otherWindow<span class="p">.</span>Object<span class="p">;</span>       <span class="c1">// Evaluates to true.
 </span>
 <span class="k">try</span> <span class="p">{</span>
-  a<span class="p">.</span>doComputation<span class="p">(</span>m<span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="p">;</span>
+  otherMU<span class="p">.</span>doComputation<span class="p">.</span>call<span class="p">(</span>myMU<span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="p">;</span>
 <span class="p">}</span> <span class="k">catch</span> <span class="p">(</span>e<span class="p">)</span> <span class="p">{</span>
-  e <span class="k">instanceof</span> DOMException<span class="p">;</span>              <span class="c1">// Evaluates to false.
-</span>  e <span class="k">instanceof</span> otherWindow<span class="p">.</span>DOMException<span class="p">;</span>  <span class="c1">// Evaluates to true.
-</span><span class="p">}</span>
+  console<span class="p">.</span>assert<span class="p">(</span><span class="o">!</span><span class="p">(</span>e <span class="k">instanceof</span> DOMException<span class="p">)</span><span class="p">)</span><span class="p">;</span>
+  console<span class="p">.</span>assert<span class="p">(</span>e <span class="k">instanceof</span> otherWindow<span class="p">.</span>DOMException<span class="p">)</span><span class="p">;</span>
+<span class="p">}</span>
 </pre>
    </div>
-   <p>Any requirements in this document to throw an instance of an ECMAScript built-in <emu-val>Error</emu-val> must use
-the built-in from the <a data-link-type="dfn" href="#dfn-current-global-environment" id="ref-for-dfn-current-global-environment-2">current global environment</a>.</p>
    <h3 class="heading settled" data-level="3.16" id="es-handling-exceptions"><span class="secno">3.16. </span><span class="content">Handling exceptions</span><a class="self-link" href="#es-handling-exceptions"></a></h3>
    <p>None of the algorithms or processing requirements in the
 ECMAScript language binding catch ECMAScript exceptions.  Whenever
@@ -12186,7 +12136,7 @@ must propagate to the caller, and if
 not caught there, to its caller, and so on.</p>
    <div class="example" id="example-1432e05c">
     <a class="self-link" href="#example-1432e05c"></a> 
-    <p>The following <a data-link-type="dfn" href="#dfn-idl-fragment" id="ref-for-dfn-idl-fragment-45">IDL fragment</a> defines two <a data-link-type="dfn" href="#dfn-interface" id="ref-for-dfn-interface-143">interfaces</a> and an <a data-link-type="dfn" href="#dfn-exception" id="ref-for-dfn-exception-1">exception</a>.
+    <p>The following <a data-link-type="dfn" href="#dfn-idl-fragment" id="ref-for-dfn-idl-fragment-45">IDL fragment</a> defines two <a data-link-type="dfn" href="#dfn-interface" id="ref-for-dfn-interface-142">interfaces</a> and an <a data-link-type="dfn" href="#dfn-exception" id="ref-for-dfn-exception-1">exception</a>.
     The <code>valueOf</code> attribute on <code class="idl">ExceptionThrower</code> is defined to throw an exception whenever an attempt is made
     to get its value.</p>
 <pre class="highlight"><span class="kt">interface</span> <span class="nv">Dahut</span> {
@@ -12417,8 +12367,8 @@ and “<span class="input">.</span>” is tokenized as the quoted terminal symbo
 used in the grammar and the values used for <emu-t class="regex"><a href="#prod-identifier">identifier</a></emu-t> terminals.  Thus, for
 example, the input text “<span class="input">Const</span>” is tokenized as
 an <emu-t class="regex"><a href="#prod-identifier">identifier</a></emu-t> rather than the
-terminal symbol <emu-t>const</emu-t>, an <a data-link-type="dfn" href="#dfn-interface" id="ref-for-dfn-interface-144">interface</a> with <a data-link-type="dfn" href="#dfn-identifier" id="ref-for-dfn-identifier-94">identifier</a> “A” is distinct from one named “a”, and an <a data-link-type="dfn" href="#dfn-extended-attribute" id="ref-for-dfn-extended-attribute-96">extended attribute</a> [<code class="idl">constructor</code>] will not be recognized as
-the [<code class="idl"><a data-link-type="idl" href="#Constructor" id="ref-for-Constructor-25">Constructor</a></code>]
+terminal symbol <emu-t>const</emu-t>, an <a data-link-type="dfn" href="#dfn-interface" id="ref-for-dfn-interface-143">interface</a> with <a data-link-type="dfn" href="#dfn-identifier" id="ref-for-dfn-identifier-94">identifier</a> “A” is distinct from one named “a”, and an <a data-link-type="dfn" href="#dfn-extended-attribute" id="ref-for-dfn-extended-attribute-96">extended attribute</a> [<code class="idl">constructor</code>] will not be recognized as
+the [<code class="idl"><a data-link-type="idl" href="#Constructor" id="ref-for-Constructor-24">Constructor</a></code>]
 extended attribute.</p>
    <p>Implicitly, any number of <emu-t class="regex"><a href="#prod-whitespace">whitespace</a></emu-t> and <emu-t class="regex"><a href="#prod-comment">comment</a></emu-t> terminals are allowed between every other terminal
 in the input text being parsed.  Such <emu-t class="regex"><a href="#prod-whitespace">whitespace</a></emu-t> and <emu-t class="regex"><a href="#prod-comment">comment</a></emu-t> terminals are ignored while parsing.</p>
@@ -12747,7 +12697,6 @@ language binding.</p>
    <li><a href="#create-frozen-array-from-iterable">Creating a frozen array from an iterable</a><span>, in §3.2.25</span>
    <li><a href="#dfn-create-operation-function">creating an operation function</a><span>, in §3.6.7</span>
    <li><a href="#create-sequence-from-iterable">Creating a sequence from an iterable</a><span>, in §3.2.18</span>
-   <li><a href="#dfn-current-global-environment">current global environment</a><span>, in §3.15</span>
    <li><a href="#dom-domexception-data_clone_err">DATA_CLONE_ERR</a><span>, in §2.5.1</span>
    <li><a href="#datacloneerror">DataCloneError</a><span>, in §2.5.1</span>
    <li><a href="#dataerror">DataError</a><span>, in §2.5.1</span>
@@ -13081,6 +13030,7 @@ language binding.</p>
      <li><a href="https://tc39.github.io/ecma262/#sec-createiterresultobject">createiterresultobject</a>
      <li><a href="https://tc39.github.io/ecma262/#sec-createmapiterator">createmapiterator</a>
      <li><a href="https://tc39.github.io/ecma262/#sec-createsetiterator">createsetiterator</a>
+     <li><a href="https://tc39.github.io/ecma262/#current-realm">current realm</a>
      <li><a href="https://tc39.github.io/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-set-p-v-receiver">default [[set]] internal method</a>
      <li><a href="https://tc39.github.io/ecma262/#sec-definepropertyorthrow">definepropertyorthrow</a>
      <li><a href="https://tc39.github.io/ecma262/#sec-detacharraybuffer">detacharraybuffer</a>
@@ -13381,9 +13331,8 @@ language binding.</p>
     <li><a href="#ref-for-dfn-interface-138">3.9.5. [[Call]]</a>
     <li><a href="#ref-for-dfn-interface-139">3.9.7. Property enumeration</a> <a href="#ref-for-dfn-interface-140">(2)</a>
     <li><a href="#ref-for-dfn-interface-141">3.10. User objects implementing callback interfaces</a>
-    <li><a href="#ref-for-dfn-interface-142">3.15. Creating and throwing exceptions</a>
-    <li><a href="#ref-for-dfn-interface-143">3.16. Handling exceptions</a>
-    <li><a href="#ref-for-dfn-interface-144">IDL grammar</a>
+    <li><a href="#ref-for-dfn-interface-142">3.16. Handling exceptions</a>
+    <li><a href="#ref-for-dfn-interface-143">IDL grammar</a>
    </ul>
   </aside>
   <aside class="dfn-panel" data-for="dfn-interface-member">
@@ -13531,7 +13480,6 @@ language binding.</p>
     <li><a href="#ref-for-dfn-attribute-55">3.6.8.1. @@iterator</a>
     <li><a href="#ref-for-dfn-attribute-56">3.7. Implements statements</a> <a href="#ref-for-dfn-attribute-57">(2)</a>
     <li><a href="#ref-for-dfn-attribute-58">3.10. User objects implementing callback interfaces</a>
-    <li><a href="#ref-for-dfn-attribute-59">3.15. Creating and throwing exceptions</a>
    </ul>
   </aside>
   <aside class="dfn-panel" data-for="dfn-regular-attribute">
@@ -13613,7 +13561,6 @@ language binding.</p>
     <li><a href="#ref-for-dfn-operation-58">3.6.8.2. forEach</a>
     <li><a href="#ref-for-dfn-operation-59">3.7. Implements statements</a> <a href="#ref-for-dfn-operation-60">(2)</a>
     <li><a href="#ref-for-dfn-operation-61">3.11. Invoking callback functions</a>
-    <li><a href="#ref-for-dfn-operation-62">3.15. Creating and throwing exceptions</a>
    </ul>
   </aside>
   <aside class="dfn-panel" data-for="dfn-regular-operation">
@@ -13726,7 +13673,6 @@ language binding.</p>
     <li><a href="#ref-for-dfn-stringifier-1">2.2.4.2. Stringifiers</a>
     <li><a href="#ref-for-dfn-stringifier-2">3.3.5. [Global] and [PrimaryGlobal]</a>
     <li><a href="#ref-for-dfn-stringifier-3">3.6.7.1. Stringifiers</a> <a href="#ref-for-dfn-stringifier-4">(2)</a> <a href="#ref-for-dfn-stringifier-5">(3)</a>
-    <li><a href="#ref-for-dfn-stringifier-6">3.15. Creating and throwing exceptions</a>
    </ul>
   </aside>
   <aside class="dfn-panel" data-for="dfn-serializer">
@@ -13842,7 +13788,6 @@ language binding.</p>
     <li><a href="#ref-for-idl-indexed-properties-1">2.2.4. Special operations</a>
     <li><a href="#ref-for-idl-indexed-properties-2">2.2.4.5. Named properties</a>
     <li><a href="#ref-for-idl-indexed-properties-3">3.9. Legacy platform objects</a>
-    <li><a href="#ref-for-idl-indexed-properties-4">3.15. Creating and throwing exceptions</a>
    </ul>
   </aside>
   <aside class="dfn-panel" data-for="dfn-support-indexed-properties">
@@ -13895,7 +13840,6 @@ language binding.</p>
     <li><a href="#ref-for-idl-named-properties-1">2.2.4. Special operations</a>
     <li><a href="#ref-for-idl-named-properties-2">3.3.5. [Global] and [PrimaryGlobal]</a>
     <li><a href="#ref-for-idl-named-properties-3">3.9. Legacy platform objects</a>
-    <li><a href="#ref-for-idl-named-properties-4">3.15. Creating and throwing exceptions</a>
    </ul>
   </aside>
   <aside class="dfn-panel" data-for="dfn-support-named-properties">
@@ -14243,7 +14187,7 @@ language binding.</p>
    <b><a href="#dfn-exception-error-name">#dfn-exception-error-name</a></b><b>Referenced in:</b>
    <ul>
     <li><a href="#ref-for-dfn-exception-error-name-1">2.5. Exceptions</a> <a href="#ref-for-dfn-exception-error-name-2">(2)</a> <a href="#ref-for-dfn-exception-error-name-3">(3)</a> <a href="#ref-for-dfn-exception-error-name-4">(4)</a> <a href="#ref-for-dfn-exception-error-name-5">(5)</a> <a href="#ref-for-dfn-exception-error-name-6">(6)</a>
-    <li><a href="#ref-for-dfn-exception-error-name-7">3.15. Creating and throwing exceptions</a> <a href="#ref-for-dfn-exception-error-name-8">(2)</a> <a href="#ref-for-dfn-exception-error-name-9">(3)</a>
+    <li><a href="#ref-for-dfn-exception-error-name-7">3.15. Creating and throwing exceptions</a> <a href="#ref-for-dfn-exception-error-name-8">(2)</a>
    </ul>
   </aside>
   <aside class="dfn-panel" data-for="dfn-simple-exception">
@@ -14282,7 +14226,7 @@ language binding.</p>
     <li><a href="#ref-for-dfn-DOMException-26">3.2.23. DOMException</a> <a href="#ref-for-dfn-DOMException-27">(2)</a> <a href="#ref-for-dfn-DOMException-28">(3)</a> <a href="#ref-for-dfn-DOMException-29">(4)</a> <a href="#ref-for-dfn-DOMException-30">(5)</a> <a href="#ref-for-dfn-DOMException-31">(6)</a> <a href="#ref-for-dfn-DOMException-32">(7)</a>
     <li><a href="#ref-for-dfn-DOMException-33">3.5. Overload resolution algorithm</a> <a href="#ref-for-dfn-DOMException-34">(2)</a>
     <li><a href="#ref-for-dfn-DOMException-35">3.14. Exception objects</a> <a href="#ref-for-dfn-DOMException-36">(2)</a> <a href="#ref-for-dfn-DOMException-37">(3)</a>
-    <li><a href="#ref-for-dfn-DOMException-38">3.15. Creating and throwing exceptions</a> <a href="#ref-for-dfn-DOMException-39">(2)</a> <a href="#ref-for-dfn-DOMException-40">(3)</a> <a href="#ref-for-dfn-DOMException-41">(4)</a>
+    <li><a href="#ref-for-dfn-DOMException-38">3.15. Creating and throwing exceptions</a> <a href="#ref-for-dfn-DOMException-39">(2)</a> <a href="#ref-for-dfn-DOMException-40">(3)</a> <a href="#ref-for-dfn-DOMException-41">(4)</a> <a href="#ref-for-dfn-DOMException-42">(5)</a> <a href="#ref-for-dfn-DOMException-43">(6)</a>
    </ul>
   </aside>
   <aside class="dfn-panel" data-for="dfn-create-exception">
@@ -15476,7 +15420,6 @@ language binding.</p>
     <li><a href="#ref-for-dfn-convert-idl-to-ecmascript-value-57">3.9.8. Abstract operations</a> <a href="#ref-for-dfn-convert-idl-to-ecmascript-value-58">(2)</a>
     <li><a href="#ref-for-dfn-convert-idl-to-ecmascript-value-59">3.10. User objects implementing callback interfaces</a> <a href="#ref-for-dfn-convert-idl-to-ecmascript-value-60">(2)</a>
     <li><a href="#ref-for-dfn-convert-idl-to-ecmascript-value-61">3.11. Invoking callback functions</a>
-    <li><a href="#ref-for-dfn-convert-idl-to-ecmascript-value-62">3.15. Creating and throwing exceptions</a> <a href="#ref-for-dfn-convert-idl-to-ecmascript-value-63">(2)</a>
    </ul>
   </aside>
   <aside class="dfn-panel" data-for="abstract-opdef-integerpart">
@@ -15549,8 +15492,7 @@ language binding.</p>
     <li><a href="#ref-for-Constructor-11">3.3.2. [Constructor]</a> <a href="#ref-for-Constructor-12">(2)</a> <a href="#ref-for-Constructor-13">(3)</a> <a href="#ref-for-Constructor-14">(4)</a> <a href="#ref-for-Constructor-15">(5)</a> <a href="#ref-for-Constructor-16">(6)</a> <a href="#ref-for-Constructor-17">(7)</a> <a href="#ref-for-Constructor-18">(8)</a>
     <li><a href="#ref-for-Constructor-19">3.3.12. [NoInterfaceObject]</a>
     <li><a href="#ref-for-Constructor-20">3.6.1.1. Constructible Interfaces</a> <a href="#ref-for-Constructor-21">(2)</a> <a href="#ref-for-Constructor-22">(3)</a> <a href="#ref-for-Constructor-23">(4)</a>
-    <li><a href="#ref-for-Constructor-24">3.15. Creating and throwing exceptions</a>
-    <li><a href="#ref-for-Constructor-25">IDL grammar</a>
+    <li><a href="#ref-for-Constructor-24">IDL grammar</a>
    </ul>
   </aside>
   <aside class="dfn-panel" data-for="EnforceRange">
@@ -15848,7 +15790,6 @@ language binding.</p>
     <li><a href="#ref-for-dfn-interface-object-11">3.6.5. Constants</a>
     <li><a href="#ref-for-dfn-interface-object-12">3.6.6. Attributes</a>
     <li><a href="#ref-for-dfn-interface-object-13">3.6.7. Operations</a>
-    <li><a href="#ref-for-dfn-interface-object-14">3.15. Creating and throwing exceptions</a>
    </ul>
   </aside>
   <aside class="dfn-panel" data-for="dfn-named-constructor">
@@ -15856,7 +15797,6 @@ language binding.</p>
    <ul>
     <li><a href="#ref-for-dfn-named-constructor-1">3.1. ECMAScript environment</a>
     <li><a href="#ref-for-dfn-named-constructor-2">3.6.2. Named constructors</a> <a href="#ref-for-dfn-named-constructor-3">(2)</a> <a href="#ref-for-dfn-named-constructor-4">(3)</a>
-    <li><a href="#ref-for-dfn-named-constructor-5">3.15. Creating and throwing exceptions</a>
    </ul>
   </aside>
   <aside class="dfn-panel" data-for="dfn-interface-prototype-object">
@@ -16087,12 +16027,6 @@ language binding.</p>
    <ul>
     <li><a href="#ref-for-es-exception-objects-1">3.9.7. Property enumeration</a>
     <li><a href="#ref-for-es-exception-objects-2">3.15. Creating and throwing exceptions</a>
-   </ul>
-  </aside>
-  <aside class="dfn-panel" data-for="dfn-current-global-environment">
-   <b><a href="#dfn-current-global-environment">#dfn-current-global-environment</a></b><b>Referenced in:</b>
-   <ul>
-    <li><a href="#ref-for-dfn-current-global-environment-1">3.15. Creating and throwing exceptions</a> <a href="#ref-for-dfn-current-global-environment-2">(2)</a>
    </ul>
   </aside>
   <aside class="dfn-panel" data-for="ArrayBufferView">
