@@ -1772,16 +1772,12 @@ corresponding argument omitted.
     conversion of <emu-val>undefined</emu-val> to be used (i.e., <emu-val>false</emu-val>).
 </p>
 
-If the type of an argument is a [=dictionary type=] or [=record type=]
-or a [=union type=] that has a
-dictionary or record type as one of its [=flattened member types=],
-and that dictionary type and its ancestors have no [=required dictionary member|required members=],
-and the argument is either the final argument or is followed only by
-[=optional arguments=], then
-the argument must be specified as optional.
-Such arguments are always considered to have a
-[=optional argument/default value=] of an empty dictionary or record, as appropriate,
-unless otherwise specified.
+If the type of an argument is a [=dictionary type=] or a [=union type=] that has a dictionary as one
+of its [=flattened member types=], and that dictionary type and its ancestors have no
+[=required dictionary member|required members=], and the argument is either the final argument or is
+followed only by [=optional arguments=], then the argument must be specified as optional. Such
+arguments are always considered to have a [=optional argument/default value=] of an empty
+dictionary, unless otherwise specified.
 
 <div class="note">
 
@@ -3296,15 +3292,15 @@ the following algorithm returns <i>true</i>.
     and the other type either
     [=includes a nullable type=],
     is a [=union type=] with [=flattened member types=]
-    including a [=dictionary type=] or [=record type=], or
-    is a [=dictionary type=] or [=record type=],
+    including a [=dictionary type=], or
+    is a [=dictionary type=],
     return <i>false</i>.
     <div class="example" id="example-distinguishability-nullable">
         None of the following pairs are distinguishable:
         <ul>
             <li>
                 <code>{{double}}?</code> and
-                <code>[=record=]&lt;{{DOMString}}, {{DOMString}}></code>
+                <code>Dictionary1</code>
             </li>
             <li>
                 <code>(Interface1 or {{long}})?</code> and
@@ -7410,11 +7406,9 @@ ECMAScript <emu-val>Object</emu-val> values.
     An ECMAScript value |O| is [=converted to an IDL value|converted=]
     to an IDL <code>[=record=]&lt;|K|, |V|></code> value as follows:
 
-    1.  Let |result| be a new empty instance of <code>[=record=]&lt;|K|, |V|></code>.
-    1.  If [=Type=](|O|) is Undefined or Null,
-        return |result|.
     1.  If [=Type=](|O|) is not Object,
         [=ECMAScript/throw=] a <emu-val>TypeError</emu-val>.
+    1.  Let |result| be a new empty instance of <code>[=record=]&lt;|K|, |V|></code>.
     1.  Let |keys| be [=?=] |O|.\[[OwnPropertyKeys]]().
     1.  Repeat, for each element |key| of |keys| in [=List=] order:
         1.  Let |desc| be [=?=] |O|.\[[GetOwnProperty]](|key|).
@@ -7584,8 +7578,6 @@ that correspond to the union’s [=member types=].
     1.  If |V| is <emu-val>null</emu-val> or <emu-val>undefined</emu-val>, then:
         1.  If |types| includes a [=dictionary type=], then return the
             result of [=converted to an IDL value|converting=] |V| to that dictionary type.
-        1.  If |types| includes a [=record type=], then return the
-            result of [=converted to an IDL value|converting=] |V| to that record type.
     1.  If |V| is a [=platform object=], then:
         1.  If |types| includes an [=interface type=] that |V|
             implements, then return the IDL value that is a reference to the object |V|.
@@ -9723,10 +9715,8 @@ Note: The HTML Standard defines how a security check is performed. [[!HTML]]
             and there is an entry in |S| that has one of the following types at position |i| of its type list,
             *   a [=nullable type=]
             *   a [=dictionary type=]
-            *   a [=record type=]
-            *   a [=union type=] that
-                [=includes a nullable type=] or that
-                has a [=dictionary type=] or a [=record type=] in its [=flattened member types|flattened members=]
+            *   a [=union type=] that [=includes a nullable type=] that has a [=dictionary type=] in
+                its [=flattened member types|flattened members=]
 
             then remove from |S| all other entries.
 
