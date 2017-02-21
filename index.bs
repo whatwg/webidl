@@ -13108,6 +13108,7 @@ The following conformance classes are defined by this specification:
             options = options || {};
 
             var OFFSET = 80,
+                needsUpdate = false,
                 previous = null,
                 current = null,
                 currentNav = null,
@@ -13124,7 +13125,15 @@ The following conformance classes are defined by this specification:
                 return sections;
             }, []);
 
-            function onscroll(event) {
+            function onscroll() {
+                if (!needsUpdate) {
+                    needsUpdate = true;
+                    requestAnimationFrame(updatePosition);
+                }
+            }
+
+            function updatePosition() {
+                needsUpdate = false;
                 var scrollTop = (options.offset || 0) + getScrollTop();
                 current = sections.filter(function(section){
                     return section.offsetTop < scrollTop;
