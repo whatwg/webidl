@@ -1567,7 +1567,7 @@ pre.idl.highlight { color: #708090; }
   <div class="head">
    <p data-fill-with="logo"><a class="logo" href="http://www.w3.org/"> <img alt="W3C" height="48" src="https://www.w3.org/StyleSheets/TR/2016/logos/W3C" width="72"> </a> </p>
    <h1 class="p-name no-ref" id="title">Web IDL</h1>
-   <h2 class="no-num no-toc no-ref heading settled" id="subtitle"><span class="content">Editor’s Draft, <time class="dt-updated" datetime="2017-02-20">20 February 2017</time></span></h2>
+   <h2 class="no-num no-toc no-ref heading settled" id="subtitle"><span class="content">Editor’s Draft, <time class="dt-updated" datetime="2017-02-21">21 February 2017</time></span></h2>
    <div data-fill-with="spec-metadata">
     <dl>
      <dt>This version:
@@ -12513,6 +12513,7 @@ language binding.</p>
             options = options || {};
 
             var OFFSET = 80,
+                needsUpdate = false,
                 previous = null,
                 current = null,
                 currentNav = null,
@@ -12529,7 +12530,15 @@ language binding.</p>
                 return sections;
             }, []);
 
-            function onscroll(event) {
+            function onscroll() {
+                if (!needsUpdate) {
+                    needsUpdate = true;
+                    requestAnimationFrame(updatePosition);
+                }
+            }
+
+            function updatePosition() {
+                needsUpdate = false;
                 var scrollTop = (options.offset || 0) + getScrollTop();
                 current = sections.filter(function(section){
                     return section.offsetTop < scrollTop;
