@@ -27,6 +27,10 @@ Abstract: are interoperable.
 Boilerplate: omit issues-index, omit conformance, omit feedback-header
 </pre>
 
+<pre class="link-defaults">
+spec: infra; type: dfn; text: list
+</pre>
+
 <pre class="anchors">
 urlPrefix: https://html.spec.whatwg.org/; spec: HTML
     type: interface
@@ -132,7 +136,6 @@ urlPrefix: https://tc39.github.io/ecma262/; spec: ECMA-262
         text: ECMA-262 section 9.1.8; url: sec-ordinary-object-internal-methods-and-internal-slots-get-p-receiver
         text: ECMA-262 section 19.2.2.3; url: sec-function-@@create
         text: ECMA-262 section 19.2.3.8; url: sec-function.prototype-@@hasinstance
-        text: List; url: sec-list-and-record-specification-type
         text: Array methods; url: sec-properties-of-the-array-prototype-object
         text: typed arrays; url: sec-typedarray-objects
         text: GetMethod; url: sec-getmethod
@@ -4050,9 +4053,9 @@ namespaces.
 
 A <dfn id="dfn-dictionary" export>dictionary</dfn> is a definition (matching
 <emu-nt><a href="#prod-Dictionary">Dictionary</a></emu-nt>)
-used to define an associative array data type with a fixed, ordered set of key–value pairs,
+used to define an [=ordered map=] data type with a fixed, ordered set of [=map/entries=],
 termed <dfn id="dfn-dictionary-member" export>dictionary members</dfn>,
-where keys are strings and values are of a particular type specified in the definition.
+where [=map/keys=] are strings and [=map/values=] are of a particular type specified in the definition.
 
 <pre highlight="webidl" class="syntax">
     dictionary identifier {
@@ -4103,6 +4106,11 @@ the value to use for the dictionary member when passing a value to a
 [=platform object=] that does
 not have a specified value.  Dictionary members with default values are
 always considered to be present.
+
+An [=ordered map=] with string [=map/keys=] can be implicitly treated as a dictionary value of a
+specific dictionary |D| if all of its [=map/entries=] correspond to [=dictionary members=], in the
+correct order and with the correct types, and with appropriate [=map/entries=] for any required
+dictionary members.
 
 <p class="advisement">
     As with [=optional argument/default value|operation argument default values=],
@@ -5662,7 +5670,10 @@ identifies a [=dictionary=] is used to refer to
 a type that corresponds to the set of all dictionaries that adhere to
 the dictionary definition.
 
-There is no way to represent a constant dictionary value in IDL.
+The literal syntax for [=ordered maps=] may also be used to represent dictionaries, when it is
+implicitly understood from context that the map is being treated as an instance of a specific
+dictionary type. However, there is no way to represent a constant dictionary value inside IDL
+fragments.
 
 The [=type name=] of a dictionary type
 is the [=identifier=] of the dictionary.
@@ -5765,7 +5776,7 @@ the string “OrNull”.
 <h4 oldids="dom-sequence" id="idl-sequence" lt="sequence" dfn export>Sequence types — sequence&lt;|T|&gt;</h4>
 
 The <dfn lt="sequence type" export>sequence&lt;|T|&gt;</dfn>
-type is a parameterized type whose values are (possibly zero-length) sequences of
+type is a parameterized type whose values are (possibly zero-length) [=lists=] of
 values of type |T|.
 
 Sequences are always passed by value.  In
@@ -5775,7 +5786,9 @@ will not result in a reference to the sequence being kept by that object.
 Similarly, any sequence returned from a platform object
 will be a copy and modifications made to it will not be visible to the platform object.
 
-There is no way to represent a constant sequence value in IDL.
+The literal syntax for [=lists=] may also be used to represent sequences, when it is implicitly
+understood from context that the list is being treated as a sequences. However, there is no way to
+represent a constant sequence value inside IDL fragments.
 
 Sequences must not be used as the
 type of an [=attribute=] or
@@ -5792,22 +5805,19 @@ The [=type name=] of a sequence type
 is the concatenation of the type name for |T| and
 the string “Sequence”.
 
+Any [=list=] can be implicitly treated as a <code>sequence&lt;|T|&gt;</code>, as long as it contains
+only [=list/items=] that are of type |T|.
+
 
 <h4 id="idl-record" lt="record" dfn export>Record types — record&lt;|K|, |V|&gt;</h4>
 
-A <dfn export>record type</dfn> is a parameterized type
-whose values are ordered associative arrays mapping instances of |K| to
-instances of |V|. The (key, value) pairs are called
-<dfn for=record export>mappings</dfn>.
-The order of a record's mappings is determined when the record value is created.
-In a specification, a record's value can be written:
-<blockquote>
-« (key1, value1), (key2, value2), … »
-</blockquote>
+A <dfn export>record type</dfn> is a parameterized type whose values are [=ordered maps=] with
+[=map/keys=] that are instances of |K| and [=map/values=] that are instances of |V|. |K| must be one
+of {{DOMString}}, {{USVString}}, or {{ByteString}}.
 
-However, there is no way to represent a constant record value in IDL.
-
-|K| must be one of {{DOMString}}, {{USVString}}, or {{ByteString}}.
+The literal syntax for [=ordered maps=] may also be used to represent records, when it is implicitly
+understood from context that the map is being treated as a record. However, there is no way to
+represent a constant record value inside IDL fragments.
 
 Records are always passed by value. In language bindings where a record
 is represented by an object of some kind, passing a record
@@ -5821,6 +5831,10 @@ Records must not be used as the type of an [=attribute=] or
 
 The [=type name=] of a record type is the concatenation of the type
 name for |K|, the type name for |V| and the string “Record”.
+
+Any [=ordered map=] can be implicitly treated as a <code>record&lt;|K|, |V|&gt;</code>, as long as
+it contains only [=map/entries=] whose [=map/keys=] are all of of type |K| and whose [=map/values=]
+are all of type |V|.
 
 
 <h4 oldids="dom-promise" id="idl-promise" interface lt="Promise|Promise&lt;T&gt;">Promise types — Promise&lt;|T|&gt;</h4>
@@ -7425,17 +7439,17 @@ ECMAScript <emu-val>Object</emu-val> values.
         [=ECMAScript/throw=] a <emu-val>TypeError</emu-val>.
     1.  Let |result| be a new empty instance of <code>[=record=]&lt;|K|, |V|></code>.
     1.  Let |keys| be [=?=] |O|.\[[OwnPropertyKeys]]().
-    1.  Repeat, for each element |key| of |keys| in [=List=] order:
+    1.  [=list/For each=] |key| of |keys|:
         1.  Let |desc| be [=?=] |O|.\[[GetOwnProperty]](|key|).
         1.  If |desc| is not <emu-val>undefined</emu-val>
             and |desc|.\[[Enumerable]] is <emu-val>true</emu-val>:
             1.  Let |typedKey| be |key| [=converted to an IDL value=] of type |K|.
             1.  Let |value| be [=?=] [=Get=](|O|, |key|).
             1.  Let |typedValue| be |value| [=converted to an IDL value=] of type |V|.
-            1.  If |typedKey| is already a key in |result|, set its value to |typedValue|.
+            1.  [=map/Set=] |result|[|typedKey|] to |typedValue|.
 
-                Note: This can happen when |O| is a proxy object.
-            1.  Otherwise, append to |result| a [=record/mapping=] (|typedKey|, |typedValue|).
+                Note: it's possible that |typedKey| is already in |result|, if |O| is a proxy
+                object.
     1.  Return |result|.
 </div>
 
@@ -7446,7 +7460,7 @@ ECMAScript <emu-val>Object</emu-val> values.
     to an ECMAScript value as follows:
 
     1.  Let |result| be [=!=] [=ObjectCreate=]([=%ObjectPrototype%=]).
-    1.  Repeat, for each [=record/mapping=] (|key|, |value|) in |D|:
+    1.  [=map/For each=] |key| → |value| of |D|:
         1.  Let |esKey| be |key| [=converted to an ECMAScript value=].
         1.  Let |esValue| be |value| [=converted to an ECMAScript value=].
         1.  Let |created| be [=!=] [=CreateDataProperty=](|result|, |esKey|, |esValue|).
@@ -7458,7 +7472,7 @@ ECMAScript <emu-val>Object</emu-val> values.
 
     Passing the ECMAScript value <code>{b: 3, a: 4}</code> as a
     <code>[=record=]&lt;DOMString, double></code> argument
-    would result in the IDL value « ("b", 3), ("a", 4) ».
+    would result in the IDL value «[ "b" → 3, "a" → 4 ]».
 
     Records only consider [=own property|own=] [=enumerable=]
     properties, so given an IDL operation
@@ -7494,12 +7508,12 @@ ECMAScript <emu-val>Object</emu-val> values.
         <tr>
             <td><code>{"\uD83D": 1}</code></td>
             <td><code>[=record=]&lt;USVString, double></code></td>
-            <td>« ("\uFFFD", 1) »</td>
+            <td>«[ "\uFFFD" → 1 ]»</td>
         </tr>
         <tr>
             <td><code>{"\uD83D": {hello: "world"}}</code></td>
             <td><code>[=record=]&lt;DOMString, double></code></td>
-            <td>« ("\uD83D", 0) »</td>
+            <td>«[ "\uD83D" → 0 ]»</td>
         </tr>
     </table>
 </div>
