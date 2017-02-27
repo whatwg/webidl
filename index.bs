@@ -146,6 +146,7 @@ urlPrefix: https://tc39.github.io/ecma262/; spec: ECMA-262
         text: @@unscopables; url: sec-well-known-symbols
         text: NewTarget; url: sec-built-in-function-objects
         text: Number Type; url: sec-ecmascript-language-types-number-type
+        text: JSON.stringify; url: sec-json.stringify
 </pre>
 
 <style>
@@ -553,7 +554,6 @@ underscore.
         "namespace"
         "partial"
         "required"
-        "serializer"
         "setlike"
         "setter"
         "static"
@@ -575,6 +575,11 @@ IDL constructs must not be “constructor”,
 “toString”,
 or begin with a <span class="char">U+005F LOW LINE ("_")</span> character.  These
 are known as <dfn id="dfn-reserved-identifier" export>reserved identifiers</dfn>.
+
+Although the “toJSON” [=identifier=] is not a [=reserved identifier=],
+it must only be used for [=regular operations=]
+that convert objects to [=JSON values=],
+as described in [[#idl-tojson-operation]].
 
 Note: Further restrictions on identifier names for particular constructs may be made
 in later sections.
@@ -1011,7 +1016,6 @@ The following extended attributes are applicable to interfaces:
     InterfaceMember :
         Const
         Operation
-        Serializer
         Stringifier
         StaticMember
         Iterable
@@ -1547,7 +1551,6 @@ are applicable only to regular attributes:
 An <dfn id="dfn-operation" export>operation</dfn> is an [=interface member=]
 (matching <emu-t>static</emu-t> <emu-nt><a href="#prod-OperationRest">OperationRest</a></emu-nt>,
 <emu-t>stringifier</emu-t> <emu-nt><a href="#prod-OperationRest">OperationRest</a></emu-nt>,
-<emu-t>serializer</emu-t> <emu-nt><a href="#prod-OperationRest">OperationRest</a></emu-nt>,
 <emu-nt><a href="#prod-ReturnType">ReturnType</a></emu-nt> <emu-nt><a href="#prod-OperationRest">OperationRest</a></emu-nt> or
 <emu-nt><a href="#prod-SpecialOperation">SpecialOperation</a></emu-nt>)
 that defines a behavior that can be invoked on objects implementing the interface.
@@ -1892,7 +1895,8 @@ The following extended attributes are applicable to operations:
 [{{Exposed}}],
 [{{NewObject}}],
 [{{SecureContext}}],
-[{{Unforgeable}}].
+[{{Unforgeable}}],
+[{{Default}}].
 
 <pre class="grammar" id="prod-DefaultValue">
     DefaultValue :
@@ -1975,6 +1979,122 @@ The following extended attributes are applicable to operations:
         "void"
 </pre>
 
+<h5 id="idl-tojson-operation">toJSON</h5>
+
+By declaring a “toJSON” [=regular operation=],
+an [=interface=] specify how to convert the objects that implements it to [=JSON values=].
+
+The “toJSON” [=regular operation=] is reserved for this usage.
+It must take zero arguments and return a [=JSON value=].
+
+The list of <dfn id="dfn-json-values" export lt="JSON value">JSON values</dfn> is as follows:
+
+*   a [=numeric type=],
+*   a {{boolean}} type,
+*   a [=string type=],
+*   a [=nullable type=] whose [=inner type=] is a [=JSON value=],
+*   a [=union type=] where all of its [=member types=] are [=JSON values=],
+*   a [=sequence type=] whose parameterized type is a [=JSON value=],
+*   a [=dictionary=] where all of its [=dictionary members|members=] are [=JSON values=],
+*   a [=record=] where all of its [=map/values=] are [=JSON values=], and
+*   an [=object type=],
+*   an [=interface type=] that has a “toJSON” method declared on itself
+    or on one of its [=consequential interfaces=].
+
+How the “toJSON” [=regular operation=]
+is made available on an object in a language binding,
+and how exactly the [=JSON values=] are converted into a JSON string,
+is language binding specific.
+
+Note: In the ECMAScript language binding,
+this is done by exposing a “toJSON” method
+which returns the [=JSON value=]
+converted into an ECMAScript value
+that can be turned into a JSON string
+by the <code>[=JSON.stringify=]</code> function.
+Additionaly, in the ECMAScript language binding,
+the “toJSON” operation can take a [{{Default}}] [=extended attribute=],
+in which case the [=default toJSON operation=] is exposed instead.
+
+<div class="example">
+
+    The following [=IDL fragment=] defines an interface <code class="idl">Transaction</code>
+    that has a “toJSON” method defined in prose,
+    and an interface <code class="idl">Account</code>,
+    which relies on the [=default toJSON operation=]
+    (its “toJSON” operation is declared with a [{{Default}}] [=extended attribute=]):
+
+    <pre highlight="webidl">
+        interface Transaction {
+          readonly attribute Account from;
+          readonly attribute Account to;
+          readonly attribute double amount;
+          readonly attribute DOMString description;
+          readonly attribute unsigned long number;
+          TransactionJSONValue toJSON();
+        };
+
+        dictionary TransactionJSONValue {
+          Account from;
+          Account to;
+          double amount;
+          DOMString description;
+        };
+
+        interface Account {
+          attribute DOMString name;
+          attribute unsigned long number;
+          [Default] object toJSON();
+        };
+    </pre>
+
+    Assuming each of the attributes of <code class="idl">Transaction</code> is backed by an associated value,
+    so that each [=attribute getter=] returns the corresponding associated value,
+    then the “toJSON” [=regular operation=] could be defined as follows:
+
+    <blockquote>
+        <div algorithm="example tojson">
+
+            The “toJSON” operation of the <code class="idl">Transaction</code> interface
+            must follow these steps:
+
+            1.  Let |json| be a new <code class="idl">TransactionJSONValue</code> dictionary.
+            1.  Set |json|[“from”] to this <code class="idl">Transaction</code>'s associated "from" value.
+            1.  Set |json|[“to”] to this <code class="idl">Transaction</code>'s associated "to" value.
+            1.  Set |json|[“amount”] to this <code class="idl">Transaction</code>'s associated "amount" value.
+            1.  Set |json|[“description”] to this <code class="idl">Transaction</code>'s associated "description" value.
+            1.  Return |json|.
+        </div>
+    </blockquote>
+
+    In the ECMAScript language binding, there would exist a “toJSON” method on
+    <code class="idl">Transaction</code> objects:
+
+    <pre highlight="js">
+        // Get an instance of Transaction.
+        var txn = getTransaction();
+
+        // Evaluates to an object like this:
+        // {
+        //   from: {
+        //     name: "foo",
+        //     number: 1234
+        //   },
+        //   to: {
+        //     name: "bar",
+        //     number: 5678
+        //   },
+        //   amount: 110.75
+        //   description: "dinner"
+        // }
+        txn.toJSON();
+
+        // Evaluates to a string like this:
+        // '{"from":{"name":"foo","number":1234},"to":{"name":"bar","number":5678},"amount":110.75,"description":"dinner"}'
+        JSON.stringify(txn);
+    </pre>
+</div>
+
 
 <h4 id="idl-special-operations">Special operations</h4>
 
@@ -1985,7 +2105,7 @@ Special operations are declared by using one or more
 <dfn id="dfn-special-keyword" export>special keywords</dfn>
 in an operation declaration.
 
-There are six kinds of special operations. The table below indicates
+There are five kinds of special operations. The table below indicates
 for a given kind of special operation what special keyword
 is used to declare it and what the purpose of the special operation is:
 
@@ -2021,14 +2141,9 @@ is used to declare it and what the purpose of the special operation is:
         <td><emu-t>stringifier</emu-t></td>
         <td>Defines how an object is converted into a {{DOMString}}.</td>
     </tr>
-    <tr>
-        <td><dfn id="dfn-serializer" export lt="serializer">Serializers</dfn></td>
-        <td><emu-t>serializer</emu-t></td>
-        <td>Defines how an object is converted into a serialized form.</td>
-    </tr>
 </table>
 
-Not all language bindings support all of the six kinds of special
+Not all language bindings support all of the five kinds of special
 object behavior.  When special operations are declared using
 operations with no identifier, then in language bindings that do
 not support the particular kind of special operations there simply
@@ -2103,7 +2218,7 @@ for details.
 
 On a given [=interface=],
 there must exist at most one
-stringifier, at most one serializer, at most one
+stringifier, at most one
 [=named property deleter=],
 and at most one of each variety of getter and setter.
 Multiple legacy callers can exist on an interface
@@ -2344,419 +2459,6 @@ a [=static attribute=].
         s.givenName = 'Alan';
 
         var greeting = 'Hi ' + s;  // Now greeting == 'Hi Alan Smithee'.
-    </pre>
-</div>
-
-
-<h5 id="idl-serializers">Serializers</h5>
-
-When an [=interface=] has a
-[=serializer=], it indicates that objects provide
-a way for them to be converted into a serialized form.  Serializers can be declared
-using the <emu-t>serializer</emu-t> keyword:
-
-<pre highlight="webidl" class="syntax">
-    interface interface_identifier {
-      serializer;
-    };
-</pre>
-
-Prose accompanying an interface that declares a serializer in this
-way must define the
-<dfn id="dfn-serialization-behavior" export>serialization behavior</dfn>
-of the interface.  Serialization behavior is defined as returning
-a <dfn id="dfn-serialized-value" export>serialized value</dfn> of one of the following types:
-
-*   a <em>map</em> of key–value pairs, where the keys are
-    {{DOMString}} values (unique in the map) and the
-    values are [=serialized values=]
-*   a <em>list</em> of [=serialized values=]
-*   a {{DOMString}} value
-*   an {{unrestricted double}} value
-*   a {{boolean}} value
-*   the <emu-val>null</emu-val> value
-
-How the [=serialization behavior=]
-is made available on an object in a language binding, and how exactly the abstract
-[=serialized value=] is converted into
-an appropriate concrete value, is language binding specific.
-
-Note: In the ECMAScript language binding,
-[=serialization behavior=]
-is exposed as a <code>toJSON</code> method which returns the
-[=serialized value=] converted
-into an ECMAScript value that can be serialized to JSON by the
-<code>JSON.stringify</code> function.  See [[#es-serializer]] for details.
-
-[=Serialization behavior=]
-can also be specified directly in IDL, rather than separately as prose.
-This is done by following the <emu-t>serializer</emu-t> keyword with
-a <span class="char">U+003D EQUALS SIGN ("=")</span> character and
-a <dfn id="dfn-serialization-pattern" export>serialization pattern</dfn>,
-which can take one of the following six forms:
-
-*   A map with entries corresponding to zero or more attributes from the interface, and optionally
-    attributes from an inherited interface:
-
-    <pre highlight="webidl" class="syntax">
-        interface interface_identifier {
-          serializer = { attribute_identifier, attribute_identifier /* , ... */ };
-          serializer = { inherit, attribute_identifier, attribute_identifier /* , ... */ };
-        };
-    </pre>
-
-    Each identifier must be the identifier of an attribute declared
-    on the interface.  The identified attributes all must have a
-    [=serializable type=].
-
-    The <emu-t>inherit</emu-t> keyword must not be used unless
-    the interface inherits from another that defines a serializer, and the closest such interface
-    defines its serializer using this [=serialization pattern=]
-    form or the following form (i.e. <code>{ attribute }</code>).
-
-    <div algorithm="to serialize to a map corresponding to 0-n interface attributes">
-
-        The [=serialization behavior=] for this form of serialization pattern is as follows:
-
-        1.  Let |map| be an empty map.
-        1.  If the <emu-t>inherit</emu-t> keyword was used, then set |map| to be the result of
-            the [=serialization behavior=] of the
-            closest inherited interface that declares a serializer.
-        1.  For each attribute identifier |i| in the serialization pattern, in order:
-            1.  Remove any entry in |map| with key name |i|.
-            1.  Let |V| be the value of the attribute with identifier |i|.
-            1.  Add an entry to |map| whose key name is |i| and whose
-                value is result of [=converted to a serialized value|converting=]
-                |V| to a serialized value.
-        1.  Return |map|.
-    </div>
-*   A map with entries corresponding to all attributes from the interface that have
-    a [=serializable type=], and optionally
-    attributes from an inherited interface:
-
-    <pre highlight="webidl" class="syntax">
-        interface interface_identifier {
-          serializer = { attribute };
-          serializer = { inherit, attribute };
-        };
-    </pre>
-
-    The <emu-t>inherit</emu-t> keyword must not be used unless
-    the interface inherits from another that defines a serializer, and the closest such interface
-    defines its serializer using this [=serialization pattern=]
-    form or the previous form.
-
-    <div algorithm="to serialize to a map corresponding to all interface attributes">
-
-        The [=serialization behavior=] for this form of serialization pattern is as follows:
-
-        1.  Let |map| be an empty map.
-        1.  If the <emu-t>inherit</emu-t> keyword was used, then set |map| to be the result of
-            the [=serialization behavior=] of the
-            closest inherited interface that declares a serializer.
-        1.  For each identifier |i| of an attribute on the interface whose type is
-            a [=serializable type=], in the order they appear
-            on the interface:
-            1.  Remove any entry in |map| with key name |i|.
-            1.  Let |V| be the value of the attribute with identifier |i|.
-            1.  Add an entry to |map| whose key name is |i| and whose
-                value is result of [=converted to a serialized value|converting=]
-                |V| to a serialized value.
-        1.  Return |map|.
-    </div>
-*   A map with entries corresponding to the named properties:
-
-    <pre highlight="webidl" class="syntax">
-        interface interface_identifier {
-          serializer = { getter };
-        };
-    </pre>
-
-    This form must not be used unless the interface or one it
-    inherits from supports named properties and the return type of the named property getter
-    is a serializable type.
-
-    <div algorithm="to serialize to a map corresponding to the named properties">
-
-        The [=serialization behavior=] for this form of serialization pattern is as follows:
-
-        1.  Let |map| be an empty map.
-        1.  For each supported property name |n| on the object, in order:
-            1.  Let |V| be the value of the named property with name |n|.
-            1.  Add an entry to |map| whose key name is |n| and whose
-                value is result of [=converted to a serialized value|converting=]
-                |V| to a serialized value.
-        1.  Return |map|.
-    </div>
-*   A list of value of zero or more attributes on the interface:
-
-    <pre highlight="webidl" class="syntax">
-        interface interface_identifier {
-          serializer = [ attribute_identifier, attribute_identifier /* , ... */ ];
-        };
-    </pre>
-
-    Each identifier must be the identifier of an attribute declared
-    on the interface.  The identified attributes all must have a
-    [=serializable type=].
-
-    <div algorithm="to serialize to a list of 0-n interface attributes">
-
-        The [=serialization behavior=] for this form of serialization pattern is as follows:
-
-        1.  Let |list| be an empty list.
-        1.  For each attribute identifier |i| in the serialization pattern:
-            1.  Let |V| be the value of the attribute with identifier |i|.
-            1.  Append to |list| the value that is the result of
-                [=converted to a serialized value|converting=]
-                |V| to a serialized value.
-        1.  Return |list|.
-    </div>
-*   A list with entries corresponding to the indexed properties:
-
-    <pre highlight="webidl" class="syntax">
-        interface interface_identifier {
-          serializer = [ getter ];
-        };
-    </pre>
-
-    This form must not be used unless the interface or one it
-    inherits from supports indexed properties and the return type of the indexed property getter
-    is a serializable type.
-
-    <div algorithm="to serialize to a list corresponding to indexed properties">
-
-        The [=serialization behavior=] for this form of serialization pattern is as follows:
-
-        1.  Let |list| be an empty list.
-        1.  Let |i| be 0.
-        1.  While |i| is less than or equal to the greatest supported property index on the object:
-            1.  Let |V| be the value of the indexed property with index |i|
-                if |i| is a supported property index, or <emu-val>null</emu-val> otherwise.
-            1.  Append to |list| the value that is the result of
-                [=converted to a serialized value|converting=]
-                |V| to a serialized value.
-            1.  Set |i| to |i| + 1.
-        1.  Return |list|.
-    </div>
-*   A single attribute:
-
-    <pre highlight="webidl" class="syntax">
-        interface interface_identifier {
-          serializer = attribute_identifier;
-        };
-    </pre>
-
-    The identifier must be the identifier of an attribute declared
-    on the interface, and this attribute must have a
-    [=serializable type=].
-
-    <div algorithm="to serialize to a single attribute">
-
-        The [=serialization behavior=] for this form of serialization pattern is as follows:
-
-        1.  Let |V| be the value of the attribute with the specified identifier.
-        1.  Return the result of [=converted to a serialized value|converting=]
-            |V| to a serialized value.
-    </div>
-
-Note: Entries are added to maps in a particular order so that in the ECMAScript language binding
-it is defined what order properties are added to objects.  This is because this order
-can influence the serialization that <code>JSON.stringify</code> can produce.
-
-The list of <dfn id="dfn-serializable-type" export lt="serializable type">serializable types</dfn> and how they are
-<dfn id="dfn-convert-to-serialized-value" export lt="converted to a serialized value|converted to serialized values">converted to serialized values</dfn> is as follows:
-
-<dl class="switch">
-     :  {{long long}}
-     :: converted by choosing the closest equivalent {{double}} value
-        (as when <a href="#es-long-long">converting a <code class="idl">long long</code> to an ECMAScript <emu-val>Number</emu-val> value</a>)
-     :  {{unsigned long long}}
-     :: converted by choosing the closest equivalent {{double}} value
-        (as when <a href="#es-unsigned-long-long">converting a <code class="idl">unsigned long long</code> to an ECMAScript <emu-val>Number</emu-val> value</a>)
-     :  any other [=integer type=]
-     :  {{float}}
-     :: converted by choosing the equivalent {{double}} value
-     :  {{double}}
-     :  {{boolean}}
-     :  {{DOMString}}
-     :: the same value of the respective type
-     :  an [=enumeration|enumeration type=]
-     :: the equivalent {{DOMString}} value
-     :  a {{USVString}}
-     :: the {{DOMString}} produced by
-        encoding the given sequence of [=Unicode scalar values=] in
-        UTF-16
-     :  a {{ByteString}}
-     :: the equivalent {{DOMString}} value where each code unit has the same value as the corresponding byte value
-     :  a [=nullable type|nullable=] serializable type
-     :: converted to <emu-val>null</emu-val> if that is its value,
-        otherwise converted as per its [=nullable types/inner type=]
-     :  a [=union type=] where all of its [=member types=] are serializable types
-     :: converted as per its [=specific type=]
-     :  a [=sequence type=] that has a serializable type as its element type
-     :: converted to a list where each element is the result of converting its
-        corresponding sequence element to a serialized value
-     :  a [=dictionary=] where all of its [=dictionary members|members=] have serializable types
-     :: converted to a map consisting of an entry for each dictionary member
-        that is present, where the entry’s key is the identifier of the dictionary
-        member and its value is the result of converting the dictionary member’s
-        value to a serializable type
-     :  an [=interface type=] that has a [=serializer=]
-     :: converted by invoking the object’s serializer
-</dl>
-
-Serializers can also be specified using an [=operation=]
-with the <emu-t>serializer</emu-t> keyword:
-
-<pre highlight="webidl" class="syntax">
-    interface interface_identifier {
-      serializer identifier();
-    };
-</pre>
-
-Serializers declared with operations must
-be declared to take zero arguments and return a [=serializable type=].
-
-The [=serialization behavior=]
-of the interface with a serializer declared with an operation is the result of
-[=converted to a serialized value|converting=]
-the value returned from invoking the operation to a serialized value.
-
-<pre class="grammar" id="prod-Serializer">
-    Serializer :
-        "serializer" SerializerRest
-</pre>
-
-<pre class="grammar" id="prod-SerializerRest">
-    SerializerRest :
-        OperationRest
-        "=" SerializationPattern ";"
-        ";"
-</pre>
-
-<pre class="grammar" id="prod-SerializationPattern">
-    SerializationPattern :
-        "{" SerializationPatternMap "}"
-        "[" SerializationPatternList "]"
-        identifier
-</pre>
-
-<pre class="grammar" id="prod-SerializationPatternMap">
-    SerializationPatternMap :
-        "getter"
-        "inherit" Identifiers
-        identifier Identifiers
-        ε
-</pre>
-
-<pre class="grammar" id="prod-SerializationPatternList">
-    SerializationPatternList :
-        "getter"
-        identifier Identifiers
-        ε
-</pre>
-
-<pre class="grammar" id="prod-Identifiers">
-    Identifiers :
-        "," identifier Identifiers
-        ε
-</pre>
-
-<div class="example">
-
-    The following [=IDL fragment=] defines
-    an interface <code class="idl">Transaction</code> that has a
-    [=serializer=] defines in prose:
-
-    <pre highlight="webidl">
-        interface Transaction {
-          readonly attribute Account from;
-          readonly attribute Account to;
-          readonly attribute double amount;
-          readonly attribute DOMString description;
-          readonly attribute unsigned long number;
-
-          serializer;
-        };
-
-        interface Account {
-          attribute DOMString name;
-          attribute unsigned long number;
-        };
-    </pre>
-
-    The serializer could be defined as follows:
-
-    <blockquote>
-
-        <div algorithm="example serializer">
-
-            The [=serialization behavior=] of the <code class="idl">Transaction</code> interface is
-            to run the following algorithm, where |O| is the object
-            that implements <code class="idl">Transaction</code>:
-
-            1.  Let |map| be an empty map.
-            1.  Add an entry to |map| whose key is “from” and whose value is
-                the [=serialized value=] of
-                the <code>number</code> attribute on the <code class="idl">Account</code>
-                object referenced by the <code>from</code> attribute on |O|.
-            1.  Add an entry to |map| whose key is “to” and whose value is
-                the [=serialized value=] of
-                the <code>number</code> attribute on the <code class="idl">Account</code>
-                object referenced by the <code>to</code> attribute on |O|.
-            1.  For both of the attributes <code>amount</code> and <code>description</code>,
-                add an entry to |map| whose key is the
-                [=identifier=] of the attribute
-                and whose value is the [=serialized value=]
-                of the value of the attribute on |O|.
-            1.  Return |map|.
-        </div>
-    </blockquote>
-
-    If it was acceptable for <code class="idl">Account</code> objects to be serializable
-    on their own, then [=serialization patterns=]
-    could be used to avoid having to define the [=serialization behavior=]
-    in prose:
-
-    <pre highlight="webidl">
-        interface Transaction {
-          readonly attribute Account from;
-          readonly attribute Account to;
-          readonly attribute double amount;
-          readonly attribute DOMString description;
-          readonly attribute unsigned long number;
-
-          serializer = { from, to, amount, description };
-        };
-
-        interface Account {
-          attribute DOMString name;
-          attribute unsigned long number;
-
-          serializer = number;
-        };
-    </pre>
-
-    In the ECMAScript language binding, there would exist a <code>toJSON</code> method on
-    <code class="idl">Transaction</code> objects:
-
-    <pre highlight="js">
-        // Get an instance of Transaction.
-        var txn = getTransaction();
-
-        // Evaluates to an object like this:
-        // {
-        //   from: 1234
-        //   to: 5678
-        //   amount: 110.75
-        //   description: "dinner"
-        // }
-        txn.toJSON();
-
-        // Evaluates to a string like this:
-        // '{"from":1234,"to":5678,"amount":110.75,"description":"dinner"}'
-        JSON.stringify(txn);
     </pre>
 </div>
 
@@ -6401,7 +6103,11 @@ five forms are allowed.
         identifier Identifiers
 </pre>
 
-<div data-fill-with="grammar-Identifiers"></div>
+<pre class="grammar" id="prod-Identifiers">
+    Identifiers :
+        "," identifier Identifiers
+        ε
+</pre>
 
 <pre class="grammar" id="prod-ExtendedAttributeNoArgs">
     ExtendedAttributeNoArgs :
@@ -6555,7 +6261,6 @@ and comprise the following:
 *   [=attribute setters=]
 *   <a href="#es-operations">the <emu-val>Function</emu-val> objects that correspond to operations</a>
 *   <a href="#es-stringifier">the <emu-val>Function</emu-val> objects that correspond to stringifiers</a>
-*   <a href="#es-serializer">the <emu-val>Function</emu-val> objects that correspond to serializers</a>
 *   <a href="#es-iterators">the <emu-val>Function</emu-val> objects that correspond to iterators</a>
 *   [=map size getters=]
 *   [=DOMException constructor objects=]
@@ -8186,6 +7891,79 @@ for an interface is to be implemented.
 </div>
 
 
+<h4 id="Default" extended-attribute lt="Default">[Default]</h4>
+
+If the [{{Default}}] [=extended attribute=] appears on a [=regular operation=],
+then it indicates that steps described in the [=corresponding default operation=]
+must be carried out when the operation is invoked.
+
+The [{{Default}}] extended attribute must
+[=takes no arguments|take no arguments=].
+
+The [{{Default}}] extended attribute must not
+be used on anything other than a [=regular operation=]
+for which a [=corresponding default operation=] has been defined.
+
+<div class="example">
+
+    As an example, the [{{Default}}] extended attribute is suitable
+    for use on the “toJSON” [=regular operation=] of the
+    <a href="https://w3c.github.io/browser-payment-api/#paymentresponse-interface"><code class="idl">PaymentResponse</code></a>
+    interface [[payment-request]].
+
+    <pre highlight="webidl">
+        [SecureContext]
+        interface PaymentResponse {
+          readonly attribute DOMString paymentRequestId;
+          readonly attribute DOMString methodName;
+          readonly attribute object details;
+          readonly attribute PaymentAddress? shippingAddress;
+          readonly attribute DOMString? shippingOption;
+          readonly attribute DOMString? payerName;
+          readonly attribute DOMString? payerEmail;
+          readonly attribute DOMString? payerPhone;
+          Promise&lt;void&gt; complete(optional PaymentComplete result = "unknown");
+          [Default] object toJSON();
+        };
+    </pre>
+
+    In an ECMAScript implementation of the IDL,
+    converting a <code class="idl">PaymentResponse</code> into a JSON string,
+    as in the following code snippet:
+
+    <pre highlight="js">
+        let payment = new PaymentRequest(methodData, details, options);
+        payment.show().then(paymentResponse => {
+            paymentResponse.complete("success");
+            console.log(JSON.stringify(paymentResponse, null, 4));
+        });
+    </pre>
+
+    would  log the following JSON string to the console:
+
+    <pre highlight="json">
+        {
+            "paymentRequestId": "XXXX",
+            "methodName": "basic-card",
+            "details": {
+                "total": {
+                    "label": "Total due",
+                    "amount": {
+                        "currency": "USD",
+                        "value": "60.00"
+                    }
+                }
+            },
+            "shippingAddress": null,
+            "shippingOption": null,
+            "payerName": "John Doe",
+            "payerEmail": "john.doe@example.org",
+            "payerPhone": null
+        }
+    </pre>
+</div>
+
+
 <h4 id="EnforceRange" extended-attribute lt="EnforceRange">[EnforceRange]</h4>
 
 If the [{{EnforceRange}}] [=extended attribute=] appears on one of the [=integer types=], it creates
@@ -8522,8 +8300,7 @@ there must not be more than one
 the interface and its [=consequential interfaces=]
 with the same [=identifier=].
 There also must not be more than
-one [=stringifier=],
-more than one [=serializer=],
+one [=stringifier=]
 or more than one [=iterable declaration=],
 [=maplike declaration=] or
 [=setlike declaration=]
@@ -10765,11 +10542,19 @@ property-installation style as namespaces.)
                 [=identifier=] |id| on |target| and with argument count |n|.
             1.  Let &lt;|operation|, |values|&gt; be the result of passing
                 |S| and |arg|<sub>0..|n|−1</sub> to the [=overload resolution algorithm=].
-            1.  Let |R| be the result of performing the actions listed in the
-                description of |operation|, on |O| if |O| is not <emu-val>null</emu-val>, with |values|
-                as the argument values.
-            1.  Return the result of [=converted to an ECMAScript value|converting=] |R| to
-                an ECMAScript value of the type |op| is declared to return.
+            1.  Let |R| be <emu-val>null</emu-val>.
+            1.  If |operation| is declared with a [{{Default}}] [=extended attribute=],
+                then:
+                1.  Set |R| be the result of performing the actions listed in
+                    |operation|'s [=corresponding default operation=]
+                    on |O| if |O| is not <emu-val>null</emu-val>,
+                    with |values| as the argument values.
+            1.  Otherwise:
+                1.  Set |R| be the result of performing the actions listed in the
+                    description of |operation|, on |O| if |O| is not <emu-val>null</emu-val>, with |values|
+                    as the argument values.
+                1.  Return the result of [=converted to an ECMAScript value|converting=] |R| to
+                    an ECMAScript value of the type |op| is declared to return.
 
         And then, if an exception was thrown:
 
@@ -10790,6 +10575,40 @@ property-installation style as namespaces.)
         PropertyDescriptor{\[[Value]]: |length|, \[[Writable]]: <emu-val>false</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val>}).
     1.  Return |F|.
 </div>
+
+
+<h5 id="es-default-operations">Default operations</h5>
+
+Only [=regular operations=] which have a <dfn>corresponding default operation</dfn> defined below
+may be declared with a [{{Default}}] [=extended attribute=].
+
+
+<h6 id="es-default-tojson">default toJSON operation</h5>
+
+The [=corresponding default operation=] of the “toJSON” operation is the [=default toJSON operation=].
+
+<div algorithm>
+
+    To invoke the <dfn export>default toJSON operation</dfn> of [=interface=] |I|,
+    run the the following steps:
+
+    1.  Let |O| be the <emu-val>this</emu-val> value.
+    1.  Let |result| be [=!=] [=ObjectCreate=]([=%ObjectPrototype%=]).
+    1.  If there is an [=inherited interface=] of |I|
+        that declares a “toJSON” operation, then
+        1.  Let |super| be the “toJSON” operation  of
+            the closest [=inherited interface=] of |I|
+            that declares a “toJSON” operation.
+        1.  Set |result| to [=?=] [=Call=](|super|, |O|).
+    1.  If Type(|result|) is not Object, return |result|.
+    1.  For each [=exposed=] [=regular attribute=] |attr| that is an [=interface member=] of |I|:
+        1.  Let |id| be |attr|’s [=identifier=] [=converted to an ECMAScript value=].
+        1.  Let |value| be [=?=] [=Get=](|O|, |id|).
+        1.  Let |created| be [=!=] [=CreateDataProperty=](|result|, |id|, |value|).
+        1.  Assert: |created| is <emu-val>true</emu-val>.
+    1.  Return |result|.
+</div>
+
 
 <h5 id="es-stringifier">Stringifiers</h5>
 
@@ -10839,89 +10658,6 @@ then there must exist a property with the following characteristics:
     property is the <emu-val>Number</emu-val> value <emu-val>0</emu-val>.
 *   The value of the <emu-val>Function</emu-val> object’s “name”
     property is the <emu-val>String</emu-val> value “toString”.
-
-
-<h5 id="es-serializer">Serializers</h5>
-
-If the [=interface=] has an [=exposed=] [=serializer=], then
-a property must exist whose name is “toJSON”, with attributes
-{ \[[Writable]]: <emu-val>true</emu-val>, \[[Enumerable]]: <emu-val>true</emu-val>, \[[Configurable]]: <emu-val>true</emu-val> }
-and whose value is a <emu-val>Function</emu-val> object.
-
-The location of the property is determined as follows:
-
-*   If the interface was declared with the [{{Global}}] or [{{PrimaryGlobal}}] extended attribute,
-    then the property exists on the single object that implements the interface.
-*   Otherwise, if the interface is a [=consequential interface=]
-    of a [{{Global}}]- or [{{PrimaryGlobal}}]-annotated interface, then
-    the property exists on the single object that implements the [{{Global}}]- or
-    [{{PrimaryGlobal}}]-annotated interface as well as on
-    the consequential interface’s [=interface prototype object=].
-*   Otherwise, the property exists solely on the interface’s [=interface prototype object=].
-
-<div algorithm="to invoke the toJSON method of interfaces">
-
-    The property’s <emu-val>Function</emu-val> object, when invoked,
-    must behave as follows:
-
-    1.  Let |O| be the result of calling [=ToObject=] on the <emu-val>this</emu-val> value.
-    1.  If |O| is a [=platform object=],
-        then [=perform a security check=], passing:
-        *   the platform object |O|,
-        *   the [=identifier=] of the [=serializer=], and
-        *   the type “method”.
-    1.  If |O| is not an object that implements the [=interface=]
-        on which the serializer was declared, then [=ECMAScript/throw=] a <emu-val>TypeError</emu-val>.
-    1.  Depending on how <code>serializer</code> was specified:
-        <dl class="switch">
-             :  on an [=operation=] with an identifier
-             :: 1.  Return the result of performing the actions listed in the description of the operation,
-                    using |O| as the <emu-val>this</emu-val> value and passing no arguments.
-             :  as a keyword, either with or without a [=serialization pattern=]
-             :: 1.  Let |S| be the [=serialized value=] that is the result of invoking the [=serialization behavior=] of the
-                    [=interface=] for object |O|.
-                1.  Return the result of [=convert a serialized value to an ECMAScript value|converting=]
-                    |S| to an ECMAScript value.
-        </dl>
-</div>
-
-The value of the <emu-val>Function</emu-val> object’s “length”
-property is the <emu-val>Number</emu-val> value <emu-val>0</emu-val>.
-
-The value of the <emu-val>Function</emu-val> object’s “name”
-property is the <emu-val>String</emu-val> value “toJSON”.
-
-<div algorithm>
-
-    The following steps define how to
-    <dfn id="dfn-convert-serialized-value-to-ecmascript-value" export>convert a serialized value to an ECMAScript value</dfn>:
-
-    1.  Let |S| be the [=serialized value=].
-    1.  Depending on the type of |S|:
-        <dl class="switch">
-             :  a map
-             :: 1.  Let |O| be a new object created as if by the expression <code>({})</code>.
-                1.  For each entry in |S|, in the order they were added to the map:
-                    1.  Let |V| be the result of [=convert a serialized value to an ECMAScript value|converting=]
-                        the value of the entry to an ECMAScript value.
-                    1.  Let |P| be the entry’s key.
-                    1.  Call [=CreateDataProperty=](|O|, |P|, |V|).
-                1.  Return |O|.
-             :  a list
-             :: 1.  Let |A| be a new <emu-val>Array</emu-val> object created as if by the expression <code>[]</code>.
-                1.  Let |index| be 0.
-                1.  While |index| is less than the number of elements in |S|:
-                    1.  Let |V| be the result of [=convert a serialized value to an ECMAScript value|converting=]
-                        the value of the element in |S| at index |index| to an ECMAScript value.
-                    1.  Let |P| be [=ToString=](|index|).
-                    1.  Call [=CreateDataProperty=](|O|, |P|, |V|).
-                1.  Return |A|.
-             :  any other serialized value
-             :: 1.  Let |V| be the result of [=converted to an ECMAScript value|converting=]
-                    |S| to an ECMAScript value.
-                1.  Return |V|.
-        </dl>
-</div>
 
 
 <h4 id="es-iterators">Common iterator behavior</h4>
