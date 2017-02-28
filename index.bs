@@ -1982,12 +1982,13 @@ The following extended attributes are applicable to operations:
 <h5 id="idl-tojson-operation">toJSON</h5>
 
 By declaring a “toJSON” [=regular operation=],
-an [=interface=] specify how to convert the objects that implements it to [=JSON values=].
+an [=interface=] specifies how to convert the objects that implement it to [=JSON values=].
 
 The “toJSON” [=regular operation=] is reserved for this usage.
 It must take zero arguments and return a [=JSON value=].
 
-The list of <dfn id="dfn-json-values" export lt="JSON value">JSON values</dfn> is as follows:
+The list of types that <dfn id="dfn-json-values" export lt="JSON value">JSON values</dfn> can have
+is as follows:
 
 *   a [=numeric type=],
 *   a {{boolean}} type,
@@ -2044,7 +2045,7 @@ in which case the [=default toJSON operation=] is exposed instead.
         interface Account {
           attribute DOMString name;
           attribute unsigned long number;
-          [Default] object toJSON();
+          [Default] any toJSON();
         };
     </pre>
 
@@ -7923,7 +7924,7 @@ for which a [=corresponding default operation=] has been defined.
           readonly attribute DOMString? payerEmail;
           readonly attribute DOMString? payerPhone;
           Promise&lt;void&gt; complete(optional PaymentComplete result = "unknown");
-          [Default] object toJSON();
+          [Default] any toJSON();
         };
     </pre>
 
@@ -10587,25 +10588,26 @@ may be declared with a [{{Default}}] [=extended attribute=].
 
 The [=corresponding default operation=] of the “toJSON” operation is the [=default toJSON operation=].
 
+The [=return type=] of the [=default toJSON operation=] must be {{any}}.
+
 <div algorithm>
 
     To invoke the <dfn export>default toJSON operation</dfn> of [=interface=] |I|,
     run the the following steps:
 
     1.  Let |O| be the <emu-val>this</emu-val> value.
-    1.  Let |result| be [=!=] [=ObjectCreate=]([=%ObjectPrototype%=]).
     1.  If there is an [=inherited interface=] of |I|
         that declares a “toJSON” operation, then
         1.  Let |super| be the “toJSON” operation  of
             the closest [=inherited interface=] of |I|
             that declares a “toJSON” operation.
-        1.  Set |result| to [=?=] [=Call=](|super|, |O|).
-    1.  If Type(|result|) is not Object, return |result|.
+        1.  Let |result| to [=?=] [=Call=](|super|, |O|).
+        1.  If Type(|result|) is not Object, return |result|.
+    1.  Otherwise, let |result| be [=!=] [=ObjectCreate=]([=%ObjectPrototype%=]).
     1.  For each [=exposed=] [=regular attribute=] |attr| that is an [=interface member=] of |I|:
         1.  Let |id| be |attr|’s [=identifier=] [=converted to an ECMAScript value=].
         1.  Let |value| be [=?=] [=Get=](|O|, |id|).
-        1.  Let |created| be [=!=] [=CreateDataProperty=](|result|, |id|, |value|).
-        1.  Assert: |created| is <emu-val>true</emu-val>.
+        1.  Perform [=?=] [=CreateDataProperty=](|result|, |id|, |value|).
     1.  Return |result|.
 </div>
 
