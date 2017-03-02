@@ -10596,12 +10596,16 @@ The [=return type=] of the [=default toJSON operation=] must be {{any}}.
     run the the following steps:
 
     1.  Let |O| be the <emu-val>this</emu-val> value.
-    1.  If there is an [=inherited interface=] of |I|
-        that declares a “toJSON” operation, then
-        1.  Let |super| be the “toJSON” operation  of
-            the closest [=inherited interface=] of |I|
-            that declares a “toJSON” operation.
-        1.  Let |result| to [=?=] [=Call=](|super|, |O|).
+    1.  Find the closest [=inherited interface=] of |I|
+        that declares a “toJSON” operation
+        or which has a [=consequential interface=] that does.
+        If such an interface exists, then:
+        1.  Let |P| be that interface.
+        1.  If a “toJSON” operation is declared on |P|,
+            then let |super| be that “toJSON” operation.
+        1.  Otherwise, let |super| be the “toJSON” operation
+            declared on one of |P|'s [=consequential interfaces=].
+        1.  Let |result| be [=?=] [=Call=](|super|, |O|).
         1.  If Type(|result|) is not Object, return |result|.
     1.  Otherwise, let |result| be [=!=] [=ObjectCreate=]([=%ObjectPrototype%=]).
     1.  For each [=exposed=] [=regular attribute=] |attr| that is an [=interface member=] of |I|:
