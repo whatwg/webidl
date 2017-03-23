@@ -12374,6 +12374,56 @@ described in the previous section).
             |rejectedPromise| to the callback function's return type.
 </div>
 
+Some callback functions are instead used as constructors. Such callback functions must not have
+a return type that is a [=promise type=].
+
+<div algorithm>
+
+    To <dfn id="construct-a-callback-function" export>construct</dfn> a
+    [=callback function type=] value |callable| with
+    a list of arguments |arg|<sub>0..|n|−1</sub>, each of which is either
+    an IDL value or the special value “missing” (representing a missing optional argument),
+    perform the following steps.
+    These steps will either return an IDL value or throw an exception.
+
+    1.  Let |completion| be an uninitialized variable.
+    1.  Let |F| be the ECMAScript object corresponding to |callable|.
+    1.  If [=!=] [=IsConstructor=](|F|) is <emu-val>false</emu-val>, throw a
+        <emu-val>TypeError</emu-val> exception.
+    1.  Let |realm| be |F|'s [=associated Realm=].
+    1.  Let |relevant settings| be |realm|'s [=Realm/settings object=].
+    1.  Let |stored settings| be |callable|'s [=callback context=].
+    1.  [=Prepare to run script=] with |relevant settings|.
+    1.  [=Prepare to run a callback=] with |stored settings|.
+    1.  Let |esArgs| be an empty List of ECMAScript values.
+    1.  Let |i| be 0.
+    1.  Let |count| be 0.
+    1.  While |i| &lt; |n|:
+        1.  If |arg|<sub>|i|</sub> is the special value “missing”, then
+            append <emu-val>undefined</emu-val> to |esArgs|.
+        1.  Otherwise, |arg|<sub>|i|</sub> is an IDL value:
+            1.  Let |convertResult| be the result of [=converted to an ECMAScript value|converting=]
+                |arg|<sub>|i|</sub> to an ECMAScript value.
+            1.  If |convertResult| is an abrupt completion, set |completion|
+                to |convertResult| and jump to the step labeled <a
+                href="#construct-return"><i>return</i></a>.
+            1.  Append |convertResult|.\[[Value]] to |esArgs|.
+            1.  Set |count| to |i| + 1.
+        1.  Set |i| to |i| + 1.
+    1.  Truncate |esArgs| to have length |count|.
+    1.  Let |callResult| be [=Construct=](|F|, |esArgs|).
+    1.  If |callResult| is an abrupt completion, set |completion| to
+        |callResult| and jump to the step labeled <a href="#construct-return"><i>return</i></a>.
+    1.  Set |completion| to the result of [=converted to an IDL value|converting=]
+        |callResult|.\[[Value]] to an IDL value of the same type as the operation’s
+        return type.
+    1.  <i id="construct-return">Return:</i> at this
+        point |completion| will be set to an ECMAScript completion value.
+        1.  [=Clean up after running a callback=] with |stored settings|.
+        1.  [=Clean up after running script=] with |relevant settings|.
+        1.  Return |completion|.
+</div>
+
 
 <h3 id="es-namespaces">Namespaces</h3>
 
