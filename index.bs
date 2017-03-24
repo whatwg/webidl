@@ -12166,14 +12166,37 @@ a [=callback interface=] that:
 *   has one or more [=regular operations=] that all have the same [=identifier=],
     and no others.
 
+A <dfn>Web IDL arguments list</dfn> is a [=list=] of values each of which is either an IDL value or
+the special value “missing”, which represents a missing optional argument.
+
+<div algorithm="convert an IDL arguments list to an ECMAScript arguments list">
+    To <dfn lt="converting" for="Web IDL arguments list">convert a Web IDL arguments list to an
+    ECMAScript arguments list</dfn>, given a [=Web IDL arguments list=] |args|, perform the
+    following steps:
+
+    1.  Let |esArgs| be an empty [=list=].
+    1.  Let |i| be 0.
+    1.  Let |count| be 0.
+    1.  While |i| &lt; |args|'s [=list/size=]:
+        1.  If |args|[|i|] is the special value “missing”, then [=list/append=]
+            <emu-val>undefined</emu-val> to |esArgs|.
+        1.  Otherwise, |args|[|i|] is an IDL value:
+            1.  Let |convertResult| be the result of [=converted to an ECMAScript value|converting=]
+                |args|[|i|] to an ECMAScript value. Rethrow any exceptions.
+            1.  [=list/Append=] |convertResult| to |esArgs|.
+            1.  Set |count| to |i| + 1.
+        1.  Set |i| to |i| + 1.
+    1.  [=list/Remove=] all items from |esArgs| except the first |count|, so that |esArgs|'s
+        [=list/size=] is now |count|.
+    1.  Return |esArgs|.
+</div>
+
 <div algorithm="to call a user object's operation">
 
     To <dfn id="call-a-user-objects-operation" export>call a user object's operation</dfn>,
     given a [=Interface types|callback interface type=] value |value|,
-    sometimes-optional operation name |opName|,
-    list of argument values |arg|<sub>0..|n|−1</sub> each of which is either
-    an IDL value or the special value “missing” (representing a missing optional argument),
-    and optional <dfn id="dfn-callback-this-value" export>callback this value</dfn> |thisArg|,
+    sometimes-optional operation name |opName|, [=Web IDL arguments list=] |args|, and optional
+    <dfn id="dfn-callback-this-value" export>callback this value</dfn> |thisArg|,
     perform the following steps.
     These steps will either return an IDL value or throw an exception.
 
@@ -12201,21 +12224,10 @@ a [=callback interface=] that:
     1.  If |value|'s interface is not a [=single operation callback interface=],
         or if [=!=] [=IsCallable=](|O|) is <emu-val>false</emu-val>,
         set |thisArg| to |O| (overriding the provided value).
-    1.  Let |esArgs| be an empty List of ECMAScript values.
-    1.  Let |i| be 0.
-    1.  Let |count| be 0.
-    1.  While |i| &lt; |n|:
-        1.  If |arg|<sub>|i|</sub> is the special value “missing”, then
-            append <emu-val>undefined</emu-val> to |esArgs|.
-        1.  Otherwise, |arg|<sub>|i|</sub> is an IDL value:
-            1.  Let |convertResult| be the result of [=converted to an ECMAScript value|converting=]
-                |arg|<sub>|i|</sub> to an ECMAScript value.
-            1.  If |convertResult| is an abrupt completion, set |completion|
-                to |convertResult| and jump to the step labeled <a href="#call-user-object-operation-return"><i>return</i></a>.
-            1.  Append |convertResult|.\[[Value]] to |esArgs|.
-            1.  Set |count| to |i| + 1.
-        1.  Set |i| to |i| + 1.
-    1.  Truncate |esArgs| to have length |count|.
+    1.  Let |esArgs| be the result of [=Web IDL arguments list/converting=] |args| to an ECMAScript
+        arguments list. If this throws an exception, set |completion| to the completion value
+        representing the thrown exception and jump to the step labeled
+        <a href="#call-user-object-operation-return"><i>return</i></a>.
     1.  Let |callResult| be [=Call=](|X|, |thisArg|, |esArgs|).
     1.  If |callResult| is an abrupt completion, set |completion| to
         |callResult| and jump to the step labeled <a href="#call-user-object-operation-return"><i>return</i></a>.
@@ -12315,10 +12327,8 @@ described in the previous section).
 <div algorithm>
 
     To <dfn id="invoke-a-callback-function" export>invoke</dfn> a
-    [=callback function type=] value |callable| with
-    a list of arguments |arg|<sub>0..|n|−1</sub>, each of which is either
-    an IDL value or the special value “missing” (representing a missing optional argument),
-    and with optional [=callback this value|callback this value=] |thisArg|,
+    [=callback function type=] value |callable| with a [=Web IDL arguments list=] |args|
+    and an optional [=callback this value|callback this value=] |thisArg|,
     perform the following steps.
     These steps will either return an IDL value or throw an exception.
 
@@ -12338,21 +12348,10 @@ described in the previous section).
     1.  Let |stored settings| be |callable|'s [=callback context=].
     1.  [=Prepare to run script=] with |relevant settings|.
     1.  [=Prepare to run a callback=] with |stored settings|.
-    1.  Let |esArgs| be an empty List of ECMAScript values.
-    1.  Let |i| be 0.
-    1.  Let |count| be 0.
-    1.  While |i| &lt; |n|:
-        1.  If |arg|<sub>|i|</sub> is the special value “missing”, then
-            append <emu-val>undefined</emu-val> to |esArgs|.
-        1.  Otherwise, |arg|<sub>|i|</sub> is an IDL value:
-            1.  Let |convertResult| be the result of [=converted to an ECMAScript value|converting=]
-                |arg|<sub>|i|</sub> to an ECMAScript value.
-            1.  If |convertResult| is an abrupt completion, set |completion|
-                to |convertResult| and jump to the step labeled <a href="#invoke-return"><i>return</i></a>.
-            1.  Append |convertResult|.\[[Value]] to |esArgs|.
-            1.  Set |count| to |i| + 1.
-        1.  Set |i| to |i| + 1.
-    1.  Truncate |esArgs| to have length |count|.
+    1.  Let |esArgs| be the result of [=Web IDL arguments list/converting=] |args| to an ECMAScript
+        arguments list. If this throws an exception, set |completion| to the completion value
+        representing the thrown exception and jump to the step labeled
+        <a href="#invoke-return"><i>return</i></a>.
     1.  Let |callResult| be [=Call=](|F|, |thisArg|, |esArgs|).
     1.  If |callResult| is an abrupt completion, set |completion| to
         |callResult| and jump to the step labeled <a href="#invoke-return"><i>return</i></a>.
@@ -12380,9 +12379,7 @@ a return type that is a [=promise type=].
 <div algorithm>
 
     To <dfn id="construct-a-callback-function" export>construct</dfn> a
-    [=callback function type=] value |callable| with
-    a list of arguments |arg|<sub>0..|n|−1</sub>, each of which is either
-    an IDL value or the special value “missing” (representing a missing optional argument),
+    [=callback function type=] value |callable| with a [=Web IDL arguments list=] |args|,
     perform the following steps.
     These steps will either return an IDL value or throw an exception.
 
@@ -12395,22 +12392,10 @@ a return type that is a [=promise type=].
     1.  Let |stored settings| be |callable|'s [=callback context=].
     1.  [=Prepare to run script=] with |relevant settings|.
     1.  [=Prepare to run a callback=] with |stored settings|.
-    1.  Let |esArgs| be an empty List of ECMAScript values.
-    1.  Let |i| be 0.
-    1.  Let |count| be 0.
-    1.  While |i| &lt; |n|:
-        1.  If |arg|<sub>|i|</sub> is the special value “missing”, then
-            append <emu-val>undefined</emu-val> to |esArgs|.
-        1.  Otherwise, |arg|<sub>|i|</sub> is an IDL value:
-            1.  Let |convertResult| be the result of [=converted to an ECMAScript value|converting=]
-                |arg|<sub>|i|</sub> to an ECMAScript value.
-            1.  If |convertResult| is an abrupt completion, set |completion|
-                to |convertResult| and jump to the step labeled <a
-                href="#construct-return"><i>return</i></a>.
-            1.  Append |convertResult|.\[[Value]] to |esArgs|.
-            1.  Set |count| to |i| + 1.
-        1.  Set |i| to |i| + 1.
-    1.  Truncate |esArgs| to have length |count|.
+    1.  Let |esArgs| be the result of [=Web IDL arguments list/converting=] |args| to an ECMAScript
+        arguments list. If this throws an exception, set |completion| to the completion value
+        representing the thrown exception and jump to the step labeled
+        <a href="#construct-return"><i>return</i></a>.
     1.  Let |callResult| be [=Construct=](|F|, |esArgs|).
     1.  If |callResult| is an abrupt completion, set |completion| to
         |callResult| and jump to the step labeled <a href="#construct-return"><i>return</i></a>.
