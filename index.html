@@ -1177,7 +1177,7 @@ Possible extra rowspan handling
 		}
 	}
 </style>
-  <meta content="Bikeshed version fa6d32dea6b39d19cbb9dd6d5e69f189e8bdd53f" name="generator">
+  <meta content="Bikeshed version 11d433fa8527de0d1aa96f0921a5a902368ea172" name="generator">
 <style>
         pre.set {
           font-size: 80%;
@@ -1567,7 +1567,7 @@ pre.idl.highlight { color: #708090; }
   <div class="head">
    <p data-fill-with="logo"><a class="logo" href="https://www.w3.org/"> <img alt="W3C" height="48" src="https://www.w3.org/StyleSheets/TR/2016/logos/W3C" width="72"> </a> </p>
    <h1 class="p-name no-ref" id="title">Web IDL</h1>
-   <h2 class="no-num no-toc no-ref heading settled" id="subtitle"><span class="content">Editor’s Draft, <time class="dt-updated" datetime="2017-03-24">24 March 2017</time></span></h2>
+   <h2 class="no-num no-toc no-ref heading settled" id="subtitle"><span class="content">Editor’s Draft, <time class="dt-updated" datetime="2017-03-27">27 March 2017</time></span></h2>
    <div data-fill-with="spec-metadata">
     <dl>
      <dt>This version:
@@ -11620,13 +11620,47 @@ a <a data-link-type="dfn" href="#dfn-callback-interface" id="ref-for-dfn-callbac
      <p>has one or more <a data-link-type="dfn" href="#dfn-regular-operation" id="ref-for-dfn-regular-operation-18">regular operations</a> that all have the same <a data-link-type="dfn" href="#dfn-identifier" id="ref-for-dfn-identifier-91">identifier</a>,
 and no others.</p>
    </ul>
+   <p>A <dfn class="dfn-paneled" data-dfn-type="dfn" data-noexport="" id="web-idl-arguments-list">Web IDL arguments list</dfn> is a <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#list">list</a> of values each of which is either an IDL value or
+the special value “missing”, which represents a missing optional argument.</p>
+   <div class="algorithm" data-algorithm="convert a Web IDL arguments list to an ECMAScript arguments list">
+     To <dfn class="dfn-paneled" data-dfn-for="Web IDL arguments list" data-dfn-type="dfn" data-lt="converting" data-noexport="" id="web-idl-arguments-list-converting">convert a Web IDL arguments list to an
+    ECMAScript arguments list</dfn>, given a <a data-link-type="dfn" href="#web-idl-arguments-list" id="ref-for-web-idl-arguments-list-1">Web IDL arguments list</a> <var>args</var>, perform the
+    following steps: 
+    <ol>
+     <li data-md="">
+      <p>Let <var>esArgs</var> be an empty <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#list">list</a>.</p>
+     <li data-md="">
+      <p>Let <var>i</var> be 0.</p>
+     <li data-md="">
+      <p>Let <var>count</var> be 0.</p>
+     <li data-md="">
+      <p>While <var>i</var> &lt; <var>args</var>’s <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#list-size">size</a>:</p>
+      <ol>
+       <li data-md="">
+        <p>If <var>args</var>[<var>i</var>] is the special value “missing”, then <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#list-append">append</a> <emu-val>undefined</emu-val> to <var>esArgs</var>.</p>
+       <li data-md="">
+        <p>Otherwise, <var>args</var>[<var>i</var>] is an IDL value:</p>
+        <ol>
+         <li data-md="">
+          <p>Let <var>convertResult</var> be the result of <a data-link-type="dfn" href="#dfn-convert-idl-to-ecmascript-value" id="ref-for-dfn-convert-idl-to-ecmascript-value-59">converting</a> <var>args</var>[<var>i</var>] to an ECMAScript value. Rethrow any exceptions.</p>
+         <li data-md="">
+          <p><a data-link-type="dfn" href="https://infra.spec.whatwg.org/#list-append">Append</a> <var>convertResult</var> to <var>esArgs</var>.</p>
+         <li data-md="">
+          <p>Set <var>count</var> to <var>i</var> + 1.</p>
+        </ol>
+       <li data-md="">
+        <p>Set <var>i</var> to <var>i</var> + 1.</p>
+      </ol>
+     <li data-md="">
+      <p>Truncate <var>esArgs</var> to contain <var>count</var> items.</p>
+     <li data-md="">
+      <p>Return <var>esArgs</var>.</p>
+    </ol>
+   </div>
    <div class="algorithm" data-algorithm="to call a user object’s operation">
     <p>To <dfn data-dfn-type="dfn" data-export="" id="call-a-user-objects-operation">call a user object’s operation<a class="self-link" href="#call-a-user-objects-operation"></a></dfn>,
     given a <a data-link-type="dfn" href="#idl-interface" id="ref-for-idl-interface-18">callback interface type</a> value <var>value</var>,
-    sometimes-optional operation name <var>opName</var>,
-    list of argument values <var>arg</var><sub>0..<var>n</var>−1</sub> each of which is either
-    an IDL value or the special value “missing” (representing a missing optional argument),
-    and optional <dfn class="dfn-paneled" data-dfn-type="dfn" data-export="" id="dfn-callback-this-value">callback this value</dfn> <var>thisArg</var>,
+    sometimes-optional operation name <var>opName</var>, <a data-link-type="dfn" href="#web-idl-arguments-list" id="ref-for-web-idl-arguments-list-2">Web IDL arguments list</a> <var>args</var>, and optional <dfn class="dfn-paneled" data-dfn-type="dfn" data-export="" id="dfn-callback-this-value">callback this value</dfn> <var>thisArg</var>,
     perform the following steps.
     These steps will either return an IDL value or throw an exception.</p>
     <ol>
@@ -11673,34 +11707,9 @@ to the step labeled <a href="#call-user-object-operation-return"><i>return</i></
 or if <a data-link-type="dfn" href="https://tc39.github.io/ecma262/#sec-algorithm-conventions">!</a> <a data-link-type="dfn" href="https://tc39.github.io/ecma262/#sec-iscallable">IsCallable</a>(<var>O</var>) is <emu-val>false</emu-val>,
 set <var>thisArg</var> to <var>O</var> (overriding the provided value).</p>
      <li data-md="">
-      <p>Let <var>esArgs</var> be an empty List of ECMAScript values.</p>
-     <li data-md="">
-      <p>Let <var>i</var> be 0.</p>
-     <li data-md="">
-      <p>Let <var>count</var> be 0.</p>
-     <li data-md="">
-      <p>While <var>i</var> &lt; <var>n</var>:</p>
-      <ol>
-       <li data-md="">
-        <p>If <var>arg</var><sub><var>i</var></sub> is the special value “missing”, then
-append <emu-val>undefined</emu-val> to <var>esArgs</var>.</p>
-       <li data-md="">
-        <p>Otherwise, <var>arg</var><sub><var>i</var></sub> is an IDL value:</p>
-        <ol>
-         <li data-md="">
-          <p>Let <var>convertResult</var> be the result of <a data-link-type="dfn" href="#dfn-convert-idl-to-ecmascript-value" id="ref-for-dfn-convert-idl-to-ecmascript-value-59">converting</a> <var>arg</var><sub><var>i</var></sub> to an ECMAScript value.</p>
-         <li data-md="">
-          <p>If <var>convertResult</var> is an abrupt completion, set <var>completion</var> to <var>convertResult</var> and jump to the step labeled <a href="#call-user-object-operation-return"><i>return</i></a>.</p>
-         <li data-md="">
-          <p>Append <var>convertResult</var>.[[Value]] to <var>esArgs</var>.</p>
-         <li data-md="">
-          <p>Set <var>count</var> to <var>i</var> + 1.</p>
-        </ol>
-       <li data-md="">
-        <p>Set <var>i</var> to <var>i</var> + 1.</p>
-      </ol>
-     <li data-md="">
-      <p>Truncate <var>esArgs</var> to have length <var>count</var>.</p>
+      <p>Let <var>esArgs</var> be the result of <a data-link-type="dfn" href="#web-idl-arguments-list-converting" id="ref-for-web-idl-arguments-list-converting-1">converting</a> <var>args</var> to an ECMAScript
+arguments list. If this throws an exception, set <var>completion</var> to the completion value
+representing the thrown exception and jump to the step labeled <a href="#call-user-object-operation-return"><i>return</i></a>.</p>
      <li data-md="">
       <p>Let <var>callResult</var> be <a data-link-type="dfn" href="https://tc39.github.io/ecma262/#sec-call">Call</a>(<var>X</var>, <var>thisArg</var>, <var>esArgs</var>).</p>
      <li data-md="">
@@ -11826,10 +11835,7 @@ used as a <a data-link-type="dfn" href="#dfn-callback-function" id="ref-for-dfn-
 called in a manner similar to how <a data-link-type="dfn" href="#dfn-operation" id="ref-for-dfn-operation-61">operations</a> on <a data-link-type="dfn" href="#dfn-user-object" id="ref-for-dfn-user-object-10">user objects</a> are called (as
 described in the previous section).</p>
    <div class="algorithm" data-algorithm="invoke">
-    <p>To <dfn class="dfn-paneled" data-dfn-type="dfn" data-export="" id="invoke-a-callback-function">invoke</dfn> a <a data-link-type="dfn" href="#idl-callback-function" id="ref-for-idl-callback-function-6">callback function type</a> value <var>callable</var> with
-    a list of arguments <var>arg</var><sub>0..<var>n</var>−1</sub>, each of which is either
-    an IDL value or the special value “missing” (representing a missing optional argument),
-    and with optional <a data-link-type="dfn" href="#dfn-callback-this-value" id="ref-for-dfn-callback-this-value-2">callback this value</a> <var>thisArg</var>,
+    <p>To <dfn class="dfn-paneled" data-dfn-type="dfn" data-export="" id="invoke-a-callback-function">invoke</dfn> a <a data-link-type="dfn" href="#idl-callback-function" id="ref-for-idl-callback-function-6">callback function type</a> value <var>callable</var> with a <a data-link-type="dfn" href="#web-idl-arguments-list" id="ref-for-web-idl-arguments-list-3">Web IDL arguments list</a> <var>args</var> and an optional <a data-link-type="dfn" href="#dfn-callback-this-value" id="ref-for-dfn-callback-this-value-2">callback this value</a> <var>thisArg</var>,
     perform the following steps.
     These steps will either return an IDL value or throw an exception.</p>
     <ol>
@@ -11860,34 +11866,9 @@ marked with [<code class="idl"><a data-link-type="idl" href="#TreatNonObjectAsNu
      <li data-md="">
       <p><a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/webappapis.html#prepare-to-run-a-callback">Prepare to run a callback</a> with <var>stored settings</var>.</p>
      <li data-md="">
-      <p>Let <var>esArgs</var> be an empty List of ECMAScript values.</p>
-     <li data-md="">
-      <p>Let <var>i</var> be 0.</p>
-     <li data-md="">
-      <p>Let <var>count</var> be 0.</p>
-     <li data-md="">
-      <p>While <var>i</var> &lt; <var>n</var>:</p>
-      <ol>
-       <li data-md="">
-        <p>If <var>arg</var><sub><var>i</var></sub> is the special value “missing”, then
-append <emu-val>undefined</emu-val> to <var>esArgs</var>.</p>
-       <li data-md="">
-        <p>Otherwise, <var>arg</var><sub><var>i</var></sub> is an IDL value:</p>
-        <ol>
-         <li data-md="">
-          <p>Let <var>convertResult</var> be the result of <a data-link-type="dfn" href="#dfn-convert-idl-to-ecmascript-value" id="ref-for-dfn-convert-idl-to-ecmascript-value-61">converting</a> <var>arg</var><sub><var>i</var></sub> to an ECMAScript value.</p>
-         <li data-md="">
-          <p>If <var>convertResult</var> is an abrupt completion, set <var>completion</var> to <var>convertResult</var> and jump to the step labeled <a href="#invoke-return"><i>return</i></a>.</p>
-         <li data-md="">
-          <p>Append <var>convertResult</var>.[[Value]] to <var>esArgs</var>.</p>
-         <li data-md="">
-          <p>Set <var>count</var> to <var>i</var> + 1.</p>
-        </ol>
-       <li data-md="">
-        <p>Set <var>i</var> to <var>i</var> + 1.</p>
-      </ol>
-     <li data-md="">
-      <p>Truncate <var>esArgs</var> to have length <var>count</var>.</p>
+      <p>Let <var>esArgs</var> be the result of <a data-link-type="dfn" href="#web-idl-arguments-list-converting" id="ref-for-web-idl-arguments-list-converting-2">converting</a> <var>args</var> to an ECMAScript
+arguments list. If this throws an exception, set <var>completion</var> to the completion value
+representing the thrown exception and jump to the step labeled <a href="#invoke-return"><i>return</i></a>.</p>
      <li data-md="">
       <p>Let <var>callResult</var> be <a data-link-type="dfn" href="https://tc39.github.io/ecma262/#sec-call">Call</a>(<var>F</var>, <var>thisArg</var>, <var>esArgs</var>).</p>
      <li data-md="">
@@ -11913,6 +11894,53 @@ point <var>completion</var> will be set to an ECMAScript completion value.</p>
         <p>Let <var>rejectedPromise</var> be the result of calling <var>reject</var> with <a data-link-type="dfn" href="https://tc39.github.io/ecma262/#sec-promise-constructor">%Promise%</a> as the <emu-val>this</emu-val> value and <var>completion</var>.[[Value]] as the single argument value.</p>
        <li data-md="">
         <p>Return the result of <a data-link-type="dfn" href="#dfn-convert-ecmascript-to-idl-value" id="ref-for-dfn-convert-ecmascript-to-idl-value-75">converting</a> <var>rejectedPromise</var> to the callback function’s return type.</p>
+      </ol>
+    </ol>
+   </div>
+   <p>Some callback functions are instead used as constructors. Such callback functions must not have
+a return type that is a <a data-link-type="dfn" href="#dfn-promise-type" id="ref-for-dfn-promise-type-16">promise type</a>.</p>
+   <div class="algorithm" data-algorithm="construct">
+    <p>To <dfn class="dfn-paneled" data-dfn-type="dfn" data-export="" id="construct-a-callback-function">construct</dfn> a <a data-link-type="dfn" href="#idl-callback-function" id="ref-for-idl-callback-function-7">callback function type</a> value <var>callable</var> with a <a data-link-type="dfn" href="#web-idl-arguments-list" id="ref-for-web-idl-arguments-list-4">Web IDL arguments list</a> <var>args</var>,
+    perform the following steps.
+    These steps will either return an IDL value or throw an exception.</p>
+    <ol>
+     <li data-md="">
+      <p>Let <var>completion</var> be an uninitialized variable.</p>
+     <li data-md="">
+      <p>Let <var>F</var> be the ECMAScript object corresponding to <var>callable</var>.</p>
+     <li data-md="">
+      <p>If <a data-link-type="dfn" href="https://tc39.github.io/ecma262/#sec-algorithm-conventions">!</a> <a data-link-type="dfn" href="https://tc39.github.io/ecma262/#sec-isconstructor">IsConstructor</a>(<var>F</var>) is <emu-val>false</emu-val>, throw a <emu-val>TypeError</emu-val> exception.</p>
+     <li data-md="">
+      <p>Let <var>realm</var> be <var>F</var>’s <a data-link-type="dfn" href="#dfn-associated-realm" id="ref-for-dfn-associated-realm-5">associated Realm</a>.</p>
+     <li data-md="">
+      <p>Let <var>relevant settings</var> be <var>realm</var>’s <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/webappapis.html#concept-realm-settings-object">settings object</a>.</p>
+     <li data-md="">
+      <p>Let <var>stored settings</var> be <var>callable</var>’s <a data-link-type="dfn" href="#dfn-callback-context" id="ref-for-dfn-callback-context-11">callback context</a>.</p>
+     <li data-md="">
+      <p><a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/webappapis.html#prepare-to-run-script">Prepare to run script</a> with <var>relevant settings</var>.</p>
+     <li data-md="">
+      <p><a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/webappapis.html#prepare-to-run-a-callback">Prepare to run a callback</a> with <var>stored settings</var>.</p>
+     <li data-md="">
+      <p>Let <var>esArgs</var> be the result of <a data-link-type="dfn" href="#web-idl-arguments-list-converting" id="ref-for-web-idl-arguments-list-converting-3">converting</a> <var>args</var> to an ECMAScript
+arguments list. If this throws an exception, set <var>completion</var> to the completion value
+representing the thrown exception and jump to the step labeled <a href="#construct-return"><i>return</i></a>.</p>
+     <li data-md="">
+      <p>Let <var>callResult</var> be <a data-link-type="dfn" href="#construct-a-callback-function" id="ref-for-construct-a-callback-function-1">Construct</a>(<var>F</var>, <var>esArgs</var>).</p>
+     <li data-md="">
+      <p>If <var>callResult</var> is an abrupt completion, set <var>completion</var> to <var>callResult</var> and jump to the step labeled <a href="#construct-return"><i>return</i></a>.</p>
+     <li data-md="">
+      <p>Set <var>completion</var> to the result of <a data-link-type="dfn" href="#dfn-convert-ecmascript-to-idl-value" id="ref-for-dfn-convert-ecmascript-to-idl-value-76">converting</a> <var>callResult</var>.[[Value]] to an IDL value of the same type as the operation’s
+return type.</p>
+     <li data-md="">
+      <p><i id="construct-return">Return:</i> at this
+point <var>completion</var> will be set to an ECMAScript completion value.</p>
+      <ol>
+       <li data-md="">
+        <p><a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/webappapis.html#clean-up-after-running-a-callback">Clean up after running a callback</a> with <var>stored settings</var>.</p>
+       <li data-md="">
+        <p><a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/webappapis.html#clean-up-after-running-script">Clean up after running script</a> with <var>relevant settings</var>.</p>
+       <li data-md="">
+        <p>Return <var>completion</var>.</p>
       </ol>
     </ol>
    </div>
@@ -11984,7 +12012,7 @@ This object also provides access to the legacy code values.</p>
      <li data-md="">
       <p>If <a data-link-type="dfn" href="https://tc39.github.io/ecma262/#sec-isconstructor">IsConstructor</a>(<var>super</var>) is <emu-val>false</emu-val>, throw a <emu-val>TypeError</emu-val> exception.</p>
      <li data-md="">
-      <p>Let <var>O</var> be <a data-link-type="dfn" href="https://tc39.github.io/ecma262/#sec-construct">Construct</a>(<var>super</var>, «<var>message</var>», <var>newTarget</var>).</p>
+      <p>Let <var>O</var> be <a data-link-type="dfn" href="#construct-a-callback-function" id="ref-for-construct-a-callback-function-2">Construct</a>(<var>super</var>, «<var>message</var>», <var>newTarget</var>).</p>
      <li data-md="">
       <p>If <var>name</var> is not <emu-val>undefined</emu-val>, then</p>
       <ol>
@@ -12068,7 +12096,7 @@ on exception objects too.</p>
 from the <a data-link-type="dfn" href="https://tc39.github.io/ecma262/#current-realm">current Realm</a>.</p>
       </dl>
      <li data-md="">
-      <p>Return <a data-link-type="dfn" href="https://tc39.github.io/ecma262/#sec-algorithm-conventions">!</a> <a data-link-type="dfn" href="https://tc39.github.io/ecma262/#sec-construct">Construct</a>(<var>X</var>, <var>args</var>).</p>
+      <p>Return <a data-link-type="dfn" href="https://tc39.github.io/ecma262/#sec-algorithm-conventions">!</a> <a data-link-type="dfn" href="#construct-a-callback-function" id="ref-for-construct-a-callback-function-3">Construct</a>(<var>X</var>, <var>args</var>).</p>
     </ol>
    </div>
    <div class="algorithm" data-algorithm="throw an exception">
@@ -12384,9 +12412,6 @@ possible sequences are used by the <a data-link-type="dfn" href="#dfn-extended-a
     <li data-md="">
      <p>Variable names in prose and algorithms: <var>exampleVariableName</var>.</p>
     <li data-md="">
-     <p>Algorithms use the <a data-link-type="dfn" href="https://tc39.github.io/ecma262/#sec-algorithm-conventions">conventions of the ECMAScript specification</a>,
-including the ! and ? notation for unwrapping completion records.</p>
-    <li data-md="">
      <p>IDL informal syntax examples:</p>
 <pre class="syntax highlight"><span class="kt">interface</span> <span class="nv">identifier</span> {
   <mark>/* interface_members... */</mark>
@@ -12419,6 +12444,20 @@ including the ! and ? notation for unwrapping completion records.</p>
 <pre class="highlight"><span class="c1">// This is an ECMAScript code block.
 </span>window<span class="p">.</span>onload <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="p">)</span> <span class="p">{</span> window<span class="p">.</span>alert<span class="p">(</span><span class="s2">"loaded"</span><span class="p">)</span><span class="p">;</span> <span class="p">}</span><span class="p">;</span>
 </pre>
+   </ul>
+   <p>The following conventions are used in the algorithms in this document:</p>
+   <ul>
+    <li data-md="">
+     <p>Algorithms use the <a data-link-type="dfn" href="https://tc39.github.io/ecma262/#sec-algorithm-conventions">conventions of the ECMAScript specification</a>,
+including the ! and ? notation for unwrapping completion records.</p>
+    <li data-md="">
+     <p>Algorithms sometimes treat returning/throwing values and returning completion records
+interchangeably. That is, an algorithm that uses return/throw terminology may be treated as
+returning a completion record, while one that returns a completion record may be treated as
+returning a value or throwing an exception.</p>
+    <li data-md="">
+     <p>Completion records are extended by allowing them to contain values that are not ECMAScript
+values, such as Web IDL values.</p>
    </ul>
    <h2 class="no-num heading settled" id="conformance"><span class="content">Conformance</span><span id="conformant-algorithms"></span><a class="self-link" href="#conformance"></a></h2>
    <p>Everything in this specification is normative except for diagrams,
@@ -12668,6 +12707,7 @@ language binding.</p>
    <li><a href="#dfn-consequential-interfaces">consequential interfaces</a><span>, in §2.9</span>
    <li><a href="#dfn-constant">constant</a><span>, in §2.2.1</span>
    <li><a href="#constrainterror">ConstraintError</a><span>, in §2.5.1</span>
+   <li><a href="#construct-a-callback-function">construct</a><span>, in §3.11</span>
    <li><a href="#Constructor">Constructor</a><span>, in §3.3.1</span>
    <li><a href="#dfn-convert-serialized-value-to-ecmascript-value">convert a serialized value to an ECMAScript value</a><span>, in §3.6.8.2</span>
    <li><a href="#dfn-convert-idl-to-ecmascript-value">converted to an ECMAScript value</a><span>, in §3.2</span>
@@ -12676,6 +12716,7 @@ language binding.</p>
    <li><a href="#dfn-convert-idl-to-ecmascript-value">converted to ECMAScript values</a><span>, in §3.2</span>
    <li><a href="#dfn-convert-ecmascript-to-idl-value">converted to IDL values</a><span>, in §3.2</span>
    <li><a href="#dfn-convert-to-serialized-value">converted to serialized values</a><span>, in §2.2.4.3</span>
+   <li><a href="#web-idl-arguments-list-converting">converting</a><span>, in §3.10</span>
    <li><a href="#dfn-obtain-unicode">convert to a sequence of Unicode scalar values</a><span>, in §2.11.15</span>
    <li><a href="#abstract-opdef-converttoint">ConvertToInt</a><span>, in §3.2.4.9</span>
    <li><a href="#dfn-create-frozen-array">create a frozen array</a><span>, in §3.2.25</span>
@@ -12982,6 +13023,7 @@ language binding.</p>
    <li><a href="#versionerror">VersionError</a><span>, in §2.5.1</span>
    <li><a href="#idl-void">void</a><span>, in §2.2.3</span>
    <li><a href="#VoidFunction">VoidFunction</a><span>, in §4.4</span>
+   <li><a href="#web-idl-arguments-list">Web IDL arguments list</a><span>, in §3.10</span>
    <li><a href="#dom-domexception-wrong_document_err">WRONG_DOCUMENT_ERR</a><span>, in §2.5.1</span>
    <li><a href="#wrongdocumenterror">WrongDocumentError</a><span>, in §2.5.1</span>
   </ul>
@@ -13011,7 +13053,6 @@ language binding.</p>
      <li><a href="https://tc39.github.io/ecma262/#sec-call">call</a>
      <li><a href="https://tc39.github.io/ecma262/#sec-iscallable">callable</a>
      <li><a href="https://tc39.github.io/ecma262/#sec-completion-record-specification-type">completion</a>
-     <li><a href="https://tc39.github.io/ecma262/#sec-construct">construct</a>
      <li><a href="https://tc39.github.io/ecma262/#sec-algorithm-conventions">conventions of the ecmascript specification</a>
      <li><a href="https://tc39.github.io/ecma262/#sec-createbuiltinfunction">createbuiltinfunction</a>
      <li><a href="https://tc39.github.io/ecma262/#sec-createdataproperty">createdataproperty</a>
@@ -13093,6 +13134,7 @@ language binding.</p>
    <li>
     <a data-link-type="biblio">[INFRA]</a> defines the following terms:
     <ul>
+     <li><a href="https://infra.spec.whatwg.org/#list-append">append</a>
      <li><a href="https://infra.spec.whatwg.org/#map-entry">entry</a>
      <li><a href="https://infra.spec.whatwg.org/#list-iterate">for each <small>(for list)</small></a>
      <li><a href="https://infra.spec.whatwg.org/#map-iterate">for each <small>(for map)</small></a>
@@ -13101,6 +13143,7 @@ language binding.</p>
      <li><a href="https://infra.spec.whatwg.org/#list">list</a>
      <li><a href="https://infra.spec.whatwg.org/#ordered-map">ordered map</a>
      <li><a href="https://infra.spec.whatwg.org/#map-set">set</a>
+     <li><a href="https://infra.spec.whatwg.org/#list-size">size</a>
      <li><a href="https://infra.spec.whatwg.org/#map-value">value</a>
     </ul>
    <li>
@@ -14793,7 +14836,7 @@ language binding.</p>
     <li><a href="#ref-for-dfn-callback-context-5">3.2.13. Interface types</a>
     <li><a href="#ref-for-dfn-callback-context-6">3.2.16. Callback function types</a>
     <li><a href="#ref-for-dfn-callback-context-7">3.10. User objects implementing callback interfaces</a> <a href="#ref-for-dfn-callback-context-8">(2)</a> <a href="#ref-for-dfn-callback-context-9">(3)</a>
-    <li><a href="#ref-for-dfn-callback-context-10">3.11. Invoking callback functions</a>
+    <li><a href="#ref-for-dfn-callback-context-10">3.11. Invoking callback functions</a> <a href="#ref-for-dfn-callback-context-11">(2)</a>
    </ul>
   </aside>
   <aside class="dfn-panel" data-for="idl-dictionary">
@@ -14820,7 +14863,7 @@ language binding.</p>
    <b><a href="#idl-callback-function">#idl-callback-function</a></b><b>Referenced in:</b>
    <ul>
     <li><a href="#ref-for-idl-callback-function-1">3.2.16. Callback function types</a> <a href="#ref-for-idl-callback-function-2">(2)</a> <a href="#ref-for-idl-callback-function-3">(3)</a> <a href="#ref-for-idl-callback-function-4">(4)</a> <a href="#ref-for-idl-callback-function-5">(5)</a>
-    <li><a href="#ref-for-idl-callback-function-6">3.11. Invoking callback functions</a>
+    <li><a href="#ref-for-idl-callback-function-6">3.11. Invoking callback functions</a> <a href="#ref-for-idl-callback-function-7">(2)</a>
    </ul>
   </aside>
   <aside class="dfn-panel" data-for="dfn-nullable-type">
@@ -14916,7 +14959,7 @@ language binding.</p>
     <li><a href="#ref-for-dfn-promise-type-10">3.6.7. Attributes</a> <a href="#ref-for-dfn-promise-type-11">(2)</a>
     <li><a href="#ref-for-dfn-promise-type-12">3.6.8. Operations</a>
     <li><a href="#ref-for-dfn-promise-type-13">3.10. User objects implementing callback interfaces</a> <a href="#ref-for-dfn-promise-type-14">(2)</a>
-    <li><a href="#ref-for-dfn-promise-type-15">3.11. Invoking callback functions</a>
+    <li><a href="#ref-for-dfn-promise-type-15">3.11. Invoking callback functions</a> <a href="#ref-for-dfn-promise-type-16">(2)</a>
    </ul>
   </aside>
   <aside class="dfn-panel" data-for="dfn-union-type">
@@ -15330,7 +15373,7 @@ language binding.</p>
    <b><a href="#dfn-associated-realm">#dfn-associated-realm</a></b><b>Referenced in:</b>
    <ul>
     <li><a href="#ref-for-dfn-associated-realm-1">3.10. User objects implementing callback interfaces</a> <a href="#ref-for-dfn-associated-realm-2">(2)</a> <a href="#ref-for-dfn-associated-realm-3">(3)</a>
-    <li><a href="#ref-for-dfn-associated-realm-4">3.11. Invoking callback functions</a>
+    <li><a href="#ref-for-dfn-associated-realm-4">3.11. Invoking callback functions</a> <a href="#ref-for-dfn-associated-realm-5">(2)</a>
    </ul>
   </aside>
   <aside class="dfn-panel" data-for="dfn-convert-ecmascript-to-idl-value">
@@ -15377,7 +15420,7 @@ language binding.</p>
     <li><a href="#ref-for-dfn-convert-ecmascript-to-idl-value-66">3.6.12.5. add and delete</a>
     <li><a href="#ref-for-dfn-convert-ecmascript-to-idl-value-67">3.9.8. Abstract operations</a> <a href="#ref-for-dfn-convert-ecmascript-to-idl-value-68">(2)</a>
     <li><a href="#ref-for-dfn-convert-ecmascript-to-idl-value-69">3.10. User objects implementing callback interfaces</a> <a href="#ref-for-dfn-convert-ecmascript-to-idl-value-70">(2)</a> <a href="#ref-for-dfn-convert-ecmascript-to-idl-value-71">(3)</a> <a href="#ref-for-dfn-convert-ecmascript-to-idl-value-72">(4)</a>
-    <li><a href="#ref-for-dfn-convert-ecmascript-to-idl-value-73">3.11. Invoking callback functions</a> <a href="#ref-for-dfn-convert-ecmascript-to-idl-value-74">(2)</a> <a href="#ref-for-dfn-convert-ecmascript-to-idl-value-75">(3)</a>
+    <li><a href="#ref-for-dfn-convert-ecmascript-to-idl-value-73">3.11. Invoking callback functions</a> <a href="#ref-for-dfn-convert-ecmascript-to-idl-value-74">(2)</a> <a href="#ref-for-dfn-convert-ecmascript-to-idl-value-75">(3)</a> <a href="#ref-for-dfn-convert-ecmascript-to-idl-value-76">(4)</a>
    </ul>
   </aside>
   <aside class="dfn-panel" data-for="dfn-convert-idl-to-ecmascript-value">
@@ -15431,7 +15474,6 @@ language binding.</p>
     <li><a href="#ref-for-dfn-convert-idl-to-ecmascript-value-56">3.9.5. [[Call]]</a>
     <li><a href="#ref-for-dfn-convert-idl-to-ecmascript-value-57">3.9.8. Abstract operations</a> <a href="#ref-for-dfn-convert-idl-to-ecmascript-value-58">(2)</a>
     <li><a href="#ref-for-dfn-convert-idl-to-ecmascript-value-59">3.10. User objects implementing callback interfaces</a> <a href="#ref-for-dfn-convert-idl-to-ecmascript-value-60">(2)</a>
-    <li><a href="#ref-for-dfn-convert-idl-to-ecmascript-value-61">3.11. Invoking callback functions</a>
    </ul>
   </aside>
   <aside class="dfn-panel" data-for="abstract-opdef-integerpart">
@@ -16023,6 +16065,20 @@ language binding.</p>
     <li><a href="#ref-for-dfn-single-operation-callback-interface-1">3.10. User objects implementing callback interfaces</a> <a href="#ref-for-dfn-single-operation-callback-interface-2">(2)</a> <a href="#ref-for-dfn-single-operation-callback-interface-3">(3)</a> <a href="#ref-for-dfn-single-operation-callback-interface-4">(4)</a>
    </ul>
   </aside>
+  <aside class="dfn-panel" data-for="web-idl-arguments-list">
+   <b><a href="#web-idl-arguments-list">#web-idl-arguments-list</a></b><b>Referenced in:</b>
+   <ul>
+    <li><a href="#ref-for-web-idl-arguments-list-1">3.10. User objects implementing callback interfaces</a> <a href="#ref-for-web-idl-arguments-list-2">(2)</a>
+    <li><a href="#ref-for-web-idl-arguments-list-3">3.11. Invoking callback functions</a> <a href="#ref-for-web-idl-arguments-list-4">(2)</a>
+   </ul>
+  </aside>
+  <aside class="dfn-panel" data-for="web-idl-arguments-list-converting">
+   <b><a href="#web-idl-arguments-list-converting">#web-idl-arguments-list-converting</a></b><b>Referenced in:</b>
+   <ul>
+    <li><a href="#ref-for-web-idl-arguments-list-converting-1">3.10. User objects implementing callback interfaces</a>
+    <li><a href="#ref-for-web-idl-arguments-list-converting-2">3.11. Invoking callback functions</a> <a href="#ref-for-web-idl-arguments-list-converting-3">(2)</a>
+   </ul>
+  </aside>
   <aside class="dfn-panel" data-for="dfn-callback-this-value">
    <b><a href="#dfn-callback-this-value">#dfn-callback-this-value</a></b><b>Referenced in:</b>
    <ul>
@@ -16034,6 +16090,14 @@ language binding.</p>
    <b><a href="#invoke-a-callback-function">#invoke-a-callback-function</a></b><b>Referenced in:</b>
    <ul>
     <li><a href="#ref-for-invoke-a-callback-function-1">3.6.9.2. forEach</a>
+   </ul>
+  </aside>
+  <aside class="dfn-panel" data-for="construct-a-callback-function">
+   <b><a href="#construct-a-callback-function">#construct-a-callback-function</a></b><b>Referenced in:</b>
+   <ul>
+    <li><a href="#ref-for-construct-a-callback-function-1">3.11. Invoking callback functions</a>
+    <li><a href="#ref-for-construct-a-callback-function-2">3.13.1.1. DOMException(message, name)</a>
+    <li><a href="#ref-for-construct-a-callback-function-3">3.15. Creating and throwing exceptions</a>
    </ul>
   </aside>
   <aside class="dfn-panel" data-for="dfn-DOMException-constructor-object">
