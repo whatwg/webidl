@@ -1244,7 +1244,7 @@ If |VT| is the type of the value assigned to a constant, and |DT|
 is the type of the constant, dictionary member or optional argument itself, then these types must
 be compatible, which is the case if |DT| and |VT| are identical,
 or |DT| is a [=nullable type=]
-whose [=inner type=] is |VT|.
+whose [=nullable types/inner type=] is |VT|.
 
 [=Constants=] are not associated with
 particular instances of the [=interface=]
@@ -1638,7 +1638,7 @@ identify any one of those definitions or a [=dictionary=].
 
 If the operation argument type, after resolving typedefs,
 is a [=nullable type=],
-its [=inner type=] must not be a [=dictionary type=].
+its [=nullable types/inner type=] must not be a [=dictionary type=].
 
 <pre highlight="webidl" class="syntax">
     interface interface_identifier {
@@ -1840,7 +1840,7 @@ Optional argument default values can also be specified using the
 two token value <code>[]</code>, which represents an empty sequence
 value.  The type of this value is the same as the type of the optional
 argument it is being used as the default value of.  That type
-must be a [=sequence type=], a [=nullable type=] whose [=inner type=] is a
+must be a [=sequence type=], a [=nullable type=] whose [=nullable types/inner type=] is a
 [=sequence type=] or a [=union type=] or [=nullable type|nullable=] union type
 that has a [=sequence type=] in its [=flattened member types=].
 
@@ -2587,7 +2587,7 @@ The list of <dfn id="dfn-serializable-type" export lt="serializable type">serial
      :: the equivalent {{DOMString}} value where each code unit has the same value as the corresponding byte value
      :  a [=nullable type|nullable=] serializable type
      :: converted to <emu-val>null</emu-val> if that is its value,
-        otherwise converted as per its [=inner type=]
+        otherwise converted as per its [=nullable types/inner type=]
      :  a [=union type=] where all of its [=member types=] are serializable types
      :: converted as per its [=specific type=]
      :  a [=sequence type=] that has a serializable type as its element type
@@ -3329,7 +3329,7 @@ the following algorithm returns <i>true</i>.
     [=member type=] of the union type is distinguishable
     with the non-union type,
     or <i>false</i> otherwise.
-1.  If the two types (taking their [=inner types=]
+1.  If the two types (taking their [=nullable types/inner type=]
     if they are [=nullable types=]) appear or are in categories appearing
     in the following table and there is a “●” mark in the corresponding entry
     or there is a letter in the corresponding entry and the designated additional
@@ -4133,7 +4133,7 @@ identify any one of those definitions or a [=dictionary=].
 
 If the type of the [=dictionary member=], after resolving typedefs,
 is a [=nullable type=],
-its [=inner type=] must not be a [=dictionary type=].
+its [=nullable types/inner type=] must not be a [=dictionary type=].
 
 <pre highlight="webidl" class="syntax">
     dictionary identifier {
@@ -4187,7 +4187,7 @@ if at least one of the following is true:
 *   the type is |D|
 *   the type is a dictionary that [=interface/inherits=] from |D|
 *   the type is a [=nullable type=]
-    whose [=inner type=] includes |D|
+    whose [=nullable types/inner type=] includes |D|
 *   the type is a [=sequence type=] or [=frozen array type|frozen array=]
     whose element type includes |D|
 *   the type is a [=union type=],
@@ -5710,12 +5710,12 @@ is the [=identifier=] of the callback function.
 <h4 id="idl-nullable-type">Nullable types — |T|?</h4>
 
 A <dfn id="dfn-nullable-type" export>nullable type</dfn> is an IDL type constructed
-from an existing type (called the <dfn id="dfn-inner-type" export>inner type</dfn>),
+from an existing type (called the <dfn id="dfn-inner-type" export for="nullable types">inner type</dfn>),
 which just allows the additional value <emu-val>null</emu-val>
 to be a member of its set of values.  [=Nullable types=]
 are represented in IDL by placing a <span class="char">U+003F QUESTION MARK ("?")</span>
 character after an existing type.
-The inner type must not be:
+The [=nullable types/inner type=] must not be:
 
 *   {{any}},
 *   a [=Promise type=],
@@ -5727,11 +5727,11 @@ Note: Although dictionary types can in general be nullable,
 they cannot when used as the type of an operation argument or a dictionary member.
 
 Nullable type constant values in IDL are represented in the same way that
-constant values of their [=inner type=]
+constant values of their [=nullable types/inner type=]
 would be represented, or with the <emu-t>null</emu-t> token.
 
 The [=type name=] of a nullable type
-is the concatenation of the type name of the inner type |T| and
+is the concatenation of the type name of the [=nullable types/inner type=] |T| and
 the string “OrNull”.
 
 <div class="example">
@@ -5885,7 +5885,7 @@ that matches the value.
     1.  Initialize |S| to ∅.
     1.  For each [=member type=] |U| of |T|:
         1.  If |U| is a [=nullable type=], then
-            set |U| to be the [=inner type=] of |U|.
+            set |U| to be the [=nullable types/inner type=] of |U|.
         1.  If |U| is a [=union type=], then
             add to |S| the [=flattened member types=]
             of |U|.
@@ -5913,7 +5913,7 @@ are the six types <code>Node</code>, <code>sequence&lt;long&gt;</code>, <code>Ev
     1.  For each [=member type=] |U| of |T|:
         1.  If |U| is a [=nullable type=], then:
             1.  Set |n| to |n| + 1.
-            1.  Set |U| to be the [=inner type=] of |U|.
+            1.  Set |U| to be the [=nullable types/inner type=] of |U|.
         1.  If |U| is a [=union type=], then:
             1.  Let |m| be the [=number of nullable member types=] of |U|.
             1.  Set |n| to |n| + |m|.
@@ -5956,11 +5956,17 @@ and joining them with the string “Or”.
 <div data-fill-with="grammar-NonAnyType"></div>
 
 
-<h4 id="idl-types-with-extended-attributes">Types with extended attributes</h4>
+<h4 id="idl-annotated-types">Annotated types</h4>
 
 Additional types can be created from existing ones by specifying certain [=extended attributes=] on
-the existing types. For example, <code>[Clamp] long</code> defines a new type whose behavior is
-based on that of the {{long}} type, but modified as specified by the [{{Clamp}}] extended attribute.
+the existing types. Such types are called <dfn export>annotated types</dfn>, and the types they
+annotate are called <dfn export for="annotated types" lt="inner type">inner types</dfn>.
+
+<div class="example">
+    <code>[Clamp] long</code> defines a new [=annotated type=], whose behavior is based on that of
+    the [=annotated types/inner type=] {{long}}, but modified as specified by the [{{Clamp}}]
+    extended attribute.
+</div>
 
 The following extended attributes are <dfn for="extended attributes">applicable to types</dfn>:
 [{{Clamp}}],
@@ -6554,7 +6560,7 @@ when passed to a [=platform object=] expecting that type, and how IDL values
 of that type are <dfn id="dfn-convert-idl-to-ecmascript-value" export lt="converted to an ECMAScript value|converted to ECMAScript values">converted to ECMAScript values</dfn>
 when returned from a platform object.
 
-Note that the sub-sections and algorithms below also apply to the related types created by applying
+Note that the sub-sections and algorithms below also apply to [=annotated types=] created by applying
 extended attributes to the types named in their headers.
 
 
@@ -7254,14 +7260,14 @@ when they can be any object.
 <h4 id="es-nullable-type">Nullable types — |T|?</h4>
 
 IDL [=nullable type=] values are represented
-by values of either the ECMAScript type corresponding to the [=inner type|inner IDL type=], or
+by values of either the ECMAScript type corresponding to the [=nullable types/inner type|inner IDL type=], or
 the ECMAScript <emu-val>null</emu-val> value.
 
 <div id="es-to-nullable" algorithm="convert an ECMAScript value to nullable">
 
     An ECMAScript value |V| is [=converted to an IDL value|converted=]
     to an IDL [=nullable type=] <code class="idl">|T|?</code>
-    value (where |T| is the [=inner type=]) as follows:
+    value (where |T| is the [=nullable types/inner type=]) as follows:
 
     1.  If [=Type=](|V|) is not Object, and
         the conversion to an IDL value is being performed due
@@ -7277,7 +7283,7 @@ the ECMAScript <emu-val>null</emu-val> value.
         value <emu-val>null</emu-val>.
     1.  Otherwise, return the result of
         [=converted to an IDL value|converting=] |V|
-        using the rules for the [=inner type|inner IDL type=] <code class="idl">T</code>.
+        using the rules for the [=nullable types/inner type|inner IDL type=] <code class="idl">T</code>.
 </div>
 
 <div id="nullable-to-es" algorithm="convert a nullable to an ECMAScript value">
@@ -7291,7 +7297,7 @@ the ECMAScript <emu-val>null</emu-val> value.
     1.  Otherwise, the ECMAScript value is the result of
         [=converted to an ECMAScript value|converting=]
         the IDL [=nullable type=] value
-        to the [=inner type|inner IDL type=] <code class="idl">|T|</code>.
+        to the [=nullable types/inner type|inner IDL type=] <code class="idl">|T|</code>.
 </div>
 
 <h4 id="es-sequence">Sequences — sequence&lt;|T|&gt;</h4>
