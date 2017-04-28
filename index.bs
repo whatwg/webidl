@@ -41,6 +41,10 @@ urlPrefix: http://www.unicode.org/glossary/; spec: UNICODE
     type: dfn
         text: Unicode scalar value; url: unicode_scalar_value
 urlPrefix: https://tc39.github.io/ecma262/; spec: ECMA-262
+    type: interface; for: ECMAScript
+        text: ArrayBuffer; url: sec-arraybuffer-objects
+        text: DataView; url: sec-dataview-objects
+        text: SharedArrayBuffer; url: sec-sharedarraybuffer-objects
     type: dfn
         text: NumericLiteral; url: sec-literals-numeric-literals
         text: ECMAScript error objects; url: sec-error-objects
@@ -110,6 +114,7 @@ urlPrefix: https://tc39.github.io/ecma262/; spec: ECMA-262
         text: CreateDataProperty; url: sec-createdataproperty
         text: DetachArrayBuffer; url: sec-detacharraybuffer
         text: IsDetachedBuffer; url: sec-isdetachedbuffer
+        text: IsSharedArrayBuffer; url: sec-issharedarraybuffer
         text: SetIntegrityLevel; url: sec-setintegritylevel
         url: sec-array-iterator-objects
             text: array iterator object
@@ -7799,22 +7804,28 @@ ECMAScript <emu-val>Object</emu-val> values.
 <h4 id="es-buffer-source-types">Buffer source types</h4>
 
 Values of the IDL [=buffer source types=]
-are represented by objects of the corresponding ECMAScript class.
+are represented by objects of the corresponding ECMAScript class, with the additional restriction
+that unless the type is [=extended attributes associated with|associated with=] the
+[{{AllowShared}}] extended attribute, they can only be backed by ECMAScript
+{{ECMAScript/ArrayBuffer}} objects, and not {{ECMAScript/SharedArrayBuffer}} objects.
 
-<div id="es-to-buffer-source" algorithm="convert an ECMAScript value to buffer source">
+<div id="es-to-buffer-source" algorithm="convert an ECMAScript value to IDL ArrayBuffer">
 
     An ECMAScript value |V| is [=converted to an IDL value|converted=]
     to an IDL {{ArrayBuffer}} value by running the following algorithm:
 
     1.  If [=Type=](|V|) is not Object,
         or |V| does not have an \[[ArrayBufferData]] [=internal slot=],
-        or [=IsDetachedBuffer=](|V|) is true,
         then [=ECMAScript/throw=] a <emu-val>TypeError</emu-val>.
+    1.  If the conversion is not to an IDL type
+        [=extended attributes associated with|associated with=] the [{{AllowShared}}]
+        [=extended attribute=], and [=IsSharedArrayBuffer=](|V|) is true, then [=ECMAScript/throw=]
+        a <emu-val>TypeError</emu-val>.
     1.  Return the IDL {{ArrayBuffer}} value that is a reference
         to the same object as |V|.
 </div>
 
-<div id="buffer-source-to-es" algorithm="convert a buffer source to an ECMAScript value">
+<div id="buffer-source-to-es" algorithm="convert an ECMAScript value to IDL DataView">
 
     An ECMAScript value |V| is [=converted to an IDL value|converted=]
     to an IDL {{DataView}} value by running the following algorithm:
@@ -7822,11 +7833,15 @@ are represented by objects of the corresponding ECMAScript class.
     1.  If [=Type=](|V|) is not Object,
         or |V| does not have a \[[DataView]] [=internal slot=],
         then [=ECMAScript/throw=] a <emu-val>TypeError</emu-val>.
+    1.  If the conversion is not to an IDL type
+        [=extended attributes associated with|associated with=] the [{{AllowShared}}]
+        [=extended attribute=], and [=IsSharedArrayBuffer=](|V|.\[[ViewedArrayBuffer]]) is true,
+        then [=ECMAScript/throw=] a <emu-val>TypeError</emu-val>.
     1.  Return the IDL {{DataView}} value that is a reference
         to the same object as |V|.
 </div>
 
-<div algorithm="convert an ECMAScript value to buffer source type">
+<div algorithm="convert an ECMAScript value to IDL typed array">
 
     An ECMAScript value |V| is
     [=converted to an IDL value|converted=]
@@ -7842,9 +7857,15 @@ are represented by objects of the corresponding ECMAScript class.
     by running the following algorithm:
 
     1.  Let |T| be the IDL type |V| is being converted to.
+    1.  Let |typedArrayName| be the [=type name|name=] of |T|'s [=annotated types/inner type=] if
+        |T| is an [=annotated type=], or the [=type name|name=] of |T| otherwise.
     1.  If [=Type=](|V|) is not Object,
         or |V| does not have a \[[TypedArrayName]] [=internal slot=]
-        with a value equal to the name of |T|,
+        with a value equal to |typedArrayName|,
+        then [=ECMAScript/throw=] a <emu-val>TypeError</emu-val>.
+    1.  If the conversion is not to an IDL type
+        [=extended attributes associated with|associated with=] the [{{AllowShared}}]
+        [=extended attribute=], and [=IsSharedArrayBuffer=](|V|.\[[ViewedArrayBuffer]]) is true,
         then [=ECMAScript/throw=] a <emu-val>TypeError</emu-val>.
     1.  Return the IDL value of type |T| that is a reference to the same object as |V|.
 </div>
@@ -7858,7 +7879,7 @@ a reference to the same object that the IDL value represents.
 
     When [=get a reference to the buffer source|getting a reference to=]
     or [=get a copy of the buffer source|getting a copy of the bytes held by a buffer source=]
-    that is an ECMAScript <emu-val>ArrayBuffer</emu-val>, <emu-val>DataView</emu-val>
+    that is an ECMAScript {{ECMAScript/ArrayBuffer}}, {{ECMAScript/DataView}}
     or typed array object, these steps must be followed:
 
     1.  Let |O| be the ECMAScript object that is the buffer source.
@@ -7945,6 +7966,38 @@ This section defines a number of
 whose presence affects only the ECMAScript binding.
 
 
+<h4 id="AllowShared" extended-attribute lt="AllowShared">[AllowShared]</h4>
+
+If the [{{AllowShared}}] [=extended attribute=] appears on one of the [=buffer source types=], it
+creates a new IDL type that allows the buffer source type to be backed by an ECMAScript
+{{ECMAScript/SharedArrayBuffer}}, instead of only by a non-shared {{ECMAScript/ArrayBuffer}}.
+
+The [{{AllowShared}}] extended attribute must [=takes no arguments|take no arguments=].
+
+A type that is not a [=buffer source type=] must not be
+[=extended attributes associated with|associated with=] the [{{AllowShared}}] extended attribute.
+
+See the rules for converting ECMAScript values to IDL [=buffer source types=] in
+[[#es-buffer-source-types]] for the specific requirements that the use of [{{AllowShared}}] entails.
+
+<div class="example">
+    In the following [=IDL fragment=], one operation's argument uses the [{{AllowShared}}] extended
+    attribute, while the other does not:
+
+    <pre highlight="webidl">
+        interface RenderingContext {
+          void readPixels(long width, long height, BufferSource pixels);
+          void readPixelsShared(long width, long height, [AllowShared] BufferSource pixels);
+        };
+    </pre>
+
+    With this definition, a call to <code>readPixels</code> with an {{ECMAScript/SharedArrayBuffer}}
+    instance, or any typed array or {{ECMAScript/DataView}} backed by one, will throw a
+    {{TypeError}} exception. In contrast, a call to <code>readPixelsShared</code> will allow such
+    objects as input.
+</div>
+
+
 <h4 id="Clamp" extended-attribute lt="Clamp">[Clamp]</h4>
 
 If the [{{Clamp}}] [=extended attribute=] appears on one of the [=integer types=], it creates a new
@@ -7962,7 +8015,7 @@ attribute. A type must not be [=extended attributes associated with|associated w
 not be [=extended attributes associated with|associated with=] the [{{Clamp}}] extended attribute.
 
 See the rules for converting ECMAScript values to the various IDL integer
-types in [[#es-type-mapping]]
+types in [[#es-integer-types]]
 for the specific requirements that the use of
 [{{Clamp}}] entails.
 
@@ -7981,7 +8034,7 @@ for the specific requirements that the use of
         };
     </pre>
 
-    In an ECMAScript implementation of the IDL, a call to setColorClamped with
+    A call to <code>setColorClamped</code> with
     <emu-val>Number</emu-val> values that are out of range for an
     {{octet}} are clamped to the range [0, 255].
 
