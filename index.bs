@@ -12766,46 +12766,38 @@ The {{TextDirection}} [=enumerable=] is used to represent text directionality as
 
 <h3 id="localizable" dictionary>Localizable</h3>
 
-A <dfn export>localizable member</dfn> is a [=dictionary member=] that
-represents one or more bidirectional algorithm paragraphs when displayed,
+A <dfn export>localizable member</dfn> is a dictionary member whose type is {{LocalizableString}}.
+Such members represent one or more bidirectional algorithm paragraphs when displayed,
 as defined by the bidirectional algorithm’s rules P1, P2, and P3,
 including, for instance, supporting the paragraph-breaking behavior
 of <span class="char">U+000A LINE FEED (LF)</span> characters. [[!BIDI]]
 
 A user agent is expected to honor the Unicode semantics of [=localizable members=].
 
-The [=identifier=] of a [=localizable member=] is left to the defining specification (e.g., "title").
-
-Dictionaries that specify a [=localizable member=] must inherit from the {{Localizable}} dictionary.
-
-Specification authors must specify in prose which [=dictionary members|member(s)=]
-of the inheriting dictionary serve as [=localizable members=].
-
-Specification authors should limit the number of [=localizable members=] to one per dictionary,
-including in [=inherited dictionaries=] (if any).
-
 <pre class="idl">
     dictionary Localizable {
       DOMString lang = "";
+      DOMString value = "";
       TextDirection dir = "auto";
     };
+    typedef (DOMString or LocalizedValue) LocalizableString;
 </pre>
 
-The {{Localizable/lang}} member specifies the primary language for the [=dictionary members=]
-which are [=localizable members=].
+The {{Localizable/lang}} member specifies the primary language for the {{Localizable/value}} member.
 Its value is a {{DOMString}}.
 The empty string indicates that the primary language is unknown.
 Any other string must be interpreted as a language tag.
 Validity or well-formedness are not enforced. [[!BCP47]]
 
-For the [=localizable members=], the {{Localizable/dir}} member provides the higher-level override of rules P2 and P3
+The {{Localizable/value}} is a {{DOMString}} to be localized.
+
+For the {{Localizable/value}}, the {{Localizable/dir}} member provides the higher-level override of rules P2 and P3
 if it has a value other than <a for=TextDirection enum-value>"auto"</a>. [[!BIDI]]
 
 <div class=example>
    <pre highlight="webidl">
-       dictionary PaymentItem : Localizable {
-           // "label" is a localizable member
-           required DOMString label;
+       dictionary PaymentItem {
+           required LocalizableString label;
            required PaymentCurrencyAmount amount;
            boolean pending = false;
        };
