@@ -10595,26 +10595,52 @@ The [=return type=] of the [=default toJSON operation=] must be {{any}}.
     To invoke the <dfn export>default toJSON operation</dfn> of [=interface=] |I|,
     run the the following steps:
 
-    1.  Let |O| be the <emu-val>this</emu-val> value.
-    1.  Find the closest [=inherited interface=] of |I|
-        that declares a “toJSON” operation
-        or which has a [=consequential interface=] that does.
-        If such an interface exists, then:
-        1.  Let |P| be that interface.
-        1.  If a “toJSON” operation is declared on |P|,
-            then let |super| be that “toJSON” operation.
-        1.  Otherwise, let |super| be the “toJSON” operation
-            declared on one of |P|'s [=consequential interfaces=].
-        1.  Let |result| be [=?=] [=Call=](|super|, |O|).
-        1.  If Type(|result|) is not Object, return |result|.
-    1.  Otherwise, let |result| be [=!=] [=ObjectCreate=]([=%ObjectPrototype%=]).
-    1.  For each [=exposed=] [=regular attribute=] |attr| that is an [=interface member=] of |I|:
-        1.  Let |id| be |attr|’s [=identifier=] [=converted to an ECMAScript value=].
-        1.  Let |value| be [=?=] [=Get=](|O|, |id|).
-        1.  Perform [=?=] [=CreateDataProperty=](|result|, |id|, |value|).
+    1.  Let |map| be a new [=ordered map=].
+    1.  Let |stack| be the result of [=create an inheritance stack|creating an inheritance stack=]
+        for [=interface=] |I|.
+    1.  Invoke [=collect attribute values=], passing |stack| and |map|.
+    1.  Let |result| be [=!=] [=ObjectCreate=]([=%ObjectPrototype%=]).
+    1.  [=map/For each=] |key| → |value| of |map|,
+        1.  Let |k| be |key| [=converted to an ECMAScript value=].
+        1.  Let |v| be |value| [=converted to an ECMAScript value=].
+        1.  Perform [=!=] [=CreateDataProperty=](|result|, |k|, |v|).
     1.  Return |result|.
 </div>
 
+<div algorithm>
+
+    To invoke the <dfn>collect attribute values</dfn> abstract operation
+    with [=stack=] and [=ordered map=] |map| as arguments,
+    run the the following steps:
+
+    1.  Let |I| be the result of invoking [=stack/pop=] from |stack|.
+    1.  [=list|For each=] [=implements statements=] where the left-hand side [=identifier=] references |I|:
+        1.  Let |rhs| be the [=interface=] represented by the right-hand side [=identifier=].
+        1.  Let |interfaces| be the result of [=create an inheritance stack|creating an inheritance stack=]
+            for [=interface=] |rhs|.
+        1.  invoke [=collect attribute values=], passing it |interfaces| and |map|.
+    1.  If a “toJSON” operation with a [{{Default}}] [=extended attribute=] is declared on |I|, then
+        [=list|for each=] [=exposed=] [=regular attribute=] |attr|
+        that is an [=interface member=] of |I|, in order:
+        1.  Let |id| be the [=identifier=] of |attr|.
+        1.  Let |value| be the underlying value of |attr|.
+        1.  If |value| is a [=JSON type=], then [=map/set=] |map|[|id|] to |value|. 
+    1.  If |stack| [=stack/is not empty=],
+        then invoke [=collect attribute values=], passing it |stack| and |map|.
+</div>
+
+<div algorithm>
+
+    To <dfn>create an inheritance stack</dfn> for [=interface=] |I|,
+    run the the following steps:
+
+    1.  Let |stack| be a new [=stack=].
+    1.  [=stack/Push=] |I| onto |stack|.
+    1.  [=iteration/While=] |I| [=interface/inherits=] from an [=interface=],
+        1.  Let |I| be that [=interface=].
+        1.  [=stack/Push=] |I| onto |stack|.
+    1.  Return |stack|.
+</div>
 
 <h5 id="es-stringifier">Stringifiers</h5>
 
