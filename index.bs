@@ -1981,10 +1981,10 @@ The following extended attributes are applicable to operations:
 
 <h5 id="idl-tojson-operation">toJSON</h5>
 
-By declaring a “toJSON” [=regular operation=],
+By declaring a <code>toJSON</code> [=regular operation=],
 an [=interface=] specifies how to convert the objects that implement it to [=JSON types=].
 
-The “toJSON” [=regular operation=] is reserved for this usage.
+The <code>toJSON</code> [=regular operation=] is reserved for this usage.
 It must take zero arguments and return a [=JSON type=].
 
 The <dfn id="dfn-json-types" export lt="JSON type">JSON types</dfn> are:
@@ -1994,37 +1994,35 @@ The <dfn id="dfn-json-types" export lt="JSON type">JSON types</dfn> are:
 *   [=string types=],
 *   [=nullable types=] whose [=nullable types/inner type=] is a [=JSON type=],
 *   [=annotated types=] whose [=annotated types/inner type=] is a [=JSON type=],
-*   [=union types=] where all of their [=member types=] are [=JSON types=],
+*   [=union types=] whose [=member types=] are [=JSON types=],
 *   [=sequence types=] whose parameterized type is a [=JSON type=],
 *   [=dictionaries=] where all of their [=dictionary members|members=] are [=JSON types=],
 *   [=records=] where all of their [=map/values=] are [=JSON types=],
-*   [=object types=],
-*   [=interface types=] that have a “toJSON” operation declared on themselves or
+*   [=interface types=] that have a <code>toJSON</code> operation declared on themselves or
     one of their [=inherited interface|inherited=] or
     [=consequential interface|consequential=] interfaces.
 
-How the “toJSON” [=regular operation=]
+How the <code>toJSON</code> [=regular operation=]
 is made available on an object in a language binding,
 and how exactly the [=JSON types=] are converted into a JSON string,
 is language binding specific.
 
 Note: In the ECMAScript language binding,
-this is done by exposing a “toJSON” method
+this is done by exposing a <code>toJSON</code> method
 which returns the [=JSON type=]
 converted into an ECMAScript value
 that can be turned into a JSON string
 by the <code>[=JSON.stringify=]</code> function.
 Additionaly, in the ECMAScript language binding,
-the “toJSON” operation can take a [{{Default}}] [=extended attribute=],
+the <code>toJSON</code> operation can take a [{{Default}}] [=extended attribute=],
 in which case the [=default toJSON operation=] is exposed instead.
 
 <div class="example">
 
     The following [=IDL fragment=] defines an interface <code class="idl">Transaction</code>
-    that has a “toJSON” method defined in prose,
+    that has a <code>toJSON</code> method defined in prose,
     and an interface <code class="idl">Account</code>,
-    which relies on the [=default toJSON operation=]
-    (its “toJSON” operation is declared with a [{{Default}}] [=extended attribute=]):
+    which relies on the [=default toJSON operation=]:
 
     <pre highlight="webidl">
         interface Transaction {
@@ -2052,12 +2050,12 @@ in which case the [=default toJSON operation=] is exposed instead.
 
     Assuming each of the attributes of <code class="idl">Transaction</code> is backed by an associated value,
     so that each [=attribute getter=] returns the corresponding associated value,
-    then the “toJSON” [=regular operation=] could be defined as follows:
+    then the <code>toJSON</code> [=regular operation=] could be defined as follows:
 
     <blockquote>
         <div algorithm="example tojson">
 
-            The “toJSON” operation of the <code class="idl">Transaction</code> interface
+            The <code>toJSON</code> operation of the <code class="idl">Transaction</code> interface
             must follow these steps:
 
             1.  Let |json| be a new <code class="idl">TransactionJSONValue</code> dictionary.
@@ -2069,7 +2067,7 @@ in which case the [=default toJSON operation=] is exposed instead.
         </div>
     </blockquote>
 
-    In the ECMAScript language binding, there would exist a “toJSON” method on
+    In the ECMAScript language binding, there would exist a <code>toJSON</code> method on
     <code class="idl">Transaction</code> objects:
 
     <pre highlight="js">
@@ -7909,7 +7907,7 @@ for which a [=corresponding default operation=] has been defined.
 <div class="example">
 
     As an example, the [{{Default}}] extended attribute is suitable
-    for use on the “toJSON” [=regular operation=] of the
+    for use on the <code>toJSON</code> [=regular operation=] of the
     <a href="https://w3c.github.io/browser-payment-api/#paymentresponse-interface"><code class="idl">PaymentResponse</code></a>
     interface [[payment-request]].
 
@@ -10548,8 +10546,7 @@ property-installation style as namespaces.)
             1.  If |operation| is declared with a [{{Default}}] [=extended attribute=],
                 then:
                 1.  Set |R| be the result of performing the actions listed in
-                    |operation|'s [=corresponding default operation=]
-                    on |O| if |O| is not <emu-val>null</emu-val>,
+                    |operation|'s [=corresponding default operation=] on |O|,
                     with |values| as the argument values.
             1.  Otherwise:
                 1.  Set |R| be the result of performing the actions listed in the
@@ -10587,19 +10584,20 @@ may be declared with a [{{Default}}] [=extended attribute=].
 
 <h6 id="es-default-tojson">Default toJSON operation</h5>
 
-The [=corresponding default operation=] of the “toJSON” operation is the [=default toJSON operation=].
+The [=corresponding default operation=] of the <code>toJSON</code> operation is the [=default toJSON operation=].
 
 The [=return type=] of the [=default toJSON operation=] must be {{object}}.
 
 <div algorithm>
 
-    To invoke the <dfn export>default toJSON operation</dfn> of [=interface=] |I|,
+    To invoke the <dfn export>default toJSON operation</dfn> of [=interface=] |I| on |O|,
     run the the following steps:
 
     1.  Let |map| be a new [=ordered map=].
     1.  Let |stack| be the result of [=create an inheritance stack|creating an inheritance stack=]
         for [=interface=] |I|.
-    1.  Invoke [=collect attribute values=], passing |stack| and |map|.
+    1.  Invoke [=collect attribute values=] on |O|,
+        passing it |stack| and |map| as arguments.
     1.  Let |result| be [=!=] [=ObjectCreate=]([=%ObjectPrototype%=]).
     1.  [=map/For each=] |key| → |value| of |map|,
         1.  Let |k| be |key| [=converted to an ECMAScript value=].
@@ -10610,24 +10608,30 @@ The [=return type=] of the [=default toJSON operation=] must be {{object}}.
 
 <div algorithm>
 
-    To invoke the <dfn>collect attribute values</dfn> abstract operation
+    To invoke the <dfn>collect attribute values</dfn> abstract operation on |O|
     with [=stack=] |stack| and [=ordered map=] |map| as arguments,
     run the the following steps:
 
-    1.  Let |I| be the result of invoking [=stack/pop=] from |stack|.
+    1.  Let |I| be the result of [=stack/pop|popping=] from |stack|.
     1.  [=list|For each=] [=implements statements=] where the left-hand side [=identifier=] references |I|:
         1.  Let |rhs| be the [=interface=] represented by the right-hand side [=identifier=].
         1.  Let |interfaces| be the result of [=create an inheritance stack|creating an inheritance stack=]
             for [=interface=] |rhs|.
-        1.  invoke [=collect attribute values=], passing it |interfaces| and |map|.
-    1.  If a “toJSON” operation with a [{{Default}}] [=extended attribute=] is declared on |I|, then
+        1.  Invoke [=collect attribute values=] on |O|,
+            passing it |interfaces| and |map| as arguments.
+    1.  If a <code>toJSON</code> operation with a [{{Default}}] [=extended attribute=] is declared on |I|, then
         [=list|for each=] [=exposed=] [=regular attribute=] |attr|
         that is an [=interface member=] of |I|, in order:
         1.  Let |id| be the [=identifier=] of |attr|.
         1.  Let |value| be the underlying value of |attr|.
-        1.  If |value| is a [=JSON type=], then [=map/set=] |map|[|id|] to |value|. 
+        1.  Let |value| be the result of performing the actions listed in the
+            description of |attr| that occur on getting (or those listed in the description
+            of the inherited attribute, if this attribute is declared to
+            [=inherit its getter=]), on |O|.
+        1.  If |value| is a [=JSON type=], then [=map/set=] |map|[|id|] to |value|.
     1.  If |stack| [=stack/is not empty=],
-        then invoke [=collect attribute values=], passing it |stack| and |map|.
+        then invoke [=collect attribute values=] on |O|,
+        passing it |stack| and |map| as arguments.
 </div>
 
 <div algorithm>
@@ -10641,6 +10645,102 @@ The [=return type=] of the [=default toJSON operation=] must be {{object}}.
         1.  Let |I| be that [=interface=].
         1.  [=stack/Push=] |I| onto |stack|.
     1.  Return |stack|.
+</div>
+
+<div class=example>
+
+    The following [=IDL fragment=] defines a number of [=interfaces=]
+    which are [=inherited interface|inherited=] or [=consequential interfaces=] of `A`,
+    as show in the below inheritance tree.
+
+    <pre>
+                  F*
+                  |
+             C    E - I*
+             |    |
+             B* - D*
+             |
+        G* - A - H*
+    </pre>
+
+    Interfaces markes with an asterixk ("*")
+    declare a <code>toJSON</code> [=operation=]
+    with a [{{Default}}] [=extended attribute=].
+
+    <pre highlight=webidl>
+        interface A : B {
+          attribute DOMString r;
+        };
+
+        interface B : C {
+          [Default] object toJSON();
+          attribute DOMString s;
+        };
+
+        interface C {
+          attribute DOMString t;
+        };
+
+        interface D : E {
+          [Default] object toJSON();
+          attribute DOMString u;
+        };
+
+        interface E : F {
+          attribute DOMString v;
+        };
+
+        interface F {
+          [Default] object toJSON();
+          attribute DOMString w;
+        };
+
+        interface G {
+          [Default] object toJSON();
+          attribute DOMString x;
+        };
+
+        interface H {
+          [Default] object toJSON();
+          attribute DOMString y;
+        };
+
+        interface I {
+          [Default] object toJSON();
+          attribute DOMString z;
+        };
+
+        A implements G;
+        A implements H;
+        B implements D;
+        E implements I;
+    </pre>
+
+    Calling the <code>toJSON</code> method of an object
+    implementing interface `A` defined above
+    would return the following JSON object:
+
+    <pre highlight=json>
+    {
+        "w": "...",
+        "z": "...",
+        "u": "...",
+        "s": "...",
+        "x": "...",
+        "y": "..."
+    }
+    </pre>
+
+    An object implementing interface `B` would return:
+
+    <pre highlight=json>
+    {
+        "w": "...",
+        "z": "...",
+        "u": "...",
+        "s": "..."
+    }
+    </pre>
 </div>
 
 <h5 id="es-stringifier">Stringifiers</h5>
