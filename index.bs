@@ -8727,6 +8727,71 @@ for the specific requirements that the use of
 entails.
 
 
+<h4 id="LegacyWindowAlias" extended-attribute lt="LegacyWindowAlias">[LegacyWindowAlias]</h4>
+
+If the [{{LegacyWindowAlias}}] [=extended attribute=] appears on an [=interface=],
+it indicates that the [=primary global interface=] will have a property
+for each identifier mentioned in the extended attribute,
+whose value is the [=interface object=] for the interface.
+
+The [{{LegacyWindowAlias}}] [=extended attribute=] must either
+[=takes an identifier|take an identifier=] or
+[=takes an identifier list|take an identifier list=].
+
+The [{{LegacyWindowAlias}}] and [{{NoInterfaceObject}}]
+extended attributes must not be specified on the same interface.
+
+The [{{LegacyWindowAlias}}] extended attribute must not be specified
+on an interface that does not include the [=primary global interface=]
+in its [=exposure set=].
+
+The [{{LegacyWindowAlias}}] extended attribute must not be specified
+on a [=callback interface=].
+
+An interface must not have more than one [{{LegacyWindowAlias}}] extended attributes specified.
+
+See [[#legacy-window-alias]] for details on how legacy window aliases
+are to be implemented.
+
+<p class="advisement">
+    [{{LegacyWindowAlias}}] extended attributes are an undesirable feature.
+    They exist only so that legacy Web platform features can be specified.
+    They should not be used in specifications
+    unless required to specify the behavior of legacy APIs.
+</p>
+
+<div class="example">
+
+    The following IDL defines an interface that uses the
+    [{{LegacyWindowAlias}}] extended attribute.
+
+    <pre highlight="webidl">
+        [Constructor,
+         LegacyWindowAlias=WebKitCSSMatrix]
+        interface DOMMatrix : DOMMatrixReadOnly {
+          // ...
+        };
+    </pre>
+
+    An ECMAScript implementation that supports this interface will
+    expose two properties on the {{Window}} object with the same value
+    and the same characteristics;
+    one for exposing the [=interface object=] normally,
+    and one for exposing it with a legacy name.
+
+    <pre highlight="js">
+        WebKitCSSMatrix === DOMMatrix;     // Evaluates to true.
+
+        var m = new WebKitCSSMatrix();     // Creates a new object that
+                                           // implements DOMMatrix.
+
+        m.constructor === DOMMatrix;       // Evaluates to true.
+        m.constructor === WebKitCSSMatrix; // Evaluates to true.
+        {}.toString.call(m);               // Evaluates to '[object DOMMatrix]'.
+    </pre>
+</div>
+
+
 <h4 id="LenientSetter" extended-attribute lt="LenientSetter">[LenientSetter]</h4>
 
 If the [{{LenientSetter}}]
@@ -8867,34 +8932,6 @@ is to be implemented.
         Example.prototype.y;
     </pre>
 </div>
-
-
-<h4 id="LegacyWindowAlias" extended-attribute lt="LegacyWindowAlias">[LegacyWindowAlias]</h4>
-
-The [{{LegacyWindowAlias}}]
-[=extended attribute=]
-must either
-[=takes an identifier|take an identifier=] or
-[=takes an identifier list|take an identifier list=].
-
-If the [{{LegacyWindowAlias}}] extended attribute was specified on an interface,
-then for each identifier |id| mentioned in the extended attribute,
-the [=primary global interface=] must
-have a property named |id|,
-which is the <dfn id="dfn-legacy-window-alias" export>legacy window alias</dfn>,
-with attributes
-{ \[[Writable]]: <emu-val>true</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val> }
-whose value is a reference to the [=interface object=] for the interface.
-
-The [{{LegacyWindowAlias}}] and [{{NoInterfaceObject}}]
-extended attributes must not be specified on the same interface.
-
-<p class="advisement">
-    [{{LegacyWindowAlias}}] extended attributes are an undesirable feature.
-    They exist only so that legacy Web platform features can be specified.
-    They should not be used in specifications
-    unless required to specify the behavior of legacy APIs.
-</p>
 
 
 <h4 id="NamedConstructor" extended-attribute lt="NamedConstructor">[NamedConstructor]</h4>
@@ -10230,6 +10267,21 @@ the <code>typeof</code> operator will return "function" when applied to an inter
     1.  Perform [=!=] [=DefinePropertyOrThrow=](|F|, "prototype",
         PropertyDescriptor{\[[Value]]: |proto|, \[[Writable]]: <emu-val>false</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>false</emu-val>}).
 </div>
+
+
+<h4 id="legacy-window-alias">Legacy window alias</h4>
+
+If the [{{LegacyWindowAlias}}] extended attribute was specified on an interface,
+then for each identifier |id| mentioned in the extended attribute,
+there must be a corresponding property,
+known as the <dfn id="dfn-legacy-window-alias" export>legacy window alias</dfn>,
+on the [=primary global interface=].
+The property has the following characteristics:
+
+*   The name of the property is |id|.
+*   The value of the property is a reference to the [=interface object=] for the interface.
+*   The property has attributes
+    { \[[Writable]]: <emu-val>true</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val> }.
 
 
 <h4 id="named-constructors">Named constructors</h4>
