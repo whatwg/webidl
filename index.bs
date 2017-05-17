@@ -2029,14 +2029,12 @@ in which case the [=default toJSON operation=] is exposed instead.
 <div class="example">
 
     The following [=IDL fragment=] defines an interface <code class="idl">Transaction</code>
-    that has a <code>toJSON</code> method defined in prose,
-    and an interface <code class="idl">Account</code>,
-    which relies on the [=default toJSON operation=]:
+    that has a <code>toJSON</code> method defined in prose:
 
     <pre highlight="webidl">
         interface Transaction {
-          readonly attribute Account from;
-          readonly attribute Account to;
+          readonly attribute DOMString from;
+          readonly attribute DOMString to;
           readonly attribute double amount;
           readonly attribute DOMString description;
           readonly attribute unsigned long number;
@@ -2049,32 +2047,24 @@ in which case the [=default toJSON operation=] is exposed instead.
           double amount;
           DOMString description;
         };
-
-        interface Account {
-          attribute DOMString name;
-          attribute unsigned long number;
-          [Default] object toJSON();
-        };
     </pre>
 
-    Assuming each of the attributes of <code class="idl">Transaction</code> is backed by an associated value,
-    so that each [=attribute getter=] returns the corresponding associated value,
-    then the <code>toJSON</code> [=regular operation=] could be defined as follows:
+    The <code>toJSON</code> [=regular operation=] of <code class="idl">Transaction</code> [=interface=]
+    could be defined as follows:
 
-    <blockquote>
-        <div algorithm="example tojson">
 
-            The <code>toJSON</code> operation of the <code class="idl">Transaction</code> interface
-            must follow these steps:
+    <div algorithm="example tojson">
 
-            1.  Let |json| be a new <code class="idl">TransactionJSONValue</code> dictionary.
-            1.  Set |json|["from"] to this <code class="idl">Transaction</code>'s associated "from" value.
-            1.  Set |json|["to"] to this <code class="idl">Transaction</code>'s associated "to" value.
-            1.  Set |json|["amount"] to this <code class="idl">Transaction</code>'s associated "amount" value.
-            1.  Set |json|["description"] to this <code class="idl">Transaction</code>'s associated "description" value.
-            1.  Return |json|.
-        </div>
-    </blockquote>
+        To invoke the <code>toJSON</code> operation of the <code class="idl">Transaction</code> interface
+        on |target|, run the following steps:
+
+        1.  Let |json| be a new <code class="idl">TransactionJSONValue</code> dictionary.
+        1.  [=list/For each=] attribute [=identifier=] |attr| in [=list=] « "from", "to", "amount", "description" »:
+            1.  Let |value| be result of [=get the underlying value|getting the underlying value=]
+                of [=attribute=] |attr| of <code class="idl">Transaction</code> on |target|.
+            1.  Set |json|[|attr|] to |value|.
+        1.  Return |json|.
+    </div>
 
     In the ECMAScript language binding, there would exist a <code>toJSON</code> method on
     <code class="idl">Transaction</code> objects:
@@ -2085,21 +2075,15 @@ in which case the [=default toJSON operation=] is exposed instead.
 
         // Evaluates to an object like this:
         // {
-        //   from: {
-        //     name: "foo",
-        //     number: 1234
-        //   },
-        //   to: {
-        //     name: "bar",
-        //     number: 5678
-        //   },
-        //   amount: 110.75
-        //   description: "dinner"
+        //   from: "Bob",
+        //   to: "Alice",
+        //   amount: 50
+        //   description: "books"
         // }
         txn.toJSON();
 
         // Evaluates to a string like this:
-        // '{"from":{"name":"foo","number":1234},"to":{"name":"bar","number":5678},"amount":110.75,"description":"dinner"}'
+        // '{"from":"Bob","to":"Alice","amount":50,"description":"books"}'
         JSON.stringify(txn);
     </pre>
 </div>
