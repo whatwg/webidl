@@ -940,6 +940,7 @@ limitations.  The following extended attributes must not
 be specified on partial interface definitions:
 [{{Constructor}}],
 [{{LegacyArrayClass}}],
+[{{LegacyWindowAlias}}],
 [{{NamedConstructor}}],
 [{{NoInterfaceObject}}].
 
@@ -965,6 +966,7 @@ The following extended attributes are applicable to interfaces:
 [{{Exposed}}],
 [{{Global}}],
 [{{LegacyArrayClass}}],
+[{{LegacyWindowAlias}}],
 [{{NamedConstructor}}],
 [{{NoInterfaceObject}}],
 [{{OverrideBuiltins}}],
@@ -8725,6 +8727,81 @@ for the specific requirements that the use of
 entails.
 
 
+<h4 id="LegacyWindowAlias" extended-attribute lt="LegacyWindowAlias">[LegacyWindowAlias]</h4>
+
+If the [{{LegacyWindowAlias}}] [=extended attribute=] appears on an [=interface=],
+it indicates that the [=primary global interface=] will have a property
+for each [=identifier=] mentioned in the extended attribute,
+whose value is the [=interface object=] for the interface.
+
+The [{{LegacyWindowAlias}}] extended attribute must either
+[=takes an identifier|take an identifier=] or
+[=takes an identifier list|take an identifier list=].
+The <emu-t class="regex"><a href="#prod-identifier">identifier</a></emu-t>s that occur after the
+“<emu-t>=</emu-t>” are the [{{LegacyWindowAlias}}]'s <dfn lt="LegacyWindowAlias identifier">identifiers</dfn>.
+
+Each of the [=LegacyWindowAlias identifier|identifiers=] of [{{LegacyWindowAlias}}]
+must not be the same as one used by a [{{LegacyWindowAlias}}]
+extended attribute on this interface or another interface,
+must not be the same as the [=NamedConstructor identifier|identifier=] used by a [{{NamedConstructor}}]
+extended attribute on this interface or another interface,
+must not be the same as an [=identifier=] of an interface that has an [=interface object=],
+and must not be one of the [=reserved identifiers=].
+
+The [{{LegacyWindowAlias}}] and [{{NoInterfaceObject}}]
+extended attributes must not be specified on the same interface.
+
+The [{{LegacyWindowAlias}}] extended attribute must not be specified
+on an interface that does not include the [=primary global interface=]
+in its [=exposure set=].
+
+The [{{LegacyWindowAlias}}] extended attribute must not be specified
+on a [=callback interface=].
+
+An interface must not have more than one [{{LegacyWindowAlias}}] extended attributes specified.
+
+See [[#es-interfaces]] for details on how legacy window aliases
+are to be implemented.
+
+<p class="advisement">
+    [{{LegacyWindowAlias}}] extended attributes are an undesirable feature.
+    They exist only so that legacy Web platform features can be specified.
+    They should not be used in specifications
+    unless required to specify the behavior of legacy APIs.
+</p>
+
+<div class="example">
+
+    The following IDL defines an interface that uses the
+    [{{LegacyWindowAlias}}] extended attribute.
+
+    <pre highlight="webidl">
+        [Constructor,
+         LegacyWindowAlias=WebKitCSSMatrix]
+        interface DOMMatrix : DOMMatrixReadOnly {
+          // ...
+        };
+    </pre>
+
+    An ECMAScript implementation that supports this interface will
+    expose two properties on the {{Window}} object with the same value
+    and the same characteristics;
+    one for exposing the [=interface object=] normally,
+    and one for exposing it with a legacy name.
+
+    <pre highlight="js">
+        WebKitCSSMatrix === DOMMatrix;     // Evaluates to true.
+
+        var m = new WebKitCSSMatrix();     // Creates a new object that
+                                           // implements DOMMatrix.
+
+        m.constructor === DOMMatrix;       // Evaluates to true.
+        m.constructor === WebKitCSSMatrix; // Evaluates to true.
+        {}.toString.call(m);               // Evaluates to '[object DOMMatrix]'.
+    </pre>
+</div>
+
+
 <h4 id="LenientSetter" extended-attribute lt="LenientSetter">[LenientSetter]</h4>
 
 If the [{{LenientSetter}}]
@@ -8892,9 +8969,11 @@ implements the interface by passing the specified arguments to the constructor f
 that is the value of the aforementioned property.
 
 The [=NamedConstructor identifier|identifier=] used for the named constructor must not
-be the same as that used by an [{{NamedConstructor}}]
+be the same as that used by a [{{NamedConstructor}}]
 extended attribute on another interface, must not
-be the same as an identifier of an interface
+be the same as an [=LegacyWindowAlias identifier|identifier=] used by a [{{LegacyWindowAlias}}]
+extended attribute on this interface or another interface,
+must not be the same as an [=identifier=] of an interface
 that has an [=interface object=],
 and must not be one of the
 [=reserved identifiers=].
@@ -10118,6 +10197,14 @@ The name of the property is the [=identifier=] of the interface,
 and its value is an object called the <dfn id="dfn-interface-object" export>interface object</dfn>.
 The property has the attributes { \[[Writable]]: <emu-val>true</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val> }.
 The characteristics of an interface object are described in [[#interface-object]].
+
+If the [{{LegacyWindowAlias}}] extended attribute was specified on an [=exposed=] interface,
+then for each [=LegacyWindowAlias identifier|identifier=] in [{{LegacyWindowAlias}}]'s [=LegacyWindowAlias identifier|identifiers=]
+there must be a corresponding property on the [=primary global interface=].
+The name of the property is the given [=LegacyWindowAlias identifier|identifier=],
+and its value is a reference to the [=interface object=] for the [=interface=].
+The property has the attributes
+{ \[[Writable]]: <emu-val>true</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val> }.
 
 In addition, for every [{{NamedConstructor}}] extended attribute on an [=exposed=] interface,
 a corresponding property must exist on the ECMAScript global object.
