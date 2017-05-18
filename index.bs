@@ -2038,10 +2038,10 @@ in which case the [=default toJSON operation=] is exposed instead.
           readonly attribute double amount;
           readonly attribute DOMString description;
           readonly attribute unsigned long number;
-          TransactionJSONValue toJSON();
+          TransactionJSON toJSON();
         };
 
-        dictionary TransactionJSONValue {
+        dictionary TransactionJSON {
           Account from;
           Account to;
           double amount;
@@ -2058,7 +2058,7 @@ in which case the [=default toJSON operation=] is exposed instead.
         To invoke the <code>toJSON()</code> operation of the <code class="idl">Transaction</code>
         interface, run the following steps:
 
-        1.  Let |json| be a new <code class="idl">TransactionJSONValue</code> dictionary.
+        1.  Let |json| be a new <code class="idl">TransactionJSON</code> dictionary.
         1.  [=list/For each=] attribute [=identifier=] |attr| in « "from", "to", "amount", "description" »:
             1.  Let |value| be result of [=get the underlying value|getting the underlying value=]
                 of the [=attribute=] identified by |attr|, given |target|.
@@ -2077,7 +2077,7 @@ in which case the [=default toJSON operation=] is exposed instead.
         // {
         //   from: "Bob",
         //   to: "Alice",
-        //   amount: 50
+        //   amount: 50,
         //   description: "books"
         // }
         txn.toJSON();
@@ -7900,59 +7900,56 @@ for which a [=corresponding default operation=] has been defined.
 <div class="example" id="example-tojson-default">
 
     As an example, the [{{Default}}] extended attribute is suitable
-    for use on the <code>toJSON</code> [=regular operation=] of the
-    <a href="https://w3c.github.io/browser-payment-api/#paymentresponse-interface"><code class="idl">PaymentResponse</code></a>
-    interface [[payment-request]].
+    for use on <code>toJSON</code> [=regular operations=]:
 
     <pre highlight="webidl">
-        [SecureContext]
-        interface PaymentResponse {
-          readonly attribute DOMString paymentRequestId;
-          readonly attribute DOMString methodName;
-          readonly attribute object details;
-          readonly attribute PaymentAddress? shippingAddress;
-          readonly attribute DOMString? shippingOption;
-          readonly attribute DOMString? payerName;
-          readonly attribute DOMString? payerEmail;
-          readonly attribute DOMString? payerPhone;
-          Promise&lt;void&gt; complete(optional PaymentComplete result = "unknown");
+        interface Animal {
+          attribute DOMString name;
+          attribute unsigned short age;
           [Default] object toJSON();
         };
+
+        interface Human : Animal {
+          attribute Dog? pet;
+          [Default] object toJSON();
+        };
+
+        interface Dog : Animal {
+          attribute DOMString? breed;
+        };
+
     </pre>
 
-    In an ECMAScript implementation of the IDL,
-    converting a <code class="idl">PaymentResponse</code> into a JSON string,
-    as in the following code snippet:
-
+    In the ECMAScript language binding, there would exist a <code>toJSON()</code> method on
+    <code class="idl">Animal</code>, <code class="idl">Human</code>,
+    and <code class="idl">Dog</code> objects:
+    
     <pre highlight="js">
-        let payment = new PaymentRequest(methodData, details, options);
-        payment.show().then(paymentResponse => {
-            paymentResponse.complete("success");
-            console.log(JSON.stringify(paymentResponse, null, 4));
-        });
-    </pre>
+        // Get an instance of Human.
+        var alice = getHuman();
 
-    would  log the following JSON string to the console:
+        // Evaluates to an object like this (notice how "pet" still holds
+        // an instance of Dog at this point):
+        //
+        // {
+        //   name: "Alice",
+        //   age: 59,
+        //   pet: Dog
+        // }
+        alice.toJSON();
+        
+        // Evaluates to an object like this (notice how "breed" is absent,
+        // as the Dog interface doesn't declare a default toJSON operation):
+        //
+        // {
+        //   name: "Tramp",
+        //   age: 6
+        // }
+        alice.pet.toJSON();
 
-    <pre highlight="json">
-        {
-            "paymentRequestId": "XXXX",
-            "methodName": "basic-card",
-            "details": {
-                "total": {
-                    "label": "Total due",
-                    "amount": {
-                        "currency": "USD",
-                        "value": "60.00"
-                    }
-                }
-            },
-            "shippingAddress": null,
-            "shippingOption": null,
-            "payerName": "John Doe",
-            "payerEmail": "john.doe@example.org",
-            "payerPhone": null
-        }
+        // Evaluates to a string like this:
+        // '{"name":"Alice","age":59,"pet":{"name":"Tramp","age":6}}'
+        JSON.stringify(alice);
     </pre>
 </div>
 
