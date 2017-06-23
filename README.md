@@ -29,7 +29,7 @@ The specification is written in [Bikeshed](https://github.com/tabatkins/bikeshed
 
 *   Rendering engines
     *   [Gecko](https://bugzilla.mozilla.org/enter_bug.cgi?product=Core&component=DOM&cc=bzbarsky@mit.edu)
-    *   [WebKit](https://bugs.webkit.org)
+    *   [WebKit](https://bugs.webkit.org/enter_bug.cgi?product=WebKit&component=Bindings&short_desc=[WebIDL]%20)
     *   [Chromium](https://crbug.com)
     *   [Edge](https://developer.microsoft.com/en-us/microsoft-edge/platform/issues/)
 *   [web-platform-tests](https://github.com/w3c/web-platform-tests/issues/new)
