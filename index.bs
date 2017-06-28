@@ -5788,19 +5788,6 @@ The [=type name=] of the
 {{Error!!interface}} type is “Error”.
 
 
-<h4 oldids="dfn-DOMException" id="idl-DOMException" interface>DOMException</h4>
-
-The {{DOMException}} type corresponds to the
-set of all possible non-null references to objects
-representing [=exceptions=] that are not [=simple exceptions=].
-
-There is no way to represent a constant {{DOMException}}
-value in IDL.
-
-The [=type name=] of the
-{{DOMException}} type is “DOMException”.
-
-
 <h4 id="idl-buffer-source-types">Buffer source types</h4>
 
 There are a number of types that correspond to sets of all possible non-null
@@ -6260,8 +6247,6 @@ and comprise the following:
 *   <a href="#es-stringifier">the <emu-val>Function</emu-val> objects that correspond to stringifiers</a>
 *   <a href="#es-iterators">the <emu-val>Function</emu-val> objects that correspond to iterators</a>
 *   [=map size getters=]
-*   [=DOMException constructor objects=]
-*   [=DOMException prototype objects=]
 
 Each [=Realms|ECMAScript global environment=]
 must have its own unique set of each of
@@ -12471,112 +12456,27 @@ The characteristics of a namespace object are described in [[#namespace-object]]
 
 <h3 id="es-exceptions">Exceptions</h3>
 
-There must exist a property on the ECMAScript global object
-whose name is “DOMException” and value is an object called the
-<dfn id="dfn-DOMException-constructor-object" for="DOMException" export>DOMException constructor object</dfn>,
-which provides access to legacy {{DOMException}} code constants and allows construction of
-DOMException instances.
-The property has the attributes { \[[Writable]]: <emu-val>true</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val> }.
+<h4 id="es-DOMException-specialness" oldids="es-DOMException-constructor-object, es-DOMException-prototype-object">{{DOMException}} custom bindings</h4>
 
+In the ECMAScript binding, the {{DOMException}} type has some additional requirements:
 
-<h4 id="es-DOMException-constructor-object">DOMException constructor object</h4>
+*   Unlike normal [=interface types=], the [=interface prototype object=] for {{DOMException}} must
+    have as its \[[Prototype]] the intrinsic object [=%ErrorPrototype%=].
 
-The DOMException constructor object must be a [=function object=]
-but with a \[[Prototype]] value of [=%Error%=].
+*   If an implementation gives native <emu-val>Error</emu-val> objects special powers or
+    nonstandard properties (such as a <code>stack</code> property), it should also expose those on
+    {{DOMException}} instances.
 
-For every legacy code listed in the <a href="#dfn-error-names-table">error names table</a>,
-there must be a property on the DOMException constructor object
-whose name and value are as indicated in the table.  The property has
-attributes { \[[Writable]]: <emu-val>false</emu-val>, \[[Enumerable]]: <emu-val>true</emu-val>, \[[Configurable]]: <emu-val>false</emu-val> }.
-
-The DOMException constructor object must also have a property named
-“prototype” with attributes
-{ \[[Writable]]: <emu-val>false</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>false</emu-val> }
-whose value is an object called the <dfn id="dfn-DOMException-prototype-object" for="DOMException" export>DOMException prototype object</dfn>.
-This object also provides access to the legacy code values.
-
-
-<h5 id="es-DOMException-call">DOMException(message, name)</h5>
-
-<div algorithm="to create a DOMException">
-
-    When the DOMException function is called with arguments |message| and |name|,
-    the following steps are taken:
-
-    1.  Let |F| be the active function object.
-    1.  If NewTarget is <emu-val>undefined</emu-val>, let |newTarget| be |F|, else let |newTarget| be NewTarget.
-    1.  Let |super| be |F|.\[[GetPrototypeOf]]().
-    1.  [=ReturnIfAbrupt=](|super|).
-    1.  If [=IsConstructor=](|super|) is <emu-val>false</emu-val>, throw a <emu-val>TypeError</emu-val> exception.
-    1.  Let |O| be [=Construct=](|super|, «|message|», |newTarget|).
-    1.  If |name| is not <emu-val>undefined</emu-val>, then
-        1.  Let |name| be [=ToString=](|name|).
-        1.  Let |status| be [=DefinePropertyOrThrow=](|O|, <code>"name"</code>, PropertyDescriptor{\[[Value]]: |name|, \[[Writable]]: <emu-val>true</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val>}).
-        1.  [=ReturnIfAbrupt=](|status|).
-        1.  Let |code| be the legacy code indicated in the [=error names table=] for error name |name|, or <emu-val>0</emu-val> if there is none.
-        1.  Let |status| be [=DefinePropertyOrThrow=](|O|, <code>"code"</code>, PropertyDescriptor{\[[Value]]: |code|, \[[Writable]]: <emu-val>true</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val>}).
-        1.  [=ReturnIfAbrupt=](|status|).
-    1.  Return |O|.
-</div>
-
-
-<h4 id="es-DOMException-prototype-object">DOMException prototype object</h4>
-
-The DOMException prototype object must
-have an internal \[[Prototype]] property whose value is [=%ErrorPrototype%=].
-
-The [=class string=] of the
-[=DOMException prototype object=]
-is “DOMExceptionPrototype”.
-
-There must be a property named “constructor”
-on the DOMException prototype object with attributes
-{ \[[Writable]]: <emu-val>true</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val> }
-and whose value is the [=DOMException constructor object=].
-
-For every legacy code listed in the <a href="#dfn-error-names-table">error names table</a>,
-there must be a property on the DOMException prototype object
-whose name and value are as indicated in the table.  The property has
-attributes { \[[Writable]]: <emu-val>false</emu-val>, \[[Enumerable]]: <emu-val>true</emu-val>, \[[Configurable]]: <emu-val>false</emu-val> }.
-
-
-<h3 id="es-exception-objects" dfn>Exception objects</h3>
+<h4 id="es-exception-objects" dfn>Exception objects</h4>
 
 [=Simple exceptions=] are represented
 by native ECMAScript objects of the corresponding type.
 
 A {{DOMException}} is represented by a
-[=platform object=] that inherits from
-the [=DOMException prototype object=].
-
-Every platform object representing a {{DOMException}} in ECMAScript
-is associated with a global environment,
-just as the [=initial objects=] are.
-When an exception object is created by calling the [=DOMException constructor object=],
-either normally or as part of a <code>new</code> expression, then the global environment
-of the newly created object is associated with must be the same as for the
-[=DOMException constructor object=] itself.
-
-The value of the internal \[[Prototype]]
-property of a {{DOMException}}
-object must be the [=DOMException prototype object=]
-from the global environment the exception object is associated with.
-
-The [=class string=]
-of a {{DOMException}} object
-must be “DOMException”.
-
-Note: The intention is for DOMException objects to be just like the other
-various native <emu-val>Error</emu-val> objects that the
-ECMAScript specification defines, apart from responding differently
-to being passed to Object.prototype.toString and it having a “code” property.
-If an implementation places non-standard properties on native
-<emu-val>Error</emu-val> objects, exposing for example
-stack traces or error line numbers, then these ought to be exposed
-on exception objects too.
+[=platform object=] that implements the {{DOMException}} interface.
 
 
-<h3 id="es-creating-throwing-exceptions">Creating and throwing exceptions</h3>
+<h4 id="es-creating-throwing-exceptions">Creating and throwing exceptions</h4>
 
 
 <div algorithm="to create a simple exception or DOMException">
@@ -12596,7 +12496,7 @@ on exception objects too.
     1.  Let |X| be an object determined based on the type of |E|:
         <dl class="switch">
              :  |E| is {{DOMException}}
-             :: |X| is the [=DOMException constructor object=]
+             :: |X| is the {{DOMException}} [=interface object=]
                 from the [=current Realm=].
              :  |E| is a [=simple exception=]
              :: |X| is the constructor for the corresponding ECMAScript error
@@ -12651,7 +12551,7 @@ on exception objects too.
 </div>
 
 
-<h3 id="es-handling-exceptions">Handling exceptions</h3>
+<h4 id="es-handling-exceptions">Handling exceptions</h4>
 
 None of the algorithms or processing requirements in the
 ECMAScript language binding catch ECMAScript exceptions.  Whenever
@@ -12740,6 +12640,73 @@ objects that provide a view on to an {{ArrayBuffer}}.
 The {{BufferSource}} typedef is used to represent objects
 that are either themselves an {{ArrayBuffer}} or which
 provide a view on to an {{ArrayBuffer}}.
+
+<h3 id="idl-DOMException" interface oldids="dfn-DOMException">DOMException</h4>
+
+The {{DOMException}} type is an [=interface type=] defined by the following IDL
+fragment:
+
+<pre class="idl">
+[
+ Exposed=(Window,Worker),
+ Constructor(optional DOMString message = "", optional DOMString name = "Error")
+]
+interface DOMException { // but see below note about ECMAScript binding
+  readonly attribute DOMString name;
+  stringifier readonly attribute DOMString message;
+  readonly attribute unsigned short code;
+
+  const unsigned short INDEX_SIZE_ERR = 1;
+  const unsigned short DOMSTRING_SIZE_ERR = 2;
+  const unsigned short HIERARCHY_REQUEST_ERR = 3;
+  const unsigned short WRONG_DOCUMENT_ERR = 4;
+  const unsigned short INVALID_CHARACTER_ERR = 5;
+  const unsigned short NO_DATA_ALLOWED_ERR = 6;
+  const unsigned short NO_MODIFICATION_ALLOWED_ERR= 7;
+  const unsigned short NOT_FOUND_ERR = 8;
+  const unsigned short NOT_SUPPORTED_ERR = 9;
+  const unsigned short INUSE_ATTRIBUTE_ERR = 10;
+  const unsigned short INVALID_STATE_ERR = 11;
+  const unsigned short SYNTAX_ERR = 12;
+  const unsigned short INVALID_MODIFICATION_ERR = 13;
+  const unsigned short NAMESPACE_ERR = 14;
+  const unsigned short INVALID_ACCESS_ERR = 15;
+  const unsigned short VALIDATION_ERR = 16;
+  const unsigned short TYPE_MISMATCH_ERR = 17;
+  const unsigned short SECURITY_ERR = 18;
+  const unsigned short NETWORK_ERR = 19;
+  const unsigned short ABORT_ERR = 20;
+  const unsigned short URL_MISMATCH_ERR = 21;
+  const unsigned short QUOTA_EXCEEDED_ERR = 22;
+  const unsigned short TIMEOUT_ERR = 23;
+  const unsigned short INVALID_NODE_TYPE_ERR = 24;
+  const unsigned short DATA_CLONE_ERR = 25;
+};
+</pre>
+
+Note: as discussed in [[#es-DOMException-specialness]], the ECMAScript binding imposes additional
+requirements beyond the normal ones for [=interface types=].
+
+Each {{DOMException}} object has an associated <dfn for="DOMException">name</dfn> and
+<dfn for="DOMException">message</dfn>, both [=JavaScript strings=].
+
+The <dfn constructor for="DOMException"><code>DOMException(|message|, |name|)</code></dfn>
+constructor, when invoked, must run these steps:
+
+1. Let |e| be a new {{DOMException}} object.
+1. Set |e|'s [=DOMException/name=] to |name|.
+1. Set |e|'s [=DOMException/message=] to |message|.
+1. Return |e|.
+
+The <dfn attribute for="DOMException"><code>name</code></dfn> attribute's getter must return this
+{{DOMException}} object's [=DOMException/name=].
+
+The <dfn attribute for="DOMException"><code>message</code></dfn> attribute's getter must return this
+{{DOMException}} object's [=DOMException/message=].
+
+The <dfn attribute for="DOMException"><code>code</code></dfn> attribute's getter must return the
+legacy code indicated in the [=error names table=] for this {{DOMException}} object's
+[=DOMException/name=], or 0 if no such entry exists in the table.
 
 
 <h3 id="DOMTimeStamp" typedef oldids="common-DOMTimeStamp">DOMTimeStamp</h3>
