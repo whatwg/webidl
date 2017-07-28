@@ -2922,39 +2922,41 @@ the same operation or constructor.
         the argument on which the ellipsis appears counts as a single argument.
 
         Note: So <code>void f(long x, long... y);</code> is considered to be declared to take two arguments.
-    1.  Let |m| be the maximum of |maxarg| and |N|.
+    1.  Let |max| be the maximum of |maxarg| and |N|.
     1.  For each operation, extended attribute or callback function |X| in |F|:
-        1.  Let |n| be the number of arguments |X| is declared to take.
-        1.  Let |t| be a [=list=] of types, where |t|[|i|]
-            is the type of |X|[|i|].
-        1.  Let |o| be a list of [=optionality values=], where |o|[|i|]
-            is "variadic" if |X|[|i|] is a final, variadic argument,
-            "optional" if the argument is [=optional argument|optional=],
-            and "required" otherwise.
-        1.  [=set/Append=] the [=tuple=] (|X|, |t|, |o|) to |S|.
+        1.  Let |arguments| be the [=list=] of arguments |X| is declared to take.
+        1.  Let |n| be the [=list/size=] of |arguments|.
+        1.  Let |types| be a [=list=] of types.
+        1.  Let |optionality_values| be a list of [=optionality values=].
+        1.  [=list/For each=] |argument| in |arguments|:
+            1.  [=list/Append=] the type of |argument| to |types|.
+            1.  [=list/Append=] "variadic" to |optionality_values| if |argument| is a final, variadic argument,
+                "optional" if |argument| is [=optional argument|optional=],
+                and "required" otherwise.
+        1.  [=set/Append=] the [=tuple=] (|X|, |types|, |optionality_values|) to |S|.
         1.  If |X| is declared to be [=variadic=], then:
-            1.  [=list/For each=] |i| in [=the range=] |n| to |m|−1, inclusive:
-                1.  Let |u| be a [=list=] of types.
-                1.  Let |p| be a [=list=] of [=optionality values=].
+            1.  [=list/For each=] |i| in [=the range=] |n| to |max|−1, inclusive:
+                1.  Let |t| be a [=list=] of types.
+                1.  Let |o| be a [=list=] of [=optionality values=].
                 1.  [=list/For each=] |j| in [=the range=] 0 to |i|, inclusive:
                     1.  If |j| &lt; |n|, then:
-                        1.  [=list/Append=] |t|[|j|] to |u|.
-                        1.  [=list/Append=] |o|[|j|] to |p|.
+                        1.  [=list/Append=] |types|[|j|] to |t|.
+                        1.  [=list/Append=] |optionality_values|[|j|] to |o|.
                     1.  Otherwise:
-                        1.  [=list/Append=] |t|[|n|−1] to |u|.
-                        1.  [=list/Append=] "variadic" to |p|.
-                1.  [=set/Append=] the [=tuple=] (|X|, |u|, |p|) to |S|.
+                        1.  [=list/Append=] |types|[|n|−1] to |t|.
+                        1.  [=list/Append=] "variadic" to |o|.
+                1.  [=set/Append=] the [=tuple=] (|X|, |t|, |o|) to |S|.
         1.  Let |i| be |n|−1.
         1.  [=iteration/While=] |i| ≥ 0:
-            1.  If |X|[|i|] is not [=optional argument|optional=]
+            1.  If |arguments|[|i|] is not [=optional argument|optional=]
                 (i.e., it is not marked as "optional" and is not
                 a final, variadic argument), then [=iteration/break=] this loop.
-            1.  Otherwise, [=set/append=] the [=tuple=] (|X|, |t|, |o|) to |S|.
+            1.  Otherwise, [=set/append=] the [=tuple=] (|X|, |types|, |optionality_values|) to |S|.
             1.  Set |i| to |i|−1.
-            
+
             Note: if |i| is 0, this means to add to |S| the tuple (|X|, « », « »);
             (where "« »" represents an [=list/is empty|empty list=]).
-    1.  The effective overload set is |S|.
+    1.  Return |S|.
 </div>
 
 <div class="example">
