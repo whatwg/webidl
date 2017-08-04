@@ -8,6 +8,10 @@ function doCompile {
   curl https://api.csswg.org/bikeshed/ -F file=@index.bs > out/index.html
 }
 
+function doTRCompile {
+  curl https://api.csswg.org/bikeshed/ -F file=@index.bs -F md-status=WD -F md-prepare-for-tr=yes > out/echidna.html
+}
+
 # Pull requests and commits to other branches shouldn't try to deploy, just build to verify
 if [[ "$TRAVIS_PULL_REQUEST" != "false" || "$TRAVIS_BRANCH" != "$SOURCE_BRANCH" ]]; then
   echo "Skipping deploy; just doing a build."
@@ -44,6 +48,8 @@ git reset --hard
 cd ..
 doCompile
 
+doTRCompile
+
 # Now let's go have some fun with the cloned repo
 cd out
 git config user.name "Travis CI"
@@ -62,3 +68,9 @@ git commit -m "Deploy to GitHub Pages: ${SHA}"
 
 # Now that we're all set up, we can push.
 git push $SSH_REPO $TARGET_BRANCH
+
+function TRpush {
+  curl "https://labs.w3.org/echidna/api/request" --data "url=https://heycam.github.io/webidl/echidna.html" --data "decision=https://lists.w3.org/Archives/Public/public-webapps/2014JulSep/0627.html" --data "token=$TOKEN"'
+}
+
+TRpush
