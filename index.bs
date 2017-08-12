@@ -8516,7 +8516,7 @@ If the [{{LegacyUnenumerableNamedProperties}}]
 extended attribute is specified on an interface, then it applies to all its derived interfaces and
 must not be specified on any of them.
 
-See [[#legacy-platform-object-property-enumeration]]
+See [[#legacy-platform-object-getownproperty]]
 for the specific requirements that the use of
 [{{LegacyUnenumerableNamedProperties}}]
 entails.
@@ -12005,28 +12005,34 @@ and [[#legacy-platform-object-set]].
 </div>
 
 
-<h4 id="legacy-platform-object-property-enumeration" oldids="property-enumeration">Property enumeration</h4>
+<h4 id="legacy-platform-object-ownpropertykeys" oldids="property-enumeration,legacy-platform-object-property-enumeration">\[[OwnPropertyKeys]]</h4>
 
 This document does not define a complete property enumeration order
 for [=platform objects=] implementing [=interfaces=]
 (or for <a href="#es-exception-objects">platform objects representing exceptions</a>).
-However, for [=legacy platform objects=],
-properties on the object must be
-enumerated in the following order:
+However, it does for [=legacy platform objects=] by defining the \[[OwnPropertyKeys]]
+internal method as follows.
 
-1.  If the object [=support indexed properties|supports indexed properties=], then
-    the object’s [=supported property indices=] are
-    enumerated first, in numerical order.
-1.  If the object [=support named properties|supports named properties=] and doesn't implement an [=interface=] with the
-    [{{LegacyUnenumerableNamedProperties}}]
-    [=extended attribute=], then
-    the object’s [=supported property names=] that
-    are visible according to the [=named property visibility algorithm=]
-    are enumerated next, in the order given in the definition of the set of supported property names.
-1.  Finally, any enumerable own properties or properties from the object’s prototype chain are then enumerated,
-    in no defined order.
+<div algorithm="to invoke the internal [[OwnPropertyKeys]] method of legacy platform objects">
 
-Note: Future versions of the ECMAScript specification may define a total order for property enumeration.
+    When the \[[OwnPropertyKeys]] internal method of a [=legacy platform object=] |O| is called,
+    the following steps are taken:
+
+    1.  Let |keys| be a new empty [=list=] of ECMAScript String and Symbol values.
+    1.  If |O| [=support indexed properties|supports indexed properties=], then [=list|for each=] |index| of |O|’s
+        [=supported property indices=], in ascending numerical order, [=list|append=] [=!=] [=ToString=](|index|) to
+        |keys|.
+    1.  If |O| [=support named properties|supports named properties=], then [=list|for each=] |P| of |O|’s
+        [=supported property names=] that is visible according to the [=named property visibility algorithm=],
+        [=list|append=] |P| to |keys|.
+    1.  [=list|For each=] |P| of |O|’s own property keys that is a String, in ascending chronological order of
+        property creation, [=list|append=] |P| to |keys|.
+    1.  [=list|For each=] |P| of |O|’s own property keys that is a Symbol, in ascending chronological order of
+        property creation, [=list|append=] |P| to |keys|.
+    1.  Assert: |keys| has no duplicate items.
+    1.  Return |keys|.
+
+</div>
 
 <h4 id="legacy-platform-object-abstract-ops">Abstract operations</h4>
 
