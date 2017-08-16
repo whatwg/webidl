@@ -82,7 +82,7 @@ urlPrefix: https://tc39.github.io/ecma262/; spec: ECMA-262
         text: element; url: sec-ecmascript-language-types-string-type
         url: sec-iscallable
             text: IsCallable
-            text: callable
+            text: callable; for: ECMAScript
         url: sec-well-known-intrinsic-objects
             text: %ArrayPrototype%
             text: %ArrayProto_values%
@@ -2860,21 +2860,27 @@ the inputs to the algorithm needed to compute the set.
 An effective overload set is used, among other things, to determine whether there are ambiguities in the
 overloaded operations, constructors and callers specified on an interface.
 
-The elements of an effective overload set are tuples of the form
-&lt;|callable|, |type list|, |optionality list|&gt;.  If the effective overload
-set is for regular operations, static operations or legacy callers, then |callable| is an operation;
-if it is for constructors or named constructors, then |callable| is an
-extended attribute; and if it is for callback functions, then |callable|
-is the callback function itself.  In all cases, |type list| is a list
-of IDL types, and |optionality list| is a list of three possible <dfn id="dfn-optionality-value" export>optionality values</dfn> –
-“required”, “optional” or “variadic” – indicating whether
-the argument at a given index was declared as being [=optional argument|optional=]
-or corresponds to a [=variadic=] argument.
-Each tuple represents an allowable invocation of the operation,
+The [=set/items=] of an [=effective overload set=] are [=tuples=] of the form
+([=effective overload set tuple/callable=], [=type list=], [=optionality list=])
+whose [=tuple/items=] are described below:
+
+*   A <dfn for="effective overload set tuple">callable</dfn> is an [=operation=]
+    if the [=effective overload set=] is for [=regular operations=], [=static operations=] or [=legacy callers=];
+    it is an [=extended attribute=] if the [=effective overload set=] is for constructors or [=named constructors=];
+    and it is the [=callback function=] itself if the [=effective overload set=] is for [=callback functions=].
+*   A <dfn>type list</dfn> is a [=list=] of IDL types.
+*   An <dfn>optionality list</dfn> is a [=list=] of
+    three possible <dfn id="dfn-optionality-value" export>optionality values</dfn>
+    – "required", "optional" or "variadic" –
+    indicating whether the argument at a given index was
+    declared as being [=optional argument|optional=]
+    or corresponds to a [=variadic=] argument.
+
+Each [=tuple=] represents an allowable invocation of the operation,
 constructor, legacy caller or callback function with an argument value list of the given types.
 Due to the use of [=optional arguments=]
 and [=variadic=] operations
-and constructors, there may be multiple entries in an effective overload set identifying
+and constructors, there may be multiple items in an effective overload set identifying
 the same operation or constructor.
 
 <div algorithm="compute an effective overload set">
@@ -2890,8 +2896,8 @@ the same operation or constructor.
     it is referring to an argument of the extended attribute’s
     [=takes a named argument list|named argument list=].
 
-    1.  Initialize |S| to ∅.
-    1.  Let |F| be a set with elements as follows,
+    1.  Let |S| be an [=ordered set=].
+    1.  Let |F| be an [=ordered set=] with [=set/items=] as follows,
         according to the kind of effective overload set:
         <dl class="switch">
              :  For regular operations
@@ -2923,38 +2929,45 @@ the same operation or constructor.
         the argument on which the ellipsis appears counts as a single argument.
 
         Note: So <code>void f(long x, long... y);</code> is considered to be declared to take two arguments.
-
-    1.  Let |m| be the maximum of |maxarg| and |N|.
-    1.  For each operation, extended attribute or callback function |X| in |F|:
-        1.  Let |n| be the number of arguments |X| is declared to take.
-        1.  Let |t|<sub>0..|n|−1</sub> be a list of types, where |t|<sub>|i|</sub>
-            is the type of |X|’s argument at index |i|.
-        1.  Let |o|<sub>0..|n|−1</sub> be a list of [=optionality values=], where |o|<sub>|i|</sub>
-            is “variadic” if |X|’s argument at index |i| is a final, variadic argument,
-            “optional” if the argument is [=optional argument|optional=],
-            and “required” otherwise.
-        1.  Add to |S| the tuple &lt;|X|, |t|<sub>0..|n|−1</sub>, |o|<sub>0..|n|−1</sub>&gt;.
+    1.  Let |max| be [=max=](|maxarg|, |N|).
+    1.  [=set/For each=] operation, extended attribute, or callback function |X| in |F|:
+        1.  Let |arguments| be the [=list=] of arguments |X| is declared to take.
+        1.  Let |n| be the [=list/size=] of |arguments|.
+        1.  Let |types| be a [=type list=].
+        1.  Let |optionalityValues| be an [=optionality list=].
+        1.  [=list/For each=] |argument| in |arguments|:
+            1.  [=list/Append=] the type of |argument| to |types|.
+            1.  [=list/Append=] "variadic" to |optionalityValues| if |argument| is a final, variadic argument,
+                "optional" if |argument| is [=optional argument|optional=],
+                and "required" otherwise.
+        1.  [=set/Append=] the [=tuple=] (|X|, |types|, |optionalityValues|) to |S|.
         1.  If |X| is declared to be [=variadic=], then:
-            1.  For every integer |i|, such that |n| ≤ |i| ≤ |m|−1:
-                1.  Let |u|<sub>0..|i|</sub> be a list of types,
-                    where |u|<sub>j</sub> = |t|<sub>j</sub> (for |j| &lt; |n|) and
-                    |u|<sub>j</sub> = |t|<sub>|n|−1</sub> (for |j| ≥ |n|).
-                1.  Let |p|<sub>0..|i|</sub> be a list of [=optionality values=],
-                    where |p|<sub>j</sub> = |o|<sub>j</sub> (for |j| &lt; |n|) and
-                    |p|<sub>j</sub> = “variadic” (for |j| ≥ |n|).
-                1.  Add to |S| the tuple &lt;|X|, |u|<sub>0..|i|</sub>, |p|<sub>0..|i|</sub>&gt;.
-        1.  Initialize |i| to |n|−1.
-        1.  While |i| ≥ 0:
-            1.  If argument |i| of |X| is not
-                [=optional argument|optional=]
-                (i.e., it is not marked as <code>optional</code> and is not
-                a final, variadic argument), then break this loop.
-            1.  Otherwise, add to |S| the tuple &lt;|X|, |t|<sub>0..|i|−1</sub>, |o|<sub>0..|i|−1</sub>&gt;.
+            1.  [=list/For each=] |i| in [=the range=] |n| to |max| − 1, inclusive:
+                1.  Let |t| be a [=type list=].
+                1.  Let |o| be an [=optionality list=].
+                1.  [=list/For each=] |j| in [=the range=] 0 to |n| − 1, inclusive:
+                    1.  [=list/Append=] |types|[|j|] to |t|.
+                    1.  [=list/Append=] |optionalityValues|[|j|] to |o|.
+                1.  [=list/For each=] |j| in [=the range=] |n| to |i|, inclusive:
+                    1.  [=list/Append=] |types|[|n| − 1] to |t|.
+                    1.  [=list/Append=] "variadic" to |o|.
+                1.  [=set/Append=] the [=tuple=] (|X|, |t|, |o|) to |S|.
+        1.  Let |i| be |n| − 1.
+        1.  [=iteration/While=] |i| ≥ 0:
+            1.  If |arguments|[|i|] is not [=optional argument|optional=]
+                (i.e., it is not marked as "optional" and is not
+                a final, variadic argument), then [=iteration/break=].
+            1.  Let |t| be a [=type list=].
+            1.  Let |o| be an [=optionality list=].
+            1.  [=list/For each=] |j| in [=the range=] 0 to |i| − 1, inclusive:
+                1.  [=list/Append=] |types|[|j|] to |t|.
+                1.  [=list/Append=] |optionalityValues|[|j|] to |o|.
+            1.  [=set/Append=] the [=tuple=] (|X|, |t|, |o|) to |S|.
 
-                Note: if |i| is 0, this means to add to |S| the tuple &lt;|X|, « », « »&gt;
+                Note: if |i| is 0, this means to add to |S| the tuple (|X|, « », « »);
                 (where "« »" represents an [=list/is empty|empty list=]).
-            1.  Set |i| to |i|−1.
-    1.  The effective overload set is |S|.
+            1.  Set |i| to |i| − 1.
+    1.  Return |S|.
 </div>
 
 <div class="example">
@@ -2977,14 +2990,16 @@ the same operation or constructor.
     identifier <code>f</code> and argument count 4 is:
 
     <pre class="set">
-      { &lt;f1, (DOMString), (required)&gt;,
-        &lt;f2, (Node, DOMString), (required, required)&gt;,
-        &lt;f2, (Node, DOMString, double), (required, required, variadic)&gt;,
-        &lt;f2, (Node, DOMString, double, double), (required, required, variadic, variadic)&gt;,
-        &lt;f3, (), ()&gt;,
-        &lt;f4, (Event, DOMString), (required, required)&gt;,
-        &lt;f4, (Event, DOMString, DOMString), (required, required, optional)&gt;,
-        &lt;f4, (Event, DOMString, DOMString, double), (required, required, optional, variadic)&gt; }
+      «
+        (f1, « DOMString »,                           « required »),
+        (f2, « Node, DOMString »,                     « required, required »),
+        (f2, « Node, DOMString, double »,             « required, required, variadic »),
+        (f2, « Node, DOMString, double, double »,     « required, required, variadic, variadic »),
+        (f3, « »,                                     « »),
+        (f4, « Event, DOMString »,                    « required, required »),
+        (f4, « Event, DOMString, DOMString »,         « required, required, optional »),
+        (f4, « Event, DOMString, DOMString, double », « required, required, optional, variadic »)
+      »
     </pre>
 </div>
 
@@ -3250,19 +3265,18 @@ the following algorithm returns <i>true</i>.
 
 </ol>
 
-If there is more than one entry in an [=effective overload set=]
-that has a given type list length, then for those entries there
-must be an index |i| such
-that for each pair of entries the types at index |i| are
-[=distinguishable=].
+If there is more than one [=list/item=] in an [=effective overload set=]
+that has a given [=type list=] [=list/size=],
+then for those items there must be an index |i| such that
+for each pair of items the types at index |i| are [=distinguishable=].
 The lowest such index is termed the <dfn id="dfn-distinguishing-argument-index" export>distinguishing argument index</dfn>
-for the entries of the effective overload set with the given type list length.
+for the items of the effective overload set with the given type list size.
 
 <div class="example">
 
     Consider the effective overload set shown in the previous example.
-    There are multiple entries in the set with type lists 2, 3 and 4.
-    For each of these type list lengths, the [=distinguishing argument index=] is 0, since <code class="idl">Node</code> and
+    There are multiple items in the set with type lists 2, 3 and 4.
+    For each of these type list size, the [=distinguishing argument index=] is 0, since <code class="idl">Node</code> and
     <code class="idl">Event</code> are [=distinguishable=].
 
     The following use of overloading however is invalid:
@@ -3280,9 +3294,9 @@ for the entries of the effective overload set with the given type list length.
 
 In addition, for each index |j|, where |j| is less than the
 [=distinguishing argument index=]
-for a given type list length, the types at index |j| in
-all of the entries’ type lists must be the same,
-and the [=optionality values=] at index |j| in all of the entries’ optionality lists must
+for a given type list size, the types at index |j| in
+all of the items’ type lists must be the same,
+and the [=optionality values=] at index |j| in all of the items’ optionality lists must
 be the same.
 
 <div class="example">
@@ -3300,12 +3314,14 @@ be the same.
     For argument count 4, the effective overload set is:
 
     <pre class="set">
-      { &lt;f1, (DOMString), (required)&gt;,
-        &lt;f2, (long, double, Node, Node), (required, required, required, required)&gt;,
-        &lt;f3, (double, double, DOMString, Node), (required, required, required, required)&gt; }
+      «
+        (f1, « DOMString »,                       « required »),
+        (f2, « long, double, Node, Node »,        « required, required, required, required »),
+        (f3, « double, double, DOMString, Node », « required, required, required, required »)
+      »
     </pre>
 
-    Looking at entries with type list length 4, the
+    Looking at items with type list size 4, the
     [=distinguishing argument index=]
     is 2, since <code class="idl">Node</code> and
     {{DOMString}} are [=distinguishable=].
@@ -7402,7 +7418,7 @@ objects.
         1.  Otherwise, return the result of performing any steps that were required to be run if the promise was rejected,
             with |reason| as the rejection reason.
     1.  Let |then| be the result of calling the internal \[[Get]] method of |promise| with property name “then”.
-    1.  If |then| is not [=callable=], then [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
+    1.  If |then| is not [=ECMAScript/callable=], then [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
     1.  Return the result of calling |then| with |promise| as the <emu-val>this</emu-val> value and |onFulfilled| and |onRejected|
         as its two arguments.
 </div>
@@ -12204,10 +12220,10 @@ is considered to be a user object implementing a callback interface:
     (defined below) then any object is considered to implement the interface.
     The implementation of the operation (or set of overloaded operations) is
     as follows:
-    *   If the object is [=callable=],
+    *   If the object is [=ECMAScript/callable=],
         then the implementation of the operation (or set of overloaded operations) is
         the callable object itself.
-    *   Otherwise, the object is not [=callable=].
+    *   Otherwise, the object is not [=ECMAScript/callable=].
         The implementation of the operation (or set of overloaded operations) is
         the result of invoking the internal \[[Get]] method
         on the object with a property name that is the [=identifier=]
@@ -12383,7 +12399,7 @@ the special value “missing”, which represents a missing optional argument.
 
 <h3 id="es-invoking-callback-functions">Invoking callback functions</h3>
 
-An ECMAScript [=callable=] object that is being
+An ECMAScript [=ECMAScript/callable=] object that is being
 used as a [=callback function=] value is
 called in a manner similar to how [=operations=]
 on [=user objects=] are called (as
