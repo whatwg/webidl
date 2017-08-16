@@ -568,7 +568,6 @@ underscore.
         "inherit"
         "interface"
         "iterable"
-        "legacycaller"
         "maplike"
         "namespace"
         "partial"
@@ -1950,7 +1949,6 @@ The following extended attributes are applicable to operations:
         "getter"
         "setter"
         "deleter"
-        "legacycaller"
 </pre>
 
 <pre class="grammar" id="prod-OperationRest">
@@ -2142,11 +2140,6 @@ is used to declare it and what the purpose of the special operation is:
         <td>Defines behavior for when an object is indexed for property deletion.</td>
     </tr>
     <tr>
-        <td><dfn id="dfn-legacy-caller" export lt="legacy caller">Legacy callers</dfn></td>
-        <td><emu-t>legacycaller</emu-t></td>
-        <td>Defines behavior for when an object is called as if it were a function.</td>
-    </tr>
-    <tr>
         <td><dfn id="dfn-stringifier" export lt="stringifier">Stringifiers</dfn></td>
         <td><emu-t>stringifier</emu-t></td>
         <td>Defines how an object is converted into a {{DOMString}}.</td>
@@ -2231,8 +2224,6 @@ there must exist at most one
 stringifier, at most one
 [=named property deleter=],
 and at most one of each variety of getter and setter.
-Multiple legacy callers can exist on an interface
-to specify overloaded calling behavior.
 
 If an interface has a setter of a given variety,
 then it must also have a getter of that
@@ -2250,73 +2241,6 @@ Special operations must not be declared on
 If an object implements more than one [=interface=]
 that defines a given special operation, then it is undefined which (if any)
 special operation is invoked for that operation.
-
-
-<h5 id="idl-legacy-callers">Legacy callers</h5>
-
-When an [=interface=] has one or more
-[=legacy callers=], it indicates that objects that implement
-the interface can be called as if they were functions.  As mentioned above,
-legacy callers can be specified using an [=operation=]
-declared with the <emu-t>legacycaller</emu-t> keyword.
-
-<pre highlight="webidl" class="syntax">
-    interface interface_identifier {
-      legacycaller return_type identifier(/* arguments... */);
-      legacycaller return_type (/* arguments... */);
-    };
-</pre>
-
-If multiple legacy callers are specified on an interface, overload resolution
-is used to determine which legacy caller is invoked when the object is called
-as if it were a function.
-
-[=Legacy callers=] can only be defined on interfaces that also
-[=support indexed properties|support indexed=] or
-[=support named properties|named properties=].
-
-Note: This artificial restriction allows bundling all interfaces with exotic object behavior
-into a single [=platform object=] category: [=legacy platform objects=].
-This is possible because all existing interfaces which have a [=legacy caller=]
-also [=support indexed properties|supports indexed=] or
-[=support named properties|named properties=].
-
-Legacy callers must not be defined to return a [=promise type=].
-
-<p class="advisement">
-    Legacy callers are universally recognised as an undesirable feature.  They exist
-    only so that legacy Web platform features can be specified.  Legacy callers
-    should not be used in specifications unless required to
-    specify the behavior of legacy APIs, and even then this should be discussed on
-    the <a href="mailto:public-script-coord@w3.org">public-script-coord@w3.org</a>
-    mailing list before proceeding.
-</p>
-
-<div class="example">
-
-    The following [=IDL fragment=]
-    defines an [=interface=]
-    with a [=legacy caller=].
-
-    <pre highlight="webidl">
-        interface NumberQuadrupler {
-          // This operation simply returns four times the given number x.
-          legacycaller double compute(double x);
-        };
-    </pre>
-
-    An ECMAScript implementation supporting this interface would
-    allow a [=platform object=]
-    that implements <code class="idl">NumberQuadrupler</code>
-    to be called as a function:
-
-    <pre highlight="js">
-        var f = getNumberQuadrupler();  // Obtain an instance of NumberQuadrupler.
-
-        f.compute(3);                   // This evaluates to 12.
-        f(3);                           // This also evaluates to 12.
-    </pre>
-</div>
 
 
 <h5 id="idl-stringifiers">Stringifiers</h5>
@@ -2797,17 +2721,13 @@ of an overloaded operation is used to invoke one of the
 operations on an object that implements the interface, the
 number and types of the arguments passed to the operation
 determine which of the overloaded operations is actually
-invoked.  If an interface has multiple
-[=legacy callers=] defined on it,
-then those legacy callers are also said to be overloaded.
-In the ECMAScript language binding, <a href="#Constructor">constructors</a>
+invoked.  In the ECMAScript language binding, <a href="#Constructor">constructors</a>
 can be overloaded too.  There are some restrictions on the arguments
-that overloaded operations, legacy callers and constructors can be
+that overloaded operations and constructors can be
 specified to take, and in order to describe these restrictions,
 the notion of an <em>effective overload set</em> is used.
 
-[=Operations=] and [=legacy callers=]
-must not be overloaded across [=interface=]
+[=Operations=] must not be overloaded across [=interface=]
 and [=partial interface=] definitions.
 
 <div class="note">
@@ -2842,8 +2762,7 @@ An <dfn id="dfn-effective-overload-set" export>effective overload set</dfn>
 represents the allowable invocations for a particular
 [=operation=],
 constructor (specified with [{{Constructor}}]
-or [{{NamedConstructor}}]),
-[=legacy caller=] or
+or [{{NamedConstructor}}]), or
 [=callback function=].
 The algorithm to compute an [=effective overload set=]
 operates on one of the following six types of IDL constructs, and listed with them below are
@@ -2853,9 +2772,6 @@ the inputs to the algorithm needed to compute the set.
  :  For static operations
  :: *   the [=interface=] on which the [=operations=] are to be found
     *   the [=identifier=] of the operations
-    *   the number of arguments to be passed
- :  For legacy callers
- :: *   the [=interface=] on which the [=legacy callers=] are to be found
     *   the number of arguments to be passed
  :  For constructors
  :: *   the [=interface=] on which the [{{Constructor}}] [=extended attributes=] are to be found
@@ -2869,14 +2785,14 @@ the inputs to the algorithm needed to compute the set.
     *   the number of arguments to be passed
 
 An effective overload set is used, among other things, to determine whether there are ambiguities in the
-overloaded operations, constructors and callers specified on an interface.
+overloaded operations and constructors specified on an interface.
 
 The [=set/items=] of an [=effective overload set=] are [=tuples=] of the form
 ([=effective overload set tuple/callable=], [=type list=], [=optionality list=])
 whose [=tuple/items=] are described below:
 
 *   A <dfn for="effective overload set tuple">callable</dfn> is an [=operation=]
-    if the [=effective overload set=] is for [=regular operations=], [=static operations=] or [=legacy callers=];
+    if the [=effective overload set=] is for [=regular operations=] or [=static operations=];
     it is an [=extended attribute=] if the [=effective overload set=] is for constructors or [=named constructors=];
     and it is the [=callback function=] itself if the [=effective overload set=] is for [=callback functions=].
 *   A <dfn>type list</dfn> is a [=list=] of IDL types.
@@ -2888,7 +2804,7 @@ whose [=tuple/items=] are described below:
     or corresponds to a [=variadic=] argument.
 
 Each [=tuple=] represents an allowable invocation of the operation,
-constructor, legacy caller or callback function with an argument value list of the given types.
+constructor, or callback function with an argument value list of the given types.
 Due to the use of [=optional arguments=]
 and [=variadic=] operations
 and constructors, there may be multiple items in an effective overload set identifying
@@ -2927,9 +2843,6 @@ the same operation or constructor.
                 [=extended attributes=] on interface |I| whose
                 [=takes a named argument list|named argument lists’=]
                 identifiers are |A|.
-             :  For legacy callers
-             :: The elements of |F| are the [=legacy callers=]
-                defined on interface |I|.
              :  For callback functions
              :: The single element of |F| is the callback function itself, |C|.
         </dl>
@@ -4815,8 +4728,7 @@ object that are considered to be platform objects:
 [=platform objects=] that implement an [=interface=] which
 does not have a [{{Global}}] or [{{PrimaryGlobal}}] [=extended attribute=],
 [=support indexed properties|supports indexed=] or
-[=support named properties|named properties=],
-and may have one or multiple [=legacy callers=].
+[=support named properties|named properties=].
 
 In a browser, for example,
 the browser-implemented DOM objects (implementing interfaces such as <code class="idl">Node</code> and
@@ -12155,29 +12067,6 @@ and [[#legacy-platform-object-set]].
         1.  If the property is not configurable, then return <emu-val>false</emu-val>.
         1.  Otherwise, remove the property from |O|.
     1.  Return <emu-val>true</emu-val>.
-</div>
-
-
-<h4 id="legacy-platform-object-call" oldids="call">\[[Call]]</h4>
-
-<div algorithm="to invoke the internal [[Call]] method of legacy platform objects">
-
-    The internal \[[Call]] method of [=legacy platform object=] that implements
-    an [=interface=] |I| must behave as follows,
-    assuming |arg|<sub>0..|n|−1</sub> is the list of argument values passed to \[[Call]]:
-
-    1.  If |I| has no [=legacy callers=],
-        [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
-    1.  Initialize |S| to the [=effective overload set=]
-        for legacy callers on |I| and with argument count |n|.
-    1.  Let &lt;|operation|, |values|&gt; be the result of passing |S| and
-        |arg|<sub>0..|n|−1</sub> to the [=overload resolution algorithm=].
-    1.  Perform the actions listed in the description of the legacy caller |operation| with
-        |values| as the argument values.
-    1.  Return the result of [=converted to an ECMAScript value|converting=]
-        the return value from those actions to an ECMAScript value of the type
-        |operation| is declared to return (or <emu-val>undefined</emu-val>
-        if |operation| is declared to return {{void}}).
 </div>
 
 
