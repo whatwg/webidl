@@ -75,10 +75,11 @@ urlPrefix: https://tc39.github.io/ecma262/; spec: ECMA-262
         text: abs; url: eqn-abs
         text: modulo; url: eqn-modulo
         url: sec-algorithm-conventions
-            text: !
-            text: ?
             text: ECMA-262 section 5.2
             text: conventions of the ECMAScript specification
+        url: sec-returnifabrupt-shorthands
+            text: !
+            text: ?
         text: element; url: sec-ecmascript-language-types-string-type
         url: sec-iscallable
             text: IsCallable
@@ -105,7 +106,6 @@ urlPrefix: https://tc39.github.io/ecma262/; spec: ECMA-262
         text: internal slot; url: sec-object-internal-methods-and-internal-slots
         text: JavaScript execution context stack; url: execution-context-stack
         text: running JavaScript execution context; url: running-execution-context
-        text: ReturnIfAbrupt; url: sec-returnifabrupt
         text: GetIterator; url: sec-getiterator
         text: IteratorStep; url: sec-iteratorstep
         text: NormalCompletion; url: sec-normalcompletion
@@ -138,7 +138,10 @@ urlPrefix: https://tc39.github.io/ecma262/; spec: ECMA-262
             text: Realm
             text: ECMAScript global environment
         text: current Realm; url: current-realm
-        text: Completion; url: sec-completion-record-specification-type
+        url: sec-completion-record-specification-type
+            text: Completion
+            text: Completion Record
+            text: abrupt completion
         text: ObjectCreate; url: sec-objectcreate
         text: CreateBuiltinFunction; url: sec-createbuiltinfunction
         text: SetFunctionName; url: sec-setfunctionname
@@ -7128,9 +7131,7 @@ ECMAScript Array values.
 
     1.  If [=Type=](|V|) is not Object,
         [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
-    1.  Let |method| be the result of
-        [=GetMethod=](|V|, [=@@iterator=]).
-    1.  [=ReturnIfAbrupt=](|method|).
+    1.  Let |method| be [=?=] [=GetMethod=](|V|, [=@@iterator=]).
     1.  If |method| is <emu-val>undefined</emu-val>,
         [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
     1.  Return the result of [=creating a sequence from an iterable|creating a sequence=]
@@ -7167,22 +7168,17 @@ ECMAScript Array values.
     given an iterable |iterable| and an iterator getter |method|,
     perform the following steps:
 
-    1.  Let |iter| be
-        [=GetIterator=](|iterable|, |method|).
-    1.  [=ReturnIfAbrupt=](|iter|).
+    1.  Let |iter| be [=?=] [=GetIterator=](|iterable|, |method|).
     1.  Initialize |i| to be 0.
     1.  Repeat
-        1.  Let |next| be [=IteratorStep=](|iter|).
-        1.  [=ReturnIfAbrupt=](|next|).
+        1.  Let |next| be [=?=] [=IteratorStep=](|iter|).
         1.  If |next| is <emu-val>false</emu-val>,
             then return an IDL sequence value of type
             <a lt="sequence type">sequence&lt;|T|&gt;</a>
             of length |i|, where the value of the element
             at index |j| is
             |S|<sub>|j|</sub>.
-        1.  Let |nextItem| be
-            [=IteratorValue=](|next|).
-        1.  [=ReturnIfAbrupt=](|nextItem|).
+        1.  Let |nextItem| be [=?=] [=IteratorValue=](|next|).
         1.  Initialize |S|<sub>|i|</sub> to the result of
             [=converted to an IDL value|converting=]
             |nextItem| to an IDL value of type |T|.
@@ -7493,16 +7489,13 @@ that correspond to the union’s [=member types=].
             that is a reference to the object |V|.
     1.  If [=Type=](|V|) is Object, then:
         1.  If |types| includes a [=sequence type=], then
-            1.  Let |method| be the result of
-                [=GetMethod=](|V|, [=@@iterator=]).
-            1.  [=ReturnIfAbrupt=](|method|).
+            1.  Let |method| be [=?=] [=GetMethod=](|V|, [=@@iterator=]).
             1.  If |method| is not <emu-val>undefined</emu-val>,
                 return the result of
                 [=creating a sequence from an iterable|creating a sequence=]
                 of that type from |V| and |method|.
         1.  If |types| includes a [=frozen array type=], then
-            1.  Let |method| be the result of [=GetMethod=](|V|, [=@@iterator=]).
-            1.  [=ReturnIfAbrupt=](|method|).
+            1.  Let |method| be [=?=] [=GetMethod=](|V|, [=@@iterator=]).
             1.  If |method| is not <emu-val>undefined</emu-val>,
                 return the result of
                 [=Creating a frozen array from an iterable|creating a frozen array=]
@@ -9843,9 +9836,7 @@ Note: The HTML Standard defines how a security check is performed. [[!HTML]]
 
             and after performing the following steps,
 
-            1.  Let |method| be the result of
-                [=GetMethod=](|V|, [=@@iterator=]).
-            1.  [=ReturnIfAbrupt=](|method|).
+            1.  Let |method| be [=?=] [=GetMethod=](|V|, [=@@iterator=]).
 
             |method| is not <emu-val>undefined</emu-val>, then remove from |S| all
             other entries.
@@ -10495,7 +10486,7 @@ The characteristics of this property are as follows:
             1.  Return the result of [=converted to an ECMAScript value|converting=] |R| to an
                 ECMAScript value of the type |attribute| is declared as.
 
-        And then, if an exception was thrown:
+        And then, if [=an exception was thrown=]:
 
         1.  If |attribute|'s type is a [=promise type=], then:
             1.  Let |reject| be the initial value of [=%Promise%=].reject.
@@ -10682,7 +10673,7 @@ property-installation style as namespaces.)
                 1.  Return the result of [=converted to an ECMAScript value|converting=] |R| to
                     an ECMAScript value of the type |op| is declared to return.
 
-        And then, if an exception was thrown:
+        And then, if [=an exception was thrown=]:
 
         1.  If |op| has a [=return type=]
             that is a [=promise type=], then:
@@ -12297,7 +12288,7 @@ the special value “missing”, which represents a missing optional argument.
             then set |X| to |O|.
         1.  Otherwise, |opName| must be supplied:
             1.  Let |getResult| be [=Get=](|O|, |opName|).
-            1.  If |getResult| is an abrupt completion, set |completion|
+            1.  If |getResult| is an [=abrupt completion=], set |completion|
                 to |getResult| and jump to the step labeled <a href="#call-user-object-operation-return"><i>return</i></a>.
             1.  Set |X| to |getResult|.\[[Value]].
     1.  If [=!=] [=IsCallable=](|X|) is <emu-val>false</emu-val>,
@@ -12312,7 +12303,7 @@ the special value “missing”, which represents a missing optional argument.
         representing the thrown exception and jump to the step labeled
         <a href="#call-user-object-operation-return"><i>return</i></a>.
     1.  Let |callResult| be [=Call=](|X|, |thisArg|, |esArgs|).
-    1.  If |callResult| is an abrupt completion, set |completion| to
+    1.  If |callResult| is an [=abrupt completion=], set |completion| to
         |callResult| and jump to the step labeled <a href="#call-user-object-operation-return"><i>return</i></a>.
     1.  Set |completion| to the result of [=converted to an IDL value|converting=]
         |callResult|.\[[Value]] to an IDL value of the same type as the operation’s
@@ -12322,7 +12313,7 @@ the special value “missing”, which represents a missing optional argument.
         1.  [=Clean up after running a callback=] with |stored settings|.
         1.  [=Clean up after running script=] with |relevant settings|.
         1.  If |completion| is a normal completion, return |completion|.
-        1.  If |completion| is an abrupt completion and the operation has a [=return type=]
+        1.  If |completion| is an [=abrupt completion=] and the operation has a [=return type=]
             that is <em>not</em> a [=promise type=], return |completion|.
         1.  Let |reject| be the initial value of [=%Promise%=].reject.
         1.  Let |rejectedPromise| be the result of calling |reject| with
@@ -12347,7 +12338,7 @@ the special value “missing”, which represents a missing optional argument.
     1.  [=Prepare to run script=] with |relevant settings|.
     1.  [=Prepare to run a callback=] with |stored settings|.
     1.  Let |getResult| be [=Get=](|O|, |attributeName|).
-    1.  If |getResult| is an abrupt completion, set |completion| to
+    1.  If |getResult| is an [=abrupt completion=], set |completion| to
         |getResult| and jump to the step labeled <a href="#get-user-object-attribute-return"><i>return</i></a>.
     1.  Set |completion| to the result of
         [=converted to an IDL value|converting=] |getResult|.\[[Value]] to
@@ -12357,7 +12348,7 @@ the special value “missing”, which represents a missing optional argument.
         1.  [=Clean up after running a callback=] with |stored settings|.
         1.  [=Clean up after running script=] with |relevant settings|.
         1.  If |completion| is a normal completion, return |completion|.
-        1.  If |completion| is an abrupt completion and the attribute's type is
+        1.  If |completion| is an [=abrupt completion=] and the attribute's type is
             <em>not</em> a [=promise type=], return |completion|.
         1.  Let |reject| be the initial value of [=%Promise%=].reject.
         1.  Let |rejectedPromise| be the result of calling |reject| with
@@ -12385,16 +12376,16 @@ the special value “missing”, which represents a missing optional argument.
     1.  Let |convertResult| be the result of
         [=converted to an ECMAScript value|converting=] |value|
         to an ECMAScript value.
-    1.  If |convertResult| is an abrupt completion, set |completion| to
+    1.  If |convertResult| is an [=abrupt completion=], set |completion| to
         |convertResult| and jump to the step labeled <a href="#set-user-object-attribute-return"><i>return</i></a>.
     1.  Set |completion| to [=Set=](|O|, |attributeName|,
         |convertResult|.\[[Value]], <emu-val>true</emu-val>).
     1.  <i id="set-user-object-attribute-return">Return:</i> at this
         point |completion| will be set to an ECMAScript completion value, which is
-        either an abrupt completion or a normal completion for the value <emu-val>true</emu-val> (as returned by [=Set=]).
+        either an [=abrupt completion=] or a normal completion for the value <emu-val>true</emu-val> (as returned by [=Set=]).
         1.  [=Clean up after running a callback=] with |stored settings|.
         1.  [=Clean up after running script=] with |relevant settings|.
-        1.  If |completion| is an abrupt completion, return |completion|.
+        1.  If |completion| is an [=abrupt completion=], return |completion|.
         1.  Return [=NormalCompletion=]({{void}}).
 </div>
 
@@ -12436,7 +12427,7 @@ described in the previous section).
         representing the thrown exception and jump to the step labeled
         <a href="#invoke-return"><i>return</i></a>.
     1.  Let |callResult| be [=Call=](|F|, |thisArg|, |esArgs|).
-    1.  If |callResult| is an abrupt completion, set |completion| to
+    1.  If |callResult| is an [=abrupt completion=], set |completion| to
         |callResult| and jump to the step labeled <a href="#invoke-return"><i>return</i></a>.
     1.  Set |completion| to the result of [=converted to an IDL value|converting=]
         |callResult|.\[[Value]] to an IDL value of the same type as the operation’s
@@ -12446,7 +12437,7 @@ described in the previous section).
         1.  [=Clean up after running a callback=] with |stored settings|.
         1.  [=Clean up after running script=] with |relevant settings|.
         1.  If |completion| is a normal completion, return |completion|.
-        1.  If |completion| is an abrupt completion and the callback function has a
+        1.  If |completion| is an [=abrupt completion=] and the callback function has a
             [=return type=] that is <em>not</em> a [=promise type=], return |completion|.
         1.  Let |reject| be the initial value of [=%Promise%=].reject.
         1.  Let |rejectedPromise| be the result of calling |reject| with
@@ -12480,7 +12471,7 @@ a return type that is a [=promise type=].
         representing the thrown exception and jump to the step labeled
         <a href="#construct-return"><i>return</i></a>.
     1.  Let |callResult| be [=Construct=](|F|, |esArgs|).
-    1.  If |callResult| is an abrupt completion, set |completion| to
+    1.  If |callResult| is an [=abrupt completion=], set |completion| to
         |callResult| and jump to the step labeled <a href="#construct-return"><i>return</i></a>.
     1.  Set |completion| to the result of [=converted to an IDL value|converting=]
         |callResult|.\[[Value]] to an IDL value of the same type as the operation’s
@@ -12626,13 +12617,15 @@ A {{DOMException}} is represented by a
 
 <h4 id="es-handling-exceptions">Handling exceptions</h4>
 
-None of the algorithms or processing requirements in the
-ECMAScript language binding catch ECMAScript exceptions.  Whenever
-an ECMAScript [=function object=] is invoked due
-to requirements in this section and that function call
-ends due to an exception being thrown, that exception
+Unless specified otherwise,
+whenever ECMAScript runtime semantics are invoked due
+to requirements in this document and
+end due to an exception being thrown, that exception
 must propagate to the caller, and if
 not caught there, to its caller, and so on.
+
+Per [[#conventions]], an algorithm specified in this document may intercept thrown exceptions, either by specifying
+the exact steps to take if <dfn>an exception was thrown</dfn>, or by explicitly handling [=abrupt completions=].
 
 <div class="example">
 
@@ -12676,6 +12669,13 @@ not caught there, to its caller, and so on.
           // An exception is caught here, since an attempt is made to invoke
           // [[Call]] on the native object that is the value of toString
           // property.
+        }
+
+        try {
+          d.type = Symbol();
+        } catch (e) {
+          // An exception is caught here, since an attempt is made to invoke
+          // the ECMAScript ToString abstract operation on a Symbol value.
         }
 
         d.type = et;
@@ -13110,12 +13110,14 @@ The following typographic conventions are used in this document:
 The following conventions are used in the algorithms in this document:
 
 *   Algorithms use the [=conventions of the ECMAScript specification=],
-    including the ! and ? notation for unwrapping completion records.
-*   Algorithms sometimes treat returning/throwing values and returning completion records
+    including the [=!=] and [=?=] notation for unwrapping [=Completion Records=].
+*   Algorithms sometimes treat returning/throwing values and returning [=Completion Records=]
     interchangeably. That is, an algorithm that uses return/throw terminology may be treated as
-    returning a completion record, while one that returns a completion record may be treated as
-    returning a value or throwing an exception.
-*   Completion records are extended by allowing them to contain values that are not ECMAScript
+    returning a [=Completion Record=], while one that returns a [=Completion Record=] may be treated as
+    returning a value or throwing an exception. Similarly, to catch exceptions, defining the
+    behavior to adopt when [=an exception was thrown=] and checking if the [=Completion Record=]’s
+    \[[Type]] field is “throw” are equivalent.
+*   [=Completion Records=] are extended by allowing them to contain values that are not ECMAScript
     values, such as Web IDL values.
 
 
