@@ -3414,14 +3414,13 @@ interfaces that have interface members with these names.
 <div class="example">
 
     Consider the following interface <code class="idl">SessionManager</code>, which allows access to
-    a number of <code class="idl">Session</code> objects:
+    a number of <code class="idl">Session</code> objects keyed by username:
 
     <pre highlight="webidl">
         interface SessionManager {
           Session getSessionForUser(DOMString username);
-          readonly attribute unsigned long sessionCount;
 
-          iterable&lt;Session&gt;;
+          iterable&lt;DOMString, Session&gt;;
         };
 
         interface Session {
@@ -3434,24 +3433,22 @@ interfaces that have interface members with these names.
 
     <blockquote>
 
-        The <a class="dfnref" href="#">values to iterate over</a>
-        are the open <code class="idl">Session</code> objects
-        on the <code class="idl">SessionManager</code> sorted by username.
+        The [=value pairs to iterate over=] are the list of key-value pairs with the key being the username and the
+        value being the open <code class="idl">Session</code> object on the <code class="idl">SessionManager</code>
+        object corresponding to that username, sorted by username.
 
-        <p class="issue">
-            Fix reference to removed definition for "values to iterate over".
-        </p>
     </blockquote>
 
     In the ECMAScript language binding, the [=interface prototype object=]
     for the <code class="idl">SessionManager</code> [=interface=]
     has a <code>values</code> method that is a function, which, when invoked,
     returns an iterator object that itself has a <code>next</code> method that returns the
-    next value to be iterated over.  It has <code>values</code> and <code>entries</code>
-    methods that iterate over the indexes of the list of session objects
-    and [index, session object] pairs, respectively.  It also has
+    next value to be iterated over.  It has <code>keys</code> and <code>entries</code>
+    methods that iterate over the usernames of session objects
+    and [username, Session object] pairs, respectively.  It also has
     a [=@@iterator=] method that allows a <code class="idl">SessionManager</code>
-    to be used in a <code>for..of</code> loop:
+    to be used in a <code>for..of</code> loop that has the same value as the
+    <code>entries</code> method:
 
     <pre highlight="js">
         // Get an instance of SessionManager.
@@ -3460,7 +3457,9 @@ interfaces that have interface members with these names.
 
         typeof SessionManager.prototype.values;            // Evaluates to "function"
         var it = sm.values();                              // values() returns an iterator object
-        String(it);                                        // Evaluates to "[object SessionManager Iterator]"
+        String(it);                                        // Evaluates to "[object SessionManagerIterator]"
+                                                           // TODO: change this when
+                                                           // https://github.com/heycam/webidl/issues/419 is resolved
         typeof it.next;                                    // Evaluates to "function"
 
         // This loop will alert "anna" and then "brian".
@@ -3474,8 +3473,13 @@ interfaces that have interface members with these names.
         }
 
         // This loop will also alert "anna" and then "brian".
-        for (let session of sm) {
-          window.alert(session.username);
+        for (let username of sm.keys()) {
+          window.alert(username);
+        }
+
+        // Yet another way of accomplishing the same.
+        for (let [username, session] of sm) {
+          window.alert(username);
         }
     </pre>
 </div>
