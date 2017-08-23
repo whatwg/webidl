@@ -8449,6 +8449,48 @@ corresponding to [=interface members=].
 </div>
 
 
+<h4 id="InNamespace" extended-attribute lt="InNamespace">[InNamespace]</h4>
+
+If the [{{InNamespace}}] [=extended attribute=] appears on an [=interface=], it indicates that
+the [=interface object=] for this interface will not be created as a property of the global
+object, but rather the namespace which is the argument to the extended attribute.
+
+The [{{InNamespace}}] extended attribute [=takes an identifier|take an identifier=].
+This identifier must be the identifier of a namespace.
+
+The [{{InNamespace}}] and [{{NoInterfaceObject}}]
+extended attributes must not be specified on the same interface.
+
+The [{{InNamespace}}] extended attribute
+must not be used on a [=callback interface=].
+
+The [=class string=] of an interface with the [{{InNamespace}}] extended
+attribute is the concatenation of the class string of the namespace, <code>"."</code>,
+and the class string that the interface would otherwise have without this
+extended attribute.
+
+See [[#namespace-object]] for details on how an interface is exposed on a namespace.
+
+
+<div class="example">
+    The following [=IDL fragment=] defines a [=namespace=] and an [=interface=] which
+    uses [{{InNamespace}}] to be defined inside of it.
+
+    <pre highlight="webidl">
+        namespace Foo { };
+
+        [InNamespace=Foo, Constructor]
+        interface Bar { };
+    </pre>
+
+    In an ECMAScript implementation of the above namespace and interface, the
+    constructor Bar can be accessed as follows:
+
+    <pre highlight="js">
+        var instance = new Foo.Bar();
+    </pre>
+</div>
+
 <h4 id="LegacyArrayClass" extended-attribute lt="LegacyArrayClass">[LegacyArrayClass]</h4>
 
 <div class="advisement">
@@ -10135,7 +10177,7 @@ Note: The HTML Standard defines how a security check is performed. [[!HTML]]
 
 For every non-callback [=interface=] that is [=exposed=] in
 a given ECMAScript global environment and that is not declared with
-the [{{NoInterfaceObject}}] [=extended attribute=],
+the [{{NoInterfaceObject}}] or [{{InNamespace}}] [=extended attribute|extended attributes=],
 a corresponding property must exist on the ECMAScript environment's global object.
 The name of the property is the [=identifier=] of the interface,
 and its value is an object called the <dfn id="dfn-interface-object" export>interface object</dfn>.
@@ -12651,6 +12693,10 @@ The characteristics of a namespace object are described in [[#namespace-object]]
         1.  Let |F| be the result of [=creating an operation function|creating an operation function=]
             given |op|, |namespace|,  and |realm|.
         1.  Perform [=!=] [=CreateDataProperty=](|namespaceObject|, |op|'s [=identifier=], |F|).
+    1.  For each [=exposed=] [=interface=] |intr| which has the [{{InNamespace}}] extended attribute, with the identifier of this namespace as its argument,
+        1.  Let |I| be the [=interface object=] for |intr|.
+        1.  Let |newDesc| be the PropertyDescriptor{ \[[Writable]]: <emu-val>true</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val>, \[[Value]]: |I| }.
+        1.  Perform [=!=] [=DefinePropertyOrThrow=](|namespaceObject|, |intr|'s [=identifier=], |newDesc|).
 </div>
 
 
