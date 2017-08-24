@@ -1177,7 +1177,7 @@ Possible extra rowspan handling
 	}
 </style>
   <link href="https://www.w3.org/StyleSheets/TR/2016/W3C-ED" rel="stylesheet" type="text/css">
-  <meta content="Bikeshed version 47cdb2827beffb8d4912759c29bec11efe778210" name="generator">
+  <meta content="Bikeshed version c2e28785d7e239a08c784e65d126cc69068b86eb" name="generator">
   <link href="https://heycam.github.io/webidl/" rel="canonical">
 <style>
         pre.set {
@@ -1568,7 +1568,7 @@ pre.highlight, pre > code.highlight { display: block; padding: 1em; margin: .5em
   <div class="head">
    <p data-fill-with="logo"><a class="logo" href="https://www.w3.org/"> <img alt="W3C" height="48" src="https://www.w3.org/StyleSheets/TR/2016/logos/W3C" width="72"> </a> </p>
    <h1 class="p-name no-ref" id="title">Web IDL</h1>
-   <h2 class="no-num no-toc no-ref heading settled" id="subtitle"><span class="content">Editor’s Draft, <time class="dt-updated" datetime="2017-08-19">19 August 2017</time></span></h2>
+   <h2 class="no-num no-toc no-ref heading settled" id="subtitle"><span class="content">Editor’s Draft, <time class="dt-updated" datetime="2017-08-24">24 August 2017</time></span></h2>
    <div data-fill-with="spec-metadata">
     <dl>
      <dt>This version:
@@ -4258,15 +4258,14 @@ actual <a data-link-type="dfn" href="https://tc39.github.io/ecma262/#sec-array-i
    <p>Interfaces with iterable declarations must not
 have any <a data-link-type="dfn" href="#dfn-interface-member" id="ref-for-dfn-interface-member⑦">interface members</a> named “entries”, “forEach”, “keys” or “values”,
 or have any <a data-link-type="dfn" href="#dfn-inherited-interfaces" id="ref-for-dfn-inherited-interfaces③">inherited</a> or <a data-link-type="dfn" href="#dfn-consequential-interfaces" id="ref-for-dfn-consequential-interfaces②">consequential</a> interfaces that have interface members with these names.</p>
-   <div class="example" id="example-3cfb2da1">
-    <a class="self-link" href="#example-3cfb2da1"></a> 
+   <div class="example" id="example-86bfd3e2">
+    <a class="self-link" href="#example-86bfd3e2"></a> 
     <p>Consider the following interface <code class="idl">SessionManager</code>, which allows access to
-    a number of <code class="idl">Session</code> objects:</p>
+    a number of <code class="idl">Session</code> objects keyed by username:</p>
 <pre class="highlight"><span class="kt">interface</span> <span class="nv">SessionManager</span> {
   <span class="n">Session</span> <span class="nv">getSessionForUser</span>(<span class="kt">DOMString</span> <span class="nv">username</span>);
-  <span class="kt">readonly</span> <span class="kt">attribute</span> <span class="kt">unsigned</span> <span class="kt">long</span> <span class="nv">sessionCount</span>;
 
-  <span class="kt">iterable</span>&lt;<span class="n">Session</span>>;
+  <span class="kt">iterable</span>&lt;<span class="kt">DOMString</span>, <span class="n">Session</span>>;
 };
 
 <span class="kt">interface</span> <span class="nv">Session</span> {
@@ -4276,37 +4275,40 @@ or have any <a data-link-type="dfn" href="#dfn-inherited-interfaces" id="ref-for
 </pre>
     <p>The behavior of the iterator could be defined like so:</p>
     <blockquote>
-     <p>The <a class="dfnref" href="#">values to iterate over</a> are the open <code class="idl">Session</code> objects
-        on the <code class="idl">SessionManager</code> sorted by username.</p>
-     <p class="issue" id="issue-d0d15dea"><a class="self-link" href="#issue-d0d15dea"></a> Fix reference to removed definition for "values to iterate over". </p>
+     <p>The <a data-link-type="dfn" href="#dfn-value-pairs-to-iterate-over" id="ref-for-dfn-value-pairs-to-iterate-over">value pairs to iterate over</a> are the list of key-value pairs with the key being the username and the
+        value being the open <code class="idl">Session</code> object on the <code class="idl">SessionManager</code> object corresponding to that username, sorted by username.</p>
     </blockquote>
     <p>In the ECMAScript language binding, the <a data-link-type="dfn" href="#dfn-interface-prototype-object" id="ref-for-dfn-interface-prototype-object①">interface prototype object</a> for the <code class="idl">SessionManager</code> <a data-link-type="dfn" href="#dfn-interface" id="ref-for-dfn-interface④④">interface</a> has a <code>values</code> method that is a function, which, when invoked,
     returns an iterator object that itself has a <code>next</code> method that returns the
-    next value to be iterated over.  It has <code>values</code> and <code>entries</code> methods that iterate over the indexes of the list of session objects
-    and [index, session object] pairs, respectively.  It also has
-    a <a data-link-type="dfn" href="https://tc39.github.io/ecma262/#sec-well-known-symbols" id="ref-for-sec-well-known-symbols②">@@iterator</a> method that allows a <code class="idl">SessionManager</code> to be used in a <code>for..of</code> loop:</p>
+    next value to be iterated over.  It has <code>keys</code> and <code>entries</code> methods that iterate over the usernames of session objects
+    and username/<code class="idl">Session</code> object pairs, respectively.  It also has
+    a <a data-link-type="dfn" href="https://tc39.github.io/ecma262/#sec-well-known-symbols" id="ref-for-sec-well-known-symbols②">@@iterator</a> method that allows a <code class="idl">SessionManager</code> to be used in a <code>for..of</code> loop that has the same value as the <code>entries</code> method:</p>
 <pre class="highlight"><span class="c1">// Get an instance of SessionManager.</span>
 <span class="c1">// Assume that it has sessions for two users, "anna" and "brian".</span>
 <span class="c1"></span><span class="kd">var</span> sm <span class="o">=</span> getSessionManager<span class="p">();</span>
 
 <span class="k">typeof</span> SessionManager<span class="p">.</span>prototype<span class="p">.</span>values<span class="p">;</span>            <span class="c1">// Evaluates to "function"</span>
 <span class="c1"></span><span class="kd">var</span> it <span class="o">=</span> sm<span class="p">.</span>values<span class="p">();</span>                              <span class="c1">// values() returns an iterator object</span>
-<span class="c1"></span>String<span class="p">(</span>it<span class="p">);</span>                                        <span class="c1">// Evaluates to "[object SessionManager Iterator]"</span>
 <span class="c1"></span><span class="k">typeof</span> it<span class="p">.</span>next<span class="p">;</span>                                    <span class="c1">// Evaluates to "function"</span>
 <span class="c1"></span>
-<span class="c1">// This loop will alert "anna" and then "brian".</span>
+<span class="c1">// This loop will log "anna" and then "brian".</span>
 <span class="c1"></span><span class="k">for</span> <span class="p">(;;)</span> <span class="p">{</span>
   <span class="kd">let</span> result <span class="o">=</span> it<span class="p">.</span>next<span class="p">();</span>
   <span class="k">if</span> <span class="p">(</span>result<span class="p">.</span>done<span class="p">)</span> <span class="p">{</span>
     <span class="k">break</span><span class="p">;</span>
   <span class="p">}</span>
   <span class="kd">let</span> session <span class="o">=</span> result<span class="p">.</span>value<span class="p">;</span>
-  window<span class="p">.</span>alert<span class="p">(</span>session<span class="p">.</span>username<span class="p">);</span>
+  console<span class="p">.</span>log<span class="p">(</span>session<span class="p">.</span>username<span class="p">);</span>
 <span class="p">}</span>
 
-<span class="c1">// This loop will also alert "anna" and then "brian".</span>
-<span class="c1"></span><span class="k">for</span> <span class="p">(</span><span class="kd">let</span> session <span class="k">of</span> sm<span class="p">)</span> <span class="p">{</span>
-  window<span class="p">.</span>alert<span class="p">(</span>session<span class="p">.</span>username<span class="p">);</span>
+<span class="c1">// This loop will also log "anna" and then "brian".</span>
+<span class="c1"></span><span class="k">for</span> <span class="p">(</span><span class="kd">let</span> username <span class="k">of</span> sm<span class="p">.</span>keys<span class="p">())</span> <span class="p">{</span>
+  console<span class="p">.</span>log<span class="p">(</span>username<span class="p">);</span>
+<span class="p">}</span>
+
+<span class="c1">// Yet another way of accomplishing the same.</span>
+<span class="c1"></span><span class="k">for</span> <span class="p">(</span><span class="kd">let</span> <span class="p">[</span>username<span class="p">,</span> session<span class="p">]</span> <span class="k">of</span> sm<span class="p">)</span> <span class="p">{</span>
+  console<span class="p">.</span>log<span class="p">(</span>username<span class="p">);</span>
 <span class="p">}</span>
 </pre>
    </div>
@@ -10352,7 +10354,7 @@ the initial value of the “forEach” data property of <a data-link-type="dfn" 
      <li data-md="">
       <p>Let <var>O</var> be the <emu-val>this</emu-val> value.</p>
      <li data-md="">
-      <p>Let <var>pairs</var> be the list of <a data-link-type="dfn" href="#dfn-value-pairs-to-iterate-over" id="ref-for-dfn-value-pairs-to-iterate-over">value pairs to iterate over</a>.</p>
+      <p>Let <var>pairs</var> be the list of <a data-link-type="dfn" href="#dfn-value-pairs-to-iterate-over" id="ref-for-dfn-value-pairs-to-iterate-over①">value pairs to iterate over</a>.</p>
      <li data-md="">
       <p>Let <var>i</var> be 0.</p>
      <li data-md="">
@@ -10368,7 +10370,7 @@ the initial value of the “forEach” data property of <a data-link-type="dfn" 
         <p><a data-link-type="dfn" href="#invoke-a-callback-function" id="ref-for-invoke-a-callback-function">Invoke</a> <var>callback</var> with <var>thisArg</var> (or <emu-val>undefined</emu-val>, if the argument was not supplied)
 as the <a data-link-type="dfn" href="#dfn-callback-this-value" id="ref-for-dfn-callback-this-value">callback this value</a> and <var>value</var>, <var>key</var> and <var>O</var> as its arguments.</p>
        <li data-md="">
-        <p>Update <var>pairs</var> to the current list of <a data-link-type="dfn" href="#dfn-value-pairs-to-iterate-over" id="ref-for-dfn-value-pairs-to-iterate-over①">value pairs to iterate over</a>.</p>
+        <p>Update <var>pairs</var> to the current list of <a data-link-type="dfn" href="#dfn-value-pairs-to-iterate-over" id="ref-for-dfn-value-pairs-to-iterate-over②">value pairs to iterate over</a>.</p>
        <li data-md="">
         <p>Set <var>i</var> to <var>i</var> + 1.</p>
       </ol>
@@ -10611,7 +10613,7 @@ then <a data-link-type="dfn" href="#ecmascript-throw" id="ref-for-ecmascript-thr
      <li data-md="">
       <p>Let <var>kind</var> be <var>object</var>’s kind.</p>
      <li data-md="">
-      <p>Let <var>values</var> be the list of <a data-link-type="dfn" href="#dfn-value-pairs-to-iterate-over" id="ref-for-dfn-value-pairs-to-iterate-over②">value pairs to iterate over</a>.</p>
+      <p>Let <var>values</var> be the list of <a data-link-type="dfn" href="#dfn-value-pairs-to-iterate-over" id="ref-for-dfn-value-pairs-to-iterate-over③">value pairs to iterate over</a>.</p>
      <li data-md="">
       <p>Let <var>len</var> be the length of <var>values</var>.</p>
      <li data-md="">
@@ -14162,8 +14164,9 @@ language binding.</p>
   <aside class="dfn-panel" data-for="dfn-value-pairs-to-iterate-over">
    <b><a href="#dfn-value-pairs-to-iterate-over">#dfn-value-pairs-to-iterate-over</a></b><b>Referenced in:</b>
    <ul>
-    <li><a href="#ref-for-dfn-value-pairs-to-iterate-over">3.6.9.2. forEach</a> <a href="#ref-for-dfn-value-pairs-to-iterate-over①">(2)</a>
-    <li><a href="#ref-for-dfn-value-pairs-to-iterate-over②">3.6.10.5. Iterator prototype object</a>
+    <li><a href="#ref-for-dfn-value-pairs-to-iterate-over">2.2.7. Iterable declarations</a>
+    <li><a href="#ref-for-dfn-value-pairs-to-iterate-over①">3.6.9.2. forEach</a> <a href="#ref-for-dfn-value-pairs-to-iterate-over②">(2)</a>
+    <li><a href="#ref-for-dfn-value-pairs-to-iterate-over③">3.6.10.5. Iterator prototype object</a>
    </ul>
   </aside>
   <aside class="dfn-panel" data-for="dfn-maplike">
