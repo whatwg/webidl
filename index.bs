@@ -95,7 +95,8 @@ urlPrefix: https://tc39.github.io/ecma262/; spec: ECMA-262
         text: %FunctionPrototype%; url: sec-properties-of-the-function-prototype-object
         text: %Promise%; url: sec-promise-constructor
         text: Property Descriptor; url: sec-property-descriptor-specification-type
-        text: array index; url: sec-array-exotic-objects
+        text: array index; url: array-index
+        text: CanonicalNumericIndexString; url: sec-canonicalnumericindexstring
         text: OrdinaryGetOwnProperty; url: sec-ordinarygetownproperty
         text: OrdinaryDefineOwnProperty; url: sec-ordinarydefineownproperty
         text: OrdinaryPreventExtensions; url: sec-ordinarypreventextensions
@@ -11987,7 +11988,7 @@ The same applies for named properties.
 The [=indexed property getter=]
 that is defined on the derived-most interface that the
 legacy platform object implements is the one that defines the behavior
-when indexing the object with an array index.  Similarly for
+when indexing the object with an [=array index=].  Similarly for
 [=indexed property setters=].
 This way, the definitions of these special operations from
 ancestor interfaces can be overridden.
@@ -12023,11 +12024,11 @@ and [[#legacy-platform-object-set]].
     property name |P|, value |V|, and ECMAScript language value |Receiver|:
 
     1.  If |O| and |Receiver| are the same object, then:
-        1.  If |O| [=support indexed properties|supports indexed properties=], |P| is an [=array index property name=], and |O| implements an interface with an [=indexed property setter=], then:
+        1.  If |O| [=support indexed properties|supports indexed properties=], |P| [=is an array index=], and |O| implements an interface with an [=indexed property setter=], then:
             1.  [=Invoke the indexed property setter=] with |P| and |V|.
             1.  Return <emu-val>true</emu-val>.
         1.  If |O| [=support named properties|supports named properties=], [=Type=](|P|) is String,
-            |P| is not an [=array index property name=],
+            |P| [=is not an array index=],
             and |O| implements an interface with a [=named property setter=], then:
             1.  [=Invoke the named property setter=] with |P| and |V|.
             1.  Return <emu-val>true</emu-val>.
@@ -12046,7 +12047,7 @@ and [[#legacy-platform-object-set]].
     the following steps must be taken:
 
     1.  If |O| [=support indexed properties|supports indexed properties=] and
-        |P| is an [=array index property name=], then:
+        |P| [=is an array index=], then:
         1.  If the result of calling [=IsDataDescriptor=](|Desc|) is
             <emu-val>false</emu-val>, then return
             <emu-val>false</emu-val>.
@@ -12092,7 +12093,7 @@ and [[#legacy-platform-object-set]].
     must behave as follows when called with property name |P|.
 
     1.  If |O| [=support indexed properties|supports indexed properties=] and
-        |P| is an [=array index property name=], then:
+        |P| [=is an array index=], then:
         1.  Let |index| be the result of calling [=ToUint32=](|P|).
         1.  If |index| is not a [=supported property indices|supported property index=], then return <emu-val>true</emu-val>.
         1.  Return <emu-val>false</emu-val>.
@@ -12188,18 +12189,19 @@ internal method as follows.
 
 <h4 id="legacy-platform-object-abstract-ops">Abstract operations</h4>
 
-<div algorithm>
+<div algorithm="to determine if a property name is an array index">
 
-    The name of each property that appears to exist due to an object supporting indexed properties
-    is an <dfn id="dfn-array-index-property-name" export>array index property name</dfn>,
-    which is a property name |P| for which the following algorithm returns true:
+    To determine if a property name |P| <dfn lt="is an array index|is not an array index"
+    oldids="dfn-array-index-property-name">is an [=array index=]</dfn>, the following algorithm is
+    applied:
 
-    1.  If [=Type=](|P|) is not String, then return false.
-    1.  Let |i| be [=!=] [=ToUint32=](|P|).
-    1.  If |i| is equal to 2<sup>32</sup> − 1, then return false.
-    1.  Let |s| be [=!=] [=ToString=](|i|).
-    1.  If |s| is not equal to |P|, then return false.
-    1.  Return true.
+    1.  If [=Type=](|P|) is not String, then return <emu-val>false</emu-val>.
+    1.  Let |index| be [=!=] [=CanonicalNumericIndexString=](|P|).
+    1.  If |index| is <emu-val>undefined</emu-val>, then return <emu-val>false</emu-val>.
+    1.  If |index| is less than 0 or is greater than or equal to 2<sup>32</sup> − 1, then return
+        <emu-val>false</emu-val>.
+    1.  Return <emu-val>true</emu-val>.
+
 </div>
 
 <div algorithm>
@@ -12290,7 +12292,7 @@ internal method as follows.
     an object |O|, a property name |P|, and a boolean |ignoreNamedProps| value:
 
     1.  If |O| [=support indexed properties|supports indexed properties=]
-        and |P| is an [=array index property name=], then:
+        and |P| [=is an array index=], then:
         1.  Let |index| be the result of calling [=ToUint32=](|P|).
         1.  If |index| is a [=supported property indices|supported property index=], then:
             1.  Let |operation| be the operation used to declare the indexed property getter.
