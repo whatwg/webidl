@@ -3345,50 +3345,54 @@ be the same.
 
 <i>This section is informative.</i>
 
+<div class="non-normative">
+
 For specifications defining IDL [=operations=], it may seem that [=overloaded|overloads=] and a
-combination of [=union types=] and [=optional argument=] have some feature overlap.
+combination of [=union types=] and [=optional arguments=] have some feature overlap.
 
 It is first important to note that [=overloaded|overloads=] may have different behaviors than
-[=union types=] or [=optional arguments=], and one <em>cannot</em> be fully defined using the
-other (unless, of course, additional prose is provided, which can defeat the purpose of the Web IDL
-type system). For example, given the {{CanvasDrawPath/stroke()}} operations defined on the
+[=union types=] or [=optional arguments=], and one <em>cannot</em be fully defined using the other
+(unless, of course, additional prose is provided, which can defeat the purpose of the Web IDL type
+system). For example, consider the {{CanvasDrawPath/stroke()}} operations defined on the
 {{CanvasDrawPath}} interface [[HTML]]:
 
 <pre highlight="webidl">
-    interface CanvasDrawPath {
+    interface CanvasDrawPathExcerpt {
       void stroke();
       void stroke(Path2D path);
     };
 </pre>
 
 Per the ECMAScript language binding, calling <code>stroke(undefined)</code> on a object implementing
-{{CanvasDrawPath}} would throw a {{TypeError}}. However, if the operations were instead defined with
-[=optional arguments=] and merged into one:
+{{CanvasDrawPath}} would attempt to call the second overload, yielding a {{TypeError}} since
+<emu-val>undefined</emu-val> cannot be <a href="#es-to-interface">converted</a> to a {{Path2D}}.
+However, if the operations were instead defined with [=optional arguments=] and merged into one,
 
 <pre highlight="webidl">
-    interface CanvasDrawPath {
+    interface CanvasDrawPathExcerpt {
       void stroke(optional Path2D path);
     };
 </pre>
 
-The [=overload resolution algorithm=] would treat the |path| argument as not present given the same
-ECMAScript language code <code>stroke(undefined)</code>, and not throw any exceptions.
+the [=overload resolution algorithm=] would treat the <var ignore>path</var> argument as not present
+given the same ECMAScript language code <code>stroke(undefined)</code>, and not throw any
+exceptions.
 
 Additionally, there are semantic differences as well. [=Overloaded=] operations are designed to map
-well to C++ overloading at the language binding, and are usually a better fit for operations with
+well to language features such as C++ overloading, and are usually a better fit for operations with
 more substantial differences in what they do given arguments of different types. [=Union types=], in
 contrast, are usually used in the sense that "any of the types would work in about the same way".
 
 That being said, we offer the following recommendations and examples in case of difficulties to
-determine what Web IDL language feature to use.
+determine what Web IDL language feature to use:
 
 *   When the operation must return values of different types for different argument types,
     [=overloaded|overloading=] is almost always a better choice.
 
     Suppose there is an operation <code class="idl">calculateWithType()</code> that accepts a single
     argument of either {{long}}, {{DOMString}}, or <code class="idl">CalculatableInterface</code>
-    (an interface type) types, and returns a value of the same type as its argument. It would seem
-    to be clearer to write the IDL fragment using [=overloaded=] operations as
+    (an interface type) types, and returns a value of the same type as its argument. It would be
+    clearer to write the IDL fragment using [=overloaded=] operations as
 
     <pre highlight="webidl">
         interface A {
@@ -3407,7 +3411,8 @@ determine what Web IDL language feature to use.
         };
     </pre>
 
-    which does not convey the fact that the return value is always of the same type as |input|.
+    which does not convey the fact that the return value is always of the same type as <var
+    ignore>input</var>.
 
     The problem is exacerbated when one of the overloads has a return type of {{void}}, since
     [=union types=] cannot even contain {{void}} as a [=member type=]. In that case, a return type
@@ -3417,8 +3422,8 @@ determine what Web IDL language feature to use.
 *   When the operation has significantly different semantics for different argument types or
     lengths, [=overloaded|overloading=] is preferred.
 
-    As an example, the {{CSS/supports()}} operation of the {{CSS}} interface is defined as the
-    following IDL fragment [[CSS3-CONDITIONAL]].
+    As an example, the {{CSS/supports()}} operations of the {{CSS}} interface is defined as the
+    following IDL fragment [[CSS3-CONDITIONAL]] [[CSSOM]].
 
     <pre highlight="webidl">
         partial interface CSS {
@@ -3435,14 +3440,13 @@ determine what Web IDL language feature to use.
         };
     </pre>
 
-    It can be observed that, even though the IDL is shorter, two distinctively different concepts
-    are conflated in the first argument. This makes the second version remarkably less readable than
-    the first.
+    Even though the IDL is shorter, two distinctively different concepts are conflated in the first
+    argument. This makes the second version remarkably less readable than the first.
 
-    Another consideration is that many specification preprocessors allow linking to two different
-    prose definitions in case of [=overloaded|overloading=] but not [=optional arguments=]. This
-    means that in the first case the specification author may write the prose definition of the
-    operations as:
+    Another consideration is that the prose for [=overloaded=] operations can be specified in
+    separate blocks, which can aid in both reading and writing specifications, but not [=optional
+    arguments=]. This means that in the first case the specification author may write the prose
+    definition of the operations as:
 
     <div algorithm="execute supports() with overloads">
 
@@ -3460,9 +3464,8 @@ determine what Web IDL language feature to use.
 
     </div>
 
-    Yet using optional argument, the specification author must use more boilerplate-style text to
-    effectively replicate the overload logic. If the two overloads have little to no shared parts,
-    it is better to leave overload resolution to the IDL mechanism.
+    Yet using <var ignore>value</var> as an [=optional argument=], the specification author must use
+    more boilerplate-style text to effectively replicate the [=overload resolution algorithm=].
 
     <div algorithm="execute supports() with optional argument">
 
@@ -3477,6 +3480,9 @@ determine what Web IDL language feature to use.
             1.  …
 
     </div>
+
+    If the two overloads have little to no shared parts, it is better to leave overload resolution
+    to the IDL mechanism.
 
 *   If the operation accepts multiple types for multiple arguments with no coupling between types of
     different arguments, [=union types=] can sometimes be the only viable solution.
@@ -3532,14 +3538,20 @@ determine what Web IDL language feature to use.
         };
     </pre>
 
+    In general, optionality is best expressed using the <emu-t>optional</emu-t> keyword, and not
+    using overloads.
+
 When the case fits none of the categories above, it is up to the specification author to choose the
 style, since it is most likely that either style would sufficiently and conveniently describe the
-intended behavior. However, it should be noted that the definition and conversion algorithms of
-[=union types=] are simpler to implement and reason about, and can discourage implementation
-mistakes.
+intended behavior. However, the definition and <a href="#es-to-union">conversion algorithms</a> of
+[=union types=] are simpler to implement and reason about than [=overload resolution
+algorithm|those=] of [=overloaded|overloads=], and can discourage implementation mistakes. Thus,
+unless any other considerations apply, [=union types=] should be the default choice.
 
-Specifications are also free to mix and match union types and overloads, if the author finds it to
-be appropriate and convenient.
+Specifications are also free to mix and match union types and overloads, if the author finds it
+appropriate and convenient.
+
+</div>
 
 
 <h4 id="idl-iterable">Iterable declarations</h4>
