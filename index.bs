@@ -8445,7 +8445,6 @@ corresponding to [=interface members=].
     </pre>
 </div>
 
-
 <h4 id="LegacyArrayClass" extended-attribute lt="LegacyArrayClass">[LegacyArrayClass]</h4>
 
 <div class="advisement">
@@ -8539,6 +8538,58 @@ entails.
     succeed on objects implementing <code class="idl">ImmutableItemList</code>.
     The exact behavior depends on the definition of the [=Array methods=] themselves.
 
+</div>
+
+
+<h4 id="LegacyNamespace" extended-attribute lt="LegacyNamespace">[LegacyNamespace]</h4>
+
+<p class="advisement">
+    The [{{LegacyNamespace}}] [=extended attribute=] is an undesirable feature.
+    It exists only so that legacy Web platform features can be specified.
+    It should not be used in specifications
+    unless required to specify the behavior of legacy APIs,
+    or for consistency with these APIs.
+    Instead, interface names
+    can be formed with a naming convention of starting with a particular prefix for
+    a set of interfaces, as part of the identifier, rather than using a namespace.
+    Editors who wish to use this feature are strongly advised to discuss this
+    by <a href="https://github.com/heycam/webidl/issues/new?title=Intent%20to%20use%20[LegacyNamespace]">filing an issue</a>
+    before proceeding.
+</p>
+
+If the [{{LegacyNamespace}}] [=extended attribute=] appears on an [=interface=], it indicates that
+the [=interface object=] for this interface will not be created as a property of the global
+object, but rather as a property of the [=namespace=] identified by the argument to the extended
+attribute.
+
+The [{{LegacyNamespace}}] extended attribute [=takes an identifier|take an identifier=].
+This identifier must be the identifier of a namespace.
+
+The [{{LegacyNamespace}}] and [{{NoInterfaceObject}}]
+extended attributes must not be specified on the same interface.
+
+The [{{LegacyNamespace}}] extended attribute
+must not be used on a [=callback interface=].
+
+See [[#namespace-object]] for details on how an interface is exposed on a namespace.
+
+<div class="example">
+    The following [=IDL fragment=] defines a [=namespace=] and an [=interface=] which
+    uses [{{LegacyNamespace}}] to be defined inside of it.
+
+    <pre highlight="webidl">
+        namespace Foo { };
+
+        [LegacyNamespace=Foo, Constructor]
+        interface Bar { };
+    </pre>
+
+    In an ECMAScript implementation of the above namespace and interface, the
+    constructor Bar can be accessed as follows:
+
+    <pre highlight="js">
+        var instance = new Foo.Bar();
+    </pre>
 </div>
 
 
@@ -10132,7 +10183,7 @@ Note: The HTML Standard defines how a security check is performed. [[!HTML]]
 
 For every non-callback [=interface=] that is [=exposed=] in
 a given ECMAScript global environment and that is not declared with
-the [{{NoInterfaceObject}}] [=extended attribute=],
+the [{{NoInterfaceObject}}] or [{{LegacyNamespace}}] [=extended attributes=],
 a corresponding property must exist on the ECMAScript environment's global object.
 The name of the property is the [=identifier=] of the interface,
 and its value is an object called the <dfn id="dfn-interface-object" export>interface object</dfn>.
@@ -11953,6 +12004,10 @@ must be the [=identifier=] of
 the [=primary interface=]
 of the platform object.
 
+The [=class string=] of an interface with the [{{LegacyNamespace}}] extended
+attribute is the concatenation of the class string of the namespace, ".",
+and the class string that the interface would otherwise have without this
+extended attribute.
 
 <h4 id="platform-object-setprototypeof" oldids="platformobjectsetprototypeof">\[[SetPrototypeOf]]</h4>
 
@@ -12648,6 +12703,12 @@ The characteristics of a namespace object are described in [[#namespace-object]]
         1.  Let |F| be the result of [=creating an operation function|creating an operation function=]
             given |op|, |namespace|,  and |realm|.
         1.  Perform [=!=] [=CreateDataProperty=](|namespaceObject|, |op|'s [=identifier=], |F|).
+    1.  For each [=exposed=] [=interface=] |interface| which has the [{{LegacyNamespace}}] extended
+        attribute with the identifier of this namespace as its argument,
+        1.  Let |I| be the [=interface object=] for |interface|.
+        1.  Let |newDesc| be the PropertyDescriptor{\[[Writable]]: <emu-val>true</emu-val>,
+            \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val>, \[[Value]]: |I|}.
+        1.  Perform [=!=] [=DefinePropertyOrThrow=](|namespaceObject|, |interface|'s [=identifier=], |newDesc|).
 </div>
 
 
