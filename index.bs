@@ -3351,7 +3351,7 @@ For specifications defining IDL [=operations=], it may seem that [=overloaded|ov
 combination of [=union types=] and [=optional arguments=] have some feature overlap.
 
 It is first important to note that [=overloaded|overloads=] may have different behaviors than
-[=union types=] or [=optional arguments=], and one <em>cannot</em be fully defined using the other
+[=union types=] or [=optional arguments=], and one <em>cannot</em> be fully defined using the other
 (unless, of course, additional prose is provided, which can defeat the purpose of the Web IDL type
 system). For example, consider the {{CanvasDrawPath/stroke()}} operations defined on the
 {{CanvasDrawPath}} interface [[HTML]]:
@@ -3363,42 +3363,52 @@ system). For example, consider the {{CanvasDrawPath/stroke()}} operations define
     };
 </pre>
 
-Per the ECMAScript language binding, calling <code>stroke(undefined)</code> on a object implementing
-{{CanvasDrawPath}} would attempt to call the second overload, yielding a {{TypeError}} since
-<emu-val>undefined</emu-val> cannot be <a href="#es-to-interface">converted</a> to a {{Path2D}}.
-However, if the operations were instead defined with [=optional arguments=] and merged into one,
+Per the ECMAScript language binding, calling <code>stroke(undefined)</code> on an object
+implementing <code class="idl">CanvasDrawPathExcerpt</code> would attempt to call the second
+overload, yielding a {{TypeError}} since <emu-val>undefined</emu-val> cannot be <a
+href="#es-to-interface">converted</a> to a {{Path2D}}. However, if the operations were instead
+defined with [=optional arguments=] and merged into one,
 
 <pre highlight="webidl">
-    interface CanvasDrawPathExcerpt {
+    interface CanvasDrawPathExcerptOptional {
       void stroke(optional Path2D path);
     };
 </pre>
 
-the [=overload resolution algorithm=] would treat the <var ignore>path</var> argument as not present
-given the same ECMAScript language code <code>stroke(undefined)</code>, and not throw any
-exceptions.
+the [=overload resolution algorithm=] would treat the <var ignore>path</var> argument as [=not
+present=] given the same call <code>stroke(undefined)</code>, and not throw any exceptions.
 
-Additionally, there are semantic differences as well. [=Overloaded=] operations are designed to map
-well to language features such as C++ overloading, and are usually a better fit for operations with
-more substantial differences in what they do given arguments of different types. [=Union types=], in
-contrast, are usually used in the sense that "any of the types would work in about the same way".
+Note: For this particular example, the latter behavior is actually what Web developers would
+generally expect. If {{CanvasDrawPath}} were to be designed today, [=optional arguments=] would be
+used for <code class="idl">stroke()</code>.
+
+Additionally, there are semantic differences as well. [=Union types=] are usually used in the sense
+that "any of the types would work in about the same way". In contrast, [=overloaded=] operations are
+designed to map well to language features such as C++ overloading, and are usually a better fit for
+operations with more substantial differences in what they do given arguments of different types.
+However, in most cases, operations with such substantial differences are best off with different
+names to avoid confusion for Web developers, since the ECMAScript language does not provide
+language-level overloading. As such, overloads are rarely appropriate for new APIs, instead often
+appearing in legacy APIs or in specialized circumstances.
 
 That being said, we offer the following recommendations and examples in case of difficulties to
 determine what Web IDL language feature to use:
 
-*   When the operation must return values of different types for different argument types,
-    [=overloaded|overloading=] is almost always a better choice.
+*   In the unusual case where the operation must return values of different types for different
+    argument types, [=overloaded|overloading=] should be used. <span class="note">This is almost
+    never appropriate API design, and separate operations with distinct names should be used for
+    such cases.</span>
 
-    Suppose there is an operation <code class="idl">calculateWithType()</code> that accepts a single
-    argument of either {{long}}, {{DOMString}}, or <code class="idl">CalculatableInterface</code>
-    (an interface type) types, and returns a value of the same type as its argument. It would be
-    clearer to write the IDL fragment using [=overloaded=] operations as
+    Suppose there is an operation <code class="idl">calculate()</code> that accepts a {{long}},
+    {{DOMString}}, or <code class="idl">CalculatableInterface</code> (an [=interface type=]) as its
+    only argument, and returns a value of the same type as its argument. It would be clearer to
+    write the IDL fragment using [=overloaded=] operations as
 
     <pre highlight="webidl">
         interface A {
-          long calculateWithType(long input);
-          DOMString calculateWithType(DOMString input);
-          CalculatableInterface calculateWithType(CalculatableInterface input);
+          long calculate(long input);
+          DOMString calculate(DOMString input);
+          CalculatableInterface calculate(CalculatableInterface input);
         };
     </pre>
 
@@ -3407,7 +3417,7 @@ determine what Web IDL language feature to use:
     <pre highlight="webidl">
         typedef (long or DOMString or CalculatableInterface) Calculatable;
         interface A {
-          Calculatable calculateWithType(Calculatable input);
+          Calculatable calculate(Calculatable input);
         };
     </pre>
 
@@ -3419,8 +3429,24 @@ determine what Web IDL language feature to use:
     of {{any}} must be used with appropriate prose defining the return type, further decreasing
     expressiveness.
 
+    If the specified <code class="idl">calculate()</code> is a new API and does not have any
+    compatibility concerns, it is suggested to use different names for the overloaded operations,
+    perhaps as
+
+    <pre highlight="webidl">
+        interface A {
+          long calculateNumber(long input);
+          DOMString calculateString(DOMString input);
+          CalculatableInterface calculateCalculatableInterface(CalculatableInterface input);
+        };
+    </pre>
+
+    which allows Web developers to write explicit and unambiguous code.
+
 *   When the operation has significantly different semantics for different argument types or
-    lengths, [=overloaded|overloading=] is preferred.
+    lengths, [=overloaded|overloading=] is preferred. Again, in such scenarios, it is usually better
+    to create separate operations with distinct names, but legacy APIs sometimes follow this
+    pattern.
 
     As an example, the {{CSS/supports()}} operations of the {{CSS}} interface is defined as the
     following IDL fragment [[CSS3-CONDITIONAL]] [[CSSOM]].
@@ -3435,18 +3461,21 @@ determine what Web IDL language feature to use:
     Using [=optional arguments=] one can rewrite the IDL fragment as follows:
 
     <pre highlight="webidl">
-        partial interface CSS {
+        partial interface CSSExcerptOptional {
           static boolean supports(CSSOMString propertyOrConditionText, optional CSSOMString value);
         };
     </pre>
 
-    Even though the IDL is shorter, two distinctively different concepts are conflated in the first
-    argument. This makes the second version remarkably less readable than the first.
+    Even though the IDL is shorter in the second version, two distinctively different concepts are
+    conflated in the first argument. Without [=overloaded|overloads=], the question "is <var
+    ignore>property</var> or <var ignore>conditionText</var> paired with <var ignore>value</var>?"
+    is much more difficult to answer without reading the prose definition of the operation. This
+    makes the second version remarkably less readable than the first.
 
     Another consideration is that the prose for [=overloaded=] operations can be specified in
-    separate blocks, which can aid in both reading and writing specifications, but not [=optional
-    arguments=]. This means that in the first case the specification author may write the prose
-    definition of the operations as:
+    separate blocks, which can aid in both reading and writing specifications. This is not the case
+    for [=optional arguments=]. This means that in the first case the specification author may write
+    the prose definition of the operations as:
 
     <div algorithm="execute supports() with overloads">
 
@@ -3530,7 +3559,7 @@ determine what Web IDL language feature to use:
     class="idl">foo(|arg|)</code> operation, with |arg| set to null, while <code>foo()</code> alone
     would go to the first overload. This may be a surprising behavior for many API users. Instead,
     it is recommended to use an optional argument, which would categorize both <code>foo()</code>
-    and <code>foo(undefined)</code> as "|arg| is not present".
+    and <code>foo(undefined)</code> as "|arg| is [=not present=]".
 
     <pre highlight="webidl">
         interface A {
@@ -3544,9 +3573,10 @@ determine what Web IDL language feature to use:
 When the case fits none of the categories above, it is up to the specification author to choose the
 style, since it is most likely that either style would sufficiently and conveniently describe the
 intended behavior. However, the definition and <a href="#es-to-union">conversion algorithms</a> of
-[=union types=] are simpler to implement and reason about than [=overload resolution
-algorithm|those=] of [=overloaded|overloads=], and can discourage implementation mistakes. Thus,
-unless any other considerations apply, [=union types=] should be the default choice.
+[=union types=] and [=optional arguments=] are simpler to implement and reason about than [=overload
+resolution algorithm|those=] of [=overloaded|overloads=], and usually result in more idiomatic APIs
+in the ECMAScript language binding. Thus, unless any other considerations apply, [=union types=]
+(and/or [=optional arguments=]) should be the default choice.
 
 Specifications are also free to mix and match union types and overloads, if the author finds it
 appropriate and convenient.
