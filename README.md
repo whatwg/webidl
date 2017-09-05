@@ -32,8 +32,8 @@ The specification is written in [Bikeshed](https://github.com/tabatkins/bikeshed
     *   [WebKit](https://bugs.webkit.org/enter_bug.cgi?product=WebKit&component=Bindings&short_desc=[WebIDL]%20)
     *   [Chromium](https://bugs.chromium.org/p/chromium/issues/entry?template=Defect%20report%20from%20developer&components=Blink%3EBindings&summary=[WebIDL]%20&comment&labels=Via-WebIDLRepo)
     *   [Edge](https://developer.microsoft.com/en-us/microsoft-edge/platform/issues/)
-*   [web-platform-tests](https://github.com/w3c/web-platform-tests/issues/new)
-*   [idlharness.js](https://github.com/w3c/testharness.js/issues/new?title=%5Bidlharness%5D%20) (used by testharness.js to run idl tests)
+*   [web-platform-tests](https://github.com/w3c/web-platform-tests/issues/new?title=%5BWebIDL%5D%20)
+*   [idlharness.js](https://github.com/w3c/web-platform-tests/issues/new?title=%5Bidlharness%5D%20) (used by testharness.js to run idl tests)
 
 ### Syntax changes should be filed against the following parsers:
 
