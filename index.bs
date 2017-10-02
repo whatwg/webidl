@@ -73,6 +73,8 @@ urlPrefix: https://tc39.github.io/ecma262/; spec: ECMA-262
             text: @@iterator
             text: @@toStringTag
             text: @@unscopables
+    type: argument
+        text: NewTarget; url: sec-built-in-function-objects
     type: abstract-op
         text: ArrayCreate; url: sec-arraycreate
         text: Call; url: sec-call
@@ -85,6 +87,7 @@ urlPrefix: https://tc39.github.io/ecma262/; spec: ECMA-262
         text: CreateIterResultObject; url: sec-createiterresultobject
         text: CreateMapIterator; url: sec-createmapiterator
         text: CreateSetIterator; url: sec-createsetiterator
+        text: DefinePropertyOrThrow; url: sec-definepropertyorthrow
         text: DetachArrayBuffer; url: sec-detacharraybuffer
         text: Get; url: sec-get-o-p
         text: GetIterator; url: sec-getiterator
@@ -121,49 +124,38 @@ urlPrefix: https://tc39.github.io/ecma262/; spec: ECMA-262
         text: min; url: eqn-min
     type: dfn
         text: NumericLiteral; url: sec-literals-numeric-literals
-        text: ECMAScript error objects; url: sec-error-objects
         text: modulo; url: eqn-modulo
-        url: sec-algorithm-conventions
-            text: ECMA-262 section 5.2
-            text: conventions of the ECMAScript specification
         url: sec-returnifabrupt-shorthands
             text: !
             text: ?
-        text: element; url: sec-ecmascript-language-types-string-type
-        text: callable; for: ECMAScript; url: sec-iscallable
-        text: Property Descriptor; url: sec-property-descriptor-specification-type
-        text: array index; url: array-index
-        text: equally close values; url: sec-ecmascript-language-types-number-type
-        text: internal slot; url: sec-object-internal-methods-and-internal-slots
-        text: JavaScript execution context stack; url: execution-context-stack
-        text: running JavaScript execution context; url: running-execution-context
-        url: sec-array-iterator-objects
-            text: array iterator object
-            text: array iterator objects
-        text: constructor; url: constructor
-        text: own property; url: sec-own-property
-        text: enumerable; url: sec-property-attributes
-        text: DefinePropertyOrThrow; url: sec-definepropertyorthrow
-        url: sec-code-realms
-            text: Realm
-            text: ECMAScript global environment
-        text: current Realm; url: current-realm
-        url: sec-completion-record-specification-type
-            text: Completion
-            text: Completion Record
-            text: abrupt completion
-        text: immutable prototype exotic object; url: sec-immutable-prototype-exotic-objects
-        url: sec-ordinary-object-internal-methods-and-internal-slots
-            text: ECMA-262 §9.1
-            for: ordinary object
-                text: internal methods
-                text: internal slots
+        text: ECMA-262 §5.2; url: sec-algorithm-conventions
+        text: ECMA-262 §9.1; url: sec-ordinary-object-internal-methods-and-internal-slots
         text: ECMA-262 §9.3; url: sec-built-in-function-objects
+        text: abrupt completion; url: sec-completion-record-specification-type
+        text: array index; url: array-index
+        text: array iterator object; url: sec-array-iterator-objects
         text: built-in function object; url: sec-built-in-function-objects
+        text: callable; for: ECMAScript; url: sec-iscallable
+        text: Completion Record; url: sec-completion-record-specification-type
+        text: constructor; url: constructor
+        text: conventions; for: ECMAScript; url: sec-algorithm-conventions
+        text: current Realm; url: current-realm
+        text: element; for: ECMAScript String; url: sec-ecmascript-language-types-string-type
+        text: enumerable; url: sec-property-attributes
+        text: equally close values; url: sec-ecmascript-language-types-number-type
+        text: error objects; for: ECMAScript; url: sec-error-objects
         text: function object; url: function-object
-        text: typed arrays; url: sec-typedarray-objects
-        text: NewTarget; url: sec-built-in-function-objects
-        text: Number Type; url: sec-ecmascript-language-types-number-type
+        text: immutable prototype exotic object; url: sec-immutable-prototype-exotic-objects
+        url: sec-object-internal-methods-and-internal-slots
+            text: internal method
+            text: internal slot
+        text: Number type; url: sec-ecmascript-language-types-number-type
+        for: ordinary object; url: sec-ordinary-object-internal-methods-and-internal-slots
+            text: internal method
+            text: internal slot
+        text: own property; url: sec-own-property
+        text: Property Descriptor; url: sec-property-descriptor-specification-type
+        text: realm; url: realm
 </pre>
 
 <pre class=biblio>
@@ -3720,7 +3712,7 @@ the map entries.
 
 Note: In the ECMAScript language binding, the API for interacting
 with the map entries is similar to that available on ECMAScript
-{{Map}} objects.  If the <emu-t>readonly</emu-t>
+{{ECMAScript/Map}} objects.  If the <emu-t>readonly</emu-t>
 keyword is used, this includes “entries”, “forEach”, “get”, “has”,
 “keys”, “values”, {{@@iterator}} methods and a “size” getter.
 For read–write maplikes, it also includes “clear”, “delete” and
@@ -3810,7 +3802,7 @@ the set entries.
 
 Note: In the ECMAScript language binding, the API for interacting
 with the set entries is similar to that available on ECMAScript
-{{Set}} objects.  If the <emu-t>readonly</emu-t>
+{{ECMAScript/Set}} objects.  If the <emu-t>readonly</emu-t>
 keyword is used, this includes “entries”, “forEach”, “has”,
 “keys”, “values”, {{@@iterator}} methods and a “size” getter.
 For read–write setlikes, it also includes “add”, “clear”, and “delete” methods.
@@ -4327,7 +4319,7 @@ is identified by one of the following types:
 *   <dfn exception>TypeError</dfn>
 *   <dfn exception>URIError</dfn>
 
-These correspond to all of the [=ECMAScript error objects=]
+These correspond to all of the ECMAScript [=ECMAScript/error objects=]
 (apart from {{ECMAScript/SyntaxError}} and {{ECMAScript/Error}},
 which are deliberately omitted as they are reserved for use
 by the ECMAScript parser and by authors, respectively).
@@ -5493,10 +5485,9 @@ The [=type name=] of the
     strings should be represented with
     {{DOMString}} values, even if it is expected
     that values of the string will always be in ASCII or some
-    8 bit character encoding. [=sequence types|Sequences=],
-    [=frozen array type|frozen arrays=] or [=Typed Arrays=]
-    with {{octet}} or {{byte}}
-    elements should be used for holding
+    8 bit character encoding. [=sequence types|Sequences=] or
+    [=frozen array type|frozen arrays=] with {{octet}} or {{byte}}
+    elements, {{Uint8Array}}, or {{Int8Array}} should be used for holding
     8 bit data rather than {{ByteString}}.
 </p>
 
@@ -6392,7 +6383,8 @@ and whose value is the specified string.
 </p>
 
 <p id="ecmascript-abstractop">
-    Algorithms in this section use the conventions described in [=ECMA-262 section 5.2=], such as the use of steps and substeps, the use of mathematical
+    Algorithms in this section use the conventions described in [=ECMA-262 §5.2|ECMA-262 §5.2
+    Algorithm conventions=], such as the use of steps and substeps, the use of mathematical
     operations, and so on.  This section may also reference abstract operations
     and notations defined in other parts of ECMA-262.
 </p>
@@ -6450,7 +6442,7 @@ and comprise the following:
 *   <a href="#es-iterators">the function objects that correspond to iterators</a>
 *   [=map size getters=]
 
-Each [=Realms|ECMAScript global environment=]
+Each [=Realm|ECMAScript global environment=]
 must have its own unique set of each of
 the [=initial objects=], created
 before control enters any ECMAScript execution context associated with the
@@ -6601,7 +6593,7 @@ may return any value, which will be discarded.
 <h4 id="es-integer-types">Integer types</h4>
 
 Mathematical operations used in this section,
-including those defined in [=ECMA-262 section 5.2=],
+including those defined in [=ECMA-262 §5.2|ECMA-262 §5.2 Algorithm conventions=],
 are to be understood as computing exact mathematical results
 on mathematical real numbers.
 
@@ -7002,7 +6994,7 @@ value when its bit pattern is interpreted as an unsigned 64 bit integer.
     to an IDL {{ByteString}} value by running the following algorithm:
 
     1.  Let |x| be <a abstract-op>ToString</a>(|V|).
-    1.  If the value of any [=element=]
+    1.  If the value of any [=ECMAScript String/element=]
         of |x| is greater than 255, then [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
     1.  Return an IDL {{ByteString}} value
         whose length is the length of |x|, and where the value of each element is
@@ -7014,7 +7006,7 @@ value when its bit pattern is interpreted as an unsigned 64 bit integer.
     an IDL {{ByteString}} value to an ECMAScript
     value is a String
     value whose length is the length of the {{ByteString}},
-    and the value of each element of which is the value of the corresponding element
+    and the value of each [=ECMAScript String/element=] of which is the value of the corresponding element
     of the {{ByteString}}.
 </p>
 
@@ -8621,7 +8613,7 @@ from another, it indicates that the internal \[[Prototype]]
 property of its [=interface prototype object=]
 will be the intrinsic object {{%ArrayPrototype%}} rather than
 {{%ObjectPrototype%}}.  This allows
-{{Array}} methods to be used more easily
+{{ECMAScript/Array}} methods to be used more easily
 with objects implementing the interface.
 
 The [{{LegacyArrayClass}}] extended attribute
@@ -8664,7 +8656,7 @@ entails.
 
     In an ECMAScript implementation of the above two interfaces,
     with appropriate definitions for getItem, setItem and removeItem,
-    {{Array}} methods to inspect and
+    {{ECMAScript/Array}} methods to inspect and
     modify the array-like object can be used.
 
     <pre highlight="js">
@@ -8678,9 +8670,9 @@ entails.
     <code class="idl">ImmutableItemList</code> has a read only
     length [=attribute=]
     and no indexed property [=indexed property setters|setter=].  The
-    mutating {{Array}} methods will generally not
+    mutating {{ECMAScript/Array}} methods will generally not
     succeed on objects implementing <code class="idl">ImmutableItemList</code>.
-    The exact behavior depends on the definition of the {{Array}} methods themselves.
+    The exact behavior depends on the definition of the {{ECMAScript/Array}} methods themselves.
 
 </div>
 
@@ -10386,7 +10378,7 @@ the <code>typeof</code> operator will return "function" when applied to an inter
     1.  Let |steps| be the following steps:
         1.  If |I| was not declared with a [{{Constructor}}] [=extended attribute=],
             then [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
-        1.  If [=NewTarget=] is <emu-val>undefined</emu-val>, then
+        1.  If {{NewTarget}} is <emu-val>undefined</emu-val>, then
             [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
         1.  Let |arg|<sub>0..|n|−1</sub> be the passed arguments.
         1.  Let |id| be the identifier of interface |I|.
@@ -10417,10 +10409,10 @@ the <code>typeof</code> operator will return "function" when applied to an inter
             with argument count 0.
         1.  Set |length| to the length of the
             shortest argument list of the entries in |S|.
-    1.  Perform [=!=] [=DefinePropertyOrThrow=](|F|, "length",
+    1.  Perform [=!=] <a abstract-op>DefinePropertyOrThrow</a>(|F|, "length",
         PropertyDescriptor{\[[Value]]: |length|, \[[Writable]]: <emu-val>false</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val>}).
     1.  Let |proto| be the [=interface prototype object=] of [=interface=] |I|.
-    1.  Perform [=!=] [=DefinePropertyOrThrow=](|F|, "prototype",
+    1.  Perform [=!=] <a abstract-op>DefinePropertyOrThrow</a>(|F|, "prototype",
         PropertyDescriptor{\[[Value]]: |proto|, \[[Writable]]: <emu-val>false</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>false</emu-val>}).
 </div>
 
@@ -10444,7 +10436,7 @@ This object's relevant [=Realm=] must be the same as that of the [=named constru
     for a given [=interface=] |I| in Realm |realm| is created as follows:
 
     1.  Let |steps| be the following steps:
-        1.  If [=NewTarget=] is <emu-val>undefined</emu-val>, then
+        1.  If {{NewTarget}} is <emu-val>undefined</emu-val>, then
             [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
         1.  Let |arg|<sub>0..|n|−1</sub> be the passed arguments.
         1.  Initialize |S| to the  [=effective overload set=]
@@ -10463,10 +10455,10 @@ This object's relevant [=Realm=] must be the same as that of the [=named constru
         for constructors with identifier |id| on [=interface=] |I|
         and with argument count 0.
     1.  Let |length| be the length of the shortest argument list of the entries in |S|.
-    1.  Perform [=!=] [=DefinePropertyOrThrow=](|F|, "length",
+    1.  Perform [=!=] <a abstract-op>DefinePropertyOrThrow</a>(|F|, "length",
         PropertyDescriptor{\[[Value]]: |length|, \[[Writable]]: <emu-val>false</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val>}).
     1.  Let |proto| be the [=interface prototype object=] of [=interface=] |I|.
-    1.  Perform [=!=] [=DefinePropertyOrThrow=](|F|, "prototype",
+    1.  Perform [=!=] <a abstract-op>DefinePropertyOrThrow</a>(|F|, "prototype",
         PropertyDescriptor{\[[Value]]: |proto|, \[[Writable]]: <emu-val>false</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>false</emu-val>}).
 </div>
 
@@ -10613,7 +10605,7 @@ when applied to a [=legacy callback interface object=].
         1.  [=ECMAScript/Throw=] a {{ECMAScript/TypeError}}.
     1.  Let |F| be [=!=] <a abstract-op>CreateBuiltinFunction</a>(|realm|, |steps|, the {{%FunctionPrototype%}} of |realm|).
     1.  Perform [=!=] <a abstract-op>SetFunctionName</a>(|F|, |id|).
-    1.  Perform [=!=] [=DefinePropertyOrThrow=](|F|, "length",
+    1.  Perform [=!=] <a abstract-op>DefinePropertyOrThrow</a>(|F|, "length",
         PropertyDescriptor{\[[Value]]: 0, \[[Writable]]: <emu-val>false</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val>}).
 </div>
 
@@ -10828,7 +10820,7 @@ The characteristics of this property are as follows:
         |steps|, the {{%FunctionPrototype%}} of |realm|).
     1.  Let |name| be the string "get " prepended to |attribute|'s [=identifier=].
     1.  Perform [=!=] <a abstract-op>SetFunctionName</a>(|F|, |name|).
-    1.  Perform [=!=] [=DefinePropertyOrThrow=](|F|, "length",
+    1.  Perform [=!=] <a abstract-op>DefinePropertyOrThrow</a>(|F|, "length",
         PropertyDescriptor{\[[Value]]: 0, \[[Writable]]: <emu-val>false</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val>}).
     1. Return |F|.
 
@@ -10901,7 +10893,7 @@ The characteristics of this property are as follows:
         |steps|, the {{%FunctionPrototype%}} of |realm|).
     1.  Let |name| be the string "set " prepended to |id|.
     1.  Perform [=!=] <a abstract-op>SetFunctionName</a>(|F|, |name|).
-    1.  Perform [=!=] [=DefinePropertyOrThrow=](|F|, "length",
+    1.  Perform [=!=] <a abstract-op>DefinePropertyOrThrow</a>(|F|, "length",
         PropertyDescriptor{\[[Value]]: 1, \[[Writable]]: <emu-val>false</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val>}).
     1. Return |F|.
 </div>
@@ -11017,7 +11009,7 @@ property-installation style as namespaces.)
         operation) or for [=static operations=] (if |op| is a static operation) with [=identifier=] |id|
         on |target| and with argument count 0.
     1.  Let |length| be the length of the shortest argument list in the entries in |S|.
-    1.  Perform [=!=] [=DefinePropertyOrThrow=](|F|, "length",
+    1.  Perform [=!=] <a abstract-op>DefinePropertyOrThrow</a>(|F|, "length",
         PropertyDescriptor{\[[Value]]: |length|, \[[Writable]]: <emu-val>false</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val>}).
     1.  Return |F|.
 </div>
@@ -11654,8 +11646,8 @@ and the string “Iterator”.
 Any object that implements an [=interface=]
 that has a [=maplike declaration=]
 must have a \[[BackingMap]] [=internal slot=], which is
-initially set to a newly created {{Map}} object.
-This {{Map}} object’s \[[MapData]] internal slot is
+initially set to a newly created {{ECMAScript/Map}} object.
+This {{ECMAScript/Map}} object’s \[[MapData]] internal slot is
 the object’s [=map entries=].
 
 If an [=interface=] |A| is declared with
@@ -11679,7 +11671,7 @@ These additional properties are described in the sub-sections below.
         *   an identifier equal to |name|, and
         *   the type “method”.
     1.  If |O| is not an object that implements <var ignore>A</var>, then [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
-    1.  Let |map| be the {{Map}} object that is the value of |O|’s \[[BackingMap]] [=internal slot=].
+    1.  Let |map| be the {{ECMAScript/Map}} object that is the value of |O|’s \[[BackingMap]] [=internal slot=].
     1.  Let |function| be the result of calling the \[[Get]] internal method of |map| passing |name| and |map| as arguments.
     1.  If <a abstract-op>IsCallable</a>(|function|) is <emu-val>false</emu-val>, then [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
     1.  Return <a abstract-op>Call</a>(|function|, |map|, |arguments|).
@@ -11708,7 +11700,7 @@ with the following characteristics:
             *   the identifier “size”, and
             *   the type “getter”.
         1.  If |O| is not an object that implements <var ignore>A</var>, then [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
-        1.  Let |map| be the {{Map}} object that is the value of |O|’s \[[BackingMap]] [=internal slot=].
+        1.  Let |map| be the {{ECMAScript/Map}} object that is the value of |O|’s \[[BackingMap]] [=internal slot=].
         1.  Return the result of calling the \[[Get]] internal method of |map| passing “size” and |map| as arguments.
     </div>
 
@@ -11760,7 +11752,7 @@ For both of “get” and “has”, there must exist a property with that name 
             *   an identifier equal to |name|, and
             *   the type “method”.
         1.  If |O| is not an object that implements <var ignore>A</var>, then [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
-        1.  Let |map| be the {{Map}} object that is the value of |O|’s \[[BackingMap]] [=internal slot=].
+        1.  Let |map| be the {{ECMAScript/Map}} object that is the value of |O|’s \[[BackingMap]] [=internal slot=].
         1.  Let |keyType| be the key type specified in the [=maplike declaration=].
         1.  Let |function| be the result of calling the \[[Get]] internal method of |map| passing |name| and |map| as arguments.
         1.  Let |keyArg| be the first argument passed to this function, or <emu-val>undefined</emu-val> if not supplied.
@@ -11816,7 +11808,7 @@ must exist on |A|’s
             *   the identifier “delete”, and
             *   the type “method”.
         1.  If |O| is not an object that implements <var ignore>A</var>, then [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
-        1.  Let |map| be the {{Map}} object that is the value of |O|’s \[[BackingMap]] [=internal slot=].
+        1.  Let |map| be the {{ECMAScript/Map}} object that is the value of |O|’s \[[BackingMap]] [=internal slot=].
         1.  Let |keyType| be the key type specified in the [=maplike declaration=].
         1.  Let |function| be the result of calling the \[[Get]] internal method of |map| passing “delete” and |map| as arguments.
         1.  Let |keyArg| be the first argument passed to this function, or <emu-val>undefined</emu-val> if not supplied.
@@ -11851,7 +11843,7 @@ must exist on |A|’s [=interface prototype object=]:
             *   the identifier “set”, and
             *   the type “method”.
         1.  If |O| is not an object that implements <var ignore>A</var>, then [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
-        1.  Let |map| be the {{Map}} object that is the value of |O|’s \[[BackingMap]] [=internal slot=].
+        1.  Let |map| be the {{ECMAScript/Map}} object that is the value of |O|’s \[[BackingMap]] [=internal slot=].
         1.  Let |keyType| and |valueType| be the key and value types specified in the [=maplike declaration=].
         1.  Let |function| be the result of calling the \[[Get]] internal method of |map| passing “set” and |map| as arguments.
         1.  Let |keyArg| be the first argument passed to this function, or <emu-val>undefined</emu-val> if not supplied.
@@ -11874,8 +11866,8 @@ The value of the [=function object=]’s “name” property is the String value
 Any object that implements an [=interface=]
 that has a [=setlike declaration=]
 must have a \[[BackingSet]] [=internal slot=], which is
-initially set to a newly created {{Set}} object.
-This {{Set}} object’s \[[SetData]] internal slot is
+initially set to a newly created {{ECMAScript/Set}} object.
+This {{ECMAScript/Set}} object’s \[[SetData]] internal slot is
 the object’s [=set entries=].
 
 If an [=interface=] |A| is declared with a [=setlike declaration=], then
@@ -11899,7 +11891,7 @@ These additional properties are described in the sub-sections below.
         *   the type “method”.
     1.  If |O| is not an object that implements <var ignore>A</var>,
         then [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
-    1.  Let |set| be the {{Set}} object that is
+    1.  Let |set| be the {{ECMAScript/Set}} object that is
         the value of |O|’s \[[BackingSet]] [=internal slot=].
     1.  Let |function| be the result of calling the \[[Get]] internal method of |set|
         passing |name| and |set| as arguments.
@@ -11929,7 +11921,7 @@ with the following characteristics:
             *   the identifier “size”, and
             *   the type “getter”.
         1.  If |O| is not an object that implements <var ignore>A</var>, then [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
-        1.  Let |set| be the {{Set}} object that is the value of |O|’s \[[BackingSet]] [=internal slot=].
+        1.  Let |set| be the {{ECMAScript/Set}} object that is the value of |O|’s \[[BackingSet]] [=internal slot=].
         1.  Return the result of calling the \[[Get]] internal method of |set| passing “size” and |set| as arguments.
     </div>
 
@@ -11981,7 +11973,7 @@ with the following characteristics:
             *   the identifier “has”, and
             *   the type “method”.
         1.  If |O| is not an object that implements <var ignore>A</var>, then [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
-        1.  Let |set| be the {{Set}} object that is the value of |O|’s \[[BackingSet]] [=internal slot=].
+        1.  Let |set| be the {{ECMAScript/Set}} object that is the value of |O|’s \[[BackingSet]] [=internal slot=].
         1.  Let |type| be the value type specified in the [=setlike declaration=].
         1.  Let |function| be the result of calling the \[[Get]] internal method of |set| passing “has” and |set| as arguments.
         1.  Let |arg| be the first argument passed to this function, or <emu-val>undefined</emu-val> if not supplied.
@@ -12022,7 +12014,7 @@ must exist on |A|’s
             *   an identifier equal to |name|, and
             *   the type “method”.
         1.  If |O| is not an object that implements <var ignore>A</var>, then [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
-        1.  Let |set| be the {{Set}} object that is the value of |O|’s \[[BackingSet]] [=internal slot=].
+        1.  Let |set| be the {{ECMAScript/Set}} object that is the value of |O|’s \[[BackingSet]] [=internal slot=].
         1.  Let |type| be the value type specified in the [=setlike declaration=].
         1.  Let |function| be the result of calling the \[[Get]] internal method of |set| passing |name| and |set| as arguments.
         1.  Let |arg| be the first argument passed to this function, or <emu-val>undefined</emu-val> if not supplied.
@@ -12819,7 +12811,7 @@ The characteristics of a namespace object are described in [[#namespace-object]]
             given |attr|, |namespace|,  and |realm|.
         1.  Let |newDesc| be the PropertyDescriptor{\[[Get]]: |F|, \[[Enumerable]]: <emu-val>true</emu-val>,
             \[[Configurable]]: <emu-val>true</emu-val>}.
-        1.  Perform [=!=] [=DefinePropertyOrThrow=](|namespaceObject|, |attr|'s [=identifier=], |newDesc|).
+        1.  Perform [=!=] <a abstract-op>DefinePropertyOrThrow</a>(|namespaceObject|, |attr|'s [=identifier=], |newDesc|).
     1.  For each [=exposed=] [=regular operation=] |op| that is a [=namespace member=] of this namespace,
         1.  Let |F| be the result of [=creating an operation function|creating an operation function=]
             given |op|, |namespace|,  and |realm|.
@@ -12829,7 +12821,7 @@ The characteristics of a namespace object are described in [[#namespace-object]]
         1.  Let |I| be the [=interface object=] for |interface|.
         1.  Let |newDesc| be the PropertyDescriptor{\[[Writable]]: <emu-val>true</emu-val>,
             \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val>, \[[Value]]: |I|}.
-        1.  Perform [=!=] [=DefinePropertyOrThrow=](|namespaceObject|, |interface|'s [=identifier=], |newDesc|).
+        1.  Perform [=!=] <a abstract-op>DefinePropertyOrThrow</a>(|namespaceObject|, |interface|'s [=identifier=], |newDesc|).
 </div>
 
 
@@ -13378,7 +13370,9 @@ The following typographic conventions are used in this document:
 *   Grammar terminals: <emu-t>sometoken</emu-t>
 *   Grammar non-terminals: <emu-nt>ExampleGrammarNonTerminal</emu-t>
 *   Grammar symbols: <emu-t class="regex">identifier</emu-t>
-*   IDL and ECMAScript types: <code class="idl">ExampleType</code>
+*   IDL types: {{unsigned long}}
+*   ECMAScript classes: {{ECMAScript/Map}}
+*   ECMAScript language types: Object
 *   Code snippets: <code>a = b + obj.f()</code>
 *   Unicode characters: <span class="char">U+0030 DIGIT ZERO ("0")</span>
 *   Extended attributes: [<code class="idl">ExampleExtendedAttribute</code>]
@@ -13424,7 +13418,7 @@ The following typographic conventions are used in this document:
 
 The following conventions are used in the algorithms in this document:
 
-*   Algorithms use the [=conventions of the ECMAScript specification=],
+*   Algorithms use the [=ECMAScript/conventions=] of the ECMAScript specification,
     including the [=!=] and [=?=] notation for unwrapping [=Completion Records=].
 *   Algorithms sometimes treat returning/throwing values and returning [=Completion Records=]
     interchangeably. That is, an algorithm that uses return/throw terminology may be treated as
