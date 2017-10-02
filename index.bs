@@ -40,16 +40,39 @@ urlPrefix: http://www.unicode.org/glossary/; spec: UNICODE
         text: Unicode scalar value; url: unicode_scalar_value
 urlPrefix: https://tc39.github.io/ecma262/; spec: ECMA-262
     type: interface; for: ECMAScript
+        text: Array; url: sec-array-objects
         text: ArrayBuffer; url: sec-arraybuffer-objects
         text: DataView; url: sec-dataview-objects
         text: Map; url: sec-map-objects
         text: Promise; url: sec-promise-objects
         text: Set; url: sec-set-objects
         text: SharedArrayBuffer; url: sec-sharedarraybuffer-objects
+        text: %ArrayPrototype%; url: sec-properties-of-the-array-prototype-object
+        text: %ErrorPrototype%; url: sec-properties-of-the-error-prototype-object
+        text: %FunctionPrototype%; url: sec-properties-of-the-function-prototype-object
+        text: %IteratorPrototype%; url: sec-%iteratorprototype%-object
+        text: %MapPrototype%; url: sec-properties-of-the-map-prototype-object
+        text: %ObjectPrototype%; url: sec-properties-of-the-object-prototype-object
+        text: %Promise%; url: sec-promise-constructor
+        text: %SetPrototype%; url: sec-properties-of-the-set-prototype-object
     type: exception; for: ECMAScript
         text: Error; url: sec-error-objects
         text: SyntaxError; url: sec-native-error-types-used-in-this-standard-syntaxerror
         text: TypeError; url: sec-native-error-types-used-in-this-standard-typeerror
+    type: method; for: ECMAScript
+        text: JSON.stringify(); url: sec-json.stringify
+        text: %ArrayProto_entries%; url: sec-array.prototype.entries
+        text: %ArrayProto_forEach%; url: sec-array.prototype.foreach
+        text: %ArrayProto_keys%; url: sec-array.prototype.keys
+        text: %ArrayProto_values%; url: sec-array.prototype.values
+        text: %ObjProto_toString%; url: sec-object.prototype.tostring
+        text: %Promise_reject%; url: sec-promise.reject
+        text: %Promise_resolve%; url: sec-promise.resolve
+    type: const; for: ECMAScript
+        url: sec-well-known-symbols
+            text: @@iterator
+            text: @@toStringTag
+            text: @@unscopables
     type: abstract-op
         text: ArrayCreate; url: sec-arraycreate
         text: Call; url: sec-call
@@ -107,27 +130,12 @@ urlPrefix: https://tc39.github.io/ecma262/; spec: ECMA-262
             text: ?
         text: element; url: sec-ecmascript-language-types-string-type
         text: callable; for: ECMAScript; url: sec-iscallable
-        url: sec-well-known-intrinsic-objects
-            text: %ArrayPrototype%
-            text: %ArrayProto_values%
-            text: %MapPrototype%
-            text: %SetPrototype%
-            text: %Error%
-            text: %ErrorPrototype%
-            text: %ObjProto_toString%
-            text: %IteratorPrototype%
-        text: %ObjectPrototype%; url: sec-properties-of-the-object-prototype-object
-        text: %FunctionPrototype%; url: sec-properties-of-the-function-prototype-object
-        text: %Promise%; url: sec-promise-constructor
         text: Property Descriptor; url: sec-property-descriptor-specification-type
         text: array index; url: array-index
         text: equally close values; url: sec-ecmascript-language-types-number-type
         text: internal slot; url: sec-object-internal-methods-and-internal-slots
         text: JavaScript execution context stack; url: execution-context-stack
         text: running JavaScript execution context; url: running-execution-context
-        url: sec-well-known-symbols
-            text: @@iterator
-            text: @@toStringTag
         url: sec-array-iterator-objects
             text: array iterator object
             text: array iterator objects
@@ -152,12 +160,9 @@ urlPrefix: https://tc39.github.io/ecma262/; spec: ECMA-262
         text: ECMA-262 §9.3; url: sec-built-in-function-objects
         text: built-in function object; url: sec-built-in-function-objects
         text: function object; url: function-object
-        text: Array methods; url: sec-properties-of-the-array-prototype-object
         text: typed arrays; url: sec-typedarray-objects
-        text: @@unscopables; url: sec-well-known-symbols
         text: NewTarget; url: sec-built-in-function-objects
         text: Number Type; url: sec-ecmascript-language-types-number-type
-        text: JSON.stringify; url: sec-json.stringify
 </pre>
 
 <pre class=biblio>
@@ -2035,7 +2040,7 @@ this is done by exposing a <code>toJSON</code> method
 which returns the [=JSON type=]
 converted into an ECMAScript value
 that can be turned into a JSON string
-by the <code>[=JSON.stringify=]</code> function.
+by the {{JSON.stringify()}} function.
 Additionaly, in the ECMAScript language binding,
 the <code>toJSON</code> operation can take a [{{Default}}] [=extended attribute=],
 in which case the [=default toJSON operation=] is exposed instead.
@@ -3516,7 +3521,7 @@ Objects implementing an interface that is declared to be iterable
 support being iterated over to obtain a sequence of values.
 
 Note: In the ECMAScript language binding, an interface that is iterable
-will have “entries”, “forEach”, “keys”, “values” and [=@@iterator=]
+will have “entries”, “forEach”, “keys”, “values” and {{@@iterator}}
 properties on its [=interface prototype object=].
 
 If a single type parameter is given, then the interface has a
@@ -3569,7 +3574,7 @@ is.
 
 Note: This is how [=array iterator objects=] work.
 For interfaces that [=support indexed properties=],
-the iterator objects returned by “entries”, “keys”, “values” and [=@@iterator=] are
+the iterator objects returned by “entries”, “keys”, “values” and {{@@iterator}} are
 actual [=array iterator objects=].
 
 Interfaces with iterable declarations must not
@@ -3614,7 +3619,7 @@ interfaces that have interface members with these names.
     next value to be iterated over.  It has <code>keys</code> and <code>entries</code>
     methods that iterate over the usernames of session objects
     and username/<code class=idl>Session</code> object pairs, respectively.  It also has
-    a [=@@iterator=] method that allows a <code class="idl">SessionManager</code>
+    a {{@@iterator}} method that allows a <code class="idl">SessionManager</code>
     to be used in a <code>for..of</code> loop that has the same value as the
     <code>entries</code> method:
 
@@ -3716,7 +3721,7 @@ Note: In the ECMAScript language binding, the API for interacting
 with the map entries is similar to that available on ECMAScript
 {{Map}} objects.  If the <emu-t>readonly</emu-t>
 keyword is used, this includes “entries”, “forEach”, “get”, “has”,
-“keys”, “values”, [=@@iterator=] methods and a “size” getter.
+“keys”, “values”, {{@@iterator}} methods and a “size” getter.
 For read–write maplikes, it also includes “clear”, “delete” and
 “set” methods.
 
@@ -3806,7 +3811,7 @@ Note: In the ECMAScript language binding, the API for interacting
 with the set entries is similar to that available on ECMAScript
 {{Set}} objects.  If the <emu-t>readonly</emu-t>
 keyword is used, this includes “entries”, “forEach”, “has”,
-“keys”, “values”, [=@@iterator=] methods and a “size” getter.
+“keys”, “values”, {{@@iterator}} methods and a “size” getter.
 For read–write setlikes, it also includes “add”, “clear”, and “delete” methods.
 
 Setlike interfaces must not
@@ -3943,7 +3948,7 @@ namespaces.
 
     An ECMAScript implementation would then expose a global property named
     <code>VectorUtils</code> which was a simple object (with prototype
-    [=%ObjectPrototype%=]) with enumerable data properties for each declared operation, and
+    {{%ObjectPrototype%}}) with enumerable data properties for each declared operation, and
     enumerable get-only accessors for each declared attribute:
 
     <pre highlight="js">
@@ -6371,17 +6376,17 @@ Unless otherwise specified, the \[[Extensible]] internal slot
 of objects defined in this section has the value <emu-val>true</emu-val>.
 
 Unless otherwise specified, the \[[Prototype]] internal slot
-of objects defined in this section is [=%ObjectPrototype%=].
+of objects defined in this section is {{%ObjectPrototype%}}.
 
 Some objects described in this section are defined to have a <dfn id="dfn-class-string" export>class string</dfn>,
 which is the string to include in the string returned from Object.prototype.toString.
 If an object has a class string, then the object must,
-at the time it is created, have a property whose name is the [=@@toStringTag=] symbol
+at the time it is created, have a property whose name is the {{@@toStringTag}} symbol
 and whose value is the specified string.
 
 <p class="issue">
-    Should define whether [=@@toStringTag=] is writable, enumerable and configurable.
-    All [=@@toStringTag=] properties in the ES6 spec are non-writable and non-enumerable,
+    Should define whether {{@@toStringTag}} is writable, enumerable and configurable.
+    All {{@@toStringTag}} properties in the ES6 spec are non-writable and non-enumerable,
     and configurable.
 </p>
 
@@ -7155,7 +7160,7 @@ up on the ECMAScript object are not necessarily the same as the object’s prope
     to an ECMAScript Object value by
     running the following algorithm (where |D| is the [=dictionary=]):
 
-    1.  Let |O| be [=!=] <a abstract-op>ObjectCreate</a>([=%ObjectPrototype%=]).
+    1.  Let |O| be [=!=] <a abstract-op>ObjectCreate</a>({{%ObjectPrototype%}}).
     1.  Let |dictionaries| be a list consisting of |D| and all of |D|’s [=inherited dictionaries=],
         in order from least to most derived.
     1.  For each dictionary |dictionary| in |dictionaries|, in order:
@@ -7281,7 +7286,7 @@ ECMAScript Array values.
 
     1.  If <a abstract-op>Type</a>(|V|) is not Object,
         [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
-    1.  Let |method| be [=?=] <a abstract-op>GetMethod</a>(|V|, [=@@iterator=]).
+    1.  Let |method| be [=?=] <a abstract-op>GetMethod</a>(|V|, {{@@iterator}}).
     1.  If |method| is <emu-val>undefined</emu-val>,
         [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
     1.  Return the result of [=creating a sequence from an iterable|creating a sequence=]
@@ -7445,7 +7450,7 @@ ECMAScript Object values.
     [=converted to an ECMAScript value|converted=]
     to an ECMAScript value as follows:
 
-    1.  Let |result| be [=!=] <a abstract-op>ObjectCreate</a>([=%ObjectPrototype%=]).
+    1.  Let |result| be [=!=] <a abstract-op>ObjectCreate</a>({{%ObjectPrototype%}}).
     1.  [=map/For each=] |key| → |value| of |D|:
         1.  Let |esKey| be |key| [=converted to an ECMAScript value=].
         1.  Let |esValue| be |value| [=converted to an ECMAScript value=].
@@ -7516,12 +7521,7 @@ objects.
     An ECMAScript value |V| is [=converted to an IDL value|converted=]
     to an IDL <a interface lt="Promise">Promise<var ignore>T</var></a> value as follows:
 
-    1.  Let |resolve| be the original value of [=%Promise%=].resolve.
-        <p class="issue">
-            ECMAScript should grow a %Promise_resolve% well-known intrinsic object that can be referenced here.
-        </p>
-    1.  Let |promise| be the result of calling |resolve| with [=%Promise%=]
-        as the <emu-val>this</emu-val> value and |V| as the single argument value.
+    1.  Let |promise| be [=!=] <a abstract-op>Call</a>({{%Promise_resolve%}}, {{%Promise%}}, «|V|»)
     1.  Return the IDL [=promise type=] value that is a reference to the
         same object as |promise|.
 </div>
@@ -7639,13 +7639,13 @@ that correspond to the union’s [=member types=].
             that is a reference to the object |V|.
     1.  If <a abstract-op>Type</a>(|V|) is Object, then:
         1.  If |types| includes a [=sequence type=], then
-            1.  Let |method| be [=?=] <a abstract-op>GetMethod</a>(|V|, [=@@iterator=]).
+            1.  Let |method| be [=?=] <a abstract-op>GetMethod</a>(|V|, {{@@iterator}}).
             1.  If |method| is not <emu-val>undefined</emu-val>,
                 return the result of
                 [=creating a sequence from an iterable|creating a sequence=]
                 of that type from |V| and |method|.
         1.  If |types| includes a [=frozen array type=], then
-            1.  Let |method| be [=?=] <a abstract-op>GetMethod</a>(|V|, [=@@iterator=]).
+            1.  Let |method| be [=?=] <a abstract-op>GetMethod</a>(|V|, {{@@iterator}}).
             1.  If |method| is not <emu-val>undefined</emu-val>,
                 return the result of
                 [=Creating a frozen array from an iterable|creating a frozen array=]
@@ -8618,9 +8618,9 @@ appears on an [=interface=]
 that is not defined to [=interface/inherit=]
 from another, it indicates that the internal \[[Prototype]]
 property of its [=interface prototype object=]
-will be the intrinsic object [=%ArrayPrototype%=] rather than
-[=%ObjectPrototype%=].  This allows
-Array methods to be used more easily
+will be the intrinsic object {{%ArrayPrototype%}} rather than
+{{%ObjectPrototype%}}.  This allows
+{{Array}} methods to be used more easily
 with objects implementing the interface.
 
 The [{{LegacyArrayClass}}] extended attribute
@@ -8663,7 +8663,7 @@ entails.
 
     In an ECMAScript implementation of the above two interfaces,
     with appropriate definitions for getItem, setItem and removeItem,
-    Array methods to inspect and
+    {{Array}} methods to inspect and
     modify the array-like object can be used.
 
     <pre highlight="js">
@@ -8677,9 +8677,9 @@ entails.
     <code class="idl">ImmutableItemList</code> has a read only
     length [=attribute=]
     and no indexed property [=indexed property setters|setter=].  The
-    mutating Array methods will generally not
+    mutating {{Array}} methods will generally not
     succeed on objects implementing <code class="idl">ImmutableItemList</code>.
-    The exact behavior depends on the definition of the [=Array methods=] themselves.
+    The exact behavior depends on the definition of the {{Array}} methods themselves.
 
 </div>
 
@@ -9953,7 +9953,7 @@ that bare identifiers matching the property name will not resolve to
 the property in a <code>with</code> statement.  This is achieved by
 including the property name on the
 [=interface prototype object=]’s
-[=@@unscopables=] property’s value.
+{{@@unscopables}} property’s value.
 
 The [{{Unscopable}}]
 extended attribute must
@@ -10163,7 +10163,7 @@ Note: The HTML Standard defines how a security check is performed. [[!HTML]]
 
             and after performing the following steps,
 
-            1.  Let |method| be [=?=] <a abstract-op>GetMethod</a>(|V|, [=@@iterator=]).
+            1.  Let |method| be [=?=] <a abstract-op>GetMethod</a>(|V|, {{@@iterator}}).
 
             |method| is not <emu-val>undefined</emu-val>, then remove from |S| all
             other entries.
@@ -10404,7 +10404,7 @@ the <code>typeof</code> operator will return "function" when applied to an inter
         1.  Assert: |O| is an object that implements |I|.
         1.  Assert: |O|.\[[Realm]] is equal to |F|.\[[Realm]].
         1.  Return |O|.
-    1.  Let |constructorProto| be the [=%FunctionPrototype%=] of |realm|.
+    1.  Let |constructorProto| be the {{%FunctionPrototype%}} of |realm|.
     1.  If |I| inherits from some other interface |P|,
         then set |constructorProto| to the [=interface object=] of |P| in |realm|.
     1.  Let |F| be [=!=] <a abstract-op>CreateBuiltinFunction</a>(|realm|, |steps|, |constructorProto|).
@@ -10456,7 +10456,7 @@ This object's relevant [=Realm=] must be the same as that of the [=named constru
             |constructor| with |values| as the argument values.
         1.  Return the result of [=converted to an ECMAScript value|converting=]
             |R| to an ECMAScript [=interface type=] value |I|.
-    1.  Let |F| be [=!=] <a abstract-op>CreateBuiltinFunction</a>(|realm|, |steps|, [=%FunctionPrototype%=] of |realm|).
+    1.  Let |F| be [=!=] <a abstract-op>CreateBuiltinFunction</a>(|realm|, |steps|, {{%FunctionPrototype%}} of |realm|).
     1.  Perform [=!=] <a abstract-op>SetFunctionName</a>(|F|, |id|).
     1.  Initialize |S| to the [=effective overload set=]
         for constructors with identifier |id| on [=interface=] |I|
@@ -10511,8 +10511,8 @@ whose value is a reference to the [=interface object=] for the interface.
         [=interface prototype object=]
         for the inherited interface.
     1.  Otherwise, if |A| is declared with the [{{LegacyArrayClass}}]
-        extended attribute, then return [=%ArrayPrototype%=].
-    1.  Otherwise, return [=%ObjectPrototype%=].
+        extended attribute, then return {{%ArrayPrototype%}}.
+    1.  Otherwise, return {{%ObjectPrototype%}}.
 </div>
 
 <div class="note">
@@ -10558,7 +10558,7 @@ whose value is a reference to the [=interface object=] for the interface.
     has any [=interface member=] declared with
     the [{{Unscopable}}] extended attribute,
     then there must be a property on the
-    interface prototype object whose name is the [=@@unscopables=] symbol,
+    interface prototype object whose name is the {{@@unscopables}} symbol,
     which has the attributes
     { \[[Writable]]: <emu-val>false</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val> },
     and whose value is an object created as follows:
@@ -10610,7 +10610,7 @@ when applied to a [=legacy callback interface object=].
 
     1.  Let |steps| be the following steps:
         1.  [=ECMAScript/Throw=] a {{ECMAScript/TypeError}}.
-    1.  Let |F| be [=!=] <a abstract-op>CreateBuiltinFunction</a>(|realm|, |steps|, the [=%FunctionPrototype%=] of |realm|).
+    1.  Let |F| be [=!=] <a abstract-op>CreateBuiltinFunction</a>(|realm|, |steps|, the {{%FunctionPrototype%}} of |realm|).
     1.  Perform [=!=] <a abstract-op>SetFunctionName</a>(|F|, |id|).
     1.  Perform [=!=] [=DefinePropertyOrThrow=](|F|, "length",
         PropertyDescriptor{\[[Value]]: 0, \[[Writable]]: <emu-val>false</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val>}).
@@ -10637,8 +10637,8 @@ for that interface on which named properties are exposed.
         [=interface prototype object=]
         for the inherited interface.
     1.  Otherwise, if |A| is declared with the [{{LegacyArrayClass}}]
-        extended attribute, then return [=%ArrayPrototype%=].
-    1.  Otherwise, return [=%ObjectPrototype%=].
+        extended attribute, then return {{%ArrayPrototype%}}.
+    1.  Otherwise, return {{%ObjectPrototype%}}.
 </div>
 
 The [=class string=] of a [=named properties object=]
@@ -10813,15 +10813,13 @@ The characteristics of this property are as follows:
             1.  Return the result of [=converted to an ECMAScript value|converting=] |R| to an
                 ECMAScript value of the type |attribute| is declared as.
 
-        And then, if [=an exception was thrown=]:
+        And then, if <a lt="an exception was thrown">an exception |E| was thrown</a>:
 
-        1.  If |attribute|'s type is a [=promise type=], then:
-            1.  Let |reject| be the initial value of [=%Promise%=].reject.
-            1.  Return the result of calling |reject| with [=%Promise%=] as the
-                <emu-val>this</emu-val> object and the exception as the single argument value.
+        1.  If |attribute|'s type is a [=promise type=], then return
+            [=!=] <a abstract-op>Call</a>({{%Promise_reject%}}, {{%Promise%}}, «|E|»)
         1.  Otherwise, end these steps and allow the exception to propagate.
     1.  Let |F| be [=!=] <a abstract-op>CreateBuiltinFunction</a>(|realm|,
-        |steps|, the [=%FunctionPrototype%=] of |realm|).
+        |steps|, the {{%FunctionPrototype%}} of |realm|).
     1.  Let |name| be the string "get " prepended to |attribute|'s [=identifier=].
     1.  Perform [=!=] <a abstract-op>SetFunctionName</a>(|F|, |name|).
     1.  Perform [=!=] [=DefinePropertyOrThrow=](|F|, "length",
@@ -10894,7 +10892,7 @@ The characteristics of this property are as follows:
             |O| if |O| is not <emu-val>null</emu-val>.
         1.  Return <emu-val>undefined</emu-val>
     1.  Let |F| be [=!=] <a abstract-op>CreateBuiltinFunction</a>(|realm|,
-        |steps|, the [=%FunctionPrototype%=] of |realm|).
+        |steps|, the {{%FunctionPrototype%}} of |realm|).
     1.  Let |name| be the string "set " prepended to |id|.
     1.  Perform [=!=] <a abstract-op>SetFunctionName</a>(|F|, |name|).
     1.  Perform [=!=] [=DefinePropertyOrThrow=](|F|, "length",
@@ -11000,16 +10998,14 @@ property-installation style as namespaces.)
                 1.  Return the result of [=converted to an ECMAScript value|converting=] |R| to
                     an ECMAScript value of the type |op| is declared to return.
 
-        And then, if [=an exception was thrown=]:
+        And then, if <a lt="an exception was thrown">an exception |E| was thrown</a>:
 
         1.  If |op| has a [=return type=]
-            that is a [=promise type=], then:
-            1.  Let |reject| be the initial value of [=%Promise%=].reject.
-            1.  Return the result of calling |reject| with [=%Promise%=] as the <emu-val>this</emu-val> object
-                and the exception as the single argument value.
+            that is a [=promise type=], then return
+            [=!=] <a abstract-op>Call</a>({{%Promise_reject%}}, {{%Promise%}}, «|E|»)
         1.  Otherwise, end these steps and allow the exception to propagate.
     1.  Let |F| be [=!=] <a abstract-op>CreateBuiltinFunction</a>(|realm|,
-        |steps|, the [=%FunctionPrototype%=] of |realm|).
+        |steps|, the {{%FunctionPrototype%}} of |realm|).
     1.  Perform [=!=] <a abstract-op>SetFunctionName</a>(|F|, |id|).
     1.  Let |S| be the [=effective overload set=] for [=regular operations=] (if |op| is a regular
         operation) or for [=static operations=] (if |op| is a static operation) with [=identifier=] |id|
@@ -11043,7 +11039,7 @@ The [=return type=] of the [=default toJSON operation=] must be {{object}}.
         for [=interface=] |I|.
     1.  Invoke [=collect attribute values=] on |O|,
         passing it |stack| and |map| as arguments.
-    1.  Let |result| be [=!=] <a abstract-op>ObjectCreate</a>([=%ObjectPrototype%=]).
+    1.  Let |result| be [=!=] <a abstract-op>ObjectCreate</a>({{%ObjectPrototype%}}).
     1.  [=map/For each=] |key| → |value| of |map|,
         1.  Let |k| be |key| [=converted to an ECMAScript value=].
         1.  Let |v| be |value| [=converted to an ECMAScript value=].
@@ -11249,7 +11245,7 @@ If the [=interface=] has any of the following:
 *   a [=setlike declaration=]
 
 then a property must exist
-whose name is the [=@@iterator=] symbol, with attributes
+whose name is the {{@@iterator}} symbol, with attributes
 { \[[Writable]]: <emu-val>true</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val> }
 and whose value is a [=function object=].
 
@@ -11265,7 +11261,7 @@ The location of the property is determined as follows:
 *   Otherwise, the property exists solely on the interface’s [=interface prototype object=].
 
 If the interface defines an [=indexed property getter=],
-then the [=function object=] is [=%ArrayProto_values%=].
+then the [=function object=] is {{%ArrayProto_values%}}.
 
 <div algorithm="to invoke the @@iterator property of interfaces with a pair iterator">
 
@@ -11312,10 +11308,10 @@ then the [=function object=] is [=%ArrayProto_values%=].
         1.  Return <a abstract-op>CreateSetIterator</a>(|backing|, <code>"value"</code>).
 </div>
 
-The value of the [=@@iterator=] [=function object=]’s “length”
+The value of the {{@@iterator}} [=function object=]’s “length”
 property is the Number value <emu-val>0</emu-val>.
 
-The value of the [=@@iterator=] [=function object=]’s “name” property
+The value of the {{@@iterator}} [=function object=]’s “name” property
 is the String value “entries”
 if the interface has a [=pair iterator=] or a [=maplike declaration=]
 and the String “values”
@@ -11346,8 +11342,7 @@ The location of the property is determined as follows:
 *   Otherwise, the property exists solely on the interface’s [=interface prototype object=].
 
 If the interface defines an [=indexed property getter=],
-then the [=function object=] is
-the initial value of the “forEach” data property of [=%ArrayPrototype%=].
+then the [=function object=] is {{%ArrayProto_forEach%}}.
 
 <div algorithm="to invoke the forEach method of interfaces with indexed properties">
 
@@ -11452,12 +11447,11 @@ The location of the property is determined as follows:
 *   Otherwise, the property exists solely on the interface’s [=interface prototype object=].
 
 If the interface has a [=value iterator=],
-then the [=function object=] is
-the initial value of the “entries” data property of [=%ArrayPrototype%=].
+then the [=function object=] is {{%ArrayProto_entries%}}.
 
 If the interface has a [=pair iterator=],
 then the [=function object=] is
-the value of the [=@@iterator=] property.
+the value of the {{@@iterator}} property.
 
 
 <h5 id="es-iterable-keys">keys</h5>
@@ -11479,8 +11473,7 @@ The location of the property is determined as follows:
 *   Otherwise, the property exists solely on the interface’s [=interface prototype object=].
 
 If the interface has a [=value iterator=],
-then the [=function object=] is
-the initial value of the “keys” data property of [=%ArrayPrototype%=].
+then the [=function object=] is {{%ArrayProto_keys%}}.
 
 <div algorithm="to invoke the keys method of interfaces with a pair iterator">
 
@@ -11529,7 +11522,7 @@ The location of the property is determined as follows:
 
 If the interface has a [=value iterator=],
 then the [=function object=] is
-the value of the [=@@iterator=] property.
+the value of the {{@@iterator}} property.
 
 <div algorithm="to invoke the values method of interfaces with a pair iterator">
 
@@ -11596,7 +11589,7 @@ prototype for [=default iterator objects=]
 for the interface.
 
 The internal \[[Prototype]] property of an [=iterator prototype object=]
-must be [=%IteratorPrototype%=].
+must be {{%IteratorPrototype%}}.
 
 <div algorithm="to invoke the next property of iterators">
 
@@ -11724,7 +11717,7 @@ A property named “entries” must exist on
 |A|’s [=interface prototype object=]
 with attributes { \[[Writable]]: <emu-val>true</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val> }
 and whose value is the [=function object=] that is the value of
-the [=@@iterator=] property.
+the {{@@iterator}} property.
 
 
 <h5 id="es-map-keys-values">keys and values</h5>
@@ -11944,7 +11937,7 @@ with the following characteristics:
 A property named “values” must exist on |A|’s [=interface prototype object=]
 with attributes { \[[Writable]]: <emu-val>true</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val> }
 and whose value is the [=function object=] that is the value of
-the [=@@iterator=] property.
+the {{@@iterator}} property.
 
 
 <h5 id="es-set-entries-keys">entries and keys</h5>
@@ -12626,10 +12619,8 @@ the special value “missing”, which represents a missing optional argument.
         1.  If |completion| is a normal completion, return |completion|.
         1.  If |completion| is an [=abrupt completion=] and the operation has a [=return type=]
             that is <em>not</em> a [=promise type=], return |completion|.
-        1.  Let |reject| be the initial value of [=%Promise%=].reject.
-        1.  Let |rejectedPromise| be the result of calling |reject| with
-            [=%Promise%=] as the <emu-val>this</emu-val> value and
-            |completion|.\[[Value]] as the single argument value.
+        1.  Let |rejectedPromise| be [=!=] <a abstract-op>Call</a>({{%Promise_reject%}},
+            {{%Promise%}}, «|completion|.\[[Value]]»)
         1.  Return the result of [=converted to an IDL value|converting=]
             |rejectedPromise| to the operation's return type.
 </div>
@@ -12661,10 +12652,8 @@ the special value “missing”, which represents a missing optional argument.
         1.  If |completion| is a normal completion, return |completion|.
         1.  If |completion| is an [=abrupt completion=] and the attribute's type is
             <em>not</em> a [=promise type=], return |completion|.
-        1.  Let |reject| be the initial value of [=%Promise%=].reject.
-        1.  Let |rejectedPromise| be the result of calling |reject| with
-            [=%Promise%=] as the <emu-val>this</emu-val> value and
-            |completion|.\[[Value]] as the single argument value.
+        1.  Let |rejectedPromise| be [=!=] <a abstract-op>Call</a>({{%Promise_reject%}},
+            {{%Promise%}}, «|completion|.\[[Value]]»)
         1.  Return the result of [=converted to an IDL value|converting=]
             |rejectedPromise| to the attribute's type.
 </div>
@@ -12750,10 +12739,8 @@ described in the previous section).
         1.  If |completion| is a normal completion, return |completion|.
         1.  If |completion| is an [=abrupt completion=] and the callback function has a
             [=return type=] that is <em>not</em> a [=promise type=], return |completion|.
-        1.  Let |reject| be the initial value of [=%Promise%=].reject.
-        1.  Let |rejectedPromise| be the result of calling |reject| with
-            [=%Promise%=] as the <emu-val>this</emu-val> value and
-            |completion|.\[[Value]] as the single argument value.
+        1.  Let |rejectedPromise| be [=!=] <a abstract-op>Call</a>({{%Promise_reject%}},
+            {{%Promise%}}, «|completion|.\[[Value]]»)
         1.  Return the result of [=converted to an IDL value|converting=]
             |rejectedPromise| to the callback function's return type.
 </div>
@@ -12815,7 +12802,7 @@ The characteristics of a namespace object are described in [[#namespace-object]]
     is created as follows:
 
     1.  Let |namespaceObject| be
-        [=!=] <a abstract-op>ObjectCreate</a>(the [=%ObjectPrototype%=] of |realm|).
+        [=!=] <a abstract-op>ObjectCreate</a>(the {{%ObjectPrototype%}} of |realm|).
     1.  For each [=exposed=] [=regular attribute=] |attr| that is a [=namespace member=] of this namespace,
         1.  Let |F| be the result of creating an [=attribute getter=]
             given |attr|, |namespace|,  and |realm|.
@@ -12842,7 +12829,7 @@ The characteristics of a namespace object are described in [[#namespace-object]]
 In the ECMAScript binding, the {{DOMException}} type has some additional requirements:
 
 *   Unlike normal [=interface types=], the [=interface prototype object=] for {{DOMException}} must
-    have as its \[[Prototype]] the intrinsic object [=%ErrorPrototype%=].
+    have as its \[[Prototype]] the intrinsic object {{%ErrorPrototype%}}.
 
 *   If an implementation gives native {{ECMAScript/Error}} objects special powers or
     nonstandard properties (such as a <code>stack</code> property), it should also expose those on
