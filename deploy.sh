@@ -6,6 +6,7 @@ TARGET_BRANCH="gh-pages"
 
 function doCompile {
   curl https://api.csswg.org/bikeshed/ -F file=@index.bs > out/index.html
+  node ./check-grammar.js ./out/index.html
 }
 
 # Pull requests and commits to other branches shouldn't try to deploy, just build to verify
