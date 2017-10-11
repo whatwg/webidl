@@ -35,6 +35,39 @@ spec: dom; type: interface; text: Document
 </pre>
 
 <pre class="anchors">
+urlPrefix: https://www.khronos.org/registry/webgl/extensions/WEBGL_compressed_texture_astc/; spec: WEBGL_compressed_texture_astc
+    type: interface; text: WEBGL_compressed_texture_astc
+urlPrefix: https://www.khronos.org/registry/webgl/extensions/WEBGL_compressed_texture_s3tc_srgb/; spec: WEBGL_compressed_texture_s3tc_srgb
+    type: interface; text: WEBGL_compressed_texture_s3tc_srgb
+urlPrefix: https://www.khronos.org/registry/webgl/extensions/WEBGL_draw_buffers/; spec: WEBGL_draw_buffers
+    type: interface; text: WEBGL_draw_buffers
+urlPrefix: https://www.khronos.org/registry/webgl/extensions/WEBGL_lose_context/; spec: WEBGL_lose_context
+    type: interface; text: WEBGL_lose_context
+urlPrefix: https://www.khronos.org/registry/webgl/extensions/ANGLE_instanced_arrays/; spec: ANGLE_instanced_arrays
+    type: interface; text: ANGLE_instanced_arrays
+urlPrefix: https://www.khronos.org/registry/webgl/extensions/EXT_blend_minmax/; spec: EXT_blend_minmax
+    type: interface; text: EXT_blend_minmax
+urlPrefix: https://www.khronos.org/registry/webgl/extensions/EXT_color_buffer_float/; spec: EXT_color_buffer_float
+    type: interface; text: EXT_color_buffer_float
+urlPrefix: https://www.khronos.org/registry/webgl/extensions/EXT_disjoint_timer_query/; spec: EXT_disjoint_timer_query
+    type: interface; text: EXT_disjoint_timer_query
+urlPrefix: https://www.khronos.org/registry/webgl/extensions/OES_standard_derivatives/; spec: OES_standard_derivatives
+    type: interface; text: OES_standard_derivatives
+urlPrefix: https://www.khronos.org/registry/webgl/extensions/OES_vertex_array_object/; spec: OES_vertex_array_object
+    type: interface; text: OES_vertex_array_object
+urlPrefix: https://www.w3.org/TR/geolocation-API/; spec: GEOLOCATION-API
+    type: interface
+        text: Geolocation; url: geolocation;
+        text: Coordinates; url: coordinates;
+        text: Position; url: position;
+        text: PositionError; url: position-error;
+urlPrefix: https://w3c.github.io/deviceorientation/spec-source-orientation.html; spec: ORIENTATION-EVENT
+    type: interface
+        text: DeviceRotationRate; url: device_rotation_rate;
+        text: DeviceAcceleration; url: device_acceleration;
+urlPrefix: https://w3c.github.io/mediacapture-main/; spec: MEDIACAPTURE-STREAMS
+    type: interface
+        text: ConstrainablePattern; url: dom-constrainablepattern;
 urlPrefix: http://www.unicode.org/glossary/; spec: UNICODE
     type: dfn
         text: Unicode scalar value; url: unicode_scalar_value
@@ -357,12 +390,14 @@ The different kinds of <dfn id="dfn-definition">definitions</dfn> that can appea
 [=IDL fragment=] are:
 [=interfaces=],
 [=partial interface|partial interface definitions=],
+[=interface mixins=],
+[=partial interface mixin|partial mixin definitions=],
 [=namespaces=],
 [=partial namespace|partial namespace definitions=],
 [=dictionary|dictionaries=],
 [=partial dictionary|partial dictionary definitions=],
 [=typedefs=] and
-[=implements statements=].
+[=includes statements=].
 These are all defined in the following sections.
 
 Each [=definition=]
@@ -390,19 +425,13 @@ in [[#es-extended-attributes]].
 
 <pre class="grammar" id="prod-Definition">
     Definition :
-        CallbackOrInterface
+        CallbackOrInterfaceOrMixin
         Namespace
         Partial
         Dictionary
         Enum
         Typedef
-        ImplementsStatement
-</pre>
-
-<pre class="grammar" id="prod-CallbackOrInterface">
-    CallbackOrInterface :
-        "callback" CallbackRestOrInterface
-        Interface
+        IncludesStatement
 </pre>
 
 <div class="example">
@@ -562,7 +591,7 @@ underscore.
         "dictionary"
         "enum"
         "getter"
-        "implements"
+        "includes"
         "inherit"
         "interface"
         "iterable"
@@ -689,8 +718,8 @@ across [=IDL fragments=].
 describe object oriented systems.  In such systems, objects are entities
 that have identity and which are encapsulations of state and behavior.
 An <dfn id="dfn-interface" export>interface</dfn> is a definition (matching
-<emu-nt><a href="#prod-Interface">Interface</a></emu-nt> or
-<emu-t>callback</emu-t> <emu-nt><a href="#prod-Interface">Interface</a></emu-nt>) that declares some
+<emu-t>interface</emu-t> <emu-nt><a href="#prod-InterfaceRest">InterfaceRest</a></emu-nt> or
+<emu-t>callback</emu-t> <emu-t>interface</emu-t> <emu-nt><a href="#prod-InterfaceRest">InterfaceRest</a></emu-nt>) that declares some
 state and behavior that an object implementing that interface will expose.
 
 <pre highlight="webidl" class="syntax">
@@ -701,16 +730,8 @@ state and behavior that an object implementing that interface will expose.
 
 An interface is a specification of a set of
 <dfn id="dfn-interface-member" export lt="interface member">interface members</dfn>
-(matching <emu-nt><a href="#prod-InterfaceMembers">InterfaceMembers</a></emu-nt>),
-which are the [=constants=],
-[=attributes=],
-[=operations=] and
-other declarations that appear between the braces in the interface declaration.
-Attributes describe the state that an object
-implementing the interface will expose, and operations describe the
-behaviors that can be invoked on the object.  Constants declare
-named constant values that are exposed as a convenience to users
-of objects in the system.
+(matching <emu-nt><a href="#prod-InterfaceMembers">InterfaceMembers</a></emu-nt>).
+These are the [=members=] that appear between the braces in the interface declaration.
 
 Interfaces in Web IDL describe how objects that implement the
 interface behave.  In bindings for object oriented languages, it is
@@ -792,11 +813,11 @@ interface |B| that inherits from |A|, and so on.
 Note that general multiple inheritance of interfaces is not supported, and
 objects also cannot implement arbitrary sets of interfaces.
 Objects can be defined to implement a single given interface |A|,
-which means that it also implements all of |A|’s
-[=inherited interfaces=].  In addition,
-an [=implements statement=] can be
-used to define that objects implementing an interface will always
-also implement another interface.
+which means that it also implements all of |A|’s [=inherited interfaces=].
+In addition, an [=includes statement=] can be used
+to define that objects implementing an [=interface=] |A|
+will always also include the [=interface mixin member|members=]
+of the [=interface mixins=] |A| [=includes=].
 
 Each interface member can be preceded by a list of [=extended attributes=] (matching
 <emu-nt><a href="#prod-ExtendedAttributeList">ExtendedAttributeList</a></emu-nt>),
@@ -836,8 +857,7 @@ Note: See also the similarly named [=callback function=] definition.
 must not [=interface/inherit=]
 from any non-callback interfaces, and non-callback interfaces must not
 inherit from any callback interfaces.
-Callback interfaces must not have any
-[=consequential interfaces=].
+Callback interfaces must not [=include=] any [=interface mixins=].
 
 [=Static attributes=] and
 [=static operations=] must not
@@ -925,7 +945,7 @@ be defined on a [=callback interface=].
 
 The IDL for interfaces can be split into multiple parts by using
 <dfn id="dfn-partial-interface" export>partial interface</dfn> definitions
-(matching <emu-t>partial</emu-t> <emu-nt><a href="#prod-PartialInterface">PartialInterface</a></emu-nt>).
+(matching <emu-t>partial</emu-t> <emu-nt><a href="#prod-PartialInterfaceRest">PartialInterfaceRest</a></emu-nt>).
 The [=identifier=] of a partial
 interface definition must be the same
 as the identifier of an interface definition.  All of
@@ -994,17 +1014,27 @@ The following extended attributes are applicable to interfaces:
 [{{PrimaryGlobal}}], and
 [{{SecureContext}}].
 
-<div data-fill-with="grammar-CallbackOrInterface"></div>
+<pre class="grammar" id="prod-CallbackOrInterfaceOrMixin">
+    CallbackOrInterfaceOrMixin :
+        "callback" CallbackRestOrInterface
+        "interface" InterfaceOrMixin
+</pre>
 
 <pre class="grammar" id="prod-CallbackRestOrInterface">
     CallbackRestOrInterface :
         CallbackRest
-        Interface
+        "interface" InterfaceRest
 </pre>
 
-<pre class="grammar" id="prod-Interface">
-    Interface :
-        "interface" identifier Inheritance "{" InterfaceMembers "}" ";"
+<pre class="grammar" id="prod-InterfaceOrMixin">
+    InterfaceOrMixin :
+        InterfaceRest
+        MixinRest
+</pre>
+
+<pre class="grammar" id="prod-InterfaceRest">
+    InterfaceRest :
+        identifier Inheritance "{" InterfaceMembers "}" ";"
 </pre>
 
 <pre class="grammar" id="prod-Partial">
@@ -1014,14 +1044,20 @@ The following extended attributes are applicable to interfaces:
 
 <pre class="grammar" id="prod-PartialDefinition">
     PartialDefinition :
-        PartialInterface
+        "interface" PartialInterfaceOrPartialMixin
         PartialDictionary
         Namespace
 </pre>
 
-<pre class="grammar" id="prod-PartialInterface">
-    PartialInterface :
-        "interface" identifier "{" InterfaceMembers "}" ";"
+<pre class="grammar" id="prod-PartialInterfaceOrPartialMixin">
+    PartialInterfaceOrPartialMixin :
+        PartialInterfaceRest
+        MixinRest
+</pre>
+
+<pre class="grammar" id="prod-PartialInterfaceRest">
+    PartialInterfaceRest :
+        identifier "{" InterfaceMembers "}" ";"
 </pre>
 
 <pre class="grammar" id="prod-InterfaceMembers">
@@ -1127,6 +1163,325 @@ The following extended attributes are applicable to interfaces:
     </pre>
 </div>
 
+
+<h3 id="idl-interface-mixins">Interface mixins</h3>
+
+An <dfn export>interface mixin</dfn> is a definition (matching <emu-t>interface</emu-t> <emu-nt><a href="#prod-MixinRest">MixinRest</a></emu-nt>)
+that declares state and behavior that can be [=included=] by one or more [=interfaces=],
+and that are exposed by objects that implement an [=interface=]
+that [=includes=] the [=interface mixin=].
+
+<pre class="webidl" class="syntax">
+    interface mixin identifier {
+      /* mixin_members... */
+    };
+</pre>
+
+Note: [=Interface mixins=], much like [=partial interfaces=],
+are intended for use as a specification editorial aide,
+allowing a coherent set of functionalities to be grouped together,
+and included in multiple interfaces, possibly across documents.
+They are not meant to be exposed through language bindings.
+Guidance on when to choose [=partial interfaces=], [=interface mixins=],
+or [=partial interface mixins=] can be found in [[#using-mixins-and-partials]].
+
+An [=interface mixin=] is a specification of a set of <dfn export lt="interface mixin member">interface mixin members</dfn>
+(matching <emu-nt><a href="#prod-MixinMembers">MixinMembers</a></emu-nt>),
+which are the [=constants=], [=regular operations=], [=regular attributes=], and [=stringifiers=]
+that appear between the braces in the [=interface mixin=] [=declaration=].
+
+These [=constants=], [=regular operations=], [=regular attributes=], and [=stringifiers=]
+describe the behaviors that can be implemented by an object,
+as if they were specified on the [=interface=] that [=includes=] them.
+
+[=Static attributes=], [=static operations=], [=special operations=] except for [=stringifiers=], and
+[=iterable declaration|iterable=], [=maplike declaration|maplike=], and [=setlike declarations=]
+cannot appear in [=interface mixin=] [=declarations=].
+
+As with interfaces, the IDL for [=interface mixins=] can be split into multiple parts by using
+<dfn export>partial interface mixin</dfn> definitions
+(matching <emu-t>partial</emu-t> <emu-t>interface</emu-t> <emu-nt><a href="#prod-MixinRest">MixinRest</a></emu-nt>).
+The [=identifier=] of a [=partial interface mixin=] [=definition=] must
+be the same as the [=identifier=] of an [=interface mixin=] [=definition=].
+All of the [=interface mixin member|members=] that appear on each of the [=partial interface mixin=] [=definitions=]
+are considered to be [=members=] of the [=interface mixin=] itself,
+and—by extension—of the [=interfaces=] that [=include=] the [=interface mixin=].
+
+<pre class="webidl" class="syntax">
+    interface mixin <mark>SomeMixin</mark> {
+      /* mixin_members... */
+    };
+
+    partial interface mixin <mark>SomeMixin</mark> {
+      /* mixin_members... */
+    };
+</pre>
+
+The order that members appear in has significance for property enumeration
+in the <a href="#es-namespaces">ECMAScript binding</a>.
+
+Note that unlike [=interfaces=] or [=dictionaries=], [=interface mixins=] do not create types.
+
+Of the extended attributes defined in this specification,
+only the [{{Exposed}}] and [{{SecureContext}}] extended attributes
+are applicable to [=interface mixins=].
+
+An <dfn>includes statement</dfn> is a definition
+(matching <emu-nt><a href="#prod-IncludesStatement">IncludesStatement</a></emu-nt>)
+used to declare that all objects implementing an [=interface=] |I|
+(identified by the first [=identifier=])
+must additionally include the [=interface mixin member|members] of [=interface mixin=] |M|
+(identified by the second identifier).
+[=Interface=] |I| is said to <dfn>include</dfn> [=interface mixin=] |M|.
+
+<pre class="webidl" class="syntax">
+    interface_identifier includes mixin_indentifier;
+</pre>
+
+The first [=identifier=] must reference a [=callback interface|non-callback=] [=interface=] |I|.
+The second identifier must reference an [=interface mixin=] |M|.
+
+Each [=interface mixin member|member=] of |M| is considered to be
+a [=member=] of each [=interface=] |I|, |J|, |K|, … that [=includes=] |M|,
+as if a copy of each [=interface mixin member|member=] had been made.
+So for a given member <var ignore>m</var> of |M|,
+interface |I| is considered to have a [=member=] <var>m<sub>I</sub></var>,
+interface |J| is considered to have a [=member=] <var>m<sub>J</sub></var>,
+interface |K| is considered to have a [=member=] <var>m<sub>K</sub></var>, and so on.
+The <dfn>host interfaces</dfn> of <var>m<sub>I</sub></var>, <var>m<sub>J</sub></var>,
+and <var>m<sub>K</sub></var>, are |I|, |J|, and |K| respectively.
+
+Note: In ECMAScript, this implies that each [=regular operation=]
+declared as a [=interface mixin member|member=] of [=interface mixin=] |M|,
+and exposed as a data property with a [=built-in function object=] value,
+is a distinct [=built-in function object=]
+in each [=interface prototype object=]
+whose associated [=interface=] [=includes=] |M|.
+Similarly, for [=attributes=], each copy of the accessor property has
+distinct [=built-in function objects=] for its getters and setters.
+
+The order of appearance of [=includes statements=] affects the order in which [=interface mixin=]
+are [=included=] by their [=host interface=].
+
+Issue: [=interface mixin member|Member=] order isn't clearly specified,
+in particular when [=interface mixins=] are defined in separate documents.
+It is discussed in <a href="https://github.com/heycam/webidl/issues/432">issue #432</a>.
+
+No [=extended attributes=] defined in this specification are applicable to [=includes statements=].
+
+<div class="example" id="example-mixin">
+
+    The following [=IDL fragment=] defines an [=interface=], <code class="idl">Entry</code>,
+    and an [=interface mixin=], <code class="idl">Observable</code>.
+    The [=includes statement=] specifies that
+    <code class="idl">Observable</code>'s [=interface mixin member|members=]
+    are always included on objects implementing <code class="idl">Entry</code>.
+
+    <pre class="webidl">
+        interface Entry {
+          readonly attribute unsigned short entryType;
+          // ...
+        };
+
+        interface mixin Observable {
+          void addEventListener(DOMString type,
+                                EventListener listener,
+                                boolean useCapture);
+          // ...
+        };
+
+        Entry includes Observable;
+    </pre>
+
+    An ECMAScript implementation would thus have an “addEventListener”
+    property in the prototype chain of every <code class="idl">Entry</code>:
+
+    <pre highlight="js">
+        var e = getEntry();          // Obtain an instance of Entry.
+        typeof e.addEventListener;   // Evaluates to "function".
+    </pre>
+
+</div>
+
+<div data-fill-with="grammar-CallbackOrInterfaceOrMixin"></div>
+
+<div data-fill-with="grammar-CallbackRestOrInterfaceOrMixin"></div>
+
+<div data-fill-with="grammar-InterfaceOrMixin"></div>
+
+<div data-fill-with="grammar-Partial"></div>
+
+<div data-fill-with="grammar-PartialDefinition"></div>
+
+<pre class="grammar" id="prod-MixinRest">
+    MixinRest :
+        "mixin" identifier "{" MixinMembers "}" ";"
+</pre>
+
+<pre class="grammar" id="prod-MixinMembers">
+    MixinMembers :
+        ExtendedAttributeList MixinMember MixinMembers
+        ε
+</pre>
+
+<pre class="grammar" id="prod-MixinMember">
+    MixinMember :
+        Const
+        RegularOperation
+        Stringifier
+        ReadOnly AttributeRest
+</pre>
+
+<pre class="grammar" id="prod-IncludesStatement">
+    IncludesStatement :
+        identifier "includes" identifier ";"
+</pre>
+
+<h4 id="using-mixins-and-partials">Using mixins and partials</h4>
+
+<i>This section is informative.</i>
+
+[=Interface mixins=] allow the sharing of [=attributes=], [=constants=], and [=operations=]
+across <em>multiple</em> [=interfaces=].
+If you're only planning to extend a single interface,
+you might consider using a [=partial interface=] instead.
+
+For example, instead of:
+
+<pre class="webidl">
+    interface mixin WindowSessionStorage {
+      readonly attribute Storage sessionStorage;
+    };
+    Window includes WindowSessionStorage;
+</pre>
+
+do:
+
+<pre class="webidl">
+    partial interface Window {
+      readonly attribute Storage sessionStorage;
+    };
+</pre>
+
+Additionally, you can rely on extending [=interface mixins=] exposed by other specifications
+to target common use cases, such as [=exposed|exposing=]
+a set of [=attributes=], [=constants=], or [=operations=]
+across both window and worker contexts.
+
+For example, instead of the common but verbose:
+
+<pre class="webidl">
+    interface mixin GlobalCrypto {
+      readonly attribute Crypto crypto;
+    };
+
+    Window includes GlobalCrypto;
+    WorkerGlobalScope includes GlobalCrypto;
+</pre>
+
+you can extend the {{WindowOrWorkerGlobalScope}} [=interface mixin=] using a [=partial interface mixin=]:
+
+<pre class="webidl">
+    partial interface mixin WindowOrWorkerGlobalScope {
+      readonly attribute Crypto crypto;
+    };
+</pre>
+
+<h3 id="idl-members">Members</h3>
+
+[=Interfaces=], [=interface mixins=], and [=namespaces=] are specifications of a set of
+<dfn id="dfn-member" export lt="members">members</dfn> (respectively matching
+<emu-nt><a href="#prod-InterfaceMembers">InterfaceMembers</a></emu-nt>,
+<emu-nt><a href="#prod-MixinMembers">MixinMembers</a></emu-nt>, and
+<emu-nt><a href="#prod-NamespaceMembers">NamespaceMembers</a></emu-nt>),
+which are the [=constants=], [=attributes=], [=operations=], and
+other declarations that appear between the braces of their declarations.
+[=Attributes=] describe the state that an object
+implementing the [=interface=], [=interface mixin=], or [=namespace=] will expose,
+and [=operations=] describe the behaviors that can be invoked on the object.
+[=Constants=] declare named constant values
+that are exposed as a convenience to users of objects in the system.
+
+[=Interfaces=], [=interface mixins=], and [=namespaces=] each support a different set of [=members=],
+which are specified in [[#idl-interfaces]], [[#idl-interface-mixins]], and [[#idl-namespaces]],
+and summarized in the following informative table:
+
+<table class="data complex non-normative">
+    <thead>
+        <tr>
+            <th></th>
+            <th>[=Interfaces=]</th>
+            <th>[=Callback interfaces=]</th>
+            <th>[=Interface mixins=]</th>
+            <th>[=Namespaces=]</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <th>[=Constants=]</th>
+            <td>●</td>
+            <td>●</td>
+            <td>●</td>
+            <td></td>
+        </tr>
+        <tr>
+            <th>[=Regular attributes=]</th>
+            <td>●</td>
+            <td>●</td>
+            <td>●</td>
+            <td>Only [=read only=] attributes</td>
+        </tr>
+        <tr>
+            <th>[=Static attributes=]</th>
+            <td>●</td>
+            <td></td>
+            <td></td>
+            <td></td>
+        </tr>
+        <tr>
+            <th>[=Regular Operations=]</th>
+            <td>●</td>
+            <td>●</td>
+            <td>●</td>
+            <td>●</td>
+        </tr>
+        <tr>
+            <th>[=Special Operations=]</th>
+            <td>●</td>
+            <td></td>
+            <td>Only [=stringifiers=]</td>
+            <td></td>
+        </tr>
+        <tr>
+            <th>[=Static Operations=]</th>
+            <td>●</td>
+            <td></td>
+            <td></td>
+            <td></td>
+        </tr>
+        <tr>
+            <th>[=Iterable declarations=]</th>
+            <td>●</td>
+            <td></td>
+            <td></td>
+            <td></td>
+        </tr>
+        <tr>
+            <th>[=Maplike declarations=]</th>
+            <td>●</td>
+            <td></td>
+            <td></td>
+            <td></td>
+        </tr>
+        <tr>
+            <th>[=Setlike declarations=]</th>
+            <td>●</td>
+            <td></td>
+            <td></td>
+            <td></td>
+        </tr>
+    </tbody>
+</table>
 
 <h4 id="idl-constants">Constants</h4>
 
@@ -1571,7 +1926,7 @@ are applicable only to regular attributes:
 An <dfn id="dfn-operation" export>operation</dfn> is an [=interface member=]
 (matching <emu-t>static</emu-t> <emu-nt><a href="#prod-OperationRest">OperationRest</a></emu-nt>,
 <emu-t>stringifier</emu-t> <emu-nt><a href="#prod-OperationRest">OperationRest</a></emu-nt>,
-<emu-nt><a href="#prod-ReturnType">ReturnType</a></emu-nt> <emu-nt><a href="#prod-OperationRest">OperationRest</a></emu-nt> or
+<emu-nt><a href="#prod-RegularOperation">RegularOperation</a></emu-nt> or
 <emu-nt><a href="#prod-SpecialOperation">SpecialOperation</a></emu-nt>)
 that defines a behavior that can be invoked on objects implementing the interface.
 There are three kinds of operation:
@@ -1927,13 +2282,18 @@ The following extended attributes are applicable to operations:
 
 <pre class="grammar" id="prod-Operation">
     Operation :
-        ReturnType OperationRest
+        RegularOperation
         SpecialOperation
+</pre>
+
+<pre class="grammar" id="prod-RegularOperation">
+    RegularOperation :
+        ReturnType OperationRest
 </pre>
 
 <pre class="grammar" id="prod-SpecialOperation">
     SpecialOperation :
-        Special Specials ReturnType OperationRest
+        Special Specials RegularOperation
 </pre>
 
 <pre class="grammar" id="prod-Specials">
@@ -2025,8 +2385,7 @@ The <dfn id="dfn-json-types" export lt="JSON type">JSON types</dfn> are:
 *   [=records=] where all of their [=map/values=] are [=JSON types=],
 *   {{object}},
 *   [=interface types=] that have a <code>toJSON</code> operation declared on themselves or
-    one of their [=inherited interface|inherited=] or
-    [=consequential interface|consequential=] interfaces.
+    one of their [=inherited interfaces=].
 
 How the <code>toJSON</code> [=regular operation=]
 is made available on an object in a language binding,
@@ -2322,7 +2681,7 @@ a [=static attribute=].
 <pre class="grammar" id="prod-StringifierRest">
     StringifierRest :
         ReadOnly AttributeRest
-        ReturnType OperationRest
+        RegularOperation
         ";"
 </pre>
 
@@ -2665,7 +3024,7 @@ declared on [=callback interfaces=].
 <pre class="grammar" id="prod-StaticMemberRest">
     StaticMemberRest :
         ReadOnly AttributeRest
-        ReturnType OperationRest
+        RegularOperation
 </pre>
 
 <div class="example">
@@ -2730,8 +3089,12 @@ that overloaded operations and constructors can be
 specified to take, and in order to describe these restrictions,
 the notion of an <em>effective overload set</em> is used.
 
-[=Operations=] must not be overloaded across [=interface=]
-and [=partial interface=] definitions.
+[=Operations=] must not be overloaded across
+[=interface=],
+[=partial interface=],
+[=interface mixin=], and
+[=partial interface mixin=]
+definitions.
 
 <div class="note">
 
@@ -3578,9 +3941,8 @@ actual [=array iterator objects=].
 Interfaces with iterable declarations must not
 have any [=interface members=]
 named “entries”, “forEach”, “keys” or “values”,
-or have any [=inherited interfaces|inherited=]
-or [=consequential interfaces|consequential=]
-interfaces that have interface members with these names.
+or have any [=inherited interfaces=]
+that have [=members=] with these names.
 
 <div class="example">
 
@@ -3656,16 +4018,14 @@ interfaces that have interface members with these names.
 
 An interface must not have more than one
 [=iterable declaration=].
-The [=inherited interfaces|inherited=]
-and [=consequential interfaces|consequential=]
-interfaces of an interface with an
+The [=inherited interfaces=]
+of an interface with an
 [=iterable declaration=]
 must not also have an
 [=iterable declaration=].
 An interface with an [=iterable declaration=]
-and its [=inherited interfaces|inherited=]
-and [=consequential interfaces|consequential=]
-interfaces must not have a
+and its [=inherited interfaces=]
+must not have a
 [=maplike declaration=] or
 [=setlike declaration=].
 
@@ -3726,15 +4086,13 @@ For read–write maplikes, it also includes “clear”, “delete” and
 Maplike interfaces must not
 have any [=interface members=]
 named “entries”, “forEach”, “get”, “has”, “keys”, “size”, or “values”,
-or have any [=inherited interfaces|inherited=]
-or [=consequential interfaces|consequential=]
-interfaces that have interface members with these names.
+or have any [=inherited interfaces=]
+that have [=members=] with these names.
 Read–write maplike interfaces must not
 have any [=attributes=]
 or [=constants=] named
-“clear”, “delete”, or “set”, or have any [=inherited interfaces|inherited=]
-or [=consequential interfaces|consequential=]
-interfaces that have attributes or constants with these names.
+“clear”, “delete”, or “set”, or have any [=inherited interfaces=]
+that have [=attributes=] or [=constants=] with these names.
 
 Note: Operations named “clear”, “delete”, or “set” are allowed on read–write maplike
 interfaces and will prevent the default implementation of these methods being
@@ -3743,13 +4101,11 @@ This allows the default behavior of these operations to be overridden.
 
 An interface must not have more than one
 [=maplike declaration=].
-The [=inherited interfaces|inherited=]
-and [=consequential interfaces|consequential=]
-interfaces of a maplike interface must not
+The [=inherited interfaces=]
+of a maplike interface must not
 also have a [=maplike declaration=].
-A maplike interface and its [=inherited interfaces|inherited=]
-and [=consequential interfaces|consequential=]
-interfaces must not have an
+A maplike interface and its [=inherited interfaces=]
+must not have an
 [=iterable declaration=] or
 [=setlike declaration=].
 
@@ -3815,15 +4171,13 @@ For read–write setlikes, it also includes “add”, “clear”, and “delet
 Setlike interfaces must not
 have any [=interface members=]
 named “entries”, “forEach”, “has”, “keys”, “size”, or “values”,
-or have any [=inherited interfaces|inherited=]
-or [=consequential interfaces|consequential=]
-interfaces that have interface members with these names..
+or have any [=inherited interfaces=]
+that have [=members=] with these names.
 Read–write setlike interfaces must not
 have any [=attributes=]
 or [=constants=] named
-“add”, “clear”, or “delete”, or have any [=inherited interfaces|inherited=]
-or [=consequential interfaces|consequential=]
-interfaces that have attributes or constants with these names.
+“add”, “clear”, or “delete”, or have any [=inherited interfaces=]
+that have [=attributes=] or [=constants=] with these names.
 
 Note: Operations named “add”, “clear”, or “delete” are allowed on read–write setlike
 interfaces and will prevent the default implementation of these methods being
@@ -3832,13 +4186,11 @@ This allows the default behavior of these operations to be overridden.
 
 An interface must not have more than one
 [=setlike declaration=].
-The [=inherited interfaces|inherited=]
-and [=consequential interfaces|consequential=]
-interfaces of a setlike interface must not
+The [=inherited interfaces=]
+of a setlike interface must not
 also have a [=setlike declaration=].
-A setlike interface and its [=inherited interfaces|inherited=]
-and [=consequential interfaces|consequential=]
-interfaces must not have an
+A setlike interface and its [=inherited interfaces=]
+must not have an
 [=iterable declaration=] or
 [=maplike declaration=].
 
@@ -3927,7 +4279,7 @@ namespaces.
 
 <pre class="grammar" id="prod-NamespaceMember">
     NamespaceMember :
-        ReturnType OperationRest
+        RegularOperation
         "readonly" AttributeRest
 </pre>
 
@@ -4720,9 +5072,9 @@ be used as the type of a [=constant=].
 The following extended attribute is applicable to callback functions:
 [{{TreatNonObjectAsNull}}].
 
-<div data-fill-with="grammar-CallbackOrInterface"></div>
+<div data-fill-with="grammar-CallbackOrInterfaceOrMixin"></div>
 
-<div data-fill-with="grammar-CallbackRestOrInterface"></div>
+<div data-fill-with="grammar-CallbackRestOrInterfaceOrMixin"></div>
 
 <pre class="grammar" id="prod-CallbackRest">
     CallbackRest :
@@ -4803,166 +5155,6 @@ defined in this specification are applicable to [=typedefs=].
           boolean allPointsWithinBounds(Points ps);
         };
     </pre>
-</div>
-
-
-<h3 id="idl-implements-statements">Implements statements</h3>
-
-An <dfn id="dfn-implements-statement" export>implements statement</dfn> is a definition
-(matching <emu-nt><a href="#prod-ImplementsStatement">ImplementsStatement</a></emu-nt>)
-used to declare that all objects implementing an interface |A|
-(identified by the first [=identifier=])
-must additionally implement interface |B|
-(identified by the second identifier), including all other interfaces that
-|B| inherits from.
-
-<pre highlight="webidl" class="syntax">identifier_A implements identifier_B;</pre>
-
-Transitively, if objects implementing |B|
-are declared with an [=implements statement=]
-to additionally implement interface |C|, then all objects implementing
-|A| do additionally implement interface |C|.
-
-The two [=identifiers=] must
-identify two different interfaces.
-
-The interface identified on the left-hand side of an implements statement
-must not [=interface/inherit=]
-from the interface identifier on the right-hand side, and vice versa.  Both identified
-interfaces also must not be
-[=callback interfaces=].
-
-If each [=implements statement=] is
-considered to be an edge in a directed graph, from a node representing the interface
-on the left-hand side of the statement to a node representing the interface on the
-right-hand side, then this graph must not have any cycles.
-
-Interfaces that a given object implements are partitioned into those that are considered
-<dfn id="dfn-supplemental-interface" export lt="supplemental interface">supplemental interfaces</dfn> and those that are not.
-An interface |A| is considered to be a
-[=supplemental interface=] of an object
-|O| if:
-
-*   |O| implements a different interface |B|, and the IDL states that
-    <code>B implements A</code>; or
-*   |O| implements a different [=supplemental interface=]
-    |C|, and |C| [=interface/inherits=] from |A|.
-
-<div class="note">
-
-    Specification authors are discouraged from writing [=implements statements=]
-    where the [=interface=] on the left-hand side
-    is a [=supplemental interface=].
-    For example, if author 1 writes:
-
-    <pre highlight="webidl">
-        interface Window { /* ... */ };
-        interface SomeFunctionality { /* ... */ };
-        Window implements SomeFunctionality;
-    </pre>
-
-    and author 2 later writes:
-
-    <pre highlight="webidl">
-        interface Gizmo { /* ... */ };
-        interface MoreFunctionality { /* ... */ };
-        SomeFunctionality implements MoreFunctionality;
-        Gizmo implements SomeFunctionality;
-    </pre>
-
-    then it might be the case that author 2 is unaware of exactly which
-    interfaces already are used on the left-hand side of an
-    <code>implements SomeFunctionality</code> statement, and so has
-    required more objects implement <code class="idl">MoreFunctionality</code>
-    than he or she expected.
-
-    Better in this case would be for author 2 to write:
-
-    <pre highlight="webidl">
-        interface Gizmo { /* ... */ };
-        interface MoreFunctionality { /* ... */ };
-        Gizmo implements SomeFunctionality;
-        Gizmo implements MoreFunctionality;
-    </pre>
-</div>
-
-The <dfn id="dfn-consequential-interfaces" export>consequential interfaces</dfn> of an interface
-|A| are:
-
-*   each interface |B| where the IDL states <code>A implements B</code>;
-*   each interface that a consequential interface of |A| inherits from; and
-*   each interface |D| where the IDL states that <code>C implements D</code>,
-    where |C| is a consequential interface of |A|.
-
-For a given interface, there must not
-be any member defined on any of its consequential interfaces
-whose identifier is the same as any other member defined on any
-of those consequential interfaces or on the original interface itself.
-
-<div class="note">
-
-    For example, that precludes the following:
-
-    <pre highlight="webidl">
-        interface A { attribute long x; };
-        interface B { attribute long x; };
-        A implements B;  // B::x would clash with A::x
-
-        interface C { attribute long y; };
-        interface D { attribute long y; };
-        interface E : D { };
-        C implements E;  // D::y would clash with C::y
-
-        interface F { };
-        interface H { attribute long z; };
-        interface I { attribute long z; };
-        F implements H;
-        F implements I;  // H::z and I::z would clash when mixed in to F
-    </pre>
-</div>
-
-No [=extended attributes=]
-defined in this specification are applicable to
-[=implements statements=].
-
-<pre class="grammar" id="prod-ImplementsStatement">
-    ImplementsStatement :
-        identifier "implements" identifier ";"
-</pre>
-
-<div class="example">
-
-    The following [=IDL fragment=]
-    defines two [=interfaces=], stating
-    that one interface is always implemented on objects implementing the other.
-
-    <pre highlight="webidl">
-        interface Entry {
-          readonly attribute unsigned short entryType;
-          // ...
-        };
-
-        interface Observable {
-          void addEventListener(DOMString type,
-                                EventListener listener,
-                                boolean useCapture);
-          // ...
-        };
-
-        Entry implements Observable;
-    </pre>
-
-    An ECMAScript implementation would thus have an “addEventListener”
-    property in the prototype chain of every <code class="idl">Entry</code>:
-
-    <pre highlight="js">
-        var e = getEntry();          // Obtain an instance of Entry.
-        typeof e.addEventListener;  // Evaluates to "function".
-    </pre>
-
-    Note that it is not the case that all <code class="idl">Observable</code>
-    objects implement <code class="idl">Entry</code>.
-
 </div>
 
 
@@ -6131,9 +6323,10 @@ type is the concatenation of the type name for |T| and the string
 
 An <dfn id="dfn-extended-attribute" export>extended attribute</dfn> is an annotation
 that can appear on
-definitions,
+[=definitions=],
 types as [=annotated types=],
 [=interface members=],
+[=interface mixin members=],
 [=namespace members=],
 [=dictionary members=],
 and [=operation=] arguments, and
@@ -8217,93 +8410,106 @@ for the specific requirements that the use of
 
 If the [{{Exposed}}]
 [=extended attribute=]
-appears on an [=interface=],
+appears on
+an [=interface=],
 [=partial interface=],
+[=interface mixin=],
+[=partial interface mixin=],
 [=namespace=],
 [=partial namespace=], or
-an individual [=interface member=] or
+an individual [=interface member=],
+[=interface mixin member=], or
 [=namespace member=],
 it indicates that the construct is exposed
-on a particular set of global interfaces, rather than the default of
-being exposed only on the [=primary global interface=].
+on a particular set of global interfaces,
+rather than the default implicit exposition described below.
 
-The [{{Exposed}}]
-[=extended attribute=]
-must either
+The [{{Exposed}}] [=extended attribute=] must either
 [=takes an identifier|take an identifier=] or
 [=takes an identifier list|take an identifier list=].
-Each of the identifiers mentioned must be
-a [=global name=].
+Each of the identifiers mentioned must be a [=global name=] and be unique.
+This list of identifiers is known as the construct's
+<dfn>own exposure set</dfn>.
 
-Every construct that the [{{Exposed}}]
-[=extended attribute=]
-can be specified on has an <dfn id="dfn-exposure-set" export>exposure set</dfn>,
-which is a set of [=interfaces=]
-defining which global environments the construct can be used in.
-The [=exposure set=]
-for a given construct is defined as follows:
+<div algorithm>
 
-*   If the [{{Exposed}}]
-    [=extended attribute=]
-    is specified on the construct, then the [=exposure set=]
-    is the set of all interfaces that have a [=global name=]
-    that is listed in the extended attribute's argument.
-*   If the [{{Exposed}}]
-    [=extended attribute=]
-    does not appear on a construct, then its
-    [=exposure set=] is defined
-    implicitly, depending on the type of construct:
+    To get the <dfn id="dfn-exposure-set" export>exposure set</dfn> of a construct |C|,
+    run the following steps:
 
-    <dl class="switch">
-         :  interface
-         :  namespace
-         :: The [=exposure set=] of the
-            interface or namespace only contains the
-            [=primary global interface=].
-         :  partial interface
-         :  partial namespace
-         :: The [=exposure set=] of the partial
-            interface or namespace is the [=exposure set=] of the original interface or namespace definition.
-         :  interface member
-         :: The [=exposure set=] of the interface member
-            is the [=exposure set=] of the interface or
-            partial interface the member is declared on.
-         :  namespace member
-         :: The [=exposure set=] of the
-            namespace member is the [=exposure set=] of the namespace or partial namespace the member is declared on.
-    </dl>
+    1.  Assert: |C| is an [=interface=], [=namespace=], [=interface member=], [=interface mixin member=],
+        or [=namespace member=].
+    1.  Let |H| be |C|'s [=host interface=] if |C| is an [=interface mixin member=], or null otherwise.
+    1.  If |C| is an [=interface member=], [=interface mixin member=], or [=namespace member=], then:
+        1.  If the [{{Exposed}}] [=extended attribute=] is specified on |C|, then:
+            1.  If |H| is set, return the [=set/intersection=] of |C|'s [=own exposure set=]
+                and |H|'s [=exposure set=].
+            1.  Otherwise, return |C|'s [=own exposure set=].
+        1.  Otherwise, set |C| to be the
+            [=interface=], [=partial interface=],
+            [=interface mixin=], [=partial interface mixin=],
+            [=namespace=], or [=partial namespace=]
+            |C| is declared on.
+    1.  If |C| is a [=partial interface=], [=partial interface mixin=], or [=partial namespace=], then:
+        1.  If the [{{Exposed}}] [=extended attribute=] is specified on |C|, then:
+            1.  If |H| is set, return the [=set/intersection=] of |C|'s [=own exposure set=]
+                and |H|'s [=exposure set=].
+            1.  Otherwise, return |C|'s [=own exposure set=].
+        1.  Otherwise, set |C| to be the original [=interface=], [=interface mixin=], or [=namespace=]
+            definition of |C|.
+    1.  If |C| is an [=interface mixin=], then:
+        1.  If the [{{Exposed}}] [=extended attribute=] is specified on |C|,
+            then return the [=set/intersection=] of |C|'s [=own exposure set=]
+            and |H|'s [=exposure set=].
+        1.  Otherwise, set |C| to |H|.
+    1.  Assert: |C| is a [=interface=] or [=namespace=].
+    1.  If the [{{Exposed}}] [=extended attribute=] is specified on |C|,
+        then return |C|'s [=own exposure set=].
+    1.  Otherwise, return « [=primary global interface=] ».
 
-If [{{Exposed}}] appears on an
-[=overloaded=] [=operation=],
+</div>
+
+If [{{Exposed}}] appears on an [=overloaded=] [=operation=],
 then it must appear identically on all overloads.
 
-The [{{Exposed}}] extended attribute
-must not be specified on both an interface
-member and a partial interface definition the interface member is declared on.
-Similarly, the [{{Exposed}}] extended attribute
-must not be specified on both a namespace
-member and a partial namespace definition the namespace member is declared on.
+The [{{Exposed}}] extended attribute must not be specified both on
+an [=interface member|interface=], [=interface mixin member|mixin=], or [=namespace member=], and on
+the [=partial interface=], [=partial interface mixin=], or [=partial namespace=] definition
+the [=member=] is declared on.
 
-If [{{Exposed}}] appears an interface member, then
-the interface member's [=exposure set=]
-must be a subset of the [=exposure set=] of the interface or partial interface it's a
-member of. Similarly, if [{{Exposed}}] appears on a
-namespace member, then the namespace member's [=exposure set=] must be a
-subset of the [=exposure set=] of the
-namespace or partial namespace it's a member of.
+Note: This is because adding an [{{Exposed}}] [=extended attribute=] on a
+[=partial interface=], [=partial interface mixin=], or [=partial namespace=]
+is shorthand for annotating each of its [=members=].
 
-An interface's [=exposure set=]
-must be a subset of the
-[=exposure set=] of all
-of the interface's [=consequential interfaces=].
+If [{{Exposed}}] appears on a [=partial interface=] or [=partial namespace=],
+then the partial's [=own exposure set=] must be a subset of
+the [=exposure set=] of the partial's original [=interface=] or [=namespace=].
 
-If an interface |X|
-[=interface/inherits=] from another interface
-|Y| then the
-[=exposure set=] of
-|X| must be a subset of the
-[=exposure set=] of
-|Y|.
+If [{{Exposed}}] appears on an [=interface member|interface=] or [=namespace member=],
+then the [=member=]'s [=exposure set=] must be a subset
+of the [=exposure set=] of the [=interface=] or [=namespace=] it is a member of.
+
+If [{{Exposed}}] appears both on a [=partial interface mixin=]
+and its original [=interface mixin=],
+then the [=partial interface mixin=]'s [=own exposure set=]
+must be a subset of the [=interface mixin=]'s [=own exposure set=].
+
+If [{{Exposed}}] appears both on an [=interface mixin member=]
+and the [=interface mixin=] it is a member of,
+then the [=interface mixin members=]'s [=own exposure set=]
+must be a subset of the [=interface mixin=]'s [=own exposure set=].
+
+If an interface |X| [=interface/inherits=] from another interface |Y|
+then the [=exposure set=] of |X| must be a subset of the [=exposure set=] of |Y|.
+
+Note: As an [=interface mixin=] can be [=included=] by different [=interfaces=],
+the [=exposure set=] of its [=interface mixin member|members=] is a function of
+the [=interface=] that [=includes=] them.
+If the [=interface mixin member=], [=partial interface mixin=], or [=interface mixin=]
+is annotated with an [{{Exposed}}] [=extended attribute=],
+then the [=interface mixin member=]'s [=exposure set=]
+is the [=set/intersection=] of the relevant construct's [=own exposure set=]
+with the the [=host interface=]'s [=exposure set=].
+Otherwise, it is the [=host interface=]'s [=exposure set=].
 
 An [=interface=], [=namespace=], [=interface member=], or [=namespace member=] is
 <dfn id="dfn-exposed" export>exposed</dfn> in a given ECMAScript global environment if the
@@ -8331,10 +8537,9 @@ for the specific requirements that the use of
 
 <div class="example">
 
-    [{{Exposed}}]
-    is intended to be used to control whether interfaces, namespaces, or individual
-    interface or namespace members are available for use only in workers, only in the
-    <code class="idl">Window</code>, or in both.
+    [{{Exposed}}] is intended to be used to control whether [=interfaces=], [=namespaces=],
+    or individual [=interface member|interface=], [=interface mixin member|mixin=] or [=namespace members=]
+    are available for use in workers, {{Worklet}}, {{Window}}, or any combination of the above.
 
     The following IDL fragment shows how that might be achieved:
 
@@ -8419,8 +8624,7 @@ interfaces. Specifically:
     [=named properties object=] –
     rather than on the object itself.
 1.  [=Interface members=] from the
-    [=interface=] (or
-    [=consequential interfaces=])
+    [=interface=]
     will correspond to properties on the object itself rather than on
     [=interface prototype objects=].
 
@@ -8483,8 +8687,8 @@ If an interface is declared with the [{{Global}}] or
 [{{PrimaryGlobal}}]
 [=extended attribute=], then
 there must not be more than one
-[=interface member=] across
-the interface and its [=consequential interfaces=]
+[=member=] across
+the interface
 with the same [=identifier=].
 There also must not be more than
 one [=stringifier=]
@@ -8493,8 +8697,8 @@ or more than one [=iterable declaration=],
 [=setlike declaration=]
 across those interfaces.
 
-Note: This is because all of the members of the interface and its consequential
-interfaces get flattened down on to the object that implements the interface.
+Note: This is because all of the [=members=] of the interface
+get flattened down on to the object that implements the interface.
 
 The [{{Global}}] and
 [{{PrimaryGlobal}}] extended attributes
@@ -8897,7 +9101,7 @@ are to be implemented.
         the {{Document/fullscreenEnabled}} and {{Document/fullscreenEnabled}} [=attributes=]
         of the {{Document}} interface, and on
         the {{DocumentOrShadowRoot/fullscreenElement}} [=attribute=]
-        of the {{DocumentOrShadowRoot}} mixin. [[FULLSCREEN]]
+        of the {{DocumentOrShadowRoot}} [=interface mixin=]. [[FULLSCREEN]]
     </small>
 
 </div>
@@ -8962,7 +9166,7 @@ See the <a href="#es-attributes">Attributes</a> section for how
 <div class="advisement">
 
     Specifications should not use [{{LenientThis}}]
-    unless required for compatibility reasons. 
+    unless required for compatibility reasons.
     Editors who wish to use this feature are strongly advised to discuss this
     by <a href="https://github.com/heycam/webidl/issues/new?title=Intent%20to%20use%20[LenientThis]">filing an issue</a>
     before proceeding.
@@ -9170,19 +9374,58 @@ a [=promise type=].
 
 <h4 id="NoInterfaceObject" extended-attribute lt="NoInterfaceObject">[NoInterfaceObject]</h4>
 
+<div class="advisement">
+
+    The [{{NoInterfaceObject}}] [=extended attribute=] is an undesirable feature.
+    It exists only so that legacy Web platform features can be specified.
+    It should not be used in specifications
+    unless required to specify the behavior of legacy APIs,
+    or for consistency with these APIs.
+    Editors who wish to use this feature are strongly advised to discuss this
+    by <a href="https://github.com/heycam/webidl/issues/new?title=Intent%20to%20use%20[NoInterfaceObject]">filing an issue</a>
+    before proceeding.
+
+    <small class="non-normative">
+        The [{{NoInterfaceObject}}] [=extended attribute=] appears on the following [=interfaces=]:
+
+        {{Geolocation}},
+        {{Coordinates}},
+        {{Position}},
+        {{PositionError}},
+        {{DeviceAcceleration}},
+        {{DeviceRotationRate}},
+        {{ConstrainablePattern}},
+        {{WEBGL_compressed_texture_astc}},
+        {{WEBGL_compressed_texture_s3tc_srgb}},
+        {{WEBGL_draw_buffers}}.
+        {{WEBGL_lose_context}},
+        {{ANGLE_instanced_arrays}},
+        {{EXT_blend_minmax}},
+        {{EXT_color_buffer_float}},
+        {{EXT_disjoint_timer_query}},
+        {{OES_standard_derivatives}}, and
+        {{OES_vertex_array_object}}.
+        [[GEOLOCATION-API]]
+        [[ORIENTATION-EVENT]]
+        [[MEDIACAPTURE-STREAMS]]
+        (various [[WEBGL]] extension specifications)
+    </small>
+
+    Note: Previously, the [{{NoInterfaceObject}}] [=extended attribute=] could also be used
+    to annotate [=interfaces=], which other [=interfaces=] could then implement
+    (using the defunct "implements statement") as if they were mixins.
+    There is now dedicated syntax to cater for this
+    in the form of [=interface mixins=] and [=includes statements=].
+    Using the [{{NoInterfaceObject}}] [=extended attribute=]
+    for this purpose is no longer supported.
+    Specifications which still do are strongly encouraged
+    to migrate to [=interface mixins=] as soon as possible.
+    Until all specifications have migrated.
+</div>
+
 If the [{{NoInterfaceObject}}] [=extended attribute=] appears on an [=interface=],
 it indicates that an [=interface object=]
 will not exist for the interface in the ECMAScript binding.
-
-<p class="advisement">
-    The [{{NoInterfaceObject}}] [=extended attribute=]
-    should not be used on [=interfaces=] that are not
-    solely used as [=supplemental interfaces=],
-    unless there are clear Web compatibility reasons for doing so. 
-    Editors who wish to use this feature are strongly advised to discuss this
-    by <a href="https://github.com/heycam/webidl/issues/new?title=Intent%20to%20use%20[NoInterfaceObject]%20on%20a%20non-supplemental%20interface">filing an issue</a>
-    before proceeding.
-</p>
 
 The [{{NoInterfaceObject}}] extended attribute
 must [=takes no arguments|take no arguments=].
@@ -9583,83 +9826,79 @@ or {{object}}.
 
 <h4 id="SecureContext" extended-attribute lt="SecureContext">[SecureContext]</h4>
 
-If the [{{SecureContext}}]
-[=extended attribute=]
-appears on an [=interface=],
-[=partial interface=],
-[=namespace=],
-[=partial namespace=],
-[=interface member=], or
-[=namespace member=],
-it indicates that the construct is exposed
-only within a
-[=secure context=].
-
-The [{{SecureContext}}]
-extended attribute must
-[=takes no arguments|take no arguments=].
-
-The [{{SecureContext}}]
-extended attribute must not
-be used on anything other than an
+If the [{{SecureContext}}] [=extended attribute=] appears on an
 [=interface=],
 [=partial interface=],
+[=interface mixin=],
+[=partial interface mixin=],
 [=namespace=],
 [=partial namespace=],
-[=interface member=], or
-[=namespace member=].
+[=interface member=],
+[=interface mixin member=], or
+[=namespace member=],
+it indicates that the construct is exposed
+only within a [=secure context=].
+The [{{SecureContext}}] extended attribute must not be used
+on any other construct.
 
-Whether a construct that the [{{SecureContext}}]
-[=extended attribute=]
-can be specified on is <dfn id="dfn-available-only-in-secure-contexts" export>available only in secure contexts</dfn>
-is defined as follows:
+The [{{SecureContext}}] extended attribute must [=takes no arguments|take no arguments=].
 
-*   If the [{{SecureContext}}]
-    [=extended attribute=]
-    is specified on the construct, then it is
-    [=available only in secure contexts=].
-*   Otherwise, if the [{{SecureContext}}]
-    [=extended attribute=]
-    does not appear on a construct, then whether it is
-    [=available only in secure contexts=]
-    depends on the type of construct:
+By default, constructs are <dfn export>available in both secure and non-secure contexts</dfn>.
 
-    <dl class="switch">
-         :  interface
-         :  namespace
-         :: The interface or namespace is not
-            [=available only in secure contexts=].
+<div algorithm>
 
-         :  partial interface
-         :  partial namespace
-         :: The partial interface or partial namespace is [=available only in secure contexts=] if and only if the original interface or namespace definition
-            is.
+    To check if a construct |C| is
+    <dfn id="dfn-available-only-in-secure-contexts" export>available only in secure contexts</dfn>,
+    run the following steps:
 
-         :  interface member
-         :: The interface member is [=available only in secure contexts=]
-            if and only if the interface or partial interface the member is declared on is.
+    1.  Assert: |C| is an [=interface=], [=namespace=], [=interface member=], [=interface mixin member=],
+        or [=namespace member=].
+    1.  Let |H| be |C|'s [=host interface=] if |C| is an [=interface mixin member=], or null otherwise.
+    1.  If |C| is an [=interface member=], [=interface mixin member=], or [=namespace member=], then:
+        1.  If the [{{SecureContext}}] [=extended attribute=] is specified on |C|,
+            then return true.
+        1.  Otherwise, set |C| to be the
+            [=interface=], [=partial interface=],
+            [=interface mixin=], [=partial interface mixin=],
+            [=namespace=], or [=partial namespace=]
+            |C| is declared on.
+    1.  If |C| is a [=partial interface=], [=partial interface mixin=], or [=partial namespace=], then:
+        1.  If the [{{SecureContext}}] [=extended attribute=] is specified on |C|,
+            then return true.
+        1.  Otherwise, set |C| to be the original [=interface=], [=interface mixin=], or [=namespace=]
+            definition of |C|.
+    1.  If |C| is an [=interface mixin=], then:
+        1.  If the [{{SecureContext}}] [=extended attribute=] is specified on |C|,
+            then return true.
+        1.  Otherwise, set |C| to |H|.
+    1.  Assert: |C| is a [=interface=] or [=namespace=]
+    1.  If the [{{SecureContext}}] [=extended attribute=] is specified on |C|,
+        then return true.
+    1.  Otherwise, return false.
+</div>
 
-         :  namespace member
-         :: The namespace member is [=available only in secure contexts=]
-            if and only if the namspace or partial namespace the member is declared on is.
-    </dl>
+Note: Whether a construct is [=available only in secure contexts=]
+influences whether it is [=exposed=] in a given ECMAScript global environment.
 
-Note: Whether a construct is
-[=available only in secure contexts=]
-influences whether it is [=exposed=] in a given
-ECMAScript global environment.
-
-If [{{SecureContext}}] appears on an
-[=overloaded=] [=operation=],
+If [{{SecureContext}}] appears on an [=overloaded=] [=operation=],
 then it must appear on all overloads.
 
-The [{{SecureContext}}] extended attribute
-must not be specified on both an interface member and the
-interface or partial interface definition the interface member is declared on, or
-on both a namespace member and the namespace or partial namespace definition the
-namespace member is declared on.
+The {{SecureContext}}] [=extended attribute=] must not be specified both on
+an [=interface member|interface=], [=interface mixin member|mixin=], or [=namespace member=], and on
+the [=partial interface=], [=partial interface mixin=], or [=partial namespace=] definition
+the [=member=] is declared on.
 
-An interface without the [{{SecureContext}}] extended attribute
+Note: This is because adding a [{{SecureContext}}] [=extended attribute=] on a
+[=partial interface=], [=partial interface mixin=], or [=partial namespace=]
+is shorthand for annotating each of its [=members=].
+
+The [{{SecureContext}}] [=extended attribute=]
+must not be specified on both an [=interface member=] and
+the [=interface=] or [=partial interface=] definition the [=interface member=] is declared on.
+It must also not be specified on both a [=namespace member=] and
+the [=namespace=] or [=partial namespace=] definition the [=namespace member=] is declared on.
+
+An [=interface=] without the [{{SecureContext}}] [=extended attribute=]
 must not [=interface/inherit=] from another interface
 that does specify [{{SecureContext}}].
 
@@ -9669,7 +9908,7 @@ that does specify [{{SecureContext}}].
     with one [=operation=] that is executable from all
     contexts, and two which are executable only from secure contexts.
 
-    <pre highlight="webidl">
+    <pre class="webidl">
         interface PowerfulFeature {
           // This call will succeed in all contexts.
           Promise &lt;Result&gt; calculateNotSoSecretResult();
@@ -9683,6 +9922,33 @@ that does specify [{{SecureContext}}].
           // PowerfulFeature.prototype.
           [SecureContext] readonly attribute boolean secretBoolean;
         };
+
+        // HeartbeatSensor will not be exposed in a non-secure context, nor will its members.
+        // In such a context, there will be no "HeartbeatSensor" property on Window.
+        [SecureContext]
+        interface HeartbeatSensor {
+          Promise&lt;float&gt; getHeartbeatsPerMinute();
+        };
+
+        // The interface mixin members defined below will never be exposed in a non-secure context,
+        // regardless of whether the interface that includes them is.
+        // In a non-secure context, there will be no "snap" property on
+        // PowerfulFeature.prototype.
+        [SecureContext]
+        interface mixin Snapshotable {
+          Promise&lt;boolean&gt; snap();
+        };
+        PowerfulFeature includes Snapshotable;
+
+        // On the other hand, the following interface mixin members will be exposed
+        // to a non-secure context when included by a host interface
+        // that doesn't have the [SecureContext] extended attribute.
+        // In a non-secure context, there will be a "log" property on
+        // PowerfulFeatures.prototype.
+        interface mixin Loggable {
+          Promise&lt;boolean&gt; log();
+        };
+        PowerfulFeatures includes Loggable;
     </pre>
 </div>
 
@@ -9690,7 +9956,7 @@ that does specify [{{SecureContext}}].
 <h4 id="TreatNonObjectAsNull" extended-attribute lt="TreatNonObjectAsNull">[TreatNonObjectAsNull]</h4>
 
 <div class="advisement">
-    
+
     The [{{TreatNonObjectAsNull}}] [=extended attribute=] is an undesirable feature.
     It exists only so that legacy Web platform features can be specified.
     It should not be used in specifications
@@ -9848,7 +10114,7 @@ itself rather than on its prototype.
 
 An attribute or operation is said to be
 <dfn id="dfn-unforgeable-on-an-interface" export>unforgeable</dfn> on a given interface |A| if the
-attribute or operation is declared on |A| or one of |A|’s [=consequential interfaces=], and is
+attribute or operation is declared on |A|, and is
 annotated with the [{{Unforgeable}}] [=extended attribute=].
 
 The [{{Unforgeable}}]
@@ -9869,9 +10135,8 @@ The [{{Unforgeable}}] extended attribute must not be used on an attribute declar
 If an attribute or operation |X| is [=unforgeable=]
 on an interface |A|, and |A| is one of the
 [=inherited interfaces=]
-of another interface |B|, then |B| and all of its
-[=consequential interfaces=]
-must not have a non-static attribute or
+of another interface |B|, then |B|
+must not have a [=regular attribute=] or
 [=regular operation=] with the same
 [=identifier=] as |X|.
 
@@ -9879,7 +10144,7 @@ must not have a non-static attribute or
 
     For example, the following is disallowed:
 
-    <pre highlight="webidl">
+    <pre class="webidl">
         interface A1 {
           [Unforgeable] readonly attribute DOMString x;
         };
@@ -9888,8 +10153,8 @@ must not have a non-static attribute or
         };
 
         interface B2 : A1 { };
-        B2 implements Mixin;
-        interface Mixin {
+        B2 includes M1;
+        interface mixin M1 {
           void x();  // Invalid; B2's copy of x would be shadowed by A1's x.
         };
     </pre>
@@ -10523,8 +10788,7 @@ whose value is a reference to the [=interface object=] for the interface.
     of an [=interface=] that is defined with
     the [{{NoInterfaceObject}}]
     [=extended attribute=]
-    will be accessible if the interface is used as a
-    [=supplemental interfaces|non-supplemental interface=].
+    will be accessible.
     For example, with the following IDL:
 
     <pre highlight="webidl">
@@ -10545,19 +10809,11 @@ whose value is a reference to the [=interface object=] for the interface.
     property value – <code>Object.getPrototypeOf(window.foo)</code> in
     this example.
 
-    If the interface is used solely as a
-    [=supplemental interface=],
-    then there will be no way to access its interface prototype object, since no
-    object will have the interface prototype object as its internal
-    \[[Prototype]] property value.  In such cases,
-    it is an acceptable optimization for this object not to exist.
-
 </div>
 
 <div algorithm="value of @@unscopables symbol property of interface objects">
 
-    If the interface or any of its [=consequential interfaces=]
-    has any [=interface member=] declared with
+    If the interface has any [=member=] declared with
     the [{{Unscopable}}] extended attribute,
     then there must be a property on the
     interface prototype object whose name is the {{@@unscopables}} symbol,
@@ -10745,11 +11001,6 @@ The property has the following characteristics:
 *   The location of the property is determined as follows:
     *   If the interface was declared with the [{{Global}}] or [{{PrimaryGlobal}}] extended attribute,
         then the property exists on the single object that implements the interface.
-    *   Otherwise, if the interface is a [=consequential interface=]
-        of a [{{Global}}]- or [{{PrimaryGlobal}}] annotated interface, then
-        the property exists on the single object that implements the [{{Global}}]- or
-        [{{PrimaryGlobal}}]-annotated interface as well as on
-        the consequential interface’s [=interface prototype object=].
     *   Otherwise, if the interface has an [=interface prototype object=],
         then the property exists on it.
 *   The value of the property is that which is obtained by [=converted to an ECMAScript value|converting=] the [=constant=]’s IDL value to an ECMAScript value.
@@ -10762,9 +11013,7 @@ if either of those objects exists.
 
 <h4 id="es-attributes">Attributes</h4>
 
-For each [=exposed=] [=attribute=] of the [=interface=], whether it
-was declared on the interface itself or one of its
-[=consequential interfaces=],
+For each [=exposed=] [=attribute=] of the [=interface=]
 there must exist a corresponding property.
 The characteristics of this property are as follows:
 
@@ -10775,22 +11024,15 @@ The characteristics of this property are as follows:
     *   Otherwise, if the attribute is [=unforgeable=] on
         the interface or if the interface was declared with the [{{Global}}] or [{{PrimaryGlobal}}] extended attribute,
         then the property exists on every object that implements the interface.
-    *   Otherwise, if the interface is a [=consequential interface=]
-        of a [{{Global}}]- or [{{PrimaryGlobal}}]-annotated interface, then
-        the property exists on the single object that implements the [{{Global}}]- or
-        [{{PrimaryGlobal}}]-annotated interface as well as on
-        the consequential interface’s [=interface prototype object=].
     *   Otherwise, the property exists solely on the interface’s [=interface prototype object=].
 *   The property has attributes { \[[Get]]: |G|, \[[Set]]: |S|, \[[Enumerable]]: <emu-val>true</emu-val>, \[[Configurable]]: |configurable| },
     where:
     *   |configurable| is <emu-val>false</emu-val> if the attribute was
         declared with the [{{Unforgeable}}] extended attribute and <emu-val>true</emu-val> otherwise;
-    *   |G| is the [=attribute getter=] created given the attribute, the interface (or the interface
-        it's being mixed in to, if the interface is actually a mixin), and the [=relevant Realm=] of
-        the object that is the location of the property; and
-    *   |S| is the [=attribute setter=] created given the attribute, the interface (or the interface
-        it's being mixed in to, if the interface is actually a mixin), and the [=relevant Realm=] of
-        the object that is the location of the property.
+    *   |G| is the [=attribute getter=] created given the attribute, the interface,
+        and the [=relevant Realm=] of the object that is the location of the property; and
+    *   |S| is the [=attribute setter=] created given the attribute, the interface,
+        and the [=relevant Realm=] of the object that is the location of the property.
 
 <div algorithm>
 
@@ -10938,25 +11180,19 @@ The characteristics of this property are as follows:
     *   Otherwise, if the operation is [=unforgeable=] on
         the interface or if the interface was declared with the [{{Global}}] or [{{PrimaryGlobal}}] extended attribute,
         then the property exists on every object that implements the interface.
-    *   Otherwise, if the interface is a [=consequential interface=]
-        of a [{{Global}}]- or [{{PrimaryGlobal}}]-annotated interface, then
-        the property exists on the single object that implements the [{{Global}}]- or
-        [{{PrimaryGlobal}}]-annotated interface as well as on
-        the consequential interface’s [=interface prototype object=].
     *   Otherwise, the property exists solely on the interface’s [=interface prototype object=].
 *   The property has attributes
     { \[[Writable]]: |B|, \[[Enumerable]]: <emu-val>true</emu-val>, \[[Configurable]]: |B| },
     where |B| is <emu-val>false</emu-val> if the operation is
     [=unforgeable=] on the interface,
     and <emu-val>true</emu-val> otherwise.
-*   The value of the property is the result of [=creating an operation function=] given the
-    operation, the interface (or the interface it's being mixed in to, if the interface is actually
-    a mixin), and the [=relevant Realm=] of the object that is the location of the property.
+*   The value of the property is the result of [=creating an operation function=] given the operation,
+    the interface, and the [=relevant Realm=] of the object that is the location of the property.
 
-    Note: that is, even if an [=implements statement=] was used to make an operation
-    available on the interface, we pass in the interface on the left-hand side of the
-    [=implements statement=], and not the really-a-mixin interface on the right-hand side,
-    where the operation was originally declared.
+    Note: that is, even if an [=includes statement=] was used
+    to make an operation available on the interface,
+    we pass in the [=interface=] which includes the [=interface mixin=],
+    and not the [=interface mixin=] on which the operation was originally declared.
 
 <p class="advisement">
     The above description has some bugs, especially around partial interfaces. See
@@ -11044,7 +11280,7 @@ The [=return type=] of the [=default toJSON operation=] must be {{object}}.
     1.  Let |map| be a new [=ordered map=].
     1.  Let |stack| be the result of [=create an inheritance stack|creating an inheritance stack=]
         for [=interface=] |I|.
-    1.  Invoke [=collect attribute values=] on |O|,
+    1.  Invoke [=collect attribute values of an inheritance stack=] on |O|,
         passing it |stack| and |map| as arguments.
     1.  Let |result| be [=!=] <a abstract-op>ObjectCreate</a>({{%ObjectPrototype%}}).
     1.  [=map/For each=] |key| → |value| of |map|,
@@ -11056,11 +11292,24 @@ The [=return type=] of the [=default toJSON operation=] must be {{object}}.
 
 <div algorithm>
 
-    To invoke the <dfn>collect attribute values</dfn> abstract operation on |O|
+    To invoke the <dfn>collect attribute values of an inheritance stack</dfn> abstract operation on |O|
     with [=stack=] |stack| and [=ordered map=] |map| as arguments,
     run the the following steps:
 
     1.  Let |I| be the result of [=stack/pop|popping=] from |stack|.
+    1.  Invoke [=collect attribute values=] on |O|,
+        passing it |I| and |map| as arguments.
+    1.  If |stack| [=stack/is not empty=],
+        then invoke [=collect attribute values of an inheritance stack=] on |O|,
+        passing it |stack| and |map| as arguments.
+</div>
+
+<div algorithm>
+
+    To invoke the <dfn>collect attribute values</dfn> abstract operation on |O|
+    with [=interface=] |I| and [=ordered map=] |map| as arguments,
+    run the the following steps:
+
     1.  If a <code>toJSON</code> operation with a [{{Default}}] [=extended attribute=] is declared on |I|, then
         [=list|for each=] [=exposed=] [=regular attribute=] |attr|
         that is an [=interface member=] of |I|, in order:
@@ -11068,15 +11317,7 @@ The [=return type=] of the [=default toJSON operation=] must be {{object}}.
         1.  Let |value| be the result of [=get the underlying value|getting the underlying value=]
             of |attr| given |O|.
         1.  If |value| is a [=JSON type=], then [=map/set=] |map|[|id|] to |value|.
-    1.  [=list|For each=] [=implements statements=] where the left-hand side [=identifier=] references |I|:
-        1.  Let |rhs| be the [=interface=] represented by the right-hand side [=identifier=].
-        1.  Let |interfaces| be the result of [=create an inheritance stack|creating an inheritance stack=]
-            for [=interface=] |rhs|.
-        1.  Invoke [=collect attribute values=] on |O|,
-            passing it |interfaces| and |map| as arguments.
-    1.  If |stack| [=stack/is not empty=],
-        then invoke [=collect attribute values=] on |O|,
-        passing it |stack| and |map| as arguments.
+
 </div>
 
 <div algorithm>
@@ -11094,71 +11335,59 @@ The [=return type=] of the [=default toJSON operation=] must be {{object}}.
 
 <div class=example id=example-tojson-default-inheritance-and-mixins>
 
-    The following [=IDL fragment=] defines a number of [=interfaces=]
-    which are [=inherited interface|inherited=] or [=consequential interfaces=] of <code class="idl">A</code>,
+    The following [=IDL fragment=] defines a number of [=interfaces=],
+    which are [=inherited interfaces=] of <code class="idl">A</code>,
+    and [=interface mixins=], which are [=included=] by <code class="idl">A</code> or
+    by <code class="idl">A</code>'s [=inherited interfaces=],
     as show in the below inheritance tree.
 
     <pre>
-                  F*
-                  |
-             C    E - I*
-             |    |
-             B* - D*
+             C* - M4
              |
-        G* - A - H*
+             B - M3
+             |
+        M1 - A - M2*
     </pre>
 
-    Interfaces markes with an asterisk ("*")
+    [=Interfaces=] and [=interface mixins=] marked with an asterisk ("*")
     declare a <code>toJSON</code> [=operation=]
     with a [{{Default}}] [=extended attribute=].
 
-    <pre highlight=webidl>
+    <pre class=webidl>
         interface A : B {
           attribute DOMString a;
         };
 
         interface B : C {
-          [Default] object toJSON();
           attribute DOMString b;
         };
 
         interface C {
+          [Default] object toJSON();
           attribute DOMString c;
         };
 
-        interface D : E {
+        interface mixin M1 {
+          attribute DOMString m1;
+        };
+
+        interface mixin M2 {
           [Default] object toJSON();
-          attribute DOMString d;
+          attribute DOMString m2;
         };
 
-        interface E : F {
-          attribute DOMString e;
+        interface mixin M3 {
+          attribute DOMString m3;
         };
 
-        interface F {
-          [Default] object toJSON();
-          attribute DOMString f;
+        interface mixin M4 {
+          attribute DOMString m4;
         };
 
-        interface G {
-          [Default] object toJSON();
-          attribute DOMString g;
-        };
-
-        interface H {
-          [Default] object toJSON();
-          attribute DOMString h;
-        };
-
-        interface I {
-          [Default] object toJSON();
-          attribute DOMString i;
-        };
-
-        A implements G;
-        A implements H;
-        B implements D;
-        E implements I;
+        A includes M1;
+        A includes M2;
+        B includes M3;
+        C includes M4;
     </pre>
 
     Calling the <code>toJSON()</code> method of an object
@@ -11167,12 +11396,11 @@ The [=return type=] of the [=default toJSON operation=] must be {{object}}.
 
     <pre highlight=json>
     {
-        "b": "...",
-        "f": "...",
-        "i": "...",
-        "d": "...",
-        "g": "...",
-        "h": "..."
+        "a": "...",
+        "m1": "...",
+        "m2": "...",
+        "c": "...",
+        "m4": "..."
     }
     </pre>
 
@@ -11180,10 +11408,8 @@ The [=return type=] of the [=default toJSON operation=] must be {{object}}.
 
     <pre highlight=json>
     {
-        "b": "...",
-        "f": "...",
-        "i": "...",
-        "d": "..."
+        "c": "...",
+        "m4": "..."
     }
     </pre>
 </div>
@@ -11260,11 +11486,6 @@ The location of the property is determined as follows:
 
 *   If the interface was declared with the [{{Global}}] or [{{PrimaryGlobal}}] extended attribute,
     then the property exists on the single object that implements the interface.
-*   Otherwise, if the interface is a [=consequential interface=]
-    of a [{{Global}}]- or [{{PrimaryGlobal}}]-annotated interface, then
-    the property exists on the single object that implements the [{{Global}}]- or
-    [{{PrimaryGlobal}}]-annotated interface as well as on
-    the consequential interface’s [=interface prototype object=].
 *   Otherwise, the property exists solely on the interface’s [=interface prototype object=].
 
 If the interface defines an [=indexed property getter=],
@@ -11341,11 +11562,6 @@ The location of the property is determined as follows:
 
 *   If the interface was declared with the [{{Global}}] or [{{PrimaryGlobal}}] extended attribute,
     then the property exists on the single object that implements the interface.
-*   Otherwise, if the interface is a [=consequential interface=]
-    of a [{{Global}}]- or [{{PrimaryGlobal}}]-annotated interface, then
-    the property exists on the single object that implements the [{{Global}}]- or
-    [{{PrimaryGlobal}}]-annotated interface as well as on
-    the consequential interface’s [=interface prototype object=].
 *   Otherwise, the property exists solely on the interface’s [=interface prototype object=].
 
 If the interface defines an [=indexed property getter=],
@@ -11446,11 +11662,6 @@ The location of the property is determined as follows:
 
 *   If the interface was declared with the [{{Global}}] or [{{PrimaryGlobal}}] extended attribute,
     then the property exists on the single object that implements the interface.
-*   Otherwise, if the interface is a [=consequential interface=]
-    of a [{{Global}}]- or [{{PrimaryGlobal}}]-annotated interface, then
-    the property exists on the single object that implements the [{{Global}}]- or
-    [{{PrimaryGlobal}}]-annotated interface as well as on
-    the consequential interface’s [=interface prototype object=].
 *   Otherwise, the property exists solely on the interface’s [=interface prototype object=].
 
 If the interface has a [=value iterator=],
@@ -11472,11 +11683,6 @@ The location of the property is determined as follows:
 
 *   If the interface was declared with the [{{Global}}] or [{{PrimaryGlobal}}] extended attribute,
     then the property exists on the single object that implements the interface.
-*   Otherwise, if the interface is a [=consequential interface=]
-    of a [{{Global}}]- or [{{PrimaryGlobal}}]-annotated interface, then
-    the property exists on the single object that implements the [{{Global}}]- or
-    [{{PrimaryGlobal}}]-annotated interface as well as on
-    the consequential interface’s [=interface prototype object=].
 *   Otherwise, the property exists solely on the interface’s [=interface prototype object=].
 
 If the interface has a [=value iterator=],
@@ -11520,11 +11726,6 @@ The location of the property is determined as follows:
 
 *   If the interface was declared with the [{{Global}}] or [{{PrimaryGlobal}}] extended attribute,
     then the property exists on the single object that implements the interface.
-*   Otherwise, if the interface is a [=consequential interface=]
-    of a [{{Global}}]- or [{{PrimaryGlobal}}]-annotated interface, then
-    the property exists on the single object that implements the [{{Global}}]- or
-    [{{PrimaryGlobal}}]-annotated interface as well as on
-    the consequential interface’s [=interface prototype object=].
 *   Otherwise, the property exists solely on the interface’s [=interface prototype object=].
 
 If the interface has a [=value iterator=],
@@ -11777,9 +11978,7 @@ The value of the [=function object=]’s “name” property is the String value
 
 <h5 id="es-map-clear">clear</h5>
 
-If |A| and |A|’s
-[=consequential interfaces=]
-do not declare an [=interface member=]
+If |A| does not declare a [=member=]
 with identifier “clear”, and
 |A| was declared with a read–write maplike declaration,
 then a property named “clear” and the following characteristics
@@ -11796,9 +11995,7 @@ The value of the [=function object=]’s “name” property is the String value
 
 <h5 id="es-map-delete">delete</h5>
 
-If |A| and |A|’s
-[=consequential interfaces=]
-do not declare an [=interface member=]
+If |A| does not declare a [=member=]
 with identifier “delete”, and
 |A| was declared with a read–write maplike declaration,
 then a property named “delete” and the following characteristics
@@ -11833,8 +12030,7 @@ The value of the [=function object=]’s “name” property is the String value
 
 <h5 id="es-map-set">set</h5>
 
-If |A| and |A|’s [=consequential interfaces=]
-do not declare an [=interface member=] with identifier “set”,
+If |A| does not declare a [=member=] with identifier “set”,
 and |A| was declared with a read–write maplike declaration,
 then a property named “set” and the following characteristics
 must exist on |A|’s [=interface prototype object=]:
@@ -12000,15 +12196,11 @@ The value of the [=function object=]’s “name” property is the String value
 
 For both of “add” and “delete”, if:
 
-*   |A| and |A|’s
-    [=consequential interfaces=]
-    do not declare an [=interface member=]
-    with a matching identifier, and
+*   |A| does not declare an [=member=] with a matching identifier, and
 *   |A| was declared with a read–write setlike declaration,
 
 then a property with that name and the following characteristics
-must exist on |A|’s
-[=interface prototype object=]:
+must exist on |A|’s [=interface prototype object=]:
 
 *   The property has attributes { \[[Writable]]: <emu-val>true</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val> }.
 *   <div algorithm="to invoke the add and delete methods of Sets">
@@ -12041,9 +12233,7 @@ The value of the [=function object=]’s “name” property is the String value
 
 <h5 id="es-set-clear">clear</h5>
 
-If |A| and |A|’s
-[=consequential interfaces=]
-do not declare an [=interface member=]
+If |A| does not declare a [=member=]
 with a matching identifier, and
 |A| was declared with a read–write setlike declaration,
 then a property named “clear” and the following characteristics
@@ -12058,66 +12248,6 @@ The value of the [=function object=]’s “length” property is the Number val
 The value of the [=function object=]’s “name” property is the String value “clear”.
 
 
-<h3 id="es-implements-statements">Implements statements</h3>
-
-The [=interface prototype object=]
-of an interface |A| must have a copy of
-each property that corresponds to one of the
-[=constants=],
-[=attributes=],
-[=operations=],
-[=iterable declarations=],
-[=maplike declarations=] and
-[=setlike declarations=]
-that exist on all of the interface prototype objects of |A|’s
-[=consequential interfaces=].
-For operations, where the property is a data property with a [=function object=]
-value, each copy of the property must have
-distinct [=function objects=].  For attributes, each
-copy of the accessor property must have
-distinct [=function objects=] for their getters,
-and similarly with their setters.
-
-<div class="note">
-
-    When invoking an [=operation=] by calling
-    a [=function object=] that is the value of one of the copies that exists
-    due to an implements statement, the <emu-val>this</emu-val> value is
-    checked to ensure that it is an object that implements the
-    [=interface=] corresponding to the
-    [=interface prototype object=]
-    that the property is on.
-
-    For example, consider the following IDL:
-
-    <pre highlight="webidl">
-        interface A {
-          void f();
-        };
-
-        interface B { };
-        B implements A;
-
-        interface C { };
-        C implements A;
-    </pre>
-
-    Attempting to call <code>B.prototype.f</code> on an object that implements
-    <code class="idl">A</code> (but not <code class="idl">B</code>) or one
-    that implements <code class="idl">C</code> will result in a
-    {{ECMAScript/TypeError}} being thrown.  However,
-    calling <code>A.prototype.f</code> on an object that implements
-    <code class="idl">B</code> or one that implements <code class="idl">C</code>
-    would succeed.  This is handled by the algorithm in [[#es-operations]]
-    that defines how IDL operation invocation works in ECMAScript.
-
-    Similar behavior is required for the getter and setter function
-    objects that correspond to an IDL [=attributes=],
-    and this is handled in [[#es-attributes]].
-
-</div>
-
-
 <h3 id="es-platform-objects">Platform objects implementing interfaces</h3>
 
 Every [=platform object=] is associated with a global environment, just
@@ -12127,7 +12257,7 @@ which global environment (or, by proxy, which global object) each platform
 object is associated with.
 
 The <dfn id="dfn-primary-interface" export>primary interface</dfn> of a platform object
-that implements one or more interfaces is the most-derived [=supplemental interfaces|non-supplemental interface=]
+that implements one or more interfaces is the most-derived [=interface=]
 that it implements.  The value of the internal \[[Prototype]]
 property of the platform object is the [=interface prototype object=]
 of the [=primary interface=]
@@ -12179,8 +12309,7 @@ by the <a href="#legacy-platform-object-getownproperty">\[[GetOwnProperty]] inte
 It is permissible for an object to implement multiple interfaces that support indexed properties.
 However, if so, and there are conflicting definitions as to the object’s
 [=supported property indices=],
-or if one of the interfaces is a [=supplemental interface=] for the
-legacy platform object, then it is undefined what additional properties the object will appear to
+then it is undefined what additional properties the object will appear to
 have, or what its exact behavior will be with regard to its indexed properties.
 The same applies for named properties.
 
@@ -12193,7 +12322,7 @@ This way, the definitions of these special operations from
 ancestor interfaces can be overridden.
 
 A property name is an <dfn id="dfn-unforgeable-property-name" export>unforgeable property name</dfn> on a
-given platform object if the object implements an [=interface=] that
+given platform object |O| if the object implements an [=interface=] that
 has an [=interface member=] with that identifier
 and that interface member is [=unforgeable=] on any of
 the interfaces that |O| implements.
