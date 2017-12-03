@@ -32,6 +32,8 @@ Default Biblio Status: current
 spec: infra; type: dfn; text: list
 spec: url; type: interface; text: URL
 spec: dom; type: interface; text: Document
+spec: ecma-262; type: dfn; for: /; text: internal method
+spec: ecma-262; type: dfn; for: /; text: internal slot
 </pre>
 
 <pre class="anchors">
@@ -7828,10 +7830,9 @@ objects.
             return <emu-val>undefined</emu-val>.
         1.  Otherwise, return the result of performing any steps that were required to be run if the promise was rejected,
             with |reason| as the rejection reason.
-    1.  Let |then| be the result of calling the internal \[[Get]] method of |promise| with property name "<code>then</code>".
-    1.  If <a abstract-op>IsCallable</a>(|then|) is <emu-val>false</emu-val>, then [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
-    1.  Return the result of calling |then| with |promise| as the <emu-val>this</emu-val> value and |onFulfilled| and |onRejected|
-        as its two arguments.
+    1.  Let |then| be [=?=] <a abstract-op>GetMethod</a>(|promise|, "<code>then</code>").
+    1.  If |then| is <emu-val>undefined</emu-val>, then [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
+    1.  Return <a abstract-op>Call</a>(|then|, |promise|, «|onFulfilled|, |onRejected|»).
 </div>
 
 <p class="issue">
@@ -8269,7 +8270,7 @@ If the [{{Constructor}}]
 [=extended attribute=]
 appears on an [=interface=], it indicates that
 the [=interface object=] for this interface
-will have an \[[Construct]] internal method,
+will have an \[[Construct]] [=internal method=],
 allowing objects implementing the interface to be constructed.
 
 Multiple [{{Constructor}}] extended
@@ -8892,8 +8893,8 @@ If the [{{LegacyArrayClass}}]
 [=extended attribute=]
 appears on an [=interface=]
 that is not defined to [=interface/inherit=]
-from another, it indicates that the internal \[[Prototype]]
-property of its [=interface prototype object=]
+from another, it indicates that the \[[Prototype]]
+[=internal slot=] of its [=interface prototype object=]
 will be the intrinsic object {{%ArrayPrototype%}} rather than
 {{%ObjectPrototype%}}.  This allows
 {{ECMAScript/Array}} methods to be used more easily
@@ -10830,11 +10831,11 @@ have a <code class="idl">constructor</code> data property with attributes
 { \[[Writable]]: <emu-val>true</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val> }
 whose value is a reference to the [=interface object=] for the interface.
 
-<div algorithm="value of internal prototype property">
+<div algorithm="value of the [[Prototype]] internal slot">
 
     The [=interface prototype object=]
-    for a given interface |A| must have an internal
-    \[[Prototype]] property whose value is returned from
+    for a given interface |A| must have a
+    \[[Prototype]] [=internal slot=] whose value is returned from
     the following steps:
 
     1.  If |A| is declared with the [{{Global}}]
@@ -10875,8 +10876,8 @@ whose value is a reference to the [=interface object=] for the interface.
     the [=interface object=]
     (since it does not exist as <code>window.Foo</code>).  However, an instance
     of <code class="idl">Foo</code> can expose the interface prototype
-    object by getting its internal \[[Prototype]]
-    property value – <code>Object.getPrototypeOf(window.foo)</code> in
+    object by calling its \[[GetPrototypeOf]]
+    [=internal method=] – <code>Object.getPrototypeOf(window.foo)</code> in
     this example.
 
 </div>
@@ -10957,8 +10958,8 @@ for that interface on which named properties are exposed.
 <div algorithm="value of [[Prototype]] property of named properties objects">
 
     The [=named properties object=]
-    for a given interface |A| must have an internal
-    \[[Prototype]] property whose value is returned from
+    for a given interface |A| must have a
+    \[[Prototype]] [=internal slot=] whose value is returned from
     the following steps:
 
     1.  If |A| is declared to inherit from another interface, then return the
@@ -11017,7 +11018,7 @@ is the concatenation of the [=interface=]’s
 
 <h5 id="named-properties-object-defineownproperty">\[[DefineOwnProperty]]</h5>
 
-<div algorithm="to invoke the internal [[DefineOwnProperty]] method of named properties object">
+<div algorithm="to invoke the [[DefineOwnProperty]] internal method of named properties object">
 
     When the \[[DefineOwnProperty]] internal method of a [=named properties object=] is called,
     the following steps are taken:
@@ -11027,7 +11028,7 @@ is the concatenation of the [=interface=]’s
 
 <h5 id="named-properties-object-delete">\[[Delete]]</h5>
 
-<div algorithm="to invoke the internal [[Delete]] method of named properties object">
+<div algorithm="to invoke the [[Delete]] internal method of named properties object">
 
     When the \[[Delete]] internal method of a [=named properties object=] is called,
     the following steps are taken:
@@ -11038,7 +11039,7 @@ is the concatenation of the [=interface=]’s
 
 <h5 id="named-properties-object-setprototypeof">\[[SetPrototypeOf]]</h5>
 
-<div algorithm="to invoke the internal [[SetPrototypeOf]] method of a named properties object">
+<div algorithm="to invoke the [[SetPrototypeOf]] internal method of a named properties object">
 
     When the \[[SetPrototypeOf]] internal method of a [=named properties object=] |O| is called with
     ECMAScript language value |V|, the following step is taken:
@@ -11050,7 +11051,7 @@ is the concatenation of the [=interface=]’s
 
 <h5 id="named-properties-object-preventextensions">\[[PreventExtensions]]</h5>
 
-<div algorithm="to invoke the internal [[PreventExtensions]] method of named properties object">
+<div algorithm="to invoke the [[PreventExtensions]] internal method of named properties object">
 
     When the \[[PreventExtensions]] internal method of a [=named properties object=] is called,
     the following steps are taken:
@@ -11704,9 +11705,8 @@ then the [=function object=] is {{%ArrayProto_forEach%}}.
             every time forEach is called?  What's the best way of specifying that there's only
             one function that has captured an environment?
         </p>
-    1.  Let |forEach| be the result of calling the \[[Get]] internal method of
-        |backing| with "<code>forEach</code>" and |backing| as arguments.
-    1.  If <a abstract-op>IsCallable</a>(|forEach|) is <emu-val>false</emu-val>, [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
+    1.  Let |forEach| be [=?=] <a abstract-op>GetMethod</a>(|backing|, "<code>forEach</code>").
+    1.  If |forEach| is <emu-val>undefined</emu-val>, then [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
     1.  <a abstract-op>Call</a>(|forEach|, |backing|, «|callbackWrapper|, |thisArg|»).
     1.  Return <emu-val>undefined</emu-val>.
 </div>
@@ -11832,7 +11832,7 @@ The value of the [=function object=]’s <code class="idl">name</code> property 
 
 A <dfn id="dfn-default-iterator-object" export>default iterator object</dfn> for a given
 [=interface=], target and iteration kind
-is an object whose internal \[[Prototype]] property is the
+is an object whose \[[Prototype]] [=internal slot=] is the
 [=iterator prototype object=]
 for the [=interface=].
 
@@ -11866,7 +11866,7 @@ is an object that exists for every interface that has a
 prototype for [=default iterator objects=]
 for the interface.
 
-The internal \[[Prototype]] property of an [=iterator prototype object=]
+The \[[Prototype]] [=internal slot=] of an [=iterator prototype object=]
 must be {{%IteratorPrototype%}}.
 
 <div algorithm="to invoke the next property of iterators">
@@ -11952,8 +11952,8 @@ These additional properties are described in the sub-sections below.
         *   the type "<code>method</code>".
     1.  If |O| is not an object that implements <var ignore>A</var>, then [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
     1.  Let |map| be the {{ECMAScript/Map}} object that is the value of |O|’s \[[BackingMap]] [=internal slot=].
-    1.  Let |function| be the result of calling the \[[Get]] internal method of |map| passing |name| and |map| as arguments.
-    1.  If <a abstract-op>IsCallable</a>(|function|) is <emu-val>false</emu-val>, then [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
+    1.  Let |function| be [=?=] <a abstract-op>GetMethod</a>(|map|, |name|).
+    1.  If |function| is <emu-val>undefined</emu-val>, then [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
     1.  Return <a abstract-op>Call</a>(|function|, |map|, |arguments|).
 </div>
 
@@ -11981,7 +11981,7 @@ with the following characteristics:
             *   the type "<code>getter</code>".
         1.  If |O| is not an object that implements <var ignore>A</var>, then [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
         1.  Let |map| be the {{ECMAScript/Map}} object that is the value of |O|’s \[[BackingMap]] [=internal slot=].
-        1.  Return the result of calling the \[[Get]] internal method of |map| passing "<code>size</code>" and |map| as arguments.
+        1.  Return <a abstract-op>Get</a>(|map|, "<code>size</code>").
     </div>
 
     The value of the [=function object=]’s <code class="idl">length</code> property is the Number value <emu-val>0</emu-val>.
@@ -12034,7 +12034,7 @@ For both of <code class="idl">get</code> and <code class="idl">has</code>, there
         1.  If |O| is not an object that implements <var ignore>A</var>, then [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
         1.  Let |map| be the {{ECMAScript/Map}} object that is the value of |O|’s \[[BackingMap]] [=internal slot=].
         1.  Let |keyType| be the key type specified in the [=maplike declaration=].
-        1.  Let |function| be the result of calling the \[[Get]] internal method of |map| passing |name| and |map| as arguments.
+        1.  Let |function| be [=!=] <a abstract-op>Get</a>(|map|, |name|).
         1.  Let |keyArg| be the first argument passed to this function, or <emu-val>undefined</emu-val> if not supplied.
         1.  Let |keyIDL| be the result of [=converted to an IDL value|converting=] |keyArg| to an IDL value of type |keyType|.
         1.  Let |key| be the result of [=converted to ECMAScript values|converting=] |keyIDL| to an ECMAScript value.
@@ -12086,7 +12086,7 @@ must exist on |A|’s
         1.  If |O| is not an object that implements <var ignore>A</var>, then [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
         1.  Let |map| be the {{ECMAScript/Map}} object that is the value of |O|’s \[[BackingMap]] [=internal slot=].
         1.  Let |keyType| be the key type specified in the [=maplike declaration=].
-        1.  Let |function| be the result of calling the \[[Get]] internal method of |map| passing "<code>delete</code>" and |map| as arguments.
+        1.  Let |function| be [=!=] <a abstract-op>Get</a>(|map|, "<code>delete</code>").
         1.  Let |keyArg| be the first argument passed to this function, or <emu-val>undefined</emu-val> if not supplied.
         1.  Let |keyIDL| be the result of [=converted to an IDL value|converting=] |keyArg| to an IDL value of type |keyType|.
         1.  Let |key| be the result of [=converted to ECMAScript values|converting=] |keyIDL| to an ECMAScript value.
@@ -12120,7 +12120,7 @@ must exist on |A|’s [=interface prototype object=]:
         1.  If |O| is not an object that implements <var ignore>A</var>, then [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
         1.  Let |map| be the {{ECMAScript/Map}} object that is the value of |O|’s \[[BackingMap]] [=internal slot=].
         1.  Let |keyType| and |valueType| be the key and value types specified in the [=maplike declaration=].
-        1.  Let |function| be the result of calling the \[[Get]] internal method of |map| passing "<code>set</code>" and |map| as arguments.
+        1.  Let |function| be [=!=] <a abstract-op>Get</a>(|map|, "<code>set</code>").
         1.  Let |keyArg| be the first argument passed to this function, or <emu-val>undefined</emu-val> if not supplied.
         1.  Let |valueArg| be the second argument passed to this function, or <emu-val>undefined</emu-val> if not supplied.
         1.  Let |keyIDL| be the result of [=converted to an IDL value|converting=] |keyArg| to an IDL value of type |keyType|.
@@ -12168,9 +12168,8 @@ These additional properties are described in the sub-sections below.
         then [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
     1.  Let |set| be the {{ECMAScript/Set}} object that is
         the value of |O|’s \[[BackingSet]] [=internal slot=].
-    1.  Let |function| be the result of calling the \[[Get]] internal method of |set|
-        passing |name| and |set| as arguments.
-    1.  If <a abstract-op>IsCallable</a>(|function|) is <emu-val>false</emu-val>,
+    1.  Let |function| be [=?=] <a abstract-op>GetMethod</a>(|set|, |name|).
+    1.  If |function| is <emu-val>undefined</emu-val>,
         then [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
     1.  Return <a abstract-op>Call</a>(|function|, |set|, |arguments|).
 </div>
@@ -12250,7 +12249,7 @@ with the following characteristics:
         1.  If |O| is not an object that implements <var ignore>A</var>, then [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
         1.  Let |set| be the {{ECMAScript/Set}} object that is the value of |O|’s \[[BackingSet]] [=internal slot=].
         1.  Let |type| be the value type specified in the [=setlike declaration=].
-        1.  Let |function| be the result of calling the \[[Get]] internal method of |set| passing "<code>has</code>" and |set| as arguments.
+        1.  Let |function| be [=!=] <a abstract-op>Get</a>(|set|, "<code>has</code>").
         1.  Let |arg| be the first argument passed to this function, or <emu-val>undefined</emu-val> if not supplied.
         1.  Let |idlValue| be the result of [=converted to an IDL value|converting=] |arg| to an IDL value of type |type|.
         1.  Let |value| be the result of [=converted to ECMAScript values|converting=] |idlValue| to an ECMAScript value.
@@ -12287,7 +12286,7 @@ must exist on |A|’s [=interface prototype object=]:
         1.  If |O| is not an object that implements <var ignore>A</var>, then [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
         1.  Let |set| be the {{ECMAScript/Set}} object that is the value of |O|’s \[[BackingSet]] [=internal slot=].
         1.  Let |type| be the value type specified in the [=setlike declaration=].
-        1.  Let |function| be the result of calling the \[[Get]] internal method of |set| passing |name| and |set| as arguments.
+        1.  Let |function| be [=!=] <a abstract-op>Get</a>(|set|, |name|).
         1.  Let |arg| be the first argument passed to this function, or <emu-val>undefined</emu-val> if not supplied.
         1.  Let |idlValue| be the result of [=converted to an IDL value|converting=] |arg| to an IDL value of type |type|.
         1.  Let |value| be the result of [=converted to ECMAScript values|converting=] |idlValue| to an ECMAScript value.
@@ -12328,15 +12327,15 @@ object is associated with.
 
 The <dfn id="dfn-primary-interface" export>primary interface</dfn> of a platform object
 that implements one or more interfaces is the most-derived [=interface=]
-that it implements.  The value of the internal \[[Prototype]]
-property of the platform object is the [=interface prototype object=]
+that it implements.  The value of the \[[Prototype]] [=internal slot=]
+of the platform object is the [=interface prototype object=]
 of the [=primary interface=]
 from the [=platform object=]’s associated global environment.
 
 The global environment that a given [=platform object=]
 is associated with can <dfn id="dfn-change-global-environment" for="global environment" export>change</dfn> after it has been created.  When
-the global environment associated with a platform object is changed, its internal
-\[[Prototype]] property must be immediately
+the global environment associated with a platform object is changed, its
+\[[Prototype]] [=internal slot=] must be immediately
 updated to be the [=interface prototype object=]
 of the [=primary interface=]
 from the [=platform object=]’s newly associated global environment.
@@ -12404,9 +12403,9 @@ and [[#legacy-platform-object-set]].
 
 <h4 id="legacy-platform-object-getownproperty" dfn oldids="getownproperty" lt=GetOwnProperty for="legacy platform object">\[[GetOwnProperty]]</h4>
 
-<div algorithm="to invoke the internal [[GetOwnProperty]] method of platform objects">
+<div algorithm="to invoke the [[GetOwnProperty]] internal method of legacy platform objects">
 
-    The internal \[[GetOwnProperty]] method of every [=legacy platform object=] |O|
+    The \[[GetOwnProperty]] internal method of every [=legacy platform object=] |O|
     must behave as follows when called with property name |P|:
 
     1. Return <a abstract-op>LegacyPlatformObjectGetOwnProperty</a>(|O|, |P|, <emu-val>false</emu-val>).
@@ -12415,9 +12414,9 @@ and [[#legacy-platform-object-set]].
 
 <h4 id="legacy-platform-object-set" oldids="platformobjectset">\[[Set]]</h4>
 
-<div algorithm="to invoke the internal [[Set]] method of legacy platform objects">
+<div algorithm="to invoke the [[Set]] internal method of legacy platform objects">
 
-    The internal \[[Set]] method of every [=legacy platform object=] |O|
+    The \[[Set]] internal method of every [=legacy platform object=] |O|
     must behave as follows when called with
     property name |P|, value |V|, and ECMAScript language value |Receiver|:
 
@@ -12437,9 +12436,9 @@ and [[#legacy-platform-object-set]].
 
 <h4 id="legacy-platform-object-defineownproperty" oldids="defineownproperty">\[[DefineOwnProperty]]</h4>
 
-<div algorithm="to invoke the internal [[DefineOwnProperty]] method of legacy platform objects">
+<div algorithm="to invoke the [[DefineOwnProperty]] internal method of legacy platform objects">
 
-    When the internal \[[DefineOwnProperty]] method of a [=legacy platform object=] |O|
+    When the \[[DefineOwnProperty]] internal method of a [=legacy platform object=] |O|
     is called with property key |P| and [=Property Descriptor=] |Desc|,
     the following steps must be taken:
 
@@ -12484,9 +12483,9 @@ and [[#legacy-platform-object-set]].
 
 <h4 id="legacy-platform-object-delete" oldids="delete">\[[Delete]]</h4>
 
-<div algorithm="to invoke the internal [[Delete]] method of legacy platform objects">
+<div algorithm="to invoke the [[Delete]] internal method of legacy platform objects">
 
-    The internal \[[Delete]] method of every [=legacy platform object=] |O|
+    The \[[Delete]] internal method of every [=legacy platform object=] |O|
     must behave as follows when called with property name |P|.
 
     1.  If |O| [=support indexed properties|supports indexed properties=] and
@@ -12598,11 +12597,11 @@ internal method as follows.
 
     1.  If |O| implements an interface that has the [{{OverrideBuiltins}}]
         [=extended attribute=], then return true.
-    1.  Initialize |prototype| to be the value of the internal \[[Prototype]] property of |O|.
+    1.  Let |prototype| be |O|.\[[GetPrototypeOf]]().
     1.  While |prototype| is not null:
         1.  If |prototype| is not a [=named properties object=],
             and |prototype| has an own property named |P|, then return false.
-        1.  Set |prototype| to be the value of the internal \[[Prototype]] property of |prototype|.
+        1.  Set |prototype| to |prototype|.\[[GetPrototypeOf]]().
     1.  Return true.
 </div>
 
@@ -13040,7 +13039,7 @@ The characteristics of a namespace object are described in [[#namespace-object]]
 In the ECMAScript binding, the {{DOMException}} type has some additional requirements:
 
 *   Unlike normal [=interface types=], the [=interface prototype object=] for {{DOMException}} must
-    have as its \[[Prototype]] the intrinsic object {{%ErrorPrototype%}}.
+    have as its \[[Prototype]] [=internal slot=] the intrinsic object {{%ErrorPrototype%}}.
 
 *   If an implementation gives native {{ECMAScript/Error}} objects special powers or
     nonstandard properties (such as a <code>stack</code> property), it should also expose those on
