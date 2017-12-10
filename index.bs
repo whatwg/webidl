@@ -183,7 +183,7 @@ urlPrefix: https://tc39.github.io/ecma262/; spec: ECMA-262
         text: immutable prototype exotic object; url: sec-immutable-prototype-exotic-objects
         url: sec-object-internal-methods-and-internal-slots
             text: internal method
-            text: internal slot
+            text: internal slot; for: ECMAScript
         text: Number type; url: sec-ecmascript-language-types-number-type
         for: ordinary object; url: sec-ordinary-object-internal-methods-and-internal-slots
             text: internal method
@@ -792,6 +792,18 @@ interface behave.  In bindings for object oriented languages, it is
 expected that an object that implements a particular IDL interface
 provides ways to inspect and modify the object's state and to
 invoke the behavior described by the interface.
+
+Within [=regular operations=], [=special operations=], and [=attributes=],
+the object that implements an [=interface=] can be referenced using
+the "keyword" <dfn export><code>this</code></dfn>.
+
+Issue: is <code>this</code> a keyword, a special variable? What should it be called?
+
+Note: [=this=] is similar but not the same as the ECMAScript <code>this</code>.
+
+Issue: Should we have such a note? What are the real differences? Should we consider using another keyword instead (such as "self")?
+
+Issue: do we want an example of usage here?
 
 An interface can be defined to <dfn id="dfn-inherit" for="interface" export>inherit</dfn> from another interface.
 If the identifier of the interface is followed by a
@@ -1453,6 +1465,54 @@ you can extend the {{WindowOrWorkerGlobalScope}} [=interface mixin=] using a [=p
     };
 </pre>
 
+<h3 id="idl-internal-slots">Internal slots</h3>
+
+<dfn lt="internal slot" export>Internal slots</dfn> correspond to internal state
+that is associated with objects implementing a given interface.
+
+[=Internal slots=] are identified using a [=name=] enclosed in double square brackets [[ ]]. 
+Their [=names=] cannot start with an uppercase letter, as those are reserved for ES internal slots.
+
+For each [=regular attribute=] defined on an [=interface=], [=interface mixin=], or [=namespace=],
+there is a <dfn export>corresponding internal slot</dfn> whose [=name=] matches the [=identifier=] of the [=attribute=],
+unless the [=identifier=] of this attribute starts with an uppercase letter,
+in which case it is prefixed with the <span class="char">U+005F LOW LINE ("_")</span> character (underscore).
+
+<div algorithm>
+    To <dfn export>get the corresponding internal slot</dfn> of an attribute |attr|,
+    run the following steps:
+    
+    1.  Let |str| be the [=identifier=] of |attr|.
+    1.  If the first [=code point=] of |str| is an [=ASCII upper alpha=], then
+        prepend the <span class="char">U+005F LOW LINE ("_")</span> [=code point=] to |str|.
+    1.  Return |str|.
+</div>
+
+Specification may define additional [=internal slots=] for [=interfaces=], [=interface mixins=], or [=namespaces=].
+Their [=names=] must not conflict with those of [=corresponding internal slots=].
+
+Issue: should we strongly advocate creating a table for those close to the WebIDL defining the interface?
+
+Issue: should those additional internal slots be added to WebIDl, e.g.:
+<pre>
+    interface Foo {
+        [[bar]];
+        [[foobar]] = 45; // initial/default value?
+    };
+</pre>
+
+[=Internal slots=] are allocated as part of the process of creating an object
+and may not be dynamically added to an object.
+
+Unless specified otherwise, the initial value of an internal slot is an [=object=] reference
+to a special object that represents an ECMAScript undefined value.
+
+Issue: do we need to formalize this undefined object? used void otherwise? Etc.
+
+[=Internal slots=] must only hold WebIDL types, [=primitive data types=]
+and [data structures](https://infra.spec.whatwg.org/#data-structures. [[!INFRA]]
+
+
 <h3 id="idl-members">Members</h3>
 
 [=Interfaces=], [=interface mixins=], and [=namespaces=] are specifications of a set of
@@ -1808,10 +1868,30 @@ it declares a [=static attribute=]. Note that in addition to being [=interface m
 
 
 <div algorithm>
-    To <dfn export>get the underlying value</dfn> of an attribute |attr| given a value |target|,
-    return the result of performing the actions listed in the description of |attr| that occur on getting,
-    or those listed in the description of the inherited attribute,
-    if |attr| is declared to inherit its getter, on |target| if |target| is not null.
+    To <dfn export>get the underlying value</dfn> of an attribute |attr| given |target|,
+    perform the following steps:
+
+    1.  If |attr| has in its description a list of actions that occur on getting, then
+        return the result of performing these actions on |target|, if |target| is not null.
+    1.  If |attr| is declared to inherit its getter, and the inherited attribute has in its description
+        a list of actions that occur on getting, then
+        return the result of performing these actions on |target|, if |target| is not null.
+    1.  Otherwise:
+        1.  Let |slotName| be result of
+            [=get the corresponding internal slot|getting the corresponding internal slot=] of |attr|.
+        1.  Return |target|.\[[|slotName|]].    
+</div>
+
+<div algorithm>
+    To <dfn export>set the underlying value</dfn> of an attribute |attr| to |value| given |target|,
+    perform the following steps:
+    
+    1.  If |attr| has in its description a list of actions that occur on setting, then
+        perform these actions on |target| with |value|, if |target| is not null.
+    1.  Otherwise:
+        1.  Let |slotName| be result of
+            [=get the corresponding internal slot|getting the corresponding internal slot=] of |attr|.
+        1.  Set |target|.\[[|slotName|]] to |value|.
 </div>
 
 The [=identifier=] of an
@@ -5296,6 +5376,9 @@ object that are considered to be platform objects:
 *   objects that implement a non-[=callback interface|callback=] [=interface=];
 *   objects representing an IDL {{DOMException}}.
 
+Issue: should we mention here that platform objects can be refered to a <code>this</code>
+within algorithms, or is it better kept in the section on interfaces?
+
 <dfn id="dfn-legacy-platform-object" export>Legacy platform objects</dfn> are
 [=platform objects=] that implement an [=interface=] which
 does not have a [{{Global}}] [=extended attribute=],
@@ -7933,27 +8016,27 @@ that correspond to the union’s [=member types=].
             |V| to that type.
         1.  If |types| includes {{object}}, then return the IDL value
             that is a reference to the object |V|.
-    1.  If <a abstract-op>Type</a>(|V|) is Object and |V| has an \[[ErrorData]] [=internal slot=]), then:
+    1.  If <a abstract-op>Type</a>(|V|) is Object and |V| has an \[[ErrorData]] [=ECMAScript/internal slot=]), then:
         1.  If |types| includes {{Error!!interface}}, then return the
             result of [=converted to an IDL value|converting=]
             |V| to {{Error!!interface}}.
         1.  If |types| includes {{object}}, then return the IDL value
             that is a reference to the object |V|.
-    1.  If <a abstract-op>Type</a>(|V|) is Object and |V| has an \[[ArrayBufferData]] [=internal slot=], then:
+    1.  If <a abstract-op>Type</a>(|V|) is Object and |V| has an \[[ArrayBufferData]] [=ECMAScript/internal slot=], then:
         1.  If |types| includes {{ArrayBuffer}}, then return the
             result of [=converted to an IDL value|converting=]
             |V| to {{ArrayBuffer}}.
         1.  If |types| includes {{object}}, then return the IDL value
             that is a reference to the object |V|.
-    1.  If <a abstract-op>Type</a>(|V|) is Object and |V| has a \[[DataView]] [=internal slot=], then:
+    1.  If <a abstract-op>Type</a>(|V|) is Object and |V| has a \[[DataView]] [=ECMAScript/internal slot=], then:
         1.  If |types| includes {{DataView}}, then return the
             result of [=converted to an IDL value|converting=]
             |V| to {{DataView}}.
         1.  If |types| includes {{object}}, then return the IDL value
             that is a reference to the object |V|.
-    1.  If <a abstract-op>Type</a>(|V|) is Object and |V| has a \[[TypedArrayName]] [=internal slot=], then:
+    1.  If <a abstract-op>Type</a>(|V|) is Object and |V| has a \[[TypedArrayName]] [=ECMAScript/internal slot=], then:
         1.  If |types| includes a [=typed array type=]
-            whose name is the value of |V|’s \[[TypedArrayName]] [=internal slot=], then return the
+            whose name is the value of |V|’s \[[TypedArrayName]] [=ECMAScript/internal slot=], then return the
             result of [=converted to an IDL value|converting=]
             |V| to that type.
         1.  If |types| includes {{object}}, then return the IDL value
@@ -8035,7 +8118,7 @@ by {{DOMException}} platform objects.
     to an IDL {{Error!!interface}} value by running the following algorithm:
 
     1.  If <a abstract-op>Type</a>(|V|) is not Object,
-        or |V| does not have an \[[ErrorData]] [=internal slot=],
+        or |V| does not have an \[[ErrorData]] [=ECMAScript/internal slot=],
         then [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
     1.  Return the IDL {{Error!!interface}} value that is a reference
         to the same object as |V|.
@@ -8088,7 +8171,7 @@ that unless the type is [=extended attributes associated with|associated with=] 
     to an IDL {{ArrayBuffer}} value by running the following algorithm:
 
     1.  If <a abstract-op>Type</a>(|V|) is not Object,
-        or |V| does not have an \[[ArrayBufferData]] [=internal slot=],
+        or |V| does not have an \[[ArrayBufferData]] [=ECMAScript/internal slot=],
         then [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
     1.  If the conversion is not to an IDL type
         [=extended attributes associated with|associated with=] the [{{AllowShared}}]
@@ -8104,7 +8187,7 @@ that unless the type is [=extended attributes associated with|associated with=] 
     to an IDL {{DataView}} value by running the following algorithm:
 
     1.  If <a abstract-op>Type</a>(|V|) is not Object,
-        or |V| does not have a \[[DataView]] [=internal slot=],
+        or |V| does not have a \[[DataView]] [=ECMAScript/internal slot=],
         then [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
     1.  If the conversion is not to an IDL type
         [=extended attributes associated with|associated with=] the [{{AllowShared}}]
@@ -8133,7 +8216,7 @@ that unless the type is [=extended attributes associated with|associated with=] 
     1.  Let |typedArrayName| be the [=type name|name=] of |T|'s [=annotated types/inner type=] if
         |T| is an [=annotated type=], or the [=type name|name=] of |T| otherwise.
     1.  If <a abstract-op>Type</a>(|V|) is not Object,
-        or |V| does not have a \[[TypedArrayName]] [=internal slot=]
+        or |V| does not have a \[[TypedArrayName]] [=ECMAScript/internal slot=]
         with a value equal to |typedArrayName|,
         then [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
     1.  If the conversion is not to an IDL type
@@ -8159,16 +8242,16 @@ a reference to the same object that the IDL value represents.
     1.  Initialize |arrayBuffer| to |O|.
     1.  Initialize |offset| to 0.
     1.  Initialize |length| to 0.
-    1.  If |O| has a \[[ViewedArrayBuffer]] [=internal slot=], then:
-        1.  Set |arrayBuffer| to the value of |O|’s \[[ViewedArrayBuffer]] [=internal slot=].
+    1.  If |O| has a \[[ViewedArrayBuffer]] [=ECMAScript/internal slot=], then:
+        1.  Set |arrayBuffer| to the value of |O|’s \[[ViewedArrayBuffer]] [=ECMAScript/internal slot=].
         1.  If |arrayBuffer| is <emu-val>undefined</emu-val>, then
             [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
-        1.  Set |offset| to the value of |O|’s \[[ByteOffset]] [=internal slot=].
-        1.  Set |length| to the value of |O|’s \[[ByteLength]] [=internal slot=].
-    1.  Otherwise, set |length| to the value of |O|’s \[[ArrayBufferByteLength]] [=internal slot=].
+        1.  Set |offset| to the value of |O|’s \[[ByteOffset]] [=ECMAScript/internal slot=].
+        1.  Set |length| to the value of |O|’s \[[ByteLength]] [=ECMAScript/internal slot=].
+    1.  Otherwise, set |length| to the value of |O|’s \[[ArrayBufferByteLength]] [=ECMAScript/internal slot=].
     1.  If <a abstract-op>IsDetachedBuffer</a>(|O|), then
         [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
-    1.  Let |data| be the value of |O|’s \[[ArrayBufferData]] [=internal slot=].
+    1.  Let |data| be the value of |O|’s \[[ArrayBufferData]] [=ECMAScript/internal slot=].
     1.  Return a reference to or copy of (as required) the |length| bytes in |data|
         starting at byte offset |offset|.
 </div>
@@ -8931,7 +9014,7 @@ If the [{{LegacyArrayClass}}]
 appears on an [=interface=]
 that is not defined to [=interface/inherit=]
 from another, it indicates that the \[[Prototype]]
-[=internal slot=] of its [=interface prototype object=]
+[=ECMAScript/internal slot=] of its [=interface prototype object=]
 will be the intrinsic object {{%ArrayPrototype%}} rather than
 {{%ObjectPrototype%}}.  This allows
 {{ECMAScript/Array}} methods to be used more easily
@@ -10490,7 +10573,7 @@ Note: The HTML Standard defines how a security check is performed. [[!HTML]]
 
             then remove from |S| all other entries.
 
-        1.  Otherwise: if <a abstract-op>Type</a>(|V|) is Object, |V| has an \[[ErrorData]] [=internal slot=], and
+        1.  Otherwise: if <a abstract-op>Type</a>(|V|) is Object, |V| has an \[[ErrorData]] [=ECMAScript/internal slot=], and
             there is an entry in |S| that has one of the following types at position |i| of its type list,
             *   {{Error!!interface}}
             *   {{object}}
@@ -10501,7 +10584,7 @@ Note: The HTML Standard defines how a security check is performed. [[!HTML]]
 
             then remove from |S| all other entries.
 
-        1.  Otherwise: if <a abstract-op>Type</a>(|V|) is Object, |V| has an \[[ArrayBufferData]] [=internal slot=], and
+        1.  Otherwise: if <a abstract-op>Type</a>(|V|) is Object, |V| has an \[[ArrayBufferData]] [=ECMAScript/internal slot=], and
             there is an entry in |S| that has one of the following types at position |i| of its type list,
             *   {{ArrayBuffer}}
             *   {{object}}
@@ -10512,7 +10595,7 @@ Note: The HTML Standard defines how a security check is performed. [[!HTML]]
 
             then remove from |S| all other entries.
 
-        1.  Otherwise: if <a abstract-op>Type</a>(|V|) is Object, |V| has a \[[DataView]] [=internal slot=], and
+        1.  Otherwise: if <a abstract-op>Type</a>(|V|) is Object, |V| has a \[[DataView]] [=ECMAScript/internal slot=], and
             there is an entry in |S| that has one of the following types at position |i| of its type list,
             *   {{DataView}}
             *   {{object}}
@@ -10523,10 +10606,10 @@ Note: The HTML Standard defines how a security check is performed. [[!HTML]]
 
             then remove from |S| all other entries.
 
-        1.  Otherwise: if <a abstract-op>Type</a>(|V|) is Object, |V| has a \[[TypedArrayName]] [=internal slot=], and
+        1.  Otherwise: if <a abstract-op>Type</a>(|V|) is Object, |V| has a \[[TypedArrayName]] [=ECMAScript/internal slot=], and
             there is an entry in |S| that has one of the following types at position |i| of its type list,
             *   a [=typed array type=] whose name
-                is equal to the value of |V|’s \[[TypedArrayName]] [=internal slot=]
+                is equal to the value of |V|’s \[[TypedArrayName]] [=ECMAScript/internal slot=]
             *   {{object}}
             *   a [=nullable type|nullable=] version of either of the above types
             *   an [=annotated type=] whose [=annotated types/inner type=] is one of the above types
@@ -10798,6 +10881,15 @@ the <code>typeof</code> operator will return "function" when applied to an inter
             to an ECMAScript [=interface type=] value |I|.
         1.  Assert: |O| is an object that implements |I|.
         1.  Assert: |O|.\[[Realm]] is equal to |F|.\[[Realm]].
+        1.  [=For each=] [=exposed=] [=attribute=] |attr| of |I|:
+            1.  Let |slotName| be the result of
+                [=get the corresponding internal slot|getting the corresponding internal slot=]
+                of |attr|.
+            1.  If |O|.\[[|slotName|]] is not set,
+                then set |O|.\[[|slotName|]] an [=object=] reference to a special object
+                that represents an ECMAScript undefined value.
+
+            Issue: is this the right place to set the internal slot values?
         1.  Return |O|.
     1.  Let |constructorProto| be the {{%FunctionPrototype%}} of |realm|.
     1.  If |I| inherits from some other interface |P|,
@@ -10851,6 +10943,15 @@ This object's relevant [=Realm=] must be the same as that of the [=named constru
             |constructor| with |values| as the argument values.
         1.  Return the result of [=converted to an ECMAScript value|converting=]
             |R| to an ECMAScript [=interface type=] value |I|.
+        1.  [=For each=] [=exposed=] [=attribute=] |attr| of |I|:
+            1.  Let |slotName| be the result of
+                [=get the corresponding internal slot|getting the corresponding internal slot=]
+                of |attr|.
+            1.  If |R|.\[[|slotName|]] is not set,
+                then set |R|.\[[|slotName|]] an [=object=] reference to a special object
+                that represents an ECMAScript undefined value.
+
+            Issue: is this the right place to set the internal slot values?
     1.  Let |F| be [=!=] <a abstract-op>CreateBuiltinFunction</a>(|realm|, |steps|, {{%FunctionPrototype%}} of |realm|).
     1.  Perform [=!=] <a abstract-op>SetFunctionName</a>(|F|, |id|).
     1.  Initialize |S| to the [=effective overload set=]
@@ -10892,7 +10993,7 @@ whose value is a reference to the [=interface object=] for the interface.
 
     The [=interface prototype object=]
     for a given interface |A| must have a
-    \[[Prototype]] [=internal slot=] whose value is returned from
+    \[[Prototype]] [=ECMAScript/internal slot=] whose value is returned from
     the following steps:
 
     1.  If |A| is declared with the [{{Global}}] [=extended attribute=], and
@@ -11014,7 +11115,7 @@ for that interface on which named properties are exposed.
 
     The [=named properties object=]
     for a given interface |A| must have a
-    \[[Prototype]] [=internal slot=] whose value is returned from
+    \[[Prototype]] [=ECMAScript/internal slot=] whose value is returned from
     the following steps:
 
     1.  If |A| is declared to inherit from another interface, then return the
@@ -11265,6 +11366,7 @@ The characteristics of this property are as follows:
 
         1.  Perform the actions listed in the description of |attribute| that occur on setting, on
             |O| if |O| is not <emu-val>null</emu-val>.
+        1.  [=Set the underlying value=] of |attribute| to |idlValue| given |O|.
         1.  Return <emu-val>undefined</emu-val>
     1.  Let |F| be [=!=] <a abstract-op>CreateBuiltinFunction</a>(|realm|,
         |steps|, the {{%FunctionPrototype%}} of |realm|).
@@ -11658,10 +11760,10 @@ then the [=function object=] is {{%ArrayProto_values%}}.
         or [=setlike declaration=] is defined,
         then [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
     1.  If the interface has a [=maplike declaration=], then:
-        1.  Let |backing| be the value of the \[[BackingMap]] [=internal slot=] of |object|.
+        1.  Let |backing| be the value of the \[[BackingMap]] [=ECMAScript/internal slot=] of |object|.
         1.  Return <a abstract-op>CreateMapIterator</a>(|backing|, "<code>key+value</code>").
     1.  Otherwise:
-        1.  Let |backing| be the value of the \[[BackingSet]] [=internal slot=] of |object|.
+        1.  Let |backing| be the value of the \[[BackingSet]] [=ECMAScript/internal slot=] of |object|.
         1.  Return <a abstract-op>CreateSetIterator</a>(|backing|, "<code>value</code>").
 </div>
 
@@ -11748,9 +11850,9 @@ then the [=function object=] is {{%ArrayProto_forEach%}}.
     1.  Let |callbackFn| be the value of the first argument passed to the function, or <emu-val>undefined</emu-val> if the argument was not supplied.
     1.  If <a abstract-op>IsCallable</a>(|callbackFn|) is <emu-val>false</emu-val>, [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
     1.  Let |thisArg| be the value of the second argument passed to the function, or <emu-val>undefined</emu-val> if the argument was not supplied.
-    1.  Let |backing| be the value of the \[[BackingMap]] [=internal slot=] of |object|,
+    1.  Let |backing| be the value of the \[[BackingMap]] [=ECMAScript/internal slot=] of |object|,
         if the interface has a [=maplike declaration=],
-        or the \[[BackingSet]] [=internal slot=] of |object| otherwise.
+        or the \[[BackingSet]] [=ECMAScript/internal slot=] of |object| otherwise.
     1.  Let |callbackWrapper| be a [=built-in function object=] that, when invoked, behaves as follows:
         1.  Let |v| and |k| be the first two arguments passed to the function.
         1.  Let |thisArg| be the <emu-val>this</emu-val> value.
@@ -11891,7 +11993,7 @@ The value of the [=function object=]’s <code class="idl">name</code> property 
 
 A <dfn id="dfn-default-iterator-object" export>default iterator object</dfn> for a given
 [=interface=], target and iteration kind
-is an object whose \[[Prototype]] [=internal slot=] is the
+is an object whose \[[Prototype]] [=ECMAScript/internal slot=] is the
 [=iterator prototype object=]
 for the [=interface=].
 
@@ -11925,7 +12027,7 @@ is an object that exists for every interface that has a
 prototype for [=default iterator objects=]
 for the interface.
 
-The \[[Prototype]] [=internal slot=] of an [=iterator prototype object=]
+The \[[Prototype]] [=ECMAScript/internal slot=] of an [=iterator prototype object=]
 must be {{%IteratorPrototype%}}.
 
 <div algorithm="to invoke the next property of iterators">
@@ -11984,7 +12086,7 @@ and the string "<code> Iterator</code>".
 
 Any object that implements an [=interface=]
 that has a [=maplike declaration=]
-must have a \[[BackingMap]] [=internal slot=], which is
+must have a \[[BackingMap]] [=ECMAScript/internal slot=], which is
 initially set to a newly created {{ECMAScript/Map}} object.
 This {{ECMAScript/Map}} object’s \[[MapData]] internal slot is
 the object’s [=map entries=].
@@ -12010,7 +12112,7 @@ These additional properties are described in the sub-sections below.
         *   an identifier equal to |name|, and
         *   the type "<code>method</code>".
     1.  If |O| is not an object that implements <var ignore>A</var>, then [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
-    1.  Let |map| be the {{ECMAScript/Map}} object that is the value of |O|’s \[[BackingMap]] [=internal slot=].
+    1.  Let |map| be the {{ECMAScript/Map}} object that is the value of |O|’s \[[BackingMap]] [=ECMAScript/internal slot=].
     1.  Let |function| be [=?=] <a abstract-op>GetMethod</a>(|map|, |name|).
     1.  If |function| is <emu-val>undefined</emu-val>, then [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
     1.  Return <a abstract-op>Call</a>(|function|, |map|, |arguments|).
@@ -12039,7 +12141,7 @@ with the following characteristics:
             *   the identifier "<code>size</code>", and
             *   the type "<code>getter</code>".
         1.  If |O| is not an object that implements <var ignore>A</var>, then [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
-        1.  Let |map| be the {{ECMAScript/Map}} object that is the value of |O|’s \[[BackingMap]] [=internal slot=].
+        1.  Let |map| be the {{ECMAScript/Map}} object that is the value of |O|’s \[[BackingMap]] [=ECMAScript/internal slot=].
         1.  Return <a abstract-op>Get</a>(|map|, "<code>size</code>").
     </div>
 
@@ -12091,7 +12193,7 @@ For both of <code class="idl">get</code> and <code class="idl">has</code>, there
             *   an identifier equal to |name|, and
             *   the type "<code>method</code>".
         1.  If |O| is not an object that implements <var ignore>A</var>, then [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
-        1.  Let |map| be the {{ECMAScript/Map}} object that is the value of |O|’s \[[BackingMap]] [=internal slot=].
+        1.  Let |map| be the {{ECMAScript/Map}} object that is the value of |O|’s \[[BackingMap]] [=ECMAScript/internal slot=].
         1.  Let |keyType| be the key type specified in the [=maplike declaration=].
         1.  Let |function| be [=!=] <a abstract-op>Get</a>(|map|, |name|).
         1.  Let |keyArg| be the first argument passed to this function, or <emu-val>undefined</emu-val> if not supplied.
@@ -12143,7 +12245,7 @@ must exist on |A|’s
             *   the identifier "<code>delete</code>", and
             *   the type "<code>method</code>".
         1.  If |O| is not an object that implements <var ignore>A</var>, then [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
-        1.  Let |map| be the {{ECMAScript/Map}} object that is the value of |O|’s \[[BackingMap]] [=internal slot=].
+        1.  Let |map| be the {{ECMAScript/Map}} object that is the value of |O|’s \[[BackingMap]] [=ECMAScript/internal slot=].
         1.  Let |keyType| be the key type specified in the [=maplike declaration=].
         1.  Let |function| be [=!=] <a abstract-op>Get</a>(|map|, "<code>delete</code>").
         1.  Let |keyArg| be the first argument passed to this function, or <emu-val>undefined</emu-val> if not supplied.
@@ -12177,7 +12279,7 @@ must exist on |A|’s [=interface prototype object=]:
             *   the identifier "<code>set</code>", and
             *   the type "<code>method</code>".
         1.  If |O| is not an object that implements <var ignore>A</var>, then [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
-        1.  Let |map| be the {{ECMAScript/Map}} object that is the value of |O|’s \[[BackingMap]] [=internal slot=].
+        1.  Let |map| be the {{ECMAScript/Map}} object that is the value of |O|’s \[[BackingMap]] [=ECMAScript/internal slot=].
         1.  Let |keyType| and |valueType| be the key and value types specified in the [=maplike declaration=].
         1.  Let |function| be [=!=] <a abstract-op>Get</a>(|map|, "<code>set</code>").
         1.  Let |keyArg| be the first argument passed to this function, or <emu-val>undefined</emu-val> if not supplied.
@@ -12199,7 +12301,7 @@ The value of the [=function object=]’s <code class="idl">name</code> property 
 
 Any object that implements an [=interface=]
 that has a [=setlike declaration=]
-must have a \[[BackingSet]] [=internal slot=], which is
+must have a \[[BackingSet]] [=ECMAScript/internal slot=], which is
 initially set to a newly created {{ECMAScript/Set}} object.
 This {{ECMAScript/Set}} object’s \[[SetData]] internal slot is
 the object’s [=set entries=].
@@ -12226,7 +12328,7 @@ These additional properties are described in the sub-sections below.
     1.  If |O| is not an object that implements <var ignore>A</var>,
         then [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
     1.  Let |set| be the {{ECMAScript/Set}} object that is
-        the value of |O|’s \[[BackingSet]] [=internal slot=].
+        the value of |O|’s \[[BackingSet]] [=ECMAScript/internal slot=].
     1.  Let |function| be [=?=] <a abstract-op>GetMethod</a>(|set|, |name|).
     1.  If |function| is <emu-val>undefined</emu-val>,
         then [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
@@ -12254,7 +12356,7 @@ with the following characteristics:
             *   the identifier "<code>size</code>", and
             *   the type "<code>getter</code>".
         1.  If |O| is not an object that implements <var ignore>A</var>, then [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
-        1.  Let |set| be the {{ECMAScript/Set}} object that is the value of |O|’s \[[BackingSet]] [=internal slot=].
+        1.  Let |set| be the {{ECMAScript/Set}} object that is the value of |O|’s \[[BackingSet]] [=ECMAScript/internal slot=].
         1.  Return the result of calling the \[[Get]] internal method of |set| passing "<code>size</code>" and |set| as arguments.
     </div>
 
@@ -12306,7 +12408,7 @@ with the following characteristics:
             *   the identifier "<code>has</code>", and
             *   the type "<code>method</code>".
         1.  If |O| is not an object that implements <var ignore>A</var>, then [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
-        1.  Let |set| be the {{ECMAScript/Set}} object that is the value of |O|’s \[[BackingSet]] [=internal slot=].
+        1.  Let |set| be the {{ECMAScript/Set}} object that is the value of |O|’s \[[BackingSet]] [=ECMAScript/internal slot=].
         1.  Let |type| be the value type specified in the [=setlike declaration=].
         1.  Let |function| be [=!=] <a abstract-op>Get</a>(|set|, "<code>has</code>").
         1.  Let |arg| be the first argument passed to this function, or <emu-val>undefined</emu-val> if not supplied.
@@ -12343,7 +12445,7 @@ must exist on |A|’s [=interface prototype object=]:
             *   an identifier equal to |name|, and
             *   the type "<code>method</code>".
         1.  If |O| is not an object that implements <var ignore>A</var>, then [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
-        1.  Let |set| be the {{ECMAScript/Set}} object that is the value of |O|’s \[[BackingSet]] [=internal slot=].
+        1.  Let |set| be the {{ECMAScript/Set}} object that is the value of |O|’s \[[BackingSet]] [=ECMAScript/internal slot=].
         1.  Let |type| be the value type specified in the [=setlike declaration=].
         1.  Let |function| be [=!=] <a abstract-op>Get</a>(|set|, |name|).
         1.  Let |arg| be the first argument passed to this function, or <emu-val>undefined</emu-val> if not supplied.
@@ -12386,7 +12488,7 @@ object is associated with.
 
 The <dfn id="dfn-primary-interface" export>primary interface</dfn> of a platform object
 that implements one or more interfaces is the most-derived [=interface=]
-that it implements.  The value of the \[[Prototype]] [=internal slot=]
+that it implements.  The value of the \[[Prototype]] [=ECMAScript/internal slot=]
 of the platform object is the [=interface prototype object=]
 of the [=primary interface=]
 from the [=platform object=]’s associated global environment.
@@ -12394,7 +12496,7 @@ from the [=platform object=]’s associated global environment.
 The global environment that a given [=platform object=]
 is associated with can <dfn id="dfn-change-global-environment" for="global environment" export>change</dfn> after it has been created.  When
 the global environment associated with a platform object is changed, its
-\[[Prototype]] [=internal slot=] must be immediately
+\[[Prototype]] [=ECMAScript/internal slot=] must be immediately
 updated to be the [=interface prototype object=]
 of the [=primary interface=]
 from the [=platform object=]’s newly associated global environment.
@@ -13068,6 +13170,11 @@ The characteristics of a namespace object are described in [[#namespace-object]]
     1.  For each [=exposed=] [=regular attribute=] |attr| that is a [=namespace member=] of this namespace,
         1.  Let |F| be the result of creating an [=attribute getter=]
             given |attr|, |namespace|,  and |realm|.
+        1.  Let |slotName| be the result of
+            [=get the corresponding internal slot|getting the corresponding internal slot=] of |attr|.
+        1.  Set |namespaceObject|.\[[|slotName|]] to an [=object=] reference to a special object
+            that represents an ECMAScript undefined value.
+            Issue: default value?
         1.  Let |newDesc| be the PropertyDescriptor{\[[Get]]: |F|, \[[Enumerable]]: <emu-val>true</emu-val>,
             \[[Configurable]]: <emu-val>true</emu-val>}.
         1.  Perform [=!=] <a abstract-op>DefinePropertyOrThrow</a>(|namespaceObject|, |attr|'s [=identifier=], |newDesc|).
@@ -13091,7 +13198,7 @@ The characteristics of a namespace object are described in [[#namespace-object]]
 In the ECMAScript binding, the {{DOMException}} type has some additional requirements:
 
 *   Unlike normal [=interface types=], the [=interface prototype object=] for {{DOMException}} must
-    have as its \[[Prototype]] [=internal slot=] the intrinsic object {{%ErrorPrototype%}}.
+    have as its \[[Prototype]] [=ECMAScript/internal slot=] the intrinsic object {{%ErrorPrototype%}}.
 
 *   If an implementation gives native {{ECMAScript/Error}} objects special powers or
     nonstandard properties (such as a <code>stack</code> property), it should also expose those on
