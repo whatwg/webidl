@@ -166,6 +166,7 @@ urlPrefix: https://tc39.github.io/ecma262/; spec: ECMA-262
         text: ECMA-262 §5.2; url: sec-algorithm-conventions
         text: ECMA-262 §9.1; url: sec-ordinary-object-internal-methods-and-internal-slots
         text: ECMA-262 §9.3; url: sec-built-in-function-objects
+        text: ECMA-262 §9.4.7; url: sec-immutable-prototype-exotic-objects
         text: abrupt completion; url: sec-completion-record-specification-type
         text: array index; url: array-index
         text: array iterator object; url: sec-array-iterator-objects
@@ -8646,7 +8647,7 @@ Otherwise, it is the [=host interface=]'s [=exposure set=].
 <div algorithm>
     An [=interface=], [=namespace=], or [=member=] |construct| is <dfn id="dfn-exposed" export>exposed</dfn>
     in a given [=Realm=] |realm| if the following steps return true:
-    
+
     1.  If |realm|.\[[GlobalObject]] does not implement an [=interface=]
         that is in |construct|'s [=exposure set=], then return false.
     1.  If |construct| is [=available in both secure and non-secure contexts=],
@@ -10766,11 +10767,11 @@ and is described in more detail in [[#interface-prototype-object]].
 Note: Since an [=interface object=] is a [=function object=]
 the <code>typeof</code> operator will return "function" when applied to an interface object.
 
-<div algorithm="to create an interface object">
+<div algorithm>
 
-    The [=interface object=]
-    for a given non-callback [=interface=] |I| with [=identifier=] |id|
-    and in [=Realm=] |realm| is created as follows:
+    The [=interface object=] for a given non-callback [=interface=] |I|
+    with [=identifier=] |id| and in [=Realm=] |realm|
+    is <dfn lt="create an interface object">created</dfn> as follows:
 
     1.  Let |steps| be the following steps:
         1.  If |I| was not declared with a [{{Constructor}}] [=extended attribute=],
@@ -10795,7 +10796,7 @@ the <code>typeof</code> operator will return "function" when applied to an inter
         1.  Assert: |O| is an object that implements |I|.
         1.  Assert: |O|.\[[Realm]] is equal to |realm|.
         1.  Return |O|.
-    1.  Let |constructorProto| be the {{%FunctionPrototype%}} of |realm|.
+    1.  Let |constructorProto| be |realm|.\[[Intrinsics]].[[{{%FunctionPrototype%}}]].
     1.  If |I| inherits from some other interface |P|,
         then set |constructorProto| to the [=interface object=] of |P| in |realm|.
     1.  Let |F| be [=!=] <a abstract-op>CreateBuiltinFunction</a>(|realm|, |steps|, |constructorProto|).
@@ -10809,9 +10810,13 @@ the <code>typeof</code> operator will return "function" when applied to an inter
             shortest argument list of the entries in |S|.
     1.  Perform [=!=] <a abstract-op>DefinePropertyOrThrow</a>(|F|, "<code>length</code>",
         PropertyDescriptor{\[[Value]]: |length|, \[[Writable]]: <emu-val>false</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val>}).
-    1.  Let |proto| be the [=interface prototype object=] of [=interface=] |I|.
+    1.  Let |proto| be the [=interface prototype object=] of [=interface=] |I| in |realm|.
     1.  Perform [=!=] <a abstract-op>DefinePropertyOrThrow</a>(|F|, "<code>prototype</code>",
         PropertyDescriptor{\[[Value]]: |proto|, \[[Writable]]: <emu-val>false</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>false</emu-val>}).
+    1.  [=Define the constants=] of [=interface=] |I| on |F| given |realm|.
+    1.  [=Define the static attributes=] of [=interface=] |I| on |F| given |realm|.
+    1.  Return |F|.
+
 </div>
 
 
@@ -10828,10 +10833,11 @@ If the actions listed in the description of the constructor return normally,
 then those steps must return an object that implements interface |I|.
 This object's relevant [=Realm=] must be the same as that of the [=named constructor=].
 
-<div algorithm="to create an named constructor">
+<div algorithm>
 
     The [=named constructor=] with [=NamedConstructor identifier|identifier=] |id|
-    for a given [=interface=] |I| in Realm |realm| is created as follows:
+    for a given [=interface=] |I| in Realm |realm|
+    is <dfn lt="create a named constructor">created</dfn> as follows:
 
     1.  Let |steps| be the following steps:
         1.  If {{NewTarget}} is <emu-val>undefined</emu-val>, then
@@ -10847,7 +10853,8 @@ This object's relevant [=Realm=] must be the same as that of the [=named constru
             |constructor| with |values| as the argument values.
         1.  Return the result of [=converted to an ECMAScript value|converting=]
             |R| to an ECMAScript [=interface type=] value |I|.
-    1.  Let |F| be [=!=] <a abstract-op>CreateBuiltinFunction</a>(|realm|, |steps|, {{%FunctionPrototype%}} of |realm|).
+    1.  Let |F| be [=!=] <a abstract-op>CreateBuiltinFunction</a>(|realm|, |steps|,
+        |realm|.\[[Intrinsics]].[[{{%FunctionPrototype%}}]]).
     1.  Perform [=!=] <a abstract-op>SetFunctionName</a>(|F|, |id|).
     1.  Initialize |S| to the [=effective overload set=]
         for constructors with identifier |id| on [=interface=] |I|
@@ -10855,9 +10862,10 @@ This object's relevant [=Realm=] must be the same as that of the [=named constru
     1.  Let |length| be the length of the shortest argument list of the entries in |S|.
     1.  Perform [=!=] <a abstract-op>DefinePropertyOrThrow</a>(|F|, "<code>length</code>",
         PropertyDescriptor{\[[Value]]: |length|, \[[Writable]]: <emu-val>false</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val>}).
-    1.  Let |proto| be the [=interface prototype object=] of [=interface=] |I|.
+    1.  Let |proto| be the [=interface prototype object=] of [=interface=] |I| in |realm|.
     1.  Perform [=!=] <a abstract-op>DefinePropertyOrThrow</a>(|F|, "<code>prototype</code>",
         PropertyDescriptor{\[[Value]]: |proto|, \[[Writable]]: <emu-val>false</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>false</emu-val>}).
+    1.  Return |F|.
 </div>
 
 
@@ -10867,42 +10875,72 @@ There must exist an <dfn id="dfn-interface-prototype-object" export>interface pr
 for every non-callback [=interface=] defined,
 regardless of whether the interface was declared
 with the [{{NoInterfaceObject}}] [=extended attribute=].
-The interface prototype object for a particular interface
-has properties that correspond to the [=regular attributes=] and [=regular operations=]
-defined on that interface.
-These properties are described in more detail
-in sections [[#es-attributes]] and [[#es-operations]].
 
-As with the [=interface object=],
-the [=interface prototype object=] also has properties that
-correspond to the [=constants=] defined on that interface,
-described in [[#es-constants]].
+<div algorithm>
 
-If the [{{NoInterfaceObject}}] extended attribute was not specified on the interface,
-then the [=interface prototype object=] must also
-have a <code class="idl">constructor</code> data property with attributes
-{ \[[Writable]]: <emu-val>true</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val> }
-whose value is a reference to the [=interface object=] for the interface.
+    The [=interface prototype object=] for a given [=interface=] |interface| and [=Realm=] |realm|
+    is <dfn lt="create an interface prototype object">created</dfn> as follows:
 
-<div algorithm="value of the [[Prototype]] internal slot">
+    1.  Let |proto| be null.
+    1.  If |interface| is declared with the [{{Global}}] [=extended attribute=],
+        and |interface| [=support named properties|supports named properties=],
+        then set |proto| to the [=named properties object=] in |realm| of |interface|.
+    1.  Otherwise, if |interface| is declared to inherit from another interface,
+        then set |proto| to the [=interface prototype object=] in |realm|
+        of that [=inherited interface=].
+    1.  Otherwise, if |interface| is the {{DOMException}} [=interface=],
+        then set |proto| to |realm|.\[[Intrinsics]].[[{{%ErrorPrototype%}}]].
+    1.  Otherwise, if |interface| is declared with the [{{LegacyArrayClass}}] [=extended attribute=],
+        then set |proto| to |realm|.\[[Intrinsics]].[[{{%ArrayPrototype%}}]].
+    1.  Otherwise, set |proto| to |realm|.\[[Intrinsics]].[[{{%ObjectPrototype%}}]].
+    1.  Assert: <a abstract-op>Type</a>(|proto|) is Object.
+    1.  Let |interfaceProtoObj| be [=!=] <a abstract-op>ObjectCreate</a>(|proto|).
+    1.  If |interface| has any [=member=] declared with the [{{Unscopable}}] [=extended attribute=],
+        then:
 
-    The [=interface prototype object=]
-    for a given interface |A| must have a
-    \[[Prototype]] [=internal slot=] whose value is returned from
-    the following steps:
-
-    1.  If |A| is declared with the [{{Global}}] [=extended attribute=], and
-        |A| [=support named properties|supports named properties=], then
-        return the [=named properties object=]
-        for |A|, as defined in [[#named-properties-object]].
-    1.  Otherwise, if |A| is declared to inherit from another
-        interface, then return the
-        [=interface prototype object=]
-        for the inherited interface.
-    1.  Otherwise, if |A| is declared with the [{{LegacyArrayClass}}]
-        extended attribute, then return {{%ArrayPrototype%}}.
-    1.  Otherwise, return {{%ObjectPrototype%}}.
+        Issue: Should an {{@@unscopables}} property also be defined if |interface| is
+        declared with the [{{Global}}] [=extended attribute=]?
+        This is discussed in <a href="https://github.com/heycam/webidl/issues/544">issue #544</a>.
+        1.  Let |unscopableObject| be the result of performing [=!=]
+            <a abstract-op>ObjectCreate</a>(<emu-val>null</emu-val>).
+        1.  [=list/For each=] [=exposed=] [=member=] |member| of |interface|
+            that is declared with the [{{Unscopable}}] [=extended attribute=]:
+            1.  Let |id| be |member|'s [=identifier=].
+            1.  Perform [=!=] <a abstract-op>CreateDataProperty</a>(|unscopableObject|, |id|,
+                <emu-val>true</emu-val>).
+        1.  Let |desc| be the PropertyDescriptor{\[[Value]]: |unscopableObject|,
+            \[[Writable]]: <emu-val>false</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>,
+            \[[Configurable]]: <emu-val>true</emu-val>}.
+        1.  Perform [=!=] <a abstract-op>DefinePropertyOrThrow</a>(|interfaceProtoObj|, {{@@unscopables}}, |desc|).
+    1.  If |interface| is declared with the [{{Global}}] [=extended attribute=], or
+        |interface| is in the set of [=inherited interfaces=] of an interface
+        that is declared with the [{{Global}}] [=extended attribute=], then:
+        1.  Set the internal methods of |interfaceProtoObj|
+            which are specific to [=immutable prototype exotic objects=]
+            to the definitions specified in
+            [=ECMA-262 §9.4.7|ECMA-262 §9.4.7 Immutable prototype exotic objects=].
+    1.  If |interface| is not declared with the [{{Global}}] [=extended attribute=], then:
+        1.  [=Define the regular attributes=] of |interface| on |interfaceProtoObj| given |realm|.
+        1.  [=Define the regular operations=] of |interface| on |interfaceProtoObj| given |realm|.
+    1.  [=Define the constants=] of |interface| on |interfaceProtoObj| given |realm|.
+    1.  If the [{{NoInterfaceObject}}] [=extended attribute=] was not specified on |interface|, then:
+        1.  Let |constructor| be the [=interface object=] of |interface| in |realm|.
+        1.  Let |desc| be the PropertyDescriptor{\[[Writable]]: <emu-val>true</emu-val>,
+            \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val>,
+            \[[Value]]: |constructor|}.
+        1.  Perform [=!=] <a abstract-op>DefinePropertyOrThrow</a>(|interfaceProtoObj|, "<code>constructor</code>", |desc|).
+    1.  Return |interfaceProtoObj|.
 </div>
+
+Additionally, [=interface prototype objects=] get properties declaratively from:
+
+* [[#es-stringifier]],
+* [[#es-iterators]],
+* [[#es-iterable]],
+* [[#es-maplike]], and
+* [[#es-setlike]].
+
+Issue: Define those properties imperatively instead.
 
 <div class="note">
 
@@ -10934,31 +10972,6 @@ whose value is a reference to the [=interface object=] for the interface.
 
 </div>
 
-<div algorithm="value of @@unscopables symbol property of interface objects">
-
-    If the interface has any [=member=] declared with
-    the [{{Unscopable}}] extended attribute,
-    then there must be a property on the
-    interface prototype object whose name is the {{@@unscopables}} symbol,
-    which has the attributes
-    { \[[Writable]]: <emu-val>false</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val> },
-    and whose value is an object created as follows:
-
-    1.  Let |object| be a new object created as if by the expression <code>({})</code>.
-    1.  For each of the aforementioned [=interface members=]
-        declared with the [{{Unscopable}}] extended attribute,
-        call <a abstract-op>CreateDataProperty</a>(|object|,
-        the [=identifier=] of the
-        interface member, <emu-val>true</emu-val>).
-    1.  Return |object|.
-</div>
-
-If the interface is declared with the [{{Global}}] [=extended attribute=],
-or the interface is in the set of [=inherited interfaces=] for
-any other interface that is declared with one of these attributes,
-then the [=interface prototype object=]
-must be an [=immutable prototype exotic object=].
-
 The [=class string=] of an [=interface prototype object=] is the concatenation of
 the [=interface=]’s [=identifier=] and the string "<code>Prototype</code>".
 
@@ -10983,18 +10996,20 @@ Note: Since a legacy callback interface object is a [=function object=]
 the <code>typeof</code> operator will return "function"
 when applied to a [=legacy callback interface object=].
 
-<div algorithm="to create a legacy callback interface object">
+<div algorithm>
 
-    The [=legacy callback interface object=]
-    for a given [=callback interface=] with [=identifier=] |id|
-    and in [=Realm=] |realm| is created as follows:
+    The [=legacy callback interface object=] for a given [=callback interface=] |interface|
+    with [=identifier=] |id| and in [=Realm=] |realm|
+    is <dfn lt="create a legacy callback interface object">created</dfn> as follows:
 
     1.  Let |steps| be the following steps:
         1.  [=ECMAScript/Throw=] a {{ECMAScript/TypeError}}.
-    1.  Let |F| be [=!=] <a abstract-op>CreateBuiltinFunction</a>(|realm|, |steps|, the {{%FunctionPrototype%}} of |realm|).
+    1.  Let |F| be [=!=] <a abstract-op>CreateBuiltinFunction</a>(|realm|, |steps|, |realm|.\[[Intrinsics]].[[{{%FunctionPrototype%}}]]).
     1.  Perform [=!=] <a abstract-op>SetFunctionName</a>(|F|, |id|).
     1.  Perform [=!=] <a abstract-op>DefinePropertyOrThrow</a>(|F|, "<code>length</code>",
         PropertyDescriptor{\[[Value]]: 0, \[[Writable]]: <emu-val>false</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val>}).
+    1.  [=Define the constants=] of |interface| on |F| given |realm|.
+    1.  Return |F|.
 </div>
 
 
@@ -11002,23 +11017,27 @@ when applied to a [=legacy callback interface object=].
 
 For every [=interface=] declared with the [{{Global}}] [=extended attribute=]
 that [=support named properties|supports named properties=],
-there must exist an object known as the
-<dfn id="dfn-named-properties-object" export>named properties object</dfn>
+there must exist an object known as the <dfn id="dfn-named-properties-object" export>named properties object</dfn>
 for that interface on which named properties are exposed.
 
-<div algorithm="value of [[Prototype]] property of named properties objects">
+<div algorithm>
+    The [=named properties object=] for a given [=interface=] |interface| and [=Realm=] |realm|,
+    is <dfn lt="create a named properties object">created</dfn> as follows:
 
-    The [=named properties object=]
-    for a given interface |A| must have a
-    \[[Prototype]] [=internal slot=] whose value is returned from
-    the following steps:
-
-    1.  If |A| is declared to inherit from another interface, then return the
-        [=interface prototype object=]
-        for the inherited interface.
-    1.  Otherwise, if |A| is declared with the [{{LegacyArrayClass}}]
-        extended attribute, then return {{%ArrayPrototype%}}.
-    1.  Otherwise, return {{%ObjectPrototype%}}.
+    1.  Let |proto| be null.
+    1.  If |interface| is declared to inherit from another interface,
+        then set |proto| to the [=interface prototype object=] in |realm| for the [=inherited interface=].
+    1.  Otherwise, if |interface| is declared with the [{{LegacyArrayClass}}] [=extended attribute=],
+        then set |proto| to |realm|.\[[Intrinsics]].[[{{%ArrayPrototype%}}]].
+    1.  Otherwise, set |proto| to |realm|.\[[Intrinsics]].[[{{%ObjectPrototype%}}]].
+    1.  Let |obj| be a newly created object.
+    1.  Set |obj|'s internal methods to the definitions specified in
+        [=ECMA-262 §9.1|ECMA-262 §9.1 Ordinary object internal methods and internal slots=],
+        unless they are specified in the the rest of [[#named-properties-object]].
+    1.  Set |obj|'s remaining internal methods to the definitions specified below.
+    1.  Set |obj|.\[[Prototype]] to |proto|.
+    1.  Set |obj|.\[[Extensible]] to <emu-val>true</emu-val>.
+    1.  Return |obj|.
 </div>
 
 The [=class string=] of a [=named properties object=]
@@ -11115,46 +11134,82 @@ is the concatenation of the [=interface=]’s
 
 <h4 id="es-constants">Constants</h4>
 
-For each [=exposed=] [=constant=] defined on an [=interface=] |A|,
-there must be a corresponding property.
-The property has the following characteristics:
+[=Constants=] are exposed on [=interface objects=],
+[=legacy callback interface objects=],
+[=interface prototype objects=], and
+on the single object that implements the interface,
+when an interface is declared with the [{{Global}}] [=extended attribute=].
 
-*   The name of the property is the [=identifier=] of the [=constant=].
-*   The location of the property is determined as follows:
-    *   If the interface was declared with the [{{Global}}] [=extended attribute=],
-        then the property exists on the single object that implements the interface.
-    *   Otherwise, if the interface has an [=interface prototype object=],
-        then the property exists on it.
-*   The value of the property is that which is obtained by [=converted to an ECMAScript value|converting=] the [=constant=]’s IDL value to an ECMAScript value.
-*   The property has attributes { \[[Writable]]: <emu-val>false</emu-val>, \[[Enumerable]]: <emu-val>true</emu-val>, \[[Configurable]]: <emu-val>false</emu-val> }.
+<div algorithm>
+    To <dfn>define the constants</dfn> of [=interface=] |interface| on |target|,
+    given [=Realm=] |realm|, run the following steps:
 
-In addition, a property with the same characteristics must
-exist on the [=interface object=] or the [=legacy callback interface object=],
-if either of those objects exists.
+    1.  [=list/For each=] [=constant=] |const| that is a [=member=] of |interface|:
+        1.  If |const| is not [=exposed=] in |realm|, then [=iteration/continue=].
+        1.  Let |value| be the result of [=converted to an ECMAScript value|converting=]
+            |const|’s IDL value to an ECMAScript value.
+        1.  Let |desc| be the PropertyDescriptor{\[[Writable]]: <emu-val>false</emu-val>,
+            \[[Enumerable]]: <emu-val>true</emu-val>, \[[Configurable]]: <emu-val>false</emu-val>,
+            \[[Value]]: |value|}.
+        1.  Let |id| be |const|'s [=identifier=].
+        1.  Perform [=!=] <a abstract-op>DefinePropertyOrThrow</a>(|target|, |id|, |desc|).
+</div>
 
 
 <h4 id="es-attributes">Attributes</h4>
 
-For each [=exposed=] [=attribute=] of the [=interface=]
-there must exist a corresponding property.
-The characteristics of this property are as follows:
+[=Static attributes=] are exposed on the [=interface object=].
+[=Regular attributes=] are exposed on the [=interface prototype object=],
+unless the attribute is [=unforgeable=] or
+if the interface was declared with the [{{Global}}] [=extended attribute=],
+in which case they are exposed on every object that implements the interface.
 
-*   The name of the property is the [=identifier=] of the [=attribute=].
-*   The location of the property is determined as follows:
-    *   If the attribute is a [=static attribute=],
-        then there is a single corresponding property and it exists on the interface’s [=interface object=].
-    *   Otherwise, if the attribute is [=unforgeable=] on
-        the interface or if the interface was declared with the [{{Global}}] [=extended attribute=],
-        then the property exists on every object that implements the interface.
-    *   Otherwise, the property exists solely on the interface’s [=interface prototype object=].
-*   The property has attributes { \[[Get]]: |G|, \[[Set]]: |S|, \[[Enumerable]]: <emu-val>true</emu-val>, \[[Configurable]]: |configurable| },
-    where:
-    *   |configurable| is <emu-val>false</emu-val> if the attribute was
-        declared with the [{{Unforgeable}}] extended attribute and <emu-val>true</emu-val> otherwise;
-    *   |G| is the [=attribute getter=] created given the attribute, the interface,
-        and the [=relevant Realm=] of the object that is the location of the property; and
-    *   |S| is the [=attribute setter=] created given the attribute, the interface,
-        and the [=relevant Realm=] of the object that is the location of the property.
+<div algorithm>
+    To <dfn>define the regular attributes</dfn> of [=interface=] or [=namespace=] |definition| on |target|,
+    given [=Realm=] |realm|, run the following steps:
+
+    1.  Let |attributes| be the [=list=] of [=regular attributes=] that are [=members=] of |definition|.
+    1.  [=list/Remove=] from |attributes| all the [=attributes=] that are [=unforgeable=].
+    1.  [=Define the attributes=] |attributes| of |definition| on |target| given |realm|.
+</div>
+
+<div algorithm>
+    To <dfn>define the static attributes</dfn> of [=interface=] or [=namespace=] |definition| on |target|,
+    given [=Realm=] |realm|, run the following steps:
+
+    1.  Let |attributes| be the [=list=] of [=static attributes=] that are [=members=] of |definition|.
+    1.  [=Define the attributes=] |attributes| of |definition| on |target| given |realm|.
+</div>
+
+<div algorithm>
+    To <dfn>define the unforgeable regular attributes</dfn> of [=interface=] or [=namespace=] |definition| on |target|,
+    given [=Realm=] |realm|, run the following steps:
+
+    1.  Let |attributes| be the [=list=] of [=unforgeable=] [=regular attributes=] that are [=members=] of |definition|.
+    1.  [=Define the attributes=] |attributes| of |definition| on |target| given |realm|.
+</div>
+
+<div algorithm>
+    To <dfn>define the attributes</dfn> |attributes| of [=interface=] or [=namespace=] |definition| on |target|
+    given [=Realm=] |realm|, run the following steps:
+
+    1.  [=list/For each=] [=attribute=] |attr| of |attributes|:
+        1.  If |attr| is not [=exposed=] in |realm|, then [=iteration/continue=].
+        1.  Let |getter| be the result of creating an [=attribute getter=]
+            given |attr|, |definition|, and |realm|.
+        1.  Let |setter| be the result of creating an [=attribute setter=]
+            given |attr|, |definition|, and |realm|.
+
+            Note: the algorithm to create an [=attribute setter=]
+            returns <emu-val>undefined</emu-val> if |attr| is [=read only=].
+        1.  Let |configurable| be <emu-val>false</emu-val> if |attr| is [=unforgeable=]
+            and <emu-val>true</emu-val> otherwise.
+        1.  Let |desc| be the PropertyDescriptor{\[[Get]]: |getter|, \[[Set]]: |setter|,
+            \[[Enumerable]]: <emu-val>true</emu-val>, \[[Configurable]]: |configurable|}.
+        1.  Let |id| be |attr|'s [=identifier=].
+        1.  Perform [=!=] <a abstract-op>DefinePropertyOrThrow</a>(|target|, |id|, |desc|).
+
+</div>
 
 <div algorithm>
 
@@ -11285,45 +11340,55 @@ being thrown.  When not in strict mode, the assignment attempt will be ignored.
 
 <h4 id="es-operations">Operations</h4>
 
-For each unique [=identifier=]
-of an [=exposed=] [=operation=]
-defined on the [=interface=], there
-must exist a corresponding property,
-unless the [=effective overload set=]
-for that [=identifier=] and [=operation=]
-and with an argument count of 0 has no entries.
+For each unique [=identifier=] of an [=exposed=] [=operation=] defined on the [=interface=],
+there exist a corresponding property.
+[=Static operations=] are exposed of the [=interface object=].
+[=Regular operations=] are exposed on the [=interface prototype object=],
+unless the operation is [=unforgeable=] or
+the interface was declared with the [{{Global}}] [=extended attribute=],
+in which case they are exposed on every object that implements the interface.
 
-The characteristics of this property are as follows:
+<div algorithm>
+    To <dfn>define the regular operations</dfn> of [=interface=] or [=namespace=] |definition| on |target|, given [=Realm=] |realm|,
+    run the following steps:
 
-*   The name of the property is the [=identifier=].
-*   The location of the property is determined as follows:
-    *   If the operation is [=static operations|static=], then
-        the property exists on the [=interface object=].
-    *   Otherwise, if the operation is [=unforgeable=] on
-        the interface or if the interface was declared with the [{{Global}}] [=extended attribute=],
-        then the property exists on every object that implements the interface.
-    *   Otherwise, the property exists solely on the interface’s [=interface prototype object=].
-*   The property has attributes
-    { \[[Writable]]: |B|, \[[Enumerable]]: <emu-val>true</emu-val>, \[[Configurable]]: |B| },
-    where |B| is <emu-val>false</emu-val> if the operation is
-    [=unforgeable=] on the interface,
-    and <emu-val>true</emu-val> otherwise.
-*   The value of the property is the result of [=creating an operation function=] given the operation,
-    the interface, and the [=relevant Realm=] of the object that is the location of the property.
+    1.  Let |operations| be the [=list=] of [=regular operations=] that are [=members=] of |definition|.
+    1.  [=list/Remove=] from |operations| all the [=operations=] that are [=unforgeable=].
+    1.  [=Define the operations=] |operations| of |definition| on |target| given |realm|.
+</div>
 
-    Note: that is, even if an [=includes statement=] was used
-    to make an operation available on the interface,
-    we pass in the [=interface=] which includes the [=interface mixin=],
-    and not the [=interface mixin=] on which the operation was originally declared.
+<div algorithm>
+    To <dfn>define the static operations</dfn> of [=interface=] or [=namespace=] |definition| on |target|, given [=Realm=] |realm|,
+    run the following steps:
 
-<p class="advisement">
-    The above description has some bugs, especially around partial interfaces. See
-    <a href="https://github.com/heycam/webidl/issues/164">issue #164</a>.
-</p>
+    1.  Let |operations| be the [=list=] of [=static operations=] that are [=members=] of |definition|.
+    1.  [=Define the operations=] |operations| of |definition| on |target| given |realm|.
+</div>
 
-For [=namespaces=], the properties corresponding to each declared operation are described in
-[[#namespace-object]]. (We hope to eventually move interfaces to the same explicit
-property-installation style as namespaces.)
+<div algorithm>
+    To <dfn>define the unforgeable regular operations</dfn> of [=interface=] or [=namespace=] |definition| on |target|, given [=Realm=] |realm|,
+    run the following steps:
+
+    1.  Let |operations| be the [=list=] of [=unforgeable=] [=regular operations=] that are [=members=] of |definition|.
+    1.  [=Define the operations=] |operations| of |definition| on |target| given |realm|.
+</div>
+
+<div algorithm>
+    To <dfn>define the operations</dfn> |operations| of [=interface=] or [=namespace=] |definition| on |target|,
+    given [=Realm=] |realm|, run the following steps:
+
+    1.  [=list/For each=] [=operation=] |op| of |operations|:
+        1.  If |op| is not [=exposed=] in |realm|, then [=iteration/continue=].
+        1.  Let |method| be the result of [=creating an operation function=]
+            given |op|, |definition|, and |realm|.
+        1.  Let |modifiable| be <emu-val>false</emu-val> if |op| is [=unforgeable=]
+            and <emu-val>true</emu-val> otherwise.
+        1.  Let |desc| be the PropertyDescriptor{\[[Value]]: |method|,
+            \[[Writable]]: |modifiable|, \[[Enumerable]]: <emu-val>true</emu-val>,
+            \[[Configurable]]: |modifiable|}.
+        1.  Let |id| be |op|'s [=identifier=].
+        1.  Perform [=!=] <a abstract-op>DefinePropertyOrThrow</a>(|target|, |id|, |desc|).
+</div>
 
 <div algorithm>
     To <dfn id="dfn-create-operation-function" lt="creating an operation function">create an operation function</dfn>,
@@ -12407,6 +12472,36 @@ attribute is the concatenation of the class string of the namespace, ".",
 and the class string that the interface would otherwise have without this
 extended attribute.
 
+[=Platform objects=] have an internal \[[SetPrototypeOf]] method
+as defined in [[#platform-object-setprototypeof]].
+
+Within a [=Realm=] |realm|,
+for each [=interface=] |interface| implemented by a [=platform object=] |obj|,
+the following steps must be run as part of |obj|'s creation:
+
+1.  [=Define the unforgeable regular operations=] of |interface| on |obj|, given |realm|.
+1.  [=Define the unforgeable regular attributes=] of |interface| on |obj|, given |realm|.
+
+If within a [=Realm=] |realm| a [=platform object=] |obj| implements
+an interface which is declared with the [{{Global}}] [=extended attribute=], then
+for each [=interface=] |interface| implemented by |obj|,
+the following steps must be run as part of |obj|'s creation:
+
+1.  [=Define the regular operations=] of |interface| on |obj|, given |realm|.
+1.  [=Define the regular attributes=] of |interface| on |obj|, given |realm|.
+
+Additionaly, [=platform objects=] which implement an [=interface=]
+which has a [{{Global}}] [=extended attribute=]
+get properties declaratively from:
+
+* [[#es-stringifier]],
+* [[#es-iterators]],
+* [[#es-iterable]],
+* [[#es-maplike]], and
+* [[#es-setlike]].
+
+Issue: Define those properties imperatively instead.
+
 <h4 id="platform-object-setprototypeof" oldids="platformobjectsetprototypeof">\[[SetPrototypeOf]]</h4>
 
 <div algorithm="to invoke the internal [[SetPrototypeOf]] method of a platform object that implements an interface with [Global] extended attribute">
@@ -12455,6 +12550,14 @@ the interfaces that |O| implements.
 Support for [=getters=] is handled in [[#legacy-platform-object-getownproperty]],
 and for [=setters=] in [[#legacy-platform-object-defineownproperty]]
 and [[#legacy-platform-object-set]].
+
+Additionaly, [=legacy platform objects=] must have internal methods as defined in:
+
+* [[#legacy-platform-object-delete]],
+* [[#legacy-platform-object-preventextensions]], and
+* [[#legacy-platform-object-ownpropertykeys]].
+
+Issue: Define those internal methods imperatively instead.
 
 
 <h4 id="legacy-platform-object-getownproperty" dfn oldids="getownproperty" lt=GetOwnProperty for="legacy platform object">\[[GetOwnProperty]]</h4>
@@ -13061,17 +13164,9 @@ The characteristics of a namespace object are described in [[#namespace-object]]
     is created as follows:
 
     1.  Let |namespaceObject| be
-        [=!=] <a abstract-op>ObjectCreate</a>(the {{%ObjectPrototype%}} of |realm|).
-    1.  For each [=exposed=] [=regular attribute=] |attr| that is a [=namespace member=] of this namespace,
-        1.  Let |F| be the result of creating an [=attribute getter=]
-            given |attr|, |namespace|,  and |realm|.
-        1.  Let |newDesc| be the PropertyDescriptor{\[[Get]]: |F|, \[[Enumerable]]: <emu-val>true</emu-val>,
-            \[[Configurable]]: <emu-val>true</emu-val>}.
-        1.  Perform [=!=] <a abstract-op>DefinePropertyOrThrow</a>(|namespaceObject|, |attr|'s [=identifier=], |newDesc|).
-    1.  For each [=exposed=] [=regular operation=] |op| that is a [=namespace member=] of this namespace,
-        1.  Let |F| be the result of [=creating an operation function|creating an operation function=]
-            given |op|, |namespace|,  and |realm|.
-        1.  Perform [=!=] <a abstract-op>CreateDataProperty</a>(|namespaceObject|, |op|'s [=identifier=], |F|).
+        [=!=] <a abstract-op>ObjectCreate</a>(|realm|.\[[Intrinsics]].[[{{%ObjectPrototype%}}]]).
+    1.  [=Define the regular attributes=] of |namespace| on |namespaceObject| given |realm|.
+    1.  [=Define the regular operations=] of |namespace| on |namespaceObject| given |realm|.
     1.  For each [=exposed=] [=interface=] |interface| which has the [{{LegacyNamespace}}] extended
         attribute with the identifier of this namespace as its argument,
         1.  Let |I| be the [=interface object=] for |interface|.
@@ -13085,14 +13180,13 @@ The characteristics of a namespace object are described in [[#namespace-object]]
 
 <h4 id="es-DOMException-specialness" oldids="es-DOMException-constructor-object, es-DOMException-prototype-object">{{DOMException}} custom bindings</h4>
 
-In the ECMAScript binding, the {{DOMException}} type has some additional requirements:
+In the ECMAScript binding, the [=interface prototype object=] for {{DOMException}}
+has its \[[Prototype]] [=internal slot=] set to the intrinsic object {{%ErrorPrototype%}},
+as defined in the [=create an interface prototype object=] abstract operation.
 
-*   Unlike normal [=interface types=], the [=interface prototype object=] for {{DOMException}} must
-    have as its \[[Prototype]] [=internal slot=] the intrinsic object {{%ErrorPrototype%}}.
-
-*   If an implementation gives native {{ECMAScript/Error}} objects special powers or
-    nonstandard properties (such as a <code>stack</code> property), it should also expose those on
-    {{DOMException}} instances.
+Additionaly, if an implementation gives native {{ECMAScript/Error}} objects special powers or
+nonstandard properties (such as a <code>stack</code> property),
+it should also expose those on {{DOMException}} instances.
 
 <h4 id="es-exception-objects" dfn>Exception objects</h4>
 
