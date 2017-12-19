@@ -39,3 +39,5 @@ The specification is written in [Bikeshed](https://github.com/tabatkins/bikeshed
 
 *   [widlparser](https://github.com/plinss/widlparser/issues/new) (used by Bikeshed)
 *   [WebIDL parser](https://github.com/w3c/webidl2.js/issues/new) (used by idlharness.js)
+*   [TypeScript and JavaScript lib generator](https://github.com/Microsoft/TSJS-lib-generator/)
+
