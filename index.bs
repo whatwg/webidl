@@ -10415,12 +10415,13 @@ Note: The HTML Standard defines how a security check is performed. [[!HTML]]
     In order to define how function invocations are resolved, the
     <dfn id="dfn-overload-resolution-algorithm" export>overload resolution algorithm</dfn>
     is defined.  Its input is an [=effective overload set=],
-    |S|, and a list of ECMAScript values, |arg|<sub>0..|n|−1</sub>.
+    |S|, and a list of ECMAScript values, |args|.
     Its output is a pair consisting of the [=operation=] or
     [=extended attribute=] of one of |S|’s entries
     and a list of IDL values or the special value “missing”.  The algorithm behaves as follows:
 
     1.  Let |maxarg| be the length of the longest type list of the entries in |S|.
+    1.  Let |n| be the [=list/size=] of |args|.
     1.  Initialize |argcount| to be min(|maxarg|, |n|).
     1.  Remove from |S| all entries whose type list is not of length |argcount|.
     1.  If |S| is empty, then [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
@@ -10432,7 +10433,7 @@ Note: The HTML Standard defines how a security check is performed. [[!HTML]]
     1.  Initialize |values| to be an empty list, where each entry will be either an IDL value or the special value “missing”.
     1.  Initialize |i| to 0.
     1.  While |i| &lt; |d|:
-        1.  Let |V| be |arg|<sub>|i|</sub>.
+        1.  Let |V| be |args|[|i|].
         1.  Let |type| be the type at index |i| in the type list of any entry in |S|.
 
             Note: All entries in |S| at this point have the same type and [=optionality value=] at index |i|.
@@ -10446,7 +10447,7 @@ Note: The HTML Standard defines how a security check is performed. [[!HTML]]
             |V| to IDL type |type|.
         1.  Set |i| to |i| + 1.
     1.  If |i| = |d|, then:
-        1.  Let |V| be |arg|<sub>|i|</sub>.
+        1.  Let |V| be |args|[|i|].
 
             Note: This is the argument that will be used to resolve which overload is selected.
 
@@ -10626,7 +10627,7 @@ Note: The HTML Standard defines how a security check is performed. [[!HTML]]
     1.  Let |callable| be the [=operation=] or [=extended attribute=]
         of the single entry in |S|.
     1.  If |i| = |d| and |method| is not <emu-val>undefined</emu-val>, then
-        1.  Let |V| be |arg|<sub>|i|</sub>.
+        1.  Let |V| be |args|[|i|].
         1.  Let |T| be the type at index |i| in the
             type list of the remaining entry in |S|.
         1.  If |T| is a [=sequence type=], then
@@ -10638,7 +10639,7 @@ Note: The HTML Standard defines how a security check is performed. [[!HTML]]
             [=Creating a frozen array from an iterable|creating a frozen array of type T from V and method=].
         1.  Set |i| to |i| + 1.
     1.  While |i| &lt; |argcount|:
-        1.  Let |V| be |arg|<sub>|i|</sub>.
+        1.  Let |V| be |args|[|i|].
         1.  Let |type| be the type at index |i| in the type list of the remaining entry in |S|.
         1.  Let |optionality| be the value at index |i| in the list of [=optionality values=] of the remaining entry in |S|.
         1.  If |optionality| is “optional” and |V| is <emu-val>undefined</emu-val>, then:
@@ -10779,13 +10780,14 @@ the <code>typeof</code> operator will return "function" when applied to an inter
             then [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
         1.  If {{NewTarget}} is <emu-val>undefined</emu-val>, then
             [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
-        1.  Let |arg|<sub>0..|n|−1</sub> be the passed arguments.
+        1.  Let |args| be the passed arguments.
+        1.  Let |n| be the [=list/size=] of |args|.
         1.  Let |id| be the identifier of interface |I|.
         1.  Initialize |S| to the [=effective overload set=]
             for constructors with [=identifier=] |id|
             on [=interface=] |I| and with argument count |n|.
         1.  Let &lt;|constructor|, |values|&gt; be the result
-            of passing |S| and |arg|<sub>0..|n|−1</sub>.
+            of passing |S| and |args|.
             to the [=overload resolution algorithm=].
         1.  Let |R| be the result of performing
             the actions listed in the description of |constructor|
@@ -10837,13 +10839,13 @@ This object's relevant [=Realm=] must be the same as that of the [=named constru
     1.  Let |steps| be the following steps:
         1.  If {{NewTarget}} is <emu-val>undefined</emu-val>, then
             [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
-        1.  Let |arg|<sub>0..|n|−1</sub> be the passed arguments.
+        1.  Let |args| be the passed arguments.
+        1.  Let |n| be the [=list/size=] of |args|.
         1.  Initialize |S| to the  [=effective overload set=]
             for constructors with [=identifier=] |id| on [=interface=] |I|
             and with argument count |n|.
         1.  Let &lt;|constructor|, |values|&gt; be the result of passing |S| and
-            |arg|<sub>0..|n|−1</sub> to the
-            [=overload resolution algorithm=].
+            |args| to the [=overload resolution algorithm=].
         1.  Let |R| be the result of performing the actions listed in the description of
             |constructor| with |values| as the argument values.
         1.  Return the result of [=converted to an ECMAScript value|converting=]
@@ -11332,7 +11334,7 @@ property-installation style as namespaces.)
 
     1.  Let |id| be |op|'s [=identifier=].
     1.  Let |steps| be the following series of steps, given function argument
-        values |arg|<sub>0..|n|−1</sub>:
+        values |args|:
         1.  Try running the following steps:
             1.  Let |O| be <emu-val>null</emu-val>.
             1.  If |target| is an [=interface=], and |op| is not a [=static operation=]:
@@ -11346,11 +11348,12 @@ property-installation style as namespaces.)
                     |id|, and "method".
                 1.  If |O| is not a [=platform object=] that implements the interface |target|,
                     [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
+            1.  Let |n| be the [=list/size=] of |args|.
             1.  Let |S| be the [=effective overload set=] for [=regular operations=] (if |op| is a
                 regular operation) or for [=static operations=] (if |op| is a static operation) with
                 [=identifier=] |id| on |target| and with argument count |n|.
             1.  Let &lt;|operation|, |values|&gt; be the result of passing
-                |S| and |arg|<sub>0..|n|−1</sub> to the [=overload resolution algorithm=].
+                |S| and |args| to the [=overload resolution algorithm=].
             1.  Let |R| be <emu-val>null</emu-val>.
             1.  If |operation| is declared with a [{{Default}}] [=extended attribute=],
                 then:
