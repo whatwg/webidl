@@ -7,17 +7,7 @@ This is the primary repository in which the Web IDL specification is developed.
 
 ## Contributing
 
-In our issues, we use the following labels: 
-
- * ☕ — not too hard
- * ☕☕ — hard
- * ☕☕☕ — excruciating
-
- * ⌛ — should be short to fix
- * ⌛⌛ — shouldn't be too long
- * ⌛⌛⌛ — there goes your week-end
-
-Thus, good first bugs are [short and sweet](https://github.com/heycam/webidl/issues?utf8=✓&q=is%3Aissue%20is%3Aopen%20label%3A⌛%20%20label%3A☕).
+Good first bugs are marked as [short and easy](https://github.com/heycam/webidl/issues?utf8=%E2%9C%93&q=is%3Aopen+label%3A%22%E2%8C%9B+short%22+label%3A%22%E2%98%95+easy%22).
 
 ## Markup
 
