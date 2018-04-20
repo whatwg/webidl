@@ -7,7 +7,7 @@ This is the primary repository in which the Web IDL specification is developed.
 
 ## Contributing
 
-Good first bugs are marked as [short and easy](https://github.com/heycam/webidl/issues?utf8=%E2%9C%93&q=is%3Aopen+label%3A%22%E2%8C%9B+short%22+label%3A%22%E2%98%95+easy%22).
+Good first bugs are marked as [short and easy](https://github.com/heycam/webidl/issues?utf8=%E2%9C%93&q=is%3Aopen+label%3A%22%E2%8C%9B+duration:short%22+label%3A%22%E2%98%95+difficulty:easy%22).
 
 ## Markup
 
