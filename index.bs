@@ -7443,12 +7443,12 @@ the object (or its prototype chain) correspond to [=dictionary members=].
 
 <div id="es-to-dictionary" algorithm="convert an ECMAScript value to dictionary">
 
-    An ECMAScript value |V| is [=converted to an IDL value|converted=]
+    An ECMAScript value |esDict| is [=converted to an IDL value|converted=]
     to an IDL [=dictionary type=] value by
     running the following algorithm (where |D| is the [=dictionary type=]):
 
-    1.  If <a abstract-op>Type</a>(|V|) is not Undefined, Null or Object, then [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
-    1.  Let |dict| be an empty dictionary value of type |D|;
+    1.  If <a abstract-op>Type</a>(|esDict|) is not Undefined, Null or Object, then [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
+    1.  Let |idlDict| be an empty dictionary value of type |D|;
         every [=dictionary member=]
         is initially considered to be [=not present=].
     1.  Let |dictionaries| be a list consisting of |D| and all of |D|’s [=inherited dictionaries=],
@@ -7456,24 +7456,24 @@ the object (or its prototype chain) correspond to [=dictionary members=].
     1.  For each dictionary |dictionary| in |dictionaries|, in order:
         1.  For each dictionary member |member| declared on |dictionary|, in lexicographical order:
             1.  Let |key| be the [=identifier=] of |member|.
-            1.  Let |value| be an ECMAScript value, depending on <a abstract-op>Type</a>(|V|):
+            1.  Let |esMemberValue| be an ECMAScript value, depending on <a abstract-op>Type</a>(|esDict|):
                 <dl class="switch">
                      :  Undefined
                      :  Null
                      :: <emu-val>undefined</emu-val>
                      :  anything else
-                     :: [=?=] <a abstract-op>Get</a>(|V|, |key|)
+                     :: [=?=] <a abstract-op>Get</a>(|esDict|, |key|)
                 </dl>
-            1.  If |value| is not <emu-val>undefined</emu-val>, then:
-                1.  Let |idlValue| be the result of [=converted to an IDL value|converting=] |value| to an IDL value whose type is the type |member| is declared to be of.
-                1.  Set the dictionary member on |dict| with key name |key| to the value |idlValue|.  This dictionary member is considered to be [=present=].
-            1.  Otherwise, if |value| is <emu-val>undefined</emu-val> but |member| has a [=dictionary member/default value=], then:
-                1.  Let |idlValue| be |member|’s default value.
-                1.  Set the dictionary member on |dict| with key name |key| to the value |idlValue|.  This dictionary member is considered to be [=present=].
-            1.  Otherwise, if |value| is
+            1.  If |esMemberValue| is not <emu-val>undefined</emu-val>, then:
+                1.  Let |idlMemberValue| be the result of [=converted to an IDL value|converting=] |esMemberValue| to an IDL value whose type is the type |member| is declared to be of.
+                1.  Set the dictionary member on |idlDict| with key name |key| to the value |idlMemberValue|.  This dictionary member is considered to be [=present=].
+            1.  Otherwise, if |esMemberValue| is <emu-val>undefined</emu-val> but |member| has a [=dictionary member/default value=], then:
+                1.  Let |idlMemberValue| be |member|’s default value.
+                1.  Set the dictionary member on |idlDict| with key name |key| to the value |idlMemberValue|.  This dictionary member is considered to be [=present=].
+            1.  Otherwise, if |esMemberValue| is
                 <emu-val>undefined</emu-val> and |member| is a
                 [=required dictionary member=], then throw a {{ECMAScript/TypeError}}.
-    1.  Return |dict|.
+    1.  Return |idlDict|.
 </div>
 
 Note: The order that [=dictionary members=] are looked
