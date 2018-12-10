@@ -7475,6 +7475,8 @@ the object (or its prototype chain) correspond to [=dictionary members=].
                 </dl>
             1.  If |esMemberValue| is not <emu-val>undefined</emu-val>, then:
                 1.  Let |idlMemberValue| be the result of [=converted to an IDL value|converting=] |esMemberValue| to an IDL value whose type is the type |member| is declared to be of.
+                1.  If, during the previous step, <a lt="an exception was thrown">an exception |E| was thrown</a>, |E| is a {{TypeError}}, and |member| is declared to be of a type
+                    annotated with [{{CatchTypeErrors}}], let |idlMemberValue| be |member|’s default value, and do not allow the exception to propagate.
                 1.  Set the dictionary member on |idlDict| with key name |key| to the value |idlMemberValue|.  This dictionary member is considered to be [=present=].
             1.  Otherwise, if |esMemberValue| is <emu-val>undefined</emu-val> but |member| has a [=dictionary member/default value=], then:
                 1.  Let |idlMemberValue| be |member|’s default value.
@@ -7591,7 +7593,12 @@ the ECMAScript <emu-val>null</emu-val> value.
         value <emu-val>null</emu-val>.
     1.  Otherwise, return the result of
         [=converted to an IDL value|converting=] |V|
-        using the rules for the [=nullable types/inner type|inner IDL type=] <code class="idl">T</code>.
+        using the rules for the [=nullable types/inner type|inner IDL type=] <code
+        class="idl">|T|</code>.
+    1.  If, during the previous step, <a lt="an exception was thrown">an exception |E| was
+        thrown</a>, |E| is a {{TypeError}}, and <code class="idl">|T|</code> is annotated with
+        [{{CatchTypeErrors}}], return the IDL [=nullable type=] <code class="idl">|T|?</code> value
+        <emu-val>null</emu-val>, instead of allowing the exception to propagate.
 </div>
 
 <div id="nullable-to-es" algorithm="convert a nullable to an ECMAScript value">
@@ -7671,6 +7678,10 @@ ECMAScript Array values.
         1.  Initialize |S|<sub>|i|</sub> to the result of
             [=converted to an IDL value|converting=]
             |nextItem| to an IDL value of type |T|.
+        1.  If, during the previous step, <a lt="an exception was thrown">an exception |E| was
+            thrown</a>, |E| is a {{TypeError}}, and <code class="idl">|T|</code> is annotated with
+            [{{CatchTypeErrors}}], [=iteration/continue=], instead of allowing the exception to
+            propagate.
         1.  Set |i| to |i| + 1.
 </div>
 
@@ -7772,6 +7783,10 @@ ECMAScript Object values.
             1.  Let |typedKey| be |key| [=converted to an IDL value=] of type |K|.
             1.  Let |value| be [=?=] <a abstract-op>Get</a>(|O|, |key|).
             1.  Let |typedValue| be |value| [=converted to an IDL value=] of type |V|.
+            1.  If, during the previous step, <a lt="an exception was thrown">an exception |E| was
+                thrown</a>, |E| is a {{TypeError}}, and <code class="idl">|V|</code> is annotated
+                with [{{CatchTypeErrors}}], [=iteration/continue=], instead of allowing the
+                exception to propagate.
             1.  [=map/Set=] |result|[|typedKey|] to |typedValue|.
 
                 Note: it's possible that |typedKey| is already in |result|, if |O| is a proxy
@@ -8303,6 +8318,9 @@ A dictionary member that does not have a [=dictionary member/default value=] mus
 attributes associated with|associated with=] the [{{CatchTypeErrors}}] extended attribute.  A type
 that is not in one of the above contexts must not be [=extended attributes associated
 with|associated with=] the [{{CatchTypeErrors}}] extended attribute.
+
+See the rules for converting ECMAScript values to the various IDL types mentioned above in
+[[#es-type-mapping]] for the specific requirements that the use of [{{CatchTypeErrors}}] entails.
 
 <div class="example">
 
