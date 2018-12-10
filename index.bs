@@ -6232,6 +6232,7 @@ annotate are called <dfn export for="annotated types" lt="inner type">inner type
 </div>
 
 The following extended attributes are <dfn for="extended attributes">applicable to types</dfn>:
+[{{CatchTypeErrors}}],
 [{{Clamp}}],
 [{{EnforceRange}}], and
 [{{TreatNullAs}}].
@@ -8276,6 +8277,71 @@ See the rules for converting ECMAScript values to IDL [=buffer source types=] in
     objects as input.
 </div>
 
+
+<h4 id="CatchTypeErrors" extended-attribute lt="CatchTypeErrors">[CatchTypeErrors]</h4>
+
+If the [{{CatchTypeErrors}}] [=extended attribute=] appears on the type of an optional [=dictionary
+member=], the [=nullable types/inner type=] of a [=nullable type=], or the value type of a
+[=sequence=], [=record=] or <a interface lt="FrozenArray">FrozenArray</a>, it creates a new IDL type
+such that when an ECMAScript value is converted to the IDL type, any type errors during the
+conversion result in the omission of that value in its container, rather than further propagation of
+the error. How this omission happens depends on the container type:
+
+*   On an optional [=dictionary member=], a type error while converting the member's value results
+    in that member taking its [=dictionary member/default value=].
+*   On the [=nullable types/inner type=] of a [=nullable type=], a type error while converting the
+    inner type results in <emu-val>null</emu-val>.
+*   On the value type of a [=sequence=], [=record=] or <a interface
+    lt="FrozenArray">FrozenArray</a>, a type error while converting one of the values results in
+    that value being omitted from the resulting object.
+
+The [{{CatchTypeErrors}}]
+extended attribute must
+[=takes no arguments|take no arguments=].
+
+A dictionary member that does not have a [=dictionary member/default value=] must not be [=extended
+attributes associated with|associated with=] the [{{CatchTypeErrors}}] extended attribute.  A type
+that is not in one of the above contexts must not be [=extended attributes associated
+with|associated with=] the [{{CatchTypeErrors}}] extended attribute.
+
+<div class="example">
+
+    In the following [=IDL fragment=], four [=operations=] are declared that take various objects
+    that use the [{{CatchTypeErrors}}] [=extended attribute=]:
+
+    <pre highlight="webidl">
+        dictionary ExampleDict {
+          required double a;
+          [CatchTypeErrors] double b = -1.0;
+        };
+
+        interface CatchTypeErrorsExample {
+          void processDictionary(ExampleDict d);
+          void processNullable(([CatchTypeErrors] double)? n);
+          void processSequence(sequence&lt;[CatchTypeErrors] double&gt; s);
+          void processRecord(record&lt;DOMString, [CatchTypeErrors] double&gt; r);
+        };
+    </pre>
+
+    Calling these with invalid {{double}} values results in those invalid values being omitted,
+    rather than a {{ECMAScript/TypeError}} being thrown:
+
+    <pre highlight="js">
+        // Throws a TypeError, since a does not use [CatchTypeErrors].
+        example.processDictionary({a: "bad", b: 1.2});
+        // Treats input as {a: 1.2, b: -1.0}.
+        example.processDictionary({a: 1.2, b: "bad"});
+
+        // Treats input as null.
+        example.processNullable("bad");
+
+        // Treats input as [1.2, 3.4].
+        example.processSequence([1.2, "bad", 3.4]);
+
+        // Treats input as {a: 1.2, c: 3.4}.
+        example.processRecord({a: 1.2, b: "bad", c: 3.4});
+    </pre>
+</div>
 
 <h4 id="Clamp" extended-attribute lt="Clamp">[Clamp]</h4>
 
