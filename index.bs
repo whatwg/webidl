@@ -141,6 +141,7 @@ urlPrefix: https://tc39.github.io/ecma262/; spec: ECMA-262
         text: OrdinaryGetOwnProperty; url: sec-ordinarygetownproperty
         text: OrdinaryPreventExtensions; url: sec-ordinarypreventextensions
         text: OrdinarySetWithOwnDescriptor; url: sec-ordinarysetwithowndescriptor
+        text: OrdinaryCreateFromConstructor; url: sec-ordinarycreatefromconstructor
         text: Set; url: sec-set-o-p-v-throw
         text: SetFunctionLength; url: sec-setfunctionlength
         text: SetFunctionName; url: sec-setfunctionname
@@ -12363,19 +12364,25 @@ object is associated with.
 
 <div algorithm>
     To <dfn>create an object implementing the interface</dfn> |interface|, with optional
-    intenal slots |slots|, for an interface which is not declared with the
-    [{{Global}}] [=extended attribute=], perform the following steps:
+    intenal slots |slots| and |new.target| value |newTarget|, for an interface which is not
+    declared with the [{{Global}}] [=extended attribute=], perform the following steps:
 
     1. If |slots| is provided, append \[[PrimaryInterface]] to |slots|.
     1. Otherwise, let |slots| be &laquo; \[[PrimaryInterface]] &raquo;.
-    1. Let |proto| be the [=interface prototype object=] of |interface|.
-    1. Let |instance| be [$ObjectCreate$](|proto|, |slots|).
+    1. If |NewTarget| is provided, let |instance| be ? [$OrdinaryCreateFromConstructor$](|newTarget|, "%ObjectPrototype%")
+    1. Otherwise,
+        1. Let |realm| be the [=relevant Realm=] of the |this| value that led to the execution of this algorithm.
+        1. Let |proto| be the [=interface prototype object=] of |interface| in |realm|.
+        1. Let |instance| be [$ObjectCreate$](|proto|, |slots|).
     1. Set |instance|.\[[PrimaryInterface]] to |interface|.
     1. Let |realm| be the current [=Realm=].
     1. [=Define the unforgeable regular operations=] of |interface| on |instance|, given |realm|.
     1. [=Define the unforgeable regular attributes=] of |interface| on |instance|, given |realm|.
     1. Return |instance|.
 </div>
+
+Issue: The relevant |this| value is not always well-defined; see
+<a href="https://github.com/heycam/webidl/issues/135">#135</a> for discussion.
 
 <div class="note">
     Specifications use various wordings to reference the "[=create an object implementing
