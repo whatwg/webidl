@@ -1042,8 +1042,7 @@ limitations.  The following extended attributes must not
 be specified on partial interface definitions:
 [{{Constructor}}],
 [{{LegacyWindowAlias}}],
-[{{NamedConstructor}}],
-[{{NoInterfaceObject}}].
+[{{NamedConstructor}}].
 
 Note: The above list of [=extended attributes=]
 is all of those defined in this document that are applicable to
@@ -1067,12 +1066,10 @@ The following extended attributes are applicable to interfaces:
 [{{Global}}],
 [{{LegacyWindowAlias}}],
 [{{NamedConstructor}}],
-[{{NoInterfaceObject}}],
 [{{OverrideBuiltins}}], and
 [{{SecureContext}}].
 
-Non-callback [=interfaces=] which are not annotated
-with a [{{NoInterfaceObject}}] [=extended attribute=],
+Non-callback [=interfaces=]
 and [=callback interfaces=] which declare [=constants=]
 must be annotated with an [{{Exposed}}] [=extended attribute=].
 
@@ -8358,10 +8355,6 @@ either return an IDL value of a type corresponding to the interface
 the [{{Constructor}}]
 extended attribute appears on, or throw an exception.
 
-The [{{Constructor}}] and
-[{{NoInterfaceObject}}]
-extended attributes must not be specified on the same interface.
-
 The [{{Constructor}}] extended attribute
 must not be used on a [=callback interface=].
 
@@ -8936,9 +8929,6 @@ attribute.
 The [{{LegacyNamespace}}] extended attribute [=takes an identifier|take an identifier=].
 This identifier must be the identifier of a namespace.
 
-The [{{LegacyNamespace}}] and [{{NoInterfaceObject}}]
-extended attributes must not be specified on the same interface.
-
 The [{{LegacyNamespace}}] extended attribute
 must not be used on a [=callback interface=].
 
@@ -9055,9 +9045,6 @@ must not be the same as the [=NamedConstructor identifier|identifier=] used by a
 extended attribute on this interface or another interface,
 must not be the same as an [=identifier=] of an interface that has an [=interface object=],
 and must not be one of the [=reserved identifiers=].
-
-The [{{LegacyWindowAlias}}] and [{{NoInterfaceObject}}]
-extended attributes must not be specified on the same interface.
 
 The [{{LegacyWindowAlias}}] extended attribute must not be specified
 on an interface that does not include the {{Window}} [=interface=]
@@ -9393,123 +9380,6 @@ a [=promise type=].
           [NewObject] Element createElement(DOMString localName);
           // ...
         };
-    </pre>
-</div>
-
-
-<h4 id="NoInterfaceObject" extended-attribute lt="NoInterfaceObject">[NoInterfaceObject]</h4>
-
-<div class="advisement">
-
-    The [{{NoInterfaceObject}}] [=extended attribute=] is an undesirable feature.
-    It exists only so that legacy Web platform features can be specified.
-    It should not be used in specifications
-    unless required to specify the behavior of legacy APIs,
-    or for consistency with these APIs.
-    Editors who wish to use this feature are strongly advised to discuss this
-    by <a href="https://github.com/heycam/webidl/issues/new?title=Intent%20to%20use%20[NoInterfaceObject]">filing an issue</a>
-    before proceeding.
-
-    <small class="non-normative">
-        The [{{NoInterfaceObject}}] [=extended attribute=] appears on the following [=interfaces=]:
-
-        {{Geolocation}},
-        {{Coordinates}},
-        {{Position}},
-        {{PositionError}},
-        {{DeviceAcceleration}},
-        {{DeviceRotationRate}},
-        {{ConstrainablePattern}},
-        {{WEBGL_compressed_texture_astc}},
-        {{WEBGL_compressed_texture_s3tc_srgb}},
-        {{WEBGL_draw_buffers}},
-        {{WEBGL_lose_context}},
-        {{ANGLE_instanced_arrays}},
-        {{EXT_blend_minmax}},
-        {{EXT_color_buffer_float}},
-        {{EXT_disjoint_timer_query}},
-        {{OES_standard_derivatives}}, and
-        {{OES_vertex_array_object}}.
-        [[GEOLOCATION-API]]
-        [[ORIENTATION-EVENT]]
-        [[MEDIACAPTURE-STREAMS]]
-        (various [[WEBGL]] extension specifications)
-    </small>
-
-    Note: Previously, the [{{NoInterfaceObject}}] [=extended attribute=] could also be used
-    to annotate [=interfaces=], which other [=interfaces=] could then implement
-    (using the defunct "implements statement") as if they were mixins.
-    There is now dedicated syntax to cater for this use case
-    in the form of [=interface mixins=] and [=includes statements=].
-    Using the [{{NoInterfaceObject}}] [=extended attribute=]
-    for this purpose is no longer supported.
-    Specifications which still do are strongly encouraged
-    to migrate to [=interface mixins=] as soon as possible.
-</div>
-
-If the [{{NoInterfaceObject}}] [=extended attribute=] appears on an [=interface=],
-it indicates that an [=interface object=]
-will not exist for the interface in the ECMAScript binding.
-
-The [{{NoInterfaceObject}}] extended attribute
-must [=takes no arguments|take no arguments=].
-
-If the [{{NoInterfaceObject}}] extended attribute
-is specified on an interface, then the [{{Constructor}}]
-extended attribute must not also be specified on that interface.
-A [{{NamedConstructor}}] extended attribute is fine,
-however.
-
-The [{{NoInterfaceObject}}] extended attribute
-must not be specified on an interface that has any
-[=static operations=] defined on it.
-
-The [{{NoInterfaceObject}}] extended attribute
-must not be specified on a [=callback interface=].
-
-An interface that does not have the [{{NoInterfaceObject}}] extended
-attribute specified must not inherit
-from an interface that has the [{{NoInterfaceObject}}] extended
-attribute specified.
-
-See [[#es-interfaces]]
-for the specific requirements that the use of
-[{{NoInterfaceObject}}] entails.
-
-<div class="example">
-
-    The following [=IDL fragment=] defines two interfaces, one whose interface object
-    is exposed on the ECMAScript global object, and one whose isn’t:
-
-    <pre highlight="webidl">
-        [Exposed=Window]
-        interface Storage {
-          void addEntry(unsigned long key, any value);
-        };
-
-        [Exposed=Window,
-         NoInterfaceObject]
-        interface Query {
-          any lookupEntry(unsigned long key);
-        };
-    </pre>
-
-    An ECMAScript implementation of the above IDL would allow
-    manipulation of <code class="idl">Storage</code>’s
-    prototype, but not <code class="idl">Query</code>’s.
-
-    <pre highlight="js">
-        typeof Storage;                        // evaluates to "object"
-
-        // Add some tracing alert() call to Storage.addEntry.
-        var fn = Storage.prototype.addEntry;
-        Storage.prototype.addEntry = function(key, value) {
-          alert('Calling addEntry()');
-          return fn.call(this, key, value);
-        };
-
-        typeof Query;                          // evaluates to "undefined"
-        var fn = Query.prototype.lookupEntry;  // exception, Query isn’t defined
     </pre>
 </div>
 
@@ -10624,7 +10494,7 @@ Note: The HTML Standard defines how a security check is performed. [[!HTML]]
 
 For every non-callback [=interface=] that is [=exposed=] in
 a given ECMAScript global environment and that is not declared with
-the [{{NoInterfaceObject}}] or [{{LegacyNamespace}}] [=extended attributes=],
+the [{{LegacyNamespace}}] [=extended attributes=],
 a corresponding property must exist on the ECMAScript environment's global object.
 The name of the property is the [=identifier=] of the interface,
 and its value is an object called the <dfn id="dfn-interface-object" export>interface object</dfn>.
@@ -10777,9 +10647,7 @@ This object's relevant [=Realm=] must be the same as that of the [=named constru
 <h4 id="interface-prototype-object">Interface prototype object</h4>
 
 There must exist an <dfn id="dfn-interface-prototype-object" export>interface prototype object</dfn>
-for every non-callback [=interface=] defined,
-regardless of whether the interface was declared
-with the [{{NoInterfaceObject}}] [=extended attribute=].
+for every non-callback [=interface=] defined.
 
 <div algorithm>
 
@@ -10826,12 +10694,11 @@ with the [{{NoInterfaceObject}}] [=extended attribute=].
         1.  [=Define the regular attributes=] of |interface| on |interfaceProtoObj| given |realm|.
         1.  [=Define the regular operations=] of |interface| on |interfaceProtoObj| given |realm|.
     1.  [=Define the constants=] of |interface| on |interfaceProtoObj| given |realm|.
-    1.  If the [{{NoInterfaceObject}}] [=extended attribute=] was not specified on |interface|, then:
-        1.  Let |constructor| be the [=interface object=] of |interface| in |realm|.
-        1.  Let |desc| be the PropertyDescriptor{\[[Writable]]: <emu-val>true</emu-val>,
-            \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val>,
-            \[[Value]]: |constructor|}.
-        1.  Perform [=!=] <a abstract-op>DefinePropertyOrThrow</a>(|interfaceProtoObj|, "<code>constructor</code>", |desc|).
+    1.  Let |constructor| be the [=interface object=] of |interface| in |realm|.
+    1.  Let |desc| be the PropertyDescriptor{\[[Writable]]: <emu-val>true</emu-val>,
+        \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val>,
+        \[[Value]]: |constructor|}.
+    1.  Perform [=!=] <a abstract-op>DefinePropertyOrThrow</a>(|interfaceProtoObj|, "<code>constructor</code>", |desc|).
     1.  Return |interfaceProtoObj|.
 </div>
 
@@ -10844,36 +10711,6 @@ Additionally, [=interface prototype objects=] get properties declaratively from:
 * [[#es-setlike]].
 
 Issue: Define those properties imperatively instead.
-
-<div class="note">
-
-    The [=interface prototype object=]
-    of an [=interface=] that is defined with
-    the [{{NoInterfaceObject}}]
-    [=extended attribute=]
-    will be accessible.
-    For example, with the following IDL:
-
-    <pre highlight="webidl">
-        [Exposed=Window,
-         NoInterfaceObject]
-        interface Foo {
-        };
-
-        partial interface Window {
-          attribute Foo foo;
-        };
-    </pre>
-
-    it is not possible to access the interface prototype object through
-    the [=interface object=]
-    (since it does not exist as <code>window.Foo</code>).  However, an instance
-    of <code class="idl">Foo</code> can expose the interface prototype
-    object by calling its \[[GetPrototypeOf]]
-    [=internal method=] – <code>Object.getPrototypeOf(window.foo)</code> in
-    this example.
-
-</div>
 
 The [=class string=] of an [=interface prototype object=] is the concatenation of
 the [=interface=]’s [=qualified name=] and the string "<code>Prototype</code>".
