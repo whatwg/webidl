@@ -10964,7 +10964,7 @@ is the concatenation of the [=interface=]’s
         Note: For example, if the [=interface=] is the {{Window}} interface,
         then the sole object will be this global environment’s window object.
     1.  If the result of running the [=named property visibility algorithm=] with
-        property name |P| and object |object| is true, then:
+        property name |P|, object |object| and object |O| is true, then:
         1.  Let |operation| be the operation used to declare the named property getter.
         1.  Let |value| be an uninitialized variable.
         1.  If |operation| was defined without an [=identifier=], then
@@ -12636,10 +12636,12 @@ internal method as follows.
     is used to determine if a given named property is exposed on an object.
     Some named properties are not exposed on an object depending on whether
     the [{{OverrideBuiltins}}] [=extended attribute=] was used.
-    The algorithm operates as follows, with property name |P| and object |O|:
+    The algorithm operates as follows, with property name |P|, object |O|, and
+    optionally object |propertyHolder|:
 
+    1.  If |propertyHolder| was not specified, set |propertyHolder| to |O|.
     1.  If |P| is not a [=supported property name=] of |O|, then return false.
-    1.  If |O| has an own property named |P|, then return false.
+    1.  If |propertyHolder| has an own property named |P|, then return false.
 
           Note: This will include cases in which |O| has unforgeable properties,
           because in practice those are always set up before objects have any supported property names,
@@ -12647,10 +12649,9 @@ internal method as follows.
 
     1.  If |O| implements an interface that has the [{{OverrideBuiltins}}]
         [=extended attribute=], then return true.
-    1.  Let |prototype| be |O|.\[[GetPrototypeOf]]().
+    1.  Let |prototype| be |propertyHolder|.\[[GetPrototypeOf]]().
     1.  While |prototype| is not null:
-        1.  If |prototype| is not a [=named properties object=],
-            and |prototype| has an own property named |P|, then return false.
+        1.  If |prototype| has an own property named |P|, then return false.
         1.  Set |prototype| to |prototype|.\[[GetPrototypeOf]]().
     1.  Return true.
 </div>
