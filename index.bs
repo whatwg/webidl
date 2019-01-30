@@ -125,6 +125,7 @@ urlPrefix: https://tc39.github.io/ecma262/; spec: ECMA-262
         text: DefinePropertyOrThrow; url: sec-definepropertyorthrow
         text: DetachArrayBuffer; url: sec-detacharraybuffer
         text: Get; url: sec-get-o-p
+        text: GetFunctionRealm; url: sec-getfunctionrealm
         text: GetIterator; url: sec-getiterator
         text: GetMethod; url: sec-getmethod
         text: IsAccessorDescriptor; url: sec-isaccessordescriptor
@@ -189,6 +190,7 @@ urlPrefix: https://tc39.github.io/ecma262/; spec: ECMA-262
             text: internal method
             text: internal slot
         text: Number type; url: sec-ecmascript-language-types-number-type
+        text: Object; for: ECMAScript; url: sec-object-type
         for: ordinary object; url: sec-ordinary-object-internal-methods-and-internal-slots
             text: internal method
             text: internal slot
@@ -869,6 +871,19 @@ An interface must not be declared such that
 its inheritance hierarchy has a cycle.  That is, an interface
 |A| cannot inherit from itself, nor can it inherit from another
 interface |B| that inherits from |A|, and so on.
+
+<div algorithm>
+  The [=list=] of <dfn for=interface>inclusive inherited interfaces</dfn> of an [=interface=] |I|
+  is defined as follows:
+
+    1.  Let |result| be « ».
+    1.  Let |interface| be |I|.
+    1.  While |interface| is not null:
+        1.  [=list/Append=] |interface| to |result|.
+        1.  Set |interface| to the [=interface=] that |I| [=interface/inherits=] from, if any, and
+            null otherwise.
+    1.  Return |result|.
+</div>
 
 Note that general multiple inheritance of interfaces is not supported, and
 objects also cannot implement arbitrary sets of interfaces.
@@ -10700,11 +10715,14 @@ the <code>typeof</code> operator will return "function" when applied to an inter
         1.  Let &lt;|constructor|, |values|&gt; be the result
             of passing |S| and |args|.
             to the [=overload resolution algorithm=].
-        1.  Let |R| be the result of performing
-            the actions listed in the description of |constructor|
-            with |values| as the argument values.
+        1.  Let |object| be the result of [=internally create a new object implementing the
+            interface|internally creating a new object implementing=] |I|, with |realm| and
+            {{NewTarget}}.
+        1.  Perform the actions listed in the description of |constructor|
+            with |values| as the argument values
+            and |object| as the <emu-val>this</emu-val> value.
             Rethrow any exceptions.
-        1.  Let |O| be the result of [=converted to an ECMAScript value|converting=] |R|
+        1.  Let |O| be the result of [=converted to an ECMAScript value|converting=] |object|
             to an ECMAScript [=interface type=] value |I|.
         1.  Assert: |O| is an object that implements |I|.
         1.  Assert: |O|.\[[Realm]] is equal to |realm|.
@@ -12347,12 +12365,65 @@ It is the responsibility of specifications using Web IDL to state
 which global environment (or, by proxy, which global object) each platform
 object is associated with.
 
+<div algorithm>
+  To <dfn export lt=new>create a new object implementing the interface</dfn> |interface|, with a
+  Realm |realm|, perform the following steps:
+
+    1.  Return the result of [=internally create a new object implementing the
+        interface|internally creating a new object implementing=] |interface|, with |realm| and
+        <emu-val>undefined</emu-val>.
+</div>
+
+<div algorithm>
+  To <dfn>internally create a new object implementing the interface</dfn> |interface|, with a
+  Realm |realm| and a JavaScript value |newTarget|, perform the following steps:
+
+    1.  Assert: |interface| is [=exposed=] in |realm|.
+    1.  If |newTarget| is <emu-val>undefined</emu-val>, then:
+        1.  Let |prototype| be the [=interface prototype object=] for |interface| in
+            |realm|.
+    1.  Otherwise:
+        1.  Assert: [$IsCallable$](|newTarget|) is true.
+        1.  Let |prototype| be [=?=] [$Get$](|newTarget|, "prototype").
+        1.  If [$Type$](|prototype|) is not Object, then:
+            1.  Let |targetRealm| be [$GetFunctionRealm$](|newTarget|).
+            1.  Set |prototype| to the [=interface prototype object=] for |interface| in
+                |targetRealm|.
+    1.  Let |instance| be a newly created [=ECMAScript/object=] in |realm|.
+    1.  Set |instance|.\[[Prototype]] to |prototype|.
+    1.  Set |instance|'s essential internal methods to the definitions specified in
+        [=ECMA-262 Ordinary object internal methods and internal slots=].
+    1.  Let |interfaces| be the [=inclusive inherited interfaces=] of |interface|.
+    1.  [=list/iterate|For every=] [=interface=] |ancestor interface| in |interfaces|:
+        1.  [=Define the unforgeable regular operations=] of |ancestor interface| on |instance|,
+            given |realm|.
+        1.  [=Define the unforgeable regular attributes=] of |ancestor interface| on |instance|,
+            given |realm|.
+    1.  If |interface| is declared with the [{{Global}}] [=extended attribute=], then:
+        1.  [=Define the regular operations=] of |interface| on |instance|, given |realm|.
+        1.  [=Define the regular attributes=] of |interface| on |instance|, given |realm|.
+        1.  Set |instance|.\[[SetPrototypeOf]] as defined in [[#platform-object-setprototypeof]].
+    1.  Otherwise, if |interfaces| contains an [=interface=] which
+        [=support indexed properties|supports indexed properties=],
+        [=support named properties|named properties=], or both:
+        1.  Set |instance|.\[[GetOwnProperty]] as defined in
+            [[#legacy-platform-object-getownproperty]].
+        1.  Set |instance|.\[[Set]] as defined in
+            [[#legacy-platform-object-set]].
+        1.  Set |instance|.\[[DefineOwnProperty]] as defined in
+            [[#legacy-platform-object-defineownproperty]].
+        1.  Set |instance|.\[[Delete]] as defined in
+            [[#legacy-platform-object-delete]].
+        1.  Set |instance|.\[[PreventExtensions]] as defined in
+            [[#legacy-platform-object-preventextensions]].
+        1.  Set |instance|.\[[OwnPropertyKeys]] as defined in
+            [[#legacy-platform-object-ownpropertykeys]].
+    1.  Return |instance|.
+</div>
+
 The <dfn id="dfn-primary-interface" export>primary interface</dfn> of a platform object
 that implements one or more interfaces is the most-derived [=interface=]
-that it implements.  The value of the \[[Prototype]] [=internal slot=]
-of the platform object is the [=interface prototype object=]
-of the [=primary interface=]
-from the [=platform object=]’s associated global environment.
+that it implements.
 
 The global environment that a given [=platform object=]
 is associated with can <dfn id="dfn-change-global-environment" for="global environment" export>change</dfn> after it has been created.  When
@@ -12367,24 +12438,6 @@ a platform object that implements one or more interfaces
 must be the [=qualified name=] of
 the [=primary interface=]
 of the platform object.
-
-[=Platform objects=] which implement an [=interface=] which has a [{{Global}}]
-[=extended attribute=] have an internal \[[SetPrototypeOf]] method
-as defined in [[#platform-object-setprototypeof]].
-
-Within a [=Realm=] |realm|,
-for each [=interface=] |interface| implemented by a [=platform object=] |obj|,
-the following steps must be run as part of |obj|'s creation:
-
-1.  [=Define the unforgeable regular operations=] of |interface| on |obj|, given |realm|.
-1.  [=Define the unforgeable regular attributes=] of |interface| on |obj|, given |realm|.
-
-If within a [=Realm=] |realm| a [=platform object=] |obj| implements
-an interface |interface| which is declared with the [{{Global}}] [=extended attribute=], then
-the following steps must be run as part of |obj|'s creation:
-
-1.  [=Define the regular operations=] of |interface| on |obj|, given |realm|.
-1.  [=Define the regular attributes=] of |interface| on |obj|, given |realm|.
 
 Additionally, [=platform objects=] which implement an [=interface=]
 which has a [{{Global}}] [=extended attribute=]
@@ -12447,13 +12500,11 @@ Support for [=getters=] is handled in [[#legacy-platform-object-getownproperty]]
 and for [=setters=] in [[#legacy-platform-object-defineownproperty]]
 and [[#legacy-platform-object-set]].
 
-Additionally, [=legacy platform objects=] must have internal methods as defined in:
+Additionally, [=legacy platform objects=] have internal methods as defined in:
 
 * [[#legacy-platform-object-delete]],
 * [[#legacy-platform-object-preventextensions]], and
 * [[#legacy-platform-object-ownpropertykeys]].
-
-Issue: Define those internal methods imperatively instead.
 
 
 <h4 id="legacy-platform-object-getownproperty" dfn oldids="getownproperty" lt=GetOwnProperty for="legacy platform object">\[[GetOwnProperty]]</h4>
@@ -13325,10 +13376,8 @@ Each {{DOMException}} object has an associated <dfn for="DOMException">name</dfn
 The <dfn constructor for="DOMException"><code>DOMException(|message|, |name|)</code></dfn>
 constructor, when invoked, must run these steps:
 
-1. Let |e| be a new {{DOMException}} object.
-1. Set |e|'s [=DOMException/name=] to |name|.
-1. Set |e|'s [=DOMException/message=] to |message|.
-1. Return |e|.
+1. Set <emu-val>this</emu-val>'s [=DOMException/name=] to |name|.
+1. Set <emu-val>this</emu-val>'s [=DOMException/message=] to |message|.
 
 The <dfn attribute for="DOMException"><code>name</code></dfn> attribute's getter must return this
 {{DOMException}} object's [=DOMException/name=].
