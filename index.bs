@@ -122,6 +122,7 @@ urlPrefix: https://tc39.github.io/ecma262/; spec: ECMA-262
         text: CreateDataProperty; url: sec-createdataproperty
         text: CreateIterResultObject; url: sec-createiterresultobject
         text: CreateMapIterator; url: sec-createmapiterator
+        text: CreateMethodProperty; url: sec-createmethodproperty
         text: CreateSetIterator; url: sec-createsetiterator
         text: DefinePropertyOrThrow; url: sec-definepropertyorthrow
         text: DetachArrayBuffer; url: sec-detacharraybuffer
@@ -10654,27 +10655,22 @@ Note: The HTML Standard defines how a security check is performed. [[!HTML]]
 For every non-callback [=interface=] that is [=exposed=] in
 a given ECMAScript global environment and that is not declared with
 the [{{NoInterfaceObject}}] or [{{LegacyNamespace}}] [=extended attributes=],
-a corresponding property must exist on the ECMAScript environment's global object.
+a corresponding property exists on the ECMAScript environment's global object.
 The name of the property is the [=identifier=] of the interface,
 and its value is an object called the <dfn id="dfn-interface-object" export>interface object</dfn>.
-The property has the attributes { \[[Writable]]: <emu-val>true</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val> }.
 The characteristics of an interface object are described in [[#interface-object]].
 
 If the [{{LegacyWindowAlias}}] extended attribute was specified on an [=exposed=] interface,
 then for each [=LegacyWindowAlias identifier|identifier=] in [{{LegacyWindowAlias}}]'s [=LegacyWindowAlias identifier|identifiers=]
-there must be a corresponding property on the {{Window}} [=interface=].
+there exists a corresponding property on the {{Window}} global object.
 The name of the property is the given [=LegacyWindowAlias identifier|identifier=],
 and its value is a reference to the [=interface object=] for the [=interface=].
-The property has the attributes
-{ \[[Writable]]: <emu-val>true</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val> }.
 
 In addition, for every [{{NamedConstructor}}] extended attribute on an [=exposed=] interface,
-a corresponding property must exist on the ECMAScript global object.
+a corresponding property exists on the ECMAScript global object.
 The name of the property is the [{{NamedConstructor}}]'s [=NamedConstructor identifier|identifier=],
 and its value is an object called a <dfn id="dfn-named-constructor" export>named constructor</dfn>,
 which allows construction of objects that implement the interface.
-The property has the attributes
-{ \[[Writable]]: <emu-val>true</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val> }.
 The characteristics of a named constructor are described in [[#named-constructors]].
 
 
@@ -10918,11 +10914,10 @@ the [=interface=]’s [=qualified name=] and the string "<code>Prototype</code>"
 For every [=callback interface=] that is [=exposed=] in
 a given ECMAScript global environment
 and on which [=constants=] are defined,
-a corresponding property must exist on the ECMAScript environment's global object.
+a corresponding property exists on the ECMAScript environment's global object.
 The name of the property is the [=identifier=] of the interface,
 and its value is an object called the
 <dfn id="dfn-legacy-callback-interface-object" export>legacy callback interface object</dfn>.
-The property has the attributes { \[[Writable]]: <emu-val>true</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val> }.
 
 The [=legacy callback interface object=] for a given [=callback interface=]
 is a [=built-in function object=].
@@ -12424,6 +12419,7 @@ object is associated with.
     1.  If |interface| is declared with the [{{Global}}] [=extended attribute=], then:
         1.  [=Define the regular operations=] of |interface| on |instance|, given |realm|.
         1.  [=Define the regular attributes=] of |interface| on |instance|, given |realm|.
+        1.  [=Define the global property references=] on |instance|, given |realm|.
         1.  Set |instance|.\[[SetPrototypeOf]] as defined in [[#platform-object-setprototypeof]].
     1.  Otherwise, if |interfaces| contains an [=interface=] which
         [=support indexed properties|supports indexed properties=],
@@ -12441,6 +12437,43 @@ object is associated with.
         1.  Set |instance|.\[[OwnPropertyKeys]] as defined in
             [[#legacy-platform-object-ownpropertykeys]].
     1.  Return |instance|.
+</div>
+
+<div algorithm>
+  To <dfn>define the global property references</dfn> on |target|, given [=Realm=] |realm|,
+  perform the following steps:
+
+    1.  [=list/iterate|For every=] non-callback [=interface=] |interface| that is [=exposed=] in
+        |realm|:
+        1.  If |interface| is not declared with the [{{NoInterfaceObject}}] or
+            [{{LegacyNamespace}}] [=extended attributes=], then:
+            1.  Let |id| be |interface|'s [=identifier=].
+            1.  Let |interfaceObject| be the result of [=create an interface object|creating
+                an interface object=] for |interface| with |id| in |realm|.
+            1.  Perform [=!=] [$CreateMethodProperty$](|target|, |id|, |interfaceObject|).
+            1.  If the |interface| is declared with a [{{LegacyWindowAlias}}] [=extended attribute=],
+                and |target| implements the {{Window}} [=interface=], then:
+                1.  [=list/iterate|For every=] [=LegacyWindowAlias identifier|identifier=] |id| in
+                    [{{LegacyWindowAlias}}]'s [=LegacyWindowAlias identifier|identifiers=]:
+                    1.  Perform [=!=] [$CreateMethodProperty$](|target|, |id|, |interfaceObject|).
+        1.  If the |interface| is declared with a [{{NamedConstructor}}] [=extended attribute=],
+            then:
+            1.  [=list/iterate|For every=] [=NamedConstructor identifier|identifier=] |id| in
+                [{{NamedConstructor}}]'s [=NamedConstructor identifier|identifiers=]:
+                1.  Let |namedConstructor| be the result of [=create a named constructor|creating
+                    a named constructor=] with |id| for |interface| in |realm|.
+                1.  Perform [=!=] [$CreateMethodProperty$](|target|, |id|, |namedConstructor|).
+    1.  [=list/iterate|For every=] [=callback interface=] |interface| that is [=exposed=] in
+        |realm| and on which [=constants=] are defined:
+        1.  Let |id| be |interface|'s [=identifier=].
+        1.  Let |interfaceObject| be the result of [=create a legacy callback interface
+            object|creating a legacy callback interface object=] for |interface| with |id| in |realm|.
+        1.  Perform [=!=] [$CreateMethodProperty$](|target|, |id|, |interfaceObject|).
+    1.  [=list/iterate|For every=] [=namespace=] |namespace| that is [=exposed=] in
+        |realm|:
+        1.  Let |id| be |namespace|'s [=identifier=].
+        1.  Let |namespaceObject| be the result of [=create a namespace object|creating a namespace object=] for |namespace| in |realm|.
+        1.  Perform [=!=] [$CreateMethodProperty$](|target|, |id|, |namespaceObject|).
 </div>
 
 <div class="note">
@@ -13138,32 +13171,31 @@ a return type that is a [=promise type=].
 <h3 id="es-namespaces">Namespaces</h3>
 
 For every [=namespace=] that is [=exposed=] in a given ECMAScript global environment,
-a corresponding property must exist on the ECMAScript
-environment's global object. The name of the property is the [=identifier=] of the namespace, and its value is an object
+a corresponding property exists on the ECMAScript environment's global object.
+The name of the property is the [=identifier=] of the namespace, and its value is an object
 called the <dfn id="dfn-namespace-object" export>namespace object</dfn>.
 
-The property has the attributes
-{ \[[Writable]]: <emu-val>true</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val> }.
 The characteristics of a namespace object are described in [[#namespace-object]].
 
 
 <h4 id="namespace-object">Namespace object</h4>
 
-<div algorithm="to create a namespace object">
+<div algorithm>
 
     The namespace object for a given [=namespace=] |namespace| and [=Realm=] |realm|
-    is created as follows:
+    is <dfn lt="create a namespace object">created</dfn> as follows:
 
     1.  Let |namespaceObject| be
         [=!=] <a abstract-op>ObjectCreate</a>(|realm|.\[[Intrinsics]].[[{{%ObjectPrototype%}}]]).
     1.  [=Define the regular attributes=] of |namespace| on |namespaceObject| given |realm|.
     1.  [=Define the regular operations=] of |namespace| on |namespaceObject| given |realm|.
     1.  For each [=exposed=] [=interface=] |interface| which has the [{{LegacyNamespace}}] extended
-        attribute with the identifier of this namespace as its argument,
-        1.  Let |I| be the [=interface object=] for |interface|.
-        1.  Let |newDesc| be the PropertyDescriptor{\[[Writable]]: <emu-val>true</emu-val>,
-            \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val>, \[[Value]]: |I|}.
-        1.  Perform [=!=] <a abstract-op>DefinePropertyOrThrow</a>(|namespaceObject|, |interface|'s [=identifier=], |newDesc|).
+        attribute with the identifier of |namespace| as its argument,
+        1.  Let |id| be |interface|'s [=identifier=].
+        1.  Let |interfaceObject| be the result of [=create an interface object|creating an
+            interface object=] for |interface| with |id| in |realm|.
+        1.  Perform [=!=] [$CreateMethodProperty$](|namespaceObject|, |id|, |interfaceObject|).
+    1.  Return |namespaceObject|.
 </div>
 
 
