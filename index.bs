@@ -12378,11 +12378,14 @@ The value of the [=function object=]’s <code class="idl">name</code> property 
     in various ways, including "|object| is an |interface| object".
 </div>
 
-Every [=platform object=] is associated with a global environment, just
+Every [=platform object=] is associated with a [=Realm=], just
 as the [=initial objects=] are.
+This Realm is stored in the [=platform object=]'s \[[Realm]] slot.
 It is the responsibility of specifications using Web IDL to state
-which global environment (or, by proxy, which global object) each platform
+which Realm (or, by proxy, which global object) each platform
 object is associated with.
+In particular, the algorithms below associate the new [=platform object=] with
+the Realm given as an argument.
 
 <div algorithm>
   To <dfn export lt=new>create a new object implementing the interface</dfn> |interface|, with a
@@ -12408,9 +12411,10 @@ object is associated with.
             1.  Let |targetRealm| be [$GetFunctionRealm$](|newTarget|).
             1.  Set |prototype| to the [=interface prototype object=] for |interface| in
                 |targetRealm|.
-    1.  Let |slots| be « \[[PrimaryInterface]] ».
+    1.  Let |slots| be « \[[Realm]], \[[PrimaryInterface]] ».
     1.  Let |instance| be a newly created [=ECMAScript/object=] in |realm|
         with an internal slot for each name in |slots|.
+    1.  Set |instance|.\[[Realm]] to |realm|.
     1.  Set |instance|.\[[PrimaryInterface]] to |interface|.
     1.  Set |instance|.\[[Prototype]] to |prototype|.
     1.  Set |instance|'s essential internal methods to the definitions specified in
