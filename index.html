@@ -11809,11 +11809,14 @@ must exist on <var>A</var>’s <a data-link-type="dfn" href="#dfn-interface-prot
     <p>Specifications may reference the concept "<var>object</var> implements <var>interface</var>"
     in various ways, including "<var>object</var> is an <var>interface</var> object".</p>
    </div>
-   <p>Every <a data-link-type="dfn" href="#dfn-platform-object" id="ref-for-dfn-platform-object①⑦">platform object</a> is associated with a global environment, just
+   <p>Every <a data-link-type="dfn" href="#dfn-platform-object" id="ref-for-dfn-platform-object①⑦">platform object</a> is associated with a <a data-link-type="dfn" href="https://tc39.github.io/ecma262/#realm" id="ref-for-realm①⑨">Realm</a>, just
 as the <a data-link-type="dfn" href="#dfn-initial-object" id="ref-for-dfn-initial-object③">initial objects</a> are.
+This Realm is stored in the <a data-link-type="dfn" href="#dfn-platform-object" id="ref-for-dfn-platform-object①⑧">platform object</a>'s [[Realm]] slot.
 It is the responsibility of specifications using Web IDL to state
-which global environment (or, by proxy, which global object) each platform
-object is associated with.</p>
+which Realm (or, by proxy, which global object) each platform
+object is associated with.
+In particular, the algorithms below associate the new <a data-link-type="dfn" href="#dfn-platform-object" id="ref-for-dfn-platform-object①⑨">platform object</a> with
+the Realm given as an argument.</p>
    <div class="algorithm" data-algorithm="new">
      To <dfn data-dfn-type="dfn" data-export="" data-lt="new" id="new">create a new object implementing the interface<a class="self-link" href="#new"></a></dfn> <var>interface</var>, with a
   Realm <var>realm</var>, perform the following steps: 
@@ -11851,9 +11854,11 @@ object is associated with.</p>
         </li></ol>
       </li></ol>
      </li><li data-md="">
-      <p>Let <var>slots</var> be « [[PrimaryInterface]] ».</p>
+      <p>Let <var>slots</var> be « [[Realm]], [[PrimaryInterface]] ».</p>
      </li><li data-md="">
       <p>Let <var>instance</var> be a newly created <a data-link-type="dfn" href="https://tc39.github.io/ecma262/#sec-object-type" id="ref-for-sec-object-type">object</a> in <var>realm</var> with an internal slot for each name in <var>slots</var>.</p>
+     </li><li data-md="">
+      <p>Set <var>instance</var>.[[Realm]] to <var>realm</var>.</p>
      </li><li data-md="">
       <p>Set <var>instance</var>.[[PrimaryInterface]] to <var>interface</var>.</p>
      </li><li data-md="">
@@ -11905,7 +11910,7 @@ given <var>realm</var>.</p>
     </li></ol>
    </div>
    <div class="algorithm" data-algorithm="define the global property references">
-     To <dfn class="dfn-paneled" data-dfn-type="dfn" data-noexport="" id="define-the-global-property-references">define the global property references</dfn> on <var>target</var>, given <a data-link-type="dfn" href="https://tc39.github.io/ecma262/#realm" id="ref-for-realm①⑨">Realm</a> <var>realm</var>,
+     To <dfn class="dfn-paneled" data-dfn-type="dfn" data-noexport="" id="define-the-global-property-references">define the global property references</dfn> on <var>target</var>, given <a data-link-type="dfn" href="https://tc39.github.io/ecma262/#realm" id="ref-for-realm②⓪">Realm</a> <var>realm</var>,
   perform the following steps: 
     <ol>
      <li data-md="">
@@ -11974,9 +11979,9 @@ a named constructor</a> with <var>id</var> for <var>interface</var> in <var>real
     </li></ol>
    </div>
    <div class="note" role="note">
-     The set of interfaces that a <a data-link-type="dfn" href="#dfn-platform-object" id="ref-for-dfn-platform-object①⑧">platform object</a> <a data-link-type="dfn" href="#implements" id="ref-for-implements④③">implements</a> does not change over
+     The set of interfaces that a <a data-link-type="dfn" href="#dfn-platform-object" id="ref-for-dfn-platform-object②⓪">platform object</a> <a data-link-type="dfn" href="#implements" id="ref-for-implements④③">implements</a> does not change over
   the lifetime of the object. 
-    <p>Multiple <a data-link-type="dfn" href="#dfn-platform-object" id="ref-for-dfn-platform-object①⑨">platform objects</a> with different <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/webappapis.html#concept-realm-global" id="ref-for-concept-realm-global③">global objects</a> will share
+    <p>Multiple <a data-link-type="dfn" href="#dfn-platform-object" id="ref-for-dfn-platform-object②①">platform objects</a> with different <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/webappapis.html#concept-realm-global" id="ref-for-concept-realm-global③">global objects</a> will share
   a reference to the same <a data-link-type="dfn" href="#dfn-interface" id="ref-for-dfn-interface①⑨⑦">interface</a> in their [[PrimaryInterface]] internal
   slots. For example, a page may contain a same-origin iframe, with the iframe’s
   method being called on the main page’s element of the same kind, with no exception
@@ -11984,17 +11989,17 @@ a named constructor</a> with <var>id</var> for <var>interface</var> in <var>real
     <p><a data-link-type="dfn" href="#interface-mixin" id="ref-for-interface-mixin⑤⓪">Interface mixins</a> do not participate directly in the evaluation of the <a data-link-type="dfn" href="#implements" id="ref-for-implements④④">implements</a> algorithm. Instead, each <a data-link-type="dfn" href="#dfn-interface" id="ref-for-dfn-interface①⑨⑧">interface</a> that the <a data-link-type="dfn" href="#interface-mixin" id="ref-for-interface-mixin⑤①">interface mixin</a> is <a data-link-type="dfn" href="#include" id="ref-for-include①③">included</a> in
   has its own "copy" of each <a data-link-type="dfn" href="#dfn-member" id="ref-for-dfn-member③③">member</a> of the <a data-link-type="dfn" href="#interface-mixin" id="ref-for-interface-mixin⑤②">interface mixin</a>, and the corresponding <a data-link-type="dfn" href="#dfn-create-operation-function" id="ref-for-dfn-create-operation-function①">operation function</a> checks that the receiver <a data-link-type="dfn" href="#implements" id="ref-for-implements④⑤">implements</a> the particular <a data-link-type="dfn" href="#dfn-interface" id="ref-for-dfn-interface①⑨⑨">interface</a> which <a data-link-type="dfn" href="#include" id="ref-for-include①④">includes</a> the <a data-link-type="dfn" href="#interface-mixin" id="ref-for-interface-mixin⑤③">interface mixin</a>.</p>
    </div>
-   <div class="algorithm" data-algorithm="primary interface"> The <dfn class="dfn-paneled" data-dfn-type="dfn" data-export="" id="dfn-primary-interface">primary interface</dfn> of a <a data-link-type="dfn" href="#dfn-platform-object" id="ref-for-dfn-platform-object②⓪">platform object</a> is
+   <div class="algorithm" data-algorithm="primary interface"> The <dfn class="dfn-paneled" data-dfn-type="dfn" data-export="" id="dfn-primary-interface">primary interface</dfn> of a <a data-link-type="dfn" href="#dfn-platform-object" id="ref-for-dfn-platform-object②②">platform object</a> is
   the value of the object’s [[PrimaryInterface]] internal slot, which is is the most-derived <a data-link-type="dfn" href="#dfn-interface" id="ref-for-dfn-interface②⓪⓪">interface</a> that it <a data-link-type="dfn" href="#implements" id="ref-for-implements④⑥">implements</a>. </div>
-   <p>The global environment that a given <a data-link-type="dfn" href="#dfn-platform-object" id="ref-for-dfn-platform-object②①">platform object</a> is associated with can <dfn data-dfn-for="global environment" data-dfn-type="dfn" data-export="" id="dfn-change-global-environment">change<a class="self-link" href="#dfn-change-global-environment"></a></dfn> after it has been created.  When
+   <p>The global environment that a given <a data-link-type="dfn" href="#dfn-platform-object" id="ref-for-dfn-platform-object②③">platform object</a> is associated with can <dfn data-dfn-for="global environment" data-dfn-type="dfn" data-export="" id="dfn-change-global-environment">change<a class="self-link" href="#dfn-change-global-environment"></a></dfn> after it has been created.  When
 the global environment associated with a platform object is changed, its
 [[Prototype]] <a data-link-type="dfn" href="https://tc39.github.io/ecma262/#sec-object-internal-methods-and-internal-slots" id="ref-for-sec-object-internal-methods-and-internal-slots③⑨">internal slot</a> must be immediately
-updated to be the <a data-link-type="dfn" href="#dfn-interface-prototype-object" id="ref-for-dfn-interface-prototype-object④②">interface prototype object</a> of the <a data-link-type="dfn" href="#dfn-primary-interface" id="ref-for-dfn-primary-interface">primary interface</a> from the <a data-link-type="dfn" href="#dfn-platform-object" id="ref-for-dfn-platform-object②②">platform object</a>’s newly associated global environment.</p>
+updated to be the <a data-link-type="dfn" href="#dfn-interface-prototype-object" id="ref-for-dfn-interface-prototype-object④②">interface prototype object</a> of the <a data-link-type="dfn" href="#dfn-primary-interface" id="ref-for-dfn-primary-interface">primary interface</a> from the <a data-link-type="dfn" href="#dfn-platform-object" id="ref-for-dfn-platform-object②④">platform object</a>’s newly associated global environment.</p>
    <p>The <a data-link-type="dfn" href="#dfn-class-string" id="ref-for-dfn-class-string⑥">class string</a> of
 a platform object that implements one or more interfaces
 must be the <a data-link-type="dfn" href="#qualified-name" id="ref-for-qualified-name①">qualified name</a> of
 the <a data-link-type="dfn" href="#dfn-primary-interface" id="ref-for-dfn-primary-interface①">primary interface</a> of the platform object.</p>
-   <p>Additionally, <a data-link-type="dfn" href="#dfn-platform-object" id="ref-for-dfn-platform-object②③">platform objects</a> which implement an <a data-link-type="dfn" href="#dfn-interface" id="ref-for-dfn-interface②⓪①">interface</a> which has a [<code class="idl"><a data-link-type="idl" href="#Global" id="ref-for-Global②⑧">Global</a></code>] <a data-link-type="dfn" href="#dfn-extended-attribute" id="ref-for-dfn-extended-attribute①④⑨">extended attribute</a> get properties declaratively from:</p>
+   <p>Additionally, <a data-link-type="dfn" href="#dfn-platform-object" id="ref-for-dfn-platform-object②⑤">platform objects</a> which implement an <a data-link-type="dfn" href="#dfn-interface" id="ref-for-dfn-interface②⓪①">interface</a> which has a [<code class="idl"><a data-link-type="idl" href="#Global" id="ref-for-Global②⑧">Global</a></code>] <a data-link-type="dfn" href="#dfn-extended-attribute" id="ref-for-dfn-extended-attribute①④⑨">extended attribute</a> get properties declaratively from:</p>
    <ul>
     <li data-md="">
      <p><a href="#es-stringifier">§3.6.8.2 Stringifiers</a>,</p>
@@ -12010,7 +12015,7 @@ the <a data-link-type="dfn" href="#dfn-primary-interface" id="ref-for-dfn-primar
    <p class="issue" id="issue-e7d418f6①"><a class="self-link" href="#issue-e7d418f6①"></a> Define those properties imperatively instead.</p>
    <h4 class="heading settled" data-level="3.7.1" id="platform-object-setprototypeof"><span class="secno">3.7.1. </span><span class="content">[[SetPrototypeOf]]</span><span id="platformobjectsetprototypeof"></span><a class="self-link" href="#platform-object-setprototypeof"></a></h4>
    <div class="algorithm" data-algorithm="to invoke the internal [[SetPrototypeOf]] method of a platform object that implements an interface with [Global] extended attribute">
-    <p>When the [[SetPrototypeOf]] internal method of a <a data-link-type="dfn" href="#dfn-platform-object" id="ref-for-dfn-platform-object②④">platform object</a> <var>O</var> that implements an <a data-link-type="dfn" href="#dfn-interface" id="ref-for-dfn-interface②⓪②">interface</a> with the [<code class="idl"><a data-link-type="idl" href="#Global" id="ref-for-Global②⑨">Global</a></code>] <a data-link-type="dfn" href="#dfn-extended-attribute" id="ref-for-dfn-extended-attribute①⑤⓪">extended attribute</a> is called with
+    <p>When the [[SetPrototypeOf]] internal method of a <a data-link-type="dfn" href="#dfn-platform-object" id="ref-for-dfn-platform-object②⑥">platform object</a> <var>O</var> that implements an <a data-link-type="dfn" href="#dfn-interface" id="ref-for-dfn-interface②⓪②">interface</a> with the [<code class="idl"><a data-link-type="idl" href="#Global" id="ref-for-Global②⑨">Global</a></code>] <a data-link-type="dfn" href="#dfn-extended-attribute" id="ref-for-dfn-extended-attribute①⑤⓪">extended attribute</a> is called with
     ECMAScript language value <var>V</var>, the following step is taken:</p>
     <ol>
      <li data-md="">
@@ -12204,7 +12209,7 @@ then set <var>Desc</var>.[[Configurable]] to <emu-val>true</emu-val>.</p>
    </div>
    <h4 class="heading settled" data-level="3.8.6" id="legacy-platform-object-ownpropertykeys"><span class="secno">3.8.6. </span><span class="content">[[OwnPropertyKeys]]</span><span id="property-enumeration"></span><span id="legacy-platform-object-property-enumeration"></span><a class="self-link" href="#legacy-platform-object-ownpropertykeys"></a></h4>
    <p>This document does not define a complete property enumeration order
-for <a data-link-type="dfn" href="#dfn-platform-object" id="ref-for-dfn-platform-object②⑤">platform objects</a> implementing <a data-link-type="dfn" href="#dfn-interface" id="ref-for-dfn-interface②⓪⑦">interfaces</a> (or for <a href="#es-exception-objects" id="ref-for-es-exception-objects">platform objects representing exceptions</a>).
+for <a data-link-type="dfn" href="#dfn-platform-object" id="ref-for-dfn-platform-object②⑦">platform objects</a> implementing <a data-link-type="dfn" href="#dfn-interface" id="ref-for-dfn-interface②⓪⑦">interfaces</a> (or for <a href="#es-exception-objects" id="ref-for-es-exception-objects">platform objects representing exceptions</a>).
 However, it does for <a data-link-type="dfn" href="#dfn-legacy-platform-object" id="ref-for-dfn-legacy-platform-object①⓪">legacy platform objects</a> by defining the [[OwnPropertyKeys]]
 internal method as follows.</p>
    <div class="algorithm" data-algorithm="to invoke the internal [[OwnPropertyKeys]] method of legacy platform objects">
@@ -12800,7 +12805,7 @@ called the <dfn data-dfn-type="dfn" data-export="" id="dfn-namespace-object">nam
    <p>The characteristics of a namespace object are described in <a href="#namespace-object">§3.11.1 Namespace object</a>.</p>
    <h4 class="heading settled" data-level="3.11.1" id="namespace-object"><span class="secno">3.11.1. </span><span class="content">Namespace object</span><a class="self-link" href="#namespace-object"></a></h4>
    <div class="algorithm" data-algorithm="create a namespace object">
-    <p>The namespace object for a given <a data-link-type="dfn" href="#dfn-namespace" id="ref-for-dfn-namespace④⑦">namespace</a> <var>namespace</var> and <a data-link-type="dfn" href="https://tc39.github.io/ecma262/#realm" id="ref-for-realm②⓪">Realm</a> <var>realm</var> is <dfn class="dfn-paneled" data-dfn-type="dfn" data-lt="create a namespace object" data-noexport="" id="create-a-namespace-object">created</dfn> as follows:</p>
+    <p>The namespace object for a given <a data-link-type="dfn" href="#dfn-namespace" id="ref-for-dfn-namespace④⑦">namespace</a> <var>namespace</var> and <a data-link-type="dfn" href="https://tc39.github.io/ecma262/#realm" id="ref-for-realm②①">Realm</a> <var>realm</var> is <dfn class="dfn-paneled" data-dfn-type="dfn" data-lt="create a namespace object" data-noexport="" id="create-a-namespace-object">created</dfn> as follows:</p>
     <ol>
      <li data-md="">
       <p>Let <var>namespaceObject</var> be <a data-link-type="dfn" href="https://tc39.github.io/ecma262/#sec-returnifabrupt-shorthands" id="ref-for-sec-returnifabrupt-shorthands①⓪⑤">!</a> <a data-link-type="abstract-op" href="https://tc39.github.io/ecma262/#sec-objectcreate" id="ref-for-sec-objectcreate⑤">ObjectCreate</a>(<var>realm</var>.[[Intrinsics]].[[<code class="idl"><a data-link-type="idl" href="https://tc39.github.io/ecma262/#sec-properties-of-the-object-prototype-object" id="ref-for-sec-properties-of-the-object-prototype-object⑦">%ObjectPrototype%</a></code>]]).</p>
@@ -12834,7 +12839,7 @@ it should also expose those on <code class="idl"><a data-link-type="idl" href="#
    <h4 class="heading settled dfn-paneled" data-dfn-type="dfn" data-level="3.12.2" data-lt="Exception objects" data-noexport="" id="es-exception-objects"><span class="secno">3.12.2. </span><span class="content">Exception objects</span></h4>
    <p><a data-link-type="dfn" href="#dfn-simple-exception" id="ref-for-dfn-simple-exception⑥">Simple exceptions</a> are represented
 by native ECMAScript objects of the corresponding type.</p>
-   <p>A <code class="idl"><a data-link-type="idl" href="#idl-DOMException" id="ref-for-idl-DOMException③⑦">DOMException</a></code> is represented by a <a data-link-type="dfn" href="#dfn-platform-object" id="ref-for-dfn-platform-object②⑥">platform object</a> that implements the <code class="idl"><a data-link-type="idl" href="#idl-DOMException" id="ref-for-idl-DOMException③⑧">DOMException</a></code> interface.</p>
+   <p>A <code class="idl"><a data-link-type="idl" href="#idl-DOMException" id="ref-for-idl-DOMException③⑦">DOMException</a></code> is represented by a <a data-link-type="dfn" href="#dfn-platform-object" id="ref-for-dfn-platform-object②⑧">platform object</a> that implements the <code class="idl"><a data-link-type="idl" href="#idl-DOMException" id="ref-for-idl-DOMException③⑧">DOMException</a></code> interface.</p>
    <h4 class="heading settled" data-level="3.12.3" id="es-creating-throwing-exceptions"><span class="secno">3.12.3. </span><span class="content">Creating and throwing exceptions</span><a class="self-link" href="#es-creating-throwing-exceptions"></a></h4>
    <div class="algorithm" data-algorithm="to create a simple exception or DOMException">
     <p>To <a data-link-type="dfn" href="#dfn-create-exception" id="ref-for-dfn-create-exception③">create</a> a <a data-link-type="dfn" href="#dfn-simple-exception" id="ref-for-dfn-simple-exception⑦">simple exception</a> or <code class="idl"><a data-link-type="idl" href="#idl-DOMException" id="ref-for-idl-DOMException③⑨">DOMException</a></code> <var>E</var>, with a string giving the <a data-link-type="dfn" href="#dfn-exception-error-name" id="ref-for-dfn-exception-error-name⑥">error name</a> <var>N</var> for the <code class="idl"><a data-link-type="idl" href="#idl-DOMException" id="ref-for-idl-DOMException④⓪">DOMException</a></code> case and optionally a string giving a user
@@ -12879,7 +12884,7 @@ from the <a data-link-type="dfn" href="https://tc39.github.io/ecma262/#current-r
    </div>
    <div class="note" role="note">
     <p>The above algorithms restrict <a data-link-type="dfn" href="#es-exception-objects" id="ref-for-es-exception-objects①">objects representing exceptions</a> propagating
-    out of a <a data-link-type="dfn" href="https://tc39.github.io/ecma262/#function-object" id="ref-for-function-object⑥②">function object</a> to be ones that are associated with the <a data-link-type="dfn" href="https://tc39.github.io/ecma262/#realm" id="ref-for-realm②①">Realm</a> of that <a data-link-type="dfn" href="https://tc39.github.io/ecma262/#function-object" id="ref-for-function-object⑥③">function object</a> (i.e., the <a data-link-type="dfn" href="https://tc39.github.io/ecma262/#current-realm" id="ref-for-current-realm③">current Realm</a> at the time the function
+    out of a <a data-link-type="dfn" href="https://tc39.github.io/ecma262/#function-object" id="ref-for-function-object⑥②">function object</a> to be ones that are associated with the <a data-link-type="dfn" href="https://tc39.github.io/ecma262/#realm" id="ref-for-realm②②">Realm</a> of that <a data-link-type="dfn" href="https://tc39.github.io/ecma262/#function-object" id="ref-for-function-object⑥③">function object</a> (i.e., the <a data-link-type="dfn" href="https://tc39.github.io/ecma262/#current-realm" id="ref-for-current-realm③">current Realm</a> at the time the function
     executes). For example, consider the IDL:</p>
 <pre class="highlight">[<c- g="">Exposed</c->=<c- n="">Window</c->]
 <c- b="">interface</c-> <c- g="">MathUtils</c-> {
@@ -12887,7 +12892,7 @@ from the <a data-link-type="dfn" href="https://tc39.github.io/ecma262/#current-r
   <c- b="">double</c-> <c- g="">computeSquareRoot</c->(<c- b="">double</c-> <c- g="">x</c->);
 };
 </pre>
-    <p>If we apply <code class="idl">computeSquareRoot</code> to a <code class="idl">MathUtils</code> object from a different <a data-link-type="dfn" href="https://tc39.github.io/ecma262/#realm" id="ref-for-realm②②">Realm</a>, then the exception thrown will be from the <a data-link-type="dfn" href="https://tc39.github.io/ecma262/#realm" id="ref-for-realm②③">Realm</a> of the
+    <p>If we apply <code class="idl">computeSquareRoot</code> to a <code class="idl">MathUtils</code> object from a different <a data-link-type="dfn" href="https://tc39.github.io/ecma262/#realm" id="ref-for-realm②③">Realm</a>, then the exception thrown will be from the <a data-link-type="dfn" href="https://tc39.github.io/ecma262/#realm" id="ref-for-realm②④">Realm</a> of the
     method, not the object it is applied to:</p>
 <pre class="highlight"><c- kr="">const</c-> myMU <c- o="">=</c-> window<c- p="">.</c->getMathUtils<c- p="">();</c->          <c- c1="">// A MathUtils object from this Realm</c->
 <c- kr="">const</c-> otherMU <c- o="">=</c-> otherWindow<c- p="">.</c->getMathUtils<c- p="">();</c->  <c- c1="">// A MathUtils object from a different Realm</c->
@@ -15525,9 +15530,9 @@ language binding.</p>
     </li><li><a href="#ref-for-realm⑦">3.6.6. Constants</a>
     </li><li><a href="#ref-for-realm⑧">3.6.7. Attributes</a> <a href="#ref-for-realm⑨">(2)</a> <a href="#ref-for-realm①⓪">(3)</a> <a href="#ref-for-realm①①">(4)</a> <a href="#ref-for-realm①②">(5)</a> <a href="#ref-for-realm①③">(6)</a>
     </li><li><a href="#ref-for-realm①④">3.6.8. Operations</a> <a href="#ref-for-realm①⑤">(2)</a> <a href="#ref-for-realm①⑥">(3)</a> <a href="#ref-for-realm①⑦">(4)</a> <a href="#ref-for-realm①⑧">(5)</a>
-    </li><li><a href="#ref-for-realm①⑨">3.7. Platform objects implementing interfaces</a>
-    </li><li><a href="#ref-for-realm②⓪">3.11.1. Namespace object</a>
-    </li><li><a href="#ref-for-realm②①">3.12.3. Creating and throwing exceptions</a> <a href="#ref-for-realm②②">(2)</a> <a href="#ref-for-realm②③">(3)</a>
+    </li><li><a href="#ref-for-realm①⑨">3.7. Platform objects implementing interfaces</a> <a href="#ref-for-realm②⓪">(2)</a>
+    </li><li><a href="#ref-for-realm②①">3.11.1. Namespace object</a>
+    </li><li><a href="#ref-for-realm②②">3.12.3. Creating and throwing exceptions</a> <a href="#ref-for-realm②③">(2)</a> <a href="#ref-for-realm②④">(3)</a>
    </li></ul>
   </aside>
   <aside class="dfn-panel" data-for="term-for-sec-typeof-operator">
@@ -17967,10 +17972,10 @@ language binding.</p>
     </li><li><a href="#ref-for-dfn-platform-object①③">3.2.2. void</a>
     </li><li><a href="#ref-for-dfn-platform-object①④">3.3.18. [Replaceable]</a> <a href="#ref-for-dfn-platform-object①⑤">(2)</a>
     </li><li><a href="#ref-for-dfn-platform-object①⑥">3.4. Security</a>
-    </li><li><a href="#ref-for-dfn-platform-object①⑦">3.7. Platform objects implementing interfaces</a> <a href="#ref-for-dfn-platform-object①⑧">(2)</a> <a href="#ref-for-dfn-platform-object①⑨">(3)</a> <a href="#ref-for-dfn-platform-object②⓪">(4)</a> <a href="#ref-for-dfn-platform-object②①">(5)</a> <a href="#ref-for-dfn-platform-object②②">(6)</a> <a href="#ref-for-dfn-platform-object②③">(7)</a>
-    </li><li><a href="#ref-for-dfn-platform-object②④">3.7.1. [[SetPrototypeOf]]</a>
-    </li><li><a href="#ref-for-dfn-platform-object②⑤">3.8.6. [[OwnPropertyKeys]]</a>
-    </li><li><a href="#ref-for-dfn-platform-object②⑥">3.12.2. Exception objects</a>
+    </li><li><a href="#ref-for-dfn-platform-object①⑦">3.7. Platform objects implementing interfaces</a> <a href="#ref-for-dfn-platform-object①⑧">(2)</a> <a href="#ref-for-dfn-platform-object①⑨">(3)</a> <a href="#ref-for-dfn-platform-object②⓪">(4)</a> <a href="#ref-for-dfn-platform-object②①">(5)</a> <a href="#ref-for-dfn-platform-object②②">(6)</a> <a href="#ref-for-dfn-platform-object②③">(7)</a> <a href="#ref-for-dfn-platform-object②④">(8)</a> <a href="#ref-for-dfn-platform-object②⑤">(9)</a>
+    </li><li><a href="#ref-for-dfn-platform-object②⑥">3.7.1. [[SetPrototypeOf]]</a>
+    </li><li><a href="#ref-for-dfn-platform-object②⑦">3.8.6. [[OwnPropertyKeys]]</a>
+    </li><li><a href="#ref-for-dfn-platform-object②⑧">3.12.2. Exception objects</a>
    </li></ul>
   </aside>
   <aside class="dfn-panel" data-for="dfn-legacy-platform-object">
