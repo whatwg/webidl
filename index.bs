@@ -919,9 +919,7 @@ A <dfn id="dfn-callback-interface" export>callback interface</dfn> is
 an [=interface=]
 that uses the <emu-t>callback</emu-t> keyword at the start of
 its definition.  Callback interfaces are ones that can be
-implemented by [=user objects=]
-and not by [=platform objects=],
-as described in [[#idl-objects]].
+implemented by any object, as described in [[#idl-objects]].
 
 <pre highlight="webidl" class="syntax">
     callback interface identifier {
@@ -952,7 +950,7 @@ be defined on a [=callback interface=].
     The definition of <code class="idl">EventListener</code> as a
     [=callback interface=]
     is an example of an existing API that needs to allow
-    [=user objects=] with a
+    objects with a
     given property (in this case <code class="idl">handleEvent</code>) to be considered to implement the interface.
     For new APIs, and those for which there are no compatibility concerns,
     using a [=callback function=] will allow
@@ -969,7 +967,7 @@ be defined on a [=callback interface=].
 
 <p class="issue">
     I think we need to support operations not being implemented on a given
-    user object implementing a callback interface.  If specs extending an existing
+    object implementing a callback interface.  If specs extending an existing
     callback interface, we probably want to be able to avoid calling the
     operations that aren't implemented (and having some default behavior instead).
     So we should perhaps define a term that means whether the operation is
@@ -1210,7 +1208,7 @@ The <dfn>qualified name</dfn> of an [=interface=] |interface| is defined as foll
     </pre>
 
     Since the <code class="idl">EventListener</code> interface is annotated
-    callback interface, [=user objects=]
+    callback interface, plain objects
     can implement it:
 
     <pre highlight="js">
@@ -1226,7 +1224,7 @@ The <dfn>qualified name</dfn> of an [=interface=] |interface| is defined as foll
         node.addEventListener("click", function() { ... });  // As does this.
     </pre>
 
-    It is not possible for a user object to implement <code class="idl">Node</code>, however:
+    It is not possible for such an object to implement <code class="idl">Node</code>, however:
 
     <pre highlight="js">
         var node = getNode();  // Obtain an instance of Node.
@@ -1923,20 +1921,6 @@ interface will be stringified to the value of the attribute.  See
     };
 </pre>
 
-<p id="callback-attribute-exceptions">
-    If an implementation attempts to get or set the value of an
-    [=attribute=] on a
-    [=user object=]
-    (for example, when a callback object has been supplied to the implementation),
-    and that attempt results in an exception being thrown, then, unless otherwise specified, that
-    exception will be propagated to the user code that caused the
-    implementation to access the attribute.  Similarly, if a value
-    returned from getting the attribute cannot be converted to
-    an IDL type, then any exception resulting from this will also
-    be propagated to the user code that resulted in the implementation
-    attempting to get the value of the attribute.
-</p>
-
 The following [=extended attributes=]
 are applicable to regular and static attributes:
 [{{Exposed}}],
@@ -2354,21 +2338,6 @@ that has a [=sequence type=] in its [=flattened member types=].
         };
     </pre>
 </div>
-
-<p id="callback-operation-exceptions">
-    If an implementation attempts to invoke
-    an [=operation=] on a [=user object=]
-    (for example, when a callback object has been supplied to the implementation),
-    and that attempt results in an exception being thrown, then,
-    unless otherwise specified,
-    that exception will be propagated to
-    the user code that caused the implementation to invoke the operation.
-    Similarly, if a value returned from invoking the operation
-    cannot be converted to an IDL type,
-    then any exception resulting from this will also
-    be propagated to the user code
-    that resulted in the implementation attempting to invoke the operation.
-</p>
 
 The following extended attributes are applicable to operations:
 [{{Default}}],
@@ -5312,7 +5281,7 @@ defined in this specification are applicable to [=typedefs=].
 <h3 id="idl-objects">Objects implementing interfaces</h3>
 
 In a given implementation of a set of [=IDL fragments=],
-an object can be described as being a [=platform object=], a [=user object=], or neither.
+an object can be described as being a [=platform object=].
 
 <dfn id="dfn-platform-object" lt="platform object" export>Platform objects</dfn> are objects
 that implement a non-[=callback interface|callback=] [=interface=].
@@ -5326,9 +5295,9 @@ does not have a [{{Global}}] [=extended attribute=], and which
 In a browser, for example,
 the browser-implemented DOM objects (implementing interfaces such as <code class="idl">Node</code> and
 <code class="idl">Document</code>) that provide access to a web page’s contents
-to ECMAScript running in the page would be platform objects.  These objects might be exotic objects,
+to ECMAScript running in the page would be [=platform objects=].  These objects might be exotic objects,
 implemented in a language like C++, or they might be native ECMAScript objects.  Regardless,
-an implementation of a given set of IDL fragments needs to be able to recognize all platform objects
+an implementation of a given set of IDL fragments needs to be able to recognize all [=platform objects=]
 that are created by the implementation.  This might be done by having some internal state that records whether
 a given object is indeed a platform object for that implementation, or perhaps by observing
 that the object is implemented by a given internal C++ class.  How exactly platform objects
@@ -5340,16 +5309,10 @@ would be considered to be a different implementation from the browser provided i
 The objects created by the ECMAScript library that implement the <code class="idl">Node</code> interface
 will not be treated as platform objects that implement <code class="idl">Node</code> by the browser implementation.
 
-<dfn id="dfn-user-object" lt="user object" export>User objects</dfn> are those that authors would create,
-implementing [=callback interfaces=] that the Web APIs use to be able to invoke author-defined
-operations or to send and receive values to the author’s program through
-manipulating the object’s attributes.  In a web page, an ECMAScript object
-that implements the <code class="idl">EventListener</code> interface, which is
-used to register a callback that the DOM Events implementation invokes, would be considered
-to be a user object.
-
-Note that user objects can only implement [=callback interfaces=]
-and platform objects can only implement non-callback interfaces.
+[=Callback interfaces=], on the other hand, can be implemented by any ECMAScript object. This
+allows Web APIs to invoke author-defined operations. For example, the DOM Events implementation
+allows authors to register callbacks by providing objects that implement the
+<code class="idl">EventListener</code> interface.
 
 
 <h3 id="idl-types">Types</h3>
@@ -7449,9 +7412,9 @@ values are represented by ECMAScript Object values (including [=function objects
 
     1.  If <a abstract-op>Type</a>(|V|) is not Object, then [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
     1.  If |V| [=implements=] |I|, then return the IDL [=interface type=] value that represents a reference to that platform object.
-    1.  If |V| is a [=user object=]
-        that is considered to implement |I| according to the rules in [[#es-user-objects]], then return the IDL [=interface type=] value that represents a reference to that
-        user object, with the [=incumbent settings object=] as the [=callback context=].
+    1.  If |I| is a [=callback interface=], then return the IDL [=interface type=] value that
+        represents a reference to |V|, with the [=incumbent settings object=] as the
+        [=callback context=].
     1.  [=ECMAScript/Throw=] a {{ECMAScript/TypeError}}.
 </div>
 
@@ -12895,36 +12858,29 @@ internal method as follows.
     1.  Return <a abstract-op>OrdinaryGetOwnProperty</a>(|O|, |P|).
 </div>
 
-<h3 id="es-user-objects">User objects implementing callback interfaces</h3>
+<h3 id="es-user-objects">Objects implementing callback interfaces</h3>
 
 As described in [[#idl-objects]],
 [=callback interfaces=] can be
-implemented in script by an ECMAScript object.
-The following cases determine whether and how a given object
-is considered to be a user object implementing a callback interface:
+implemented in script by any ECMAScript object.
+The following cases explain how a [=callback interface=]'s [=operation=] is invoked on a given
+object:
 
-*   If the interface is a [=single operation callback interface=]
-    (defined below) then any object is considered to implement the interface.
-    The implementation of the operation (or set of overloaded operations) is
-    as follows:
-    *   If the object is [=ECMAScript/callable=],
-        then the implementation of the operation (or set of overloaded operations) is
-        the callable object itself.
-    *   Otherwise, the object is not [=ECMAScript/callable=].
-        The implementation of the operation (or set of overloaded operations) is
-        the result of invoking the internal \[[Get]] method
-        on the object with a property name that is the [=identifier=]
-        of the operation.
-*   Otherwise, the interface is not a [=single operation callback interface=].
-    Any object is considered to implement the interface.
-    For each operation declared on the interface with a given [=identifier=], the implementation
-    is the result of invoking \[[Get]] on the object with a
-    property name that is that identifier.
+: If the interface is a [=single operation callback interface=]:
+::  *   If the object is [=ECMAScript/callable=], then the implementation of the operation is the
+        callable object itself.
+    *   Otherwise, the implementation of the operation is calling the result of invoking the
+        internal \[[Get]] method on the object with a property name that is the [=identifier=] of
+        the operation.
+: If the interface is not a [=single operation callback interface=]:
+::  For each operation declared on the interface with a given [=identifier=], the implementation
+    is calling the result of invoking \[[Get]] on the object with a property name that is that
+    identifier.
 
 Note that ECMAScript objects need not have
 properties corresponding to [=constants=]
-on them to be considered as [=user objects=]
-implementing [=interfaces=] that happen
+on them to be considered as
+implementing [=callback interfaces=] that happen
 to have constants declared on them.
 
 A <dfn id="dfn-single-operation-callback-interface" export>single operation callback interface</dfn> is
@@ -13085,7 +13041,7 @@ the special value “missing”, which represents a missing optional argument.
 An ECMAScript [=ECMAScript/callable=] object that is being
 used as a [=callback function=] value is
 called in a manner similar to how [=operations=]
-on [=user objects=] are called (as
+on [=callback interface=] values are called (as
 described in the previous section).
 
 <div algorithm>
