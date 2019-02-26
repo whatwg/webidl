@@ -78,6 +78,7 @@ urlPrefix: https://tc39.github.io/ecma262/; spec: ECMA-262
         text: Array; url: sec-array-objects
         text: ArrayBuffer; url: sec-arraybuffer-objects
         text: DataView; url: sec-dataview-objects
+        text: Iterator; url: sec-iterator-interface
         text: Map; url: sec-map-objects
         text: Promise; url: sec-promise-objects
         text: Set; url: sec-set-objects
@@ -191,6 +192,7 @@ urlPrefix: https://tc39.github.io/ecma262/; spec: ECMA-262
         url: sec-object-internal-methods-and-internal-slots
             text: internal method
             text: internal slot
+            text: essential internal method
         text: Number type; url: sec-ecmascript-language-types-number-type
         text: Object; for: ECMAScript; url: sec-object-type
         for: ordinary object; url: sec-ordinary-object-internal-methods-and-internal-slots
@@ -6719,17 +6721,6 @@ shall be treated in accordance with the rules for exotic objects.
     {{HTMLAllCollection}} and {{Location}} interfaces. [[HTML]]</span>
 </p>
 
-Unless otherwise specified, exotic objects defined in this section and other specifications have the
-same [=ordinary object/internal slots=] as ordinary objects, and all of the internal methods for
-which alternative definitions are not given are the same as [=ordinary object/internal
-methods|those=] of ordinary objects.
-
-Unless otherwise specified, the \[[Extensible]] internal slot
-of objects defined in this section has the value <emu-val>true</emu-val>.
-
-Unless otherwise specified, the \[[Prototype]] internal slot
-of objects defined in this section is {{%ObjectPrototype%}}.
-
 Unless otherwise specified, the {{ECMAScript/typeof}} operator, when called on an
 exotic object that is not a [=function object=] defined in this section and
 other specifications, must return the string "<code>object</code>".
@@ -10960,11 +10951,12 @@ for that interface on which named properties are exposed.
     1.  If |interface| is declared to inherit from another interface,
         then set |proto| to the [=interface prototype object=] in |realm| for the [=inherited interface=].
     1.  Otherwise, set |proto| to |realm|.\[[Intrinsics]].[[{{%ObjectPrototype%}}]].
-    1.  Let |obj| be a newly created object.
-    1.  Set |obj|'s internal methods to the definitions specified in
+    1.  Let |obj| be a newly created object, with the same internal slots as ordinary objects
+        specified in [=ECMA-262 Ordinary object internal methods and internal slots=].
+    1.  Set |obj|'s [=essential internal methods=] to the definitions specified in
         [=ECMA-262 Ordinary object internal methods and internal slots=],
         unless they are specified in the the rest of [[#named-properties-object]].
-    1.  Set |obj|'s remaining internal methods to the definitions specified below.
+    1.  Set |obj|'s remaining [=essential internal methods=] to the definitions specified below.
     1.  Set |obj|.\[[Prototype]] to |proto|.
     1.  Set |obj|.\[[Extensible]] to <emu-val>true</emu-val>.
     1.  Return |obj|.
@@ -11872,12 +11864,16 @@ The value of the [=function object=]’s <code class="idl">name</code> property 
 
 A <dfn id="dfn-default-iterator-object" export>default iterator object</dfn> for a given
 [=interface=], target and iteration kind
-is an object whose \[[Prototype]] [=internal slot=] is the
+is an ordinary object that implements the {{Iterator}} ECMAScript interface.
+
+The initial value of the \[[Prototype]] [=internal slot=] of a [=default iterator object=] is the
 [=iterator prototype object=]
 for the [=interface=].
 
-A [=default iterator object=]
-has three internal values:
+The initial value of the \[[Extensible]] [=internal slot=] of a [=default iterator object=] is
+<emu-val>true</emu-val>.
+
+A [=default iterator object=] has three internal values:
 
 1.  its <em>target</em>, which is an object whose values are to be iterated,
 1.  its <em>kind</em>, which is the iteration kind,
@@ -11897,18 +11893,23 @@ class="idl">Object.prototype.toString()</code> is called on a [=default
 iterator object=] of a given [=interface=], the [=class string=] of the
 [=iterator prototype object=] of that [=interface=] is used.
 
+Issue: Define creation of a [=default iterator object=] imperatively instead.
+
 
 <h5 id="es-iterator-prototype-object">Iterator prototype object</h5>
 
 The <dfn id="dfn-iterator-prototype-object" export>iterator prototype object</dfn>
 for a given [=interface=]
-is an object that exists for every interface that has a
+is an ordinary object that exists for every interface that has a
 [=pair iterator=].  It serves as the
 prototype for [=default iterator objects=]
 for the interface.
 
-The \[[Prototype]] [=internal slot=] of an [=iterator prototype object=]
+The initial value of the \[[Prototype]] [=internal slot=] of an [=iterator prototype object=]
 must be {{%IteratorPrototype%}}.
+
+The initial value of the \[[Extensible]] [=internal slot=] of an [=iterator prototype object=]
+must be <emu-val>true</emu-val>.
 
 <div algorithm="to invoke the next property of iterators">
 
@@ -11960,6 +11961,8 @@ must be {{%IteratorPrototype%}}.
 The [=class string=] of an [=iterator prototype object=] for a given [=interface=]
 is the result of concatenating the [=identifier=] of the [=interface=]
 and the string "<code> Iterator</code>".
+
+Issue: Define creation of an [=iterator prototype object=] imperatively instead.
 
 
 <h4 id="es-maplike">Maplike declarations</h4>
@@ -12405,13 +12408,14 @@ the Realm given as an argument.
             1.  Let |targetRealm| be [$GetFunctionRealm$](|newTarget|).
             1.  Set |prototype| to the [=interface prototype object=] for |interface| in
                 |targetRealm|.
-    1.  Let |slots| be « \[[Realm]], \[[PrimaryInterface]] ».
-    1.  Let |instance| be a newly created [=ECMAScript/object=] in |realm|
-        with an internal slot for each name in |slots|.
+    1.  Let |instance| be a newly created [=ECMAScript/object=] in |realm|, with the same internal
+        slots as ordinary objects specified in [=ECMA-262 Ordinary object internal methods and
+        internal slots=], as well as \[[Realm]] and \[[PrimaryInterface]].
+    1.  Set |instance|.\[[Prototype]] to |prototype|.
+    1.  Set |instance|.\[[Extensible]] to <emu-val>true</emu-val>.
     1.  Set |instance|.\[[Realm]] to |realm|.
     1.  Set |instance|.\[[PrimaryInterface]] to |interface|.
-    1.  Set |instance|.\[[Prototype]] to |prototype|.
-    1.  Set |instance|'s essential internal methods to the definitions specified in
+    1.  Set |instance|'s [=essential internal methods=] to the definitions specified in
         [=ECMA-262 Ordinary object internal methods and internal slots=].
     1.  Let |interfaces| be the [=inclusive inherited interfaces=] of |interface|.
     1.  [=list/iterate|For every=] [=interface=] |ancestor interface| in |interfaces|:
