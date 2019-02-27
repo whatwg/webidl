@@ -1837,7 +1837,7 @@ it declares a [=static attribute=]. Note that in addition to being [=interface m
     To <dfn export>get the underlying value</dfn> of an attribute |attr| given a value |target|,
     return the result of performing the actions listed in the description of |attr| that occur on getting,
     or those listed in the description of the inherited attribute,
-    if |attr| is declared to inherit its getter, on |target| if |target| is not null.
+    if |attr| is declared to inherit its getter, with |target| as <b>this</b> if it is not null.
 </div>
 
 The [=identifier=] of an
@@ -2538,7 +2538,7 @@ in which case the [=default toJSON operation=] is exposed instead.
         1.  [=list/For each=] attribute [=identifier=] |attr| in « "from", "to", "amount", "description" »:
             1.  Let |value| be result of [=get the underlying value|getting the underlying value=]
                 of the [=attribute=] identified by |attr|,
-                given this <code class="idl">Transaction</code> object.
+                given <b>this</b>.
             1.  Set |json|[|attr|] to |value|.
         1.  Return |json|.
     </div>
@@ -10724,7 +10724,7 @@ the <code>typeof</code> operator will return "function" when applied to an inter
             {{NewTarget}}.
         1.  Perform the actions listed in the description of |constructor|
             with |values| as the argument values
-            and |object| as the <emu-val>this</emu-val> value.
+            and |object| as <b>this</b>.
         1.  Let |O| be the result of [=converted to an ECMAScript value|converting=] |object|
             to an ECMAScript [=interface type=] value |I|.
         1.  Assert: |O| is an object that [=implements=] |I|.
@@ -10784,7 +10784,7 @@ implement the interface on which the
             {{NewTarget}}.
         1.  Perform the actions listed in the description of |constructor|
             with |values| as the argument values
-            and |object| as the <emu-val>this</emu-val> value.
+            and |object| as <b>this</b>.
         1.  Let |O| be the result of [=converted to an ECMAScript value|converting=] |object|
             to an ECMAScript [=interface type=] value |I|.
         1.  Assert: |O| is an object that [=implements=] |I|.
@@ -11144,23 +11144,25 @@ in which case they are exposed on every object that [=implements=] the interface
 
     1.  Let |steps| be the following series of steps:
         1.  Try running the following steps:
-            1.  Let |O| be <emu-val>null</emu-val>.
+            1.  Let |object| be null.
             1.  If |target| is an [=interface=], and |attribute| is a [=regular attribute=]:
                 1.  If the <emu-val>this</emu-val> value is <emu-val>null</emu-val> or
-                    <emu-val>undefined</emu-val>, set |O| to |realm|'s [=Realm/global object=].
+                    <emu-val>undefined</emu-val>, let |O| be |realm|'s [=Realm/global object=].
                     (This will subsequently cause a {{ECMAScript/TypeError}} in a few steps, if
                     the global object does not implement |target| and [{{LenientThis}}] is not
                     specified.)
                     <!-- https://www.w3.org/Bugs/Public/show_bug.cgi?id=18547#c9 -->
-                1.  Otherwise, set |O| to the <emu-val>this</emu-val> value.
+                1.  Otherwise, let |O| be the <emu-val>this</emu-val> value.
                 1.  If |O| [=is a platform object=], then [=perform a security check=], passing |O|,
                     |attribute|'s [=identifier=], and "getter".
                 1.  If |O| does not [=implement=] the interface |target|, then:
                     1.  If |attribute| was specified with the [{{LenientThis}}]
                         [=extended attribute=], then return <emu-val>undefined</emu-val>.
                     1. Otherwise, [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
+                1.  Set |object| to the IDL [=interface type=] value that represents a reference
+                    to |O|.
             1.  Let |R| be the result of [=get the underlying value|getting the underlying value=]
-                of |attribute| given |O|.
+                of |attribute| given |object|.
             1.  Return the result of [=converted to an ECMAScript value|converting=] |R| to an
                 ECMAScript value of the type |attribute| is declared as.
 
@@ -11193,15 +11195,15 @@ in which case they are exposed on every object that [=implements=] the interface
         1.  If no arguments were passed, then [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
         1.  Let |V| be the value of the first argument passed.
         1.  Let |id| be |attribute|'s [=identifier=].
-        1.  Let |O| be <emu-val>null</emu-val>.
+        1.  Let |object| be null.
         1.  If |attribute| is a [=regular attribute=]:
             1.  If the <emu-val>this</emu-val> value is <emu-val>null</emu-val> or
-                <emu-val>undefined</emu-val>, set |O| to |realm|'s [=Realm/global object=].
+                <emu-val>undefined</emu-val>, let |O| be |realm|'s [=Realm/global object=].
                 (This will subsequently cause a {{ECMAScript/TypeError}} in a few steps, if
                 the global object does not implement |target| and [{{LenientThis}}] is not
                 specified.)
                 <!-- https://www.w3.org/Bugs/Public/show_bug.cgi?id=18547#c9 -->
-            1.  Otherwise, set |O| to the <emu-val>this</emu-val> value.
+            1.  Otherwise, let |O| be the <emu-val>this</emu-val> value.
             1.  If |O| [=is a platform object=], then [=perform a security check=], passing |O|,
                 |id|, and "setter".
             1.  Let |validThis| be true if |O| [=implements=] the
@@ -11222,6 +11224,8 @@ in which case they are exposed on every object that [=implements=] the interface
                     attribute.
                 1.  Perform [=?=] <a abstract-op>Set</a>(|Q|, |forwardId|, |V|, <emu-val>true</emu-val>).
                 1.  Return <emu-val>undefined</emu-val>.
+                1.  Set |object| to the IDL [=interface type=] value that represents a reference
+                    to |O|.
         1.  Let |idlValue| be determined as follows:
 
             <dl class="switch">
@@ -11240,8 +11244,9 @@ in which case they are exposed on every object that [=implements=] the interface
                 </dd>
             </dl>
 
-        1.  Perform the actions listed in the description of |attribute| that occur on setting, on
-            |O| if |O| is not <emu-val>null</emu-val>.
+        1.  Perform the actions listed in the description of |attribute| that occur on setting,
+            with |idlValue| as <b>given value</b> and
+            |object| as <b>this</b> if it is not null.
         1.  Return <emu-val>undefined</emu-val>
     1.  Let |F| be [=!=] <a abstract-op>CreateBuiltinFunction</a>(|steps|, « », |realm|).
     1.  Let |name| be the string "<code>set </code>" prepended to |id|.
@@ -11322,18 +11327,20 @@ in which case they are exposed on every object that [=implements=] the interface
     1.  Let |steps| be the following series of steps, given function argument
         values |args|:
         1.  Try running the following steps:
-            1.  Let |O| be <emu-val>null</emu-val>.
+            1.  Let |object| be null.
             1.  If |target| is an [=interface=], and |op| is not a [=static operation=]:
                 1.  If the <emu-val>this</emu-val> value is <emu-val>null</emu-val> or
-                    <emu-val>undefined</emu-val>, set |O| to |realm|'s [=Realm/global object=]. (This
+                    <emu-val>undefined</emu-val>, let |O| be |realm|'s [=Realm/global object=]. (This
                     will subsequently cause a {{ECMAScript/TypeError}} in a few steps, if the global
                     object does not implement |target|.)
                     <!-- https://www.w3.org/Bugs/Public/show_bug.cgi?id=18547#c9 -->
-                1.  Otherwise, set |O| to the <emu-val>this</emu-val> value.
+                1.  Otherwise, let |O| be the <emu-val>this</emu-val> value.
                 1.  If |O| [=is a platform object=], then [=perform a security check=], passing |O|,
                     |id|, and "method".
                 1.  If |O| does not [=implement=] the interface |target|,
                     [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
+                1.  Set |object| to the IDL [=interface type=] value that represents a reference
+                    to |O|.
             1.  Let |n| be the [=list/size=] of |args|.
             1.  Let |S| be the [=effective overload set=] for [=regular operations=] (if |op| is a
                 regular operation) or for [=static operations=] (if |op| is a static operation) with
@@ -11344,12 +11351,14 @@ in which case they are exposed on every object that [=implements=] the interface
             1.  If |operation| is declared with a [{{Default}}] [=extended attribute=],
                 then:
                 1.  Set |R| be the result of performing the actions listed in
-                    |operation|'s [=corresponding default operation=] on |O|,
-                    with |values| as the argument values.
+                    |operation|'s [=corresponding default operation=],
+                    with |values| as the argument values
+                    and |object| as <b>this</b> if it is not null.
             1.  Otherwise:
                 1.  Set |R| be the result of performing the actions listed in the
-                    description of |operation|, on |O| if |O| is not <emu-val>null</emu-val>, with |values|
-                    as the argument values.
+                    description of |operation|,
+                    with |values| as the argument values
+                    and |object| as <b>this</b> if it is not null.
                 1.  Return the result of [=converted to an ECMAScript value|converting=] |R| to
                     an ECMAScript value of the type |op| is declared to return.
 
@@ -11384,13 +11393,13 @@ The [=return type=] of the [=default toJSON operation=] must be {{object}}.
 
 <div algorithm>
 
-    To invoke the <dfn export>default toJSON operation</dfn> of [=interface=] |I| on |O|,
+    To invoke the <dfn export>default toJSON operation</dfn> of [=interface=] |I|,
     run the the following steps:
 
     1.  Let |map| be a new [=ordered map=].
     1.  Let |stack| be the result of [=create an inheritance stack|creating an inheritance stack=]
         for [=interface=] |I|.
-    1.  Invoke [=collect attribute values of an inheritance stack=] on |O|,
+    1.  Invoke [=collect attribute values of an inheritance stack=] on <b>this</b>,
         passing it |stack| and |map| as arguments.
     1.  Let |result| be [=!=] <a abstract-op>ObjectCreate</a>({{%ObjectPrototype%}}).
     1.  [=map/For each=] |key| → |value| of |map|,
@@ -11402,21 +11411,21 @@ The [=return type=] of the [=default toJSON operation=] must be {{object}}.
 
 <div algorithm>
 
-    To invoke the <dfn>collect attribute values of an inheritance stack</dfn> abstract operation on |O|
+    To invoke the <dfn>collect attribute values of an inheritance stack</dfn> abstract operation
     with [=stack=] |stack| and [=ordered map=] |map| as arguments,
     run the the following steps:
 
     1.  Let |I| be the result of [=stack/pop|popping=] from |stack|.
-    1.  Invoke [=collect attribute values=] on |O|,
+    1.  Invoke [=collect attribute values=] on <b>this</b>,
         passing it |I| and |map| as arguments.
     1.  If |stack| [=stack/is not empty=],
-        then invoke [=collect attribute values of an inheritance stack=] on |O|,
+        then invoke [=collect attribute values of an inheritance stack=] on <b>this</b>,
         passing it |stack| and |map| as arguments.
 </div>
 
 <div algorithm>
 
-    To invoke the <dfn>collect attribute values</dfn> abstract operation on |O|
+    To invoke the <dfn>collect attribute values</dfn> abstract operation
     with [=interface=] |I| and [=ordered map=] |map| as arguments,
     run the the following steps:
 
@@ -11425,7 +11434,7 @@ The [=return type=] of the [=default toJSON operation=] must be {{object}}.
         that is an [=interface member=] of |I|, in order:
         1.  Let |id| be the [=identifier=] of |attr|.
         1.  Let |value| be the result of [=get the underlying value|getting the underlying value=]
-            of |attr| given |O|.
+            of |attr| given <b>this</b>.
         1.  If |value| is a [=JSON type=], then [=map/set=] |map|[|id|] to |value|.
 
 </div>
@@ -13453,8 +13462,8 @@ Each {{DOMException}} object has an associated <dfn for="DOMException">name</dfn
 The <dfn constructor for="DOMException"><code>DOMException(|message|, |name|)</code></dfn>
 constructor, when invoked, must run these steps:
 
-1. Set <emu-val>this</emu-val>'s [=DOMException/name=] to |name|.
-1. Set <emu-val>this</emu-val>'s [=DOMException/message=] to |message|.
+1. Set <b>this</b>'s [=DOMException/name=] to |name|.
+1. Set <b>this</b>'s [=DOMException/message=] to |message|.
 
 The <dfn attribute for="DOMException"><code>name</code></dfn> attribute's getter must return this
 {{DOMException}} object's [=DOMException/name=].
