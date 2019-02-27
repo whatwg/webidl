@@ -1492,6 +1492,13 @@ that are exposed as a convenience to users of objects in the system.
 
 </div>
 
+Every [=regular operation=], [=regular attribute=] getter, and [=regular attribute=] setter's
+algorithm steps have access to a <dfn export>this</dfn> value, which is an IDL value of the type
+the member is declared on.
+
+[=Attribute=] setter's algorithm steps also have access to <dfn export>the given value</dfn>,
+which is an IDL value of the type the [=attribute=] is declared as.
+
 [=Interfaces=], [=interface mixins=], and [=namespaces=] each support a different set of [=members=],
 which are specified in [[#idl-interfaces]], [[#idl-interface-mixins]], and [[#idl-namespaces]],
 and summarized in the following informative table:
@@ -1832,7 +1839,7 @@ it declares a [=static attribute=]. Note that in addition to being [=interface m
     To <dfn export>get the underlying value</dfn> of an attribute |attr| given a value |target|,
     return the result of performing the actions listed in the description of |attr| that occur on getting,
     or those listed in the description of the inherited attribute,
-    if |attr| is declared to inherit its getter, on |target| if |target| is not null.
+    if |attr| is declared to inherit its getter, with |target| as <b>[=this=]</b> if it is not null.
 </div>
 
 The [=identifier=] of an
@@ -2505,7 +2512,7 @@ in which case the [=default toJSON operation=] is exposed instead.
         1.  [=list/For each=] attribute [=identifier=] |attr| in « "from", "to", "amount", "description" »:
             1.  Let |value| be result of [=get the underlying value|getting the underlying value=]
                 of the [=attribute=] identified by |attr|,
-                given this <code class="idl">Transaction</code> object.
+                given **this**.
             1.  Set |json|[|attr|] to |value|.
         1.  Return |json|.
     </div>
@@ -10682,7 +10689,7 @@ the <code>typeof</code> operator will return "function" when applied to an inter
             {{NewTarget}}.
         1.  Perform the actions listed in the description of |constructor|
             with |values| as the argument values
-            and |object| as the <emu-val>this</emu-val> value.
+            and |object| as <b>[=this=]</b>.
         1.  Let |O| be |object|, [=converted to an ECMAScript value=].
         1.  Assert: |O| is an object that [=implements=] |I|.
         1.  Assert: |O|.\[[Realm]] is |realm|.
@@ -10752,7 +10759,7 @@ implement the interface on which the
             {{NewTarget}}.
         1.  Perform the actions listed in the description of |constructor|
             with |values| as the argument values
-            and |object| as the <emu-val>this</emu-val> value.
+            and |object| as <b>[=this=]</b>.
         1.  Let |O| be |object|, [=converted to an ECMAScript value=].
         1.  Assert: |O| is an object that [=implements=] |I|.
         1.  Assert: |O|.\[[Realm]] is |realm|.
@@ -11209,8 +11216,9 @@ in which case they are exposed on every object that [=implements=] the interface
                 </dd>
             </dl>
 
-        1.  Perform the actions listed in the description of |attribute| that occur on setting, on
-            |idlObject| if it is not null.
+        1.  Perform the actions listed in the description of |attribute| that occur on setting,
+            with |idlValue| as <b>[=the given value=]</b> and
+            |idlObject| as <b>[=this=]</b> if it is not null.
         1.  Return <emu-val>undefined</emu-val>
     1.  Let |F| be [=!=] <a abstract-op>CreateBuiltinFunction</a>(|steps|, « », |realm|).
     1.  Let |name| be the string "<code>set </code>" prepended to |id|.
@@ -11220,7 +11228,7 @@ in which case they are exposed on every object that [=implements=] the interface
 </div>
 
 Note: Although there is only a single property for an IDL attribute, since
-accessor property getters and setters are passed a <emu-val>this</emu-val>
+accessor property getters and setters are passed a <b>[=this=]</b>
 value for the object on which property corresponding to the IDL attribute is
 accessed, they are able to expose instance-specific data.
 
@@ -11316,12 +11324,14 @@ in which case they are exposed on every object that [=implements=] the interface
             1.  If |operation| is declared with a [{{Default}}] [=extended attribute=],
                 then:
                 1.  Set |R| be the result of performing the actions listed in
-                    |operation|'s [=corresponding default operation=] on |idlObject|,
-                    with |values| as the argument values.
+                    |operation|'s [=corresponding default operation=],
+                    with |values| as the argument values
+                    and |idlObject| as <b>[=this=]</b> if it is not null.
             1.  Otherwise:
-                1.  Set |R| be the result of performing the actions listed in the description of
-                    |operation|, on |idlObject| if it is not <emu-val>null</emu-val>, with |values|
-                    as the argument values.
+                1.  Set |R| be the result of performing the actions listed in the
+                    description of |operation|,
+                    with |values| as the argument values
+                    and |idlObject| as <b>[=this=]</b> if it is not null.
             1.  Return |R|, [=converted to an ECMAScript value=].
 
                 Issue(heycam/webidl#674): |R| is assumed to be an IDL value of the type |op| is declared to return.
@@ -11357,13 +11367,13 @@ The [=return type=] of the [=default toJSON operation=] must be {{object}}.
 
 <div algorithm>
 
-    To invoke the <dfn export>default toJSON operation</dfn> of [=interface=] |I| on |O|,
+    To invoke the <dfn export>default toJSON operation</dfn> of [=interface=] |I|,
     run the the following steps:
 
     1.  Let |map| be a new [=ordered map=].
     1.  Let |stack| be the result of [=create an inheritance stack|creating an inheritance stack=]
         for [=interface=] |I|.
-    1.  Invoke [=collect attribute values of an inheritance stack=] on |O|,
+    1.  Invoke [=collect attribute values of an inheritance stack=] on **this**,
         passing it |stack| and |map| as arguments.
     1.  Let |result| be [=!=] <a abstract-op>ObjectCreate</a>({{%ObjectPrototype%}}).
     1.  [=map/For each=] |key| → |value| of |map|,
@@ -11375,21 +11385,21 @@ The [=return type=] of the [=default toJSON operation=] must be {{object}}.
 
 <div algorithm>
 
-    To invoke the <dfn>collect attribute values of an inheritance stack</dfn> abstract operation on |O|
+    To invoke the <dfn>collect attribute values of an inheritance stack</dfn> abstract operation
     with [=stack=] |stack| and [=ordered map=] |map| as arguments,
     run the the following steps:
 
     1.  Let |I| be the result of [=stack/pop|popping=] from |stack|.
-    1.  Invoke [=collect attribute values=] on |O|,
+    1.  Invoke [=collect attribute values=] on **this**,
         passing it |I| and |map| as arguments.
     1.  If |stack| [=stack/is not empty=],
-        then invoke [=collect attribute values of an inheritance stack=] on |O|,
+        then invoke [=collect attribute values of an inheritance stack=] on **this**,
         passing it |stack| and |map| as arguments.
 </div>
 
 <div algorithm>
 
-    To invoke the <dfn>collect attribute values</dfn> abstract operation on |O|
+    To invoke the <dfn>collect attribute values</dfn> abstract operation
     with [=interface=] |I| and [=ordered map=] |map| as arguments,
     run the the following steps:
 
@@ -11398,7 +11408,7 @@ The [=return type=] of the [=default toJSON operation=] must be {{object}}.
         that is an [=interface member=] of |I|, in order:
         1.  Let |id| be the [=identifier=] of |attr|.
         1.  Let |value| be the result of [=get the underlying value|getting the underlying value=]
-            of |attr| given |O|.
+            of |attr| given **this**.
         1.  If |value| is a [=JSON type=], then [=map/set=] |map|[|id|] to |value|.
 
 </div>
@@ -13423,8 +13433,8 @@ Each {{DOMException}} object has an associated <dfn for="DOMException">name</dfn
 The <dfn constructor for="DOMException"><code>DOMException(|message|, |name|)</code></dfn>
 constructor, when invoked, must run these steps:
 
-1. Set <emu-val>this</emu-val>'s [=DOMException/name=] to |name|.
-1. Set <emu-val>this</emu-val>'s [=DOMException/message=] to |message|.
+1. Set **this**'s [=DOMException/name=] to |name|.
+1. Set **this**'s [=DOMException/message=] to |message|.
 
 The <dfn attribute for="DOMException"><code>name</code></dfn> attribute's getter must return this
 {{DOMException}} object's [=DOMException/name=].
