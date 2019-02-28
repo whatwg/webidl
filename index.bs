@@ -10698,7 +10698,17 @@ the <code>typeof</code> operator will return "function" when applied to an inter
     1.  Let |constructorProto| be |realm|.\[[Intrinsics]].[[{{%FunctionPrototype%}}]].
     1.  If |I| inherits from some other interface |P|,
         then set |constructorProto| to the [=interface object=] of |P| in |realm|.
-    1.  Let |F| be [=!=] <a abstract-op>CreateBuiltinFunction</a>(|steps|, « », |realm|, |constructorProto|).
+    1.  Let |F| be [=!=] <a abstract-op>CreateBuiltinFunction</a>(|steps|, « \[[Unforgeables]] »,
+        |realm|, |constructorProto|).
+    1.  Let |unforgeables| be [$ObjectCreate$](<emu-val>null</emu-val>).
+    1.  [=Define the unforgeable regular operations=] of |I| on |unforgeables|, given |realm|.
+    1.  [=Define the unforgeable regular attributes=] of |I| on |unforgeables|, given |realm|.
+    1.  Set |F|.\[[Unforgeables]] to |unforgeables|.
+
+        Note: this object is never exposed to user code. It exists only to ensure all instances
+        of an interface with an unforgeable member use the same JavaScript function objects for
+        [=attribute getters=], [=attribute setters=] and [=creating an operation
+        function|operation functions=].
     1.  Perform [=!=] <a abstract-op>SetFunctionName</a>(|F|, |id|).
     1.  Let |length| be 0.
     1.  If |I| was declared with a [{{Constructor}}] [=extended attribute=], then
@@ -12380,10 +12390,12 @@ the Realm given as an argument.
         [=ECMA-262 Ordinary object internal methods and internal slots=].
     1.  Let |interfaces| be the [=inclusive inherited interfaces=] of |interface|.
     1.  [=list/iterate|For every=] [=interface=] |ancestor interface| in |interfaces|:
-        1.  [=Define the unforgeable regular operations=] of |ancestor interface| on |instance|,
-            given |realm|.
-        1.  [=Define the unforgeable regular attributes=] of |ancestor interface| on |instance|,
-            given |realm|.
+        1.  Let |unforgeables| be the value of the \[[Unforgeables]] slot of the [=interface
+            object=] of |ancestor interface| in |realm|.
+        1.  Let |keys| be [=!=] |unforgeables|.\[[OwnPropertyKeys]]().
+        1.  [=list|For each=] element |key| of |keys|:
+            1.  Let |descriptor| be [=!=] |unforgeables|.\[[GetOwnProperty]](|key|).
+            1.  Perform [=!=] [$DefinePropertyOrThrow$](|instance|, |key|, |descriptor|).
     1.  If |interface| is declared with the [{{Global}}] [=extended attribute=], then:
         1.  [=Define the regular operations=] of |interface| on |instance|, given |realm|.
         1.  [=Define the regular attributes=] of |interface| on |instance|, given |realm|.
