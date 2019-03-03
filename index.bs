@@ -34,6 +34,7 @@ spec: url; type: interface; text: URL
 spec: dom; type: interface; text: Document
 spec: ecma-262; type: dfn; for: /; text: internal method
 spec: ecma-262; type: dfn; for: /; text: internal slot
+spec:html; type:dfn; for:environment settings object; text:module map
 </pre>
 
 <pre class="anchors">
@@ -199,12 +200,21 @@ urlPrefix: https://tc39.github.io/ecma262/; spec: ECMA-262
         text: own property; url: sec-own-property
         text: Property Descriptor; url: sec-property-descriptor-specification-type
         text: realm; url: realm
+
+urlPrefix: https://proposal-javascript-standard-library-domenic.now.sh/#; spec: JSSTDLIB; type: dfn
+    text: CreateSyntheticModule; url: sec-createsyntheticmodule
+    text: SetSyntheticModuleExport; url: sec-setsyntheticmoduleexport
+    text: Synthetic Module Records; url: sec-synthetic-module-records
 </pre>
 
 <pre class=biblio>
 {
     "GEOMETRY": {
         "aliasOf": "GEOMETRY-1"
+    },
+    "JSSTDLIB": {
+         "href": "https://github.com/tc39/proposal-javascript-standard-library/",
+         "title": "Standard Library Proposal"
     }
 }
 </pre>
@@ -449,8 +459,10 @@ The different kinds of <dfn id="dfn-definition">definitions</dfn> that can appea
 [=partial namespace|partial namespace definitions=],
 [=dictionary|dictionaries=],
 [=partial dictionary|partial dictionary definitions=],
-[=typedefs=] and
-[=includes statements=].
+[=typedefs=],
+[=includes statements=],
+[=modules=]
+and [=partial modules=].
 These are all defined in the following sections.
 
 Each [=definition=]
@@ -485,6 +497,7 @@ in [[#es-extended-attributes]].
         Enum
         Typedef
         IncludesStatement
+        Module
 </pre>
 
 <div class="example">
@@ -1072,7 +1085,8 @@ The following extended attributes are applicable to [=partial interfaces=]:
 [{{SecureContext}}].
 
 Non-callback [=interfaces=] which are not annotated
-with a [{{NoInterfaceObject}}] [=extended attribute=],
+with a [{{NoInterfaceObject}}] [=extended attribute=]
+and which are not declared inside of a [=module=] or [=partial module=],
 and [=callback interfaces=] which declare [=constants=]
 must be annotated with an [{{Exposed}}] [=extended attribute=].
 
@@ -1085,6 +1099,10 @@ The <dfn>qualified name</dfn> of an [=interface=] |interface| is defined as foll
     1.  Let |namespace| be the identifier argument of the [{{LegacyNamespace}}]
         [=extended attribute=].
     1.  Return the [=concatenation=] of « |namespace|, |identifier| » with
+        separator <span class="char">U+002E FULL STOP (".")</span>.
+1. If |interface| is declared inside a a [=module=], then:
+    1.  Let |specifier| be the [=module/specifier=] of the module.
+    1.  Return the [=concatenation=] of « |specifier|, |identifier| » with
         separator <span class="char">U+002E FULL STOP (".")</span>.
 1. Return |identifier|.
 
@@ -1123,6 +1141,7 @@ The <dfn>qualified name</dfn> of an [=interface=] |interface| is defined as foll
         "interface" PartialInterfaceOrPartialMixin
         PartialDictionary
         Namespace
+        Module
 </pre>
 
 <pre class="grammar" id="prod-PartialInterfaceOrPartialMixin">
@@ -1832,7 +1851,8 @@ be retrieved and (in some cases) changed.  There are two kinds of attributes:
 If an attribute has no <emu-t>static</emu-t> keyword, then it declares a
 <dfn id="dfn-regular-attribute" export>regular attribute</dfn>.  Otherwise,
 it declares a [=static attribute=]. Note that in addition to being [=interface members=],
-[=read only=] [=regular attributes=] can be [=namespace members=] as well.
+[=read only=] [=regular attributes=] can be [=namespace members=] or [=module
+members=] as well.
 
 
 <div algorithm>
@@ -2055,7 +2075,7 @@ then it declares a special operation.  A single operation can declare
 both a regular operation and a special operation;
 see [[#idl-special-operations]] for details on special operations.
 Note that in addition to being [=interface members=],
-regular operations can also be [=namespace members=].
+regular operations can also be [=namespace members=] or [=module members=].
 
 If an operation has no identifier,
 then it must be declared to be a special operation
@@ -4422,6 +4442,144 @@ Of the extended attributes defined in this specification, only the [{{Exposed}}]
 </div>
 
 
+<h3 id="idl-modules">Modules</h3>
+
+A <dfn id="dfn-module" export>module</dfn> is a structure that exposes a
+collection of interfaces, readonly attributes, and operations as a logical
+unit. A [=module=] has a <dfn for=module>specifier</dfn> that uniquely
+identifies it.
+
+For every string in an [=IDL fragment=] matching the <emu-nt><a
+href="#prod-Module">Module</a></emu-nt> nonterminal symbol, there must exist
+a [=module=] whose [=module/specifier=] is given by the <a
+href="#prod-string">string</a> immediately following the <emu-t>module</emu-t>
+terminal symbol.
+
+A module is a specification of a set of
+<dfn id="dfn-module-member" export lt="module member">module members</dfn>
+(matching <emu-nt><a href="#prod-ModuleMembers">ModuleMembers</a></emu-nt>),
+which are the [=interfaces=], [=regular operations=] and [=read only=] [=regular
+attributes=] that appear between the braces in the module declaration. These
+operations and attributes describe the behaviors packaged into the module.
+
+The IDL for modules can be split into multiple parts by using <dfn
+id="dfn-partial-module" export>partial module</dfn> definitions (matching
+<emu-t>partial</emu-t> <emu-nt><a href="#prod-Module">Module</a></emu-nt>).
+The module specifier of a partial module definition must be the same as the
+identifier of a module definition. All of the members that appear on each of
+the partial module definitions are considered to be members of the module
+itself.
+
+<pre class="syntax">
+    module <mark>"std:example"</mark> {
+      /* module_members... */
+    };
+
+    partial module <mark>"std:example"</mark> {
+      /* module_members... */
+    };
+</pre>
+
+Note: As with partial interface definitions, partial module definitions are
+intended for use as a specification editorial aide, allowing the definition
+of a module to be separated over more than one section of the document, and
+sometimes multiple documents.
+
+The order that members appear in has significance for property enumeration in
+the <a href="#es-modules">ECMAScript binding</a>.
+
+Note that like namespaces, modules do not create types.
+
+Of the extended attributes defined in this specification, only the [{{Exposed}}]
+and [{{SecureContext}}] extended attributes are applicable to modules. No
+extended attributes are applicable to [=partial modules=].
+
+[=Modules=] must be annotated with the [{{Exposed}}] [=extended attribute=].
+
+[=Module members=], [=partial modules=], and [=interface members=] of
+[=interfaces=] and [=partial interfaces=] which are [=module members=], must not
+be annotated with the [{{Exposed}}] or [{{SecureContext}}] extended attributes.
+
+Note: This restriction could be relaxed if there is a sufficient use case;
+it is omitted here for simplicity of specification and implementation, and a
+lack of clear use cases. Please <a
+href="https://github.com/heycam/webidl/issues/new?title=Fine%20grained%20exposure%20in%20modules">
+file an issue</a> if you see a need for this feature.
+
+Each module may have <dfn>module evaluation steps</dfn> which are executed
+when the module is first imported. These steps may throw an [=exception=], which
+prevents the module from being accessed.
+
+Rather than defining behavior when accessed, the attributes of a [=module=] act
+as a simple storage location. The steps to "set a module attribute" to an IDL
+value of the type of the attribute. Each [=attribute=] which is a [=module
+member=] must be initialized in [=module evaluation steps=] to set the module
+attribute.
+
+Note: See the ECMAScript binding's definition of [=set a module attribute=].
+
+<div data-fill-with="grammar-Partial"></div>
+
+<div data-fill-with="grammar-PartialDefinition"></div>
+
+<pre class="grammar" id="prod-Module">
+    Module :
+        "module" string "{" ModuleMembers "}" ";"
+</pre>
+
+<pre class="grammar" id="prod-ModuleMembers">
+    ModuleMembers :
+        ExtendedAttributeList ModuleMember ModuleMembers
+        ε
+</pre>
+
+<pre class="grammar" id="prod-ModuleMember">
+    ModuleMember :
+        "interface" InterfaceRest
+        "partial" "interface" InterfaceRest
+        RegularOperation
+        "readonly" AttributeRest
+</pre>
+
+<div class="example">
+
+    The following [=IDL fragment=] which defines a [=module=] exposing a function
+    to get the current timezone, which returns an instance of an interface
+    exposed in the same module.
+
+    <pre class="syntax">
+        [Exposed=Window, SecureContext]
+        module "std:timezone" {
+          interface Timezone {
+            readonly attribute USVString name;
+            long long offsetMs(long long unixTime);
+          };
+          Timezone getCurrentTimezone();
+          readonly attribute Timezone initialTimezone;
+        };
+    </pre>
+
+    <blockquote>
+        The [=module evaluation steps=] of "std:timezone" are as follows:
+            1.  [=set a module attribute|Set the attribute=]
+                "initialTimezone" of "std:timezone" to a [=new=]
+                <code>Timezone</code> representing the User Agent's preferred
+                time zone.
+    </blockquote>
+
+    An ECMAScript implementation would then expose a global <code class="idl">"std:timezone"</code>
+    module which includes a constructor for the interface and a function for the operation:
+
+    <pre highlight="js">
+        import * from "std:timezone" as timezone;
+        Object.keys(timezone);                      // Evaluates to ["Timezone", "getCurrentTimezone", "currentTimezone"]
+        typeof timezone.Timezone;                   // Evaluates to "function"
+        typeof timezone.getCurrentTimezone;         // Evaluates to "function"
+        typeof timezone.currentTimezone;            // Evaluates to "object"
+    </pre>
+</div>
+
+
 <h3 id="idl-dictionaries">Dictionaries</h3>
 
 A <dfn id="dfn-dictionary" export>dictionary</dfn> is a definition (matching
@@ -6457,6 +6615,7 @@ types as [=annotated types=],
 [=interface members=],
 [=interface mixin members=],
 [=namespace members=],
+[=module members=],
 [=dictionary members=],
 and [=operation=] arguments, and
 is used to control how language bindings will handle those constructs.
@@ -8542,7 +8701,9 @@ an [=interface=],
 [=interface mixin=],
 [=partial interface mixin=],
 [=namespace=],
-[=partial namespace=], or
+[=partial namespace=],
+[=module=],
+[=partial module=], or
 an individual [=interface member=],
 [=interface mixin member=], or
 [=namespace member=],
@@ -8562,7 +8723,7 @@ This list of identifiers is known as the construct's
     run the following steps:
 
     1.  Assert: |C| is an [=interface=], [=namespace=], [=interface member=], [=interface mixin member=],
-        or [=namespace member=].
+        [=namespace member=] or [=module=].
     1.  Let |H| be |C|'s [=host interface=] if |C| is an [=interface mixin member=], or null otherwise.
     1.  If |C| is an [=interface member=], [=interface mixin member=], or [=namespace member=], then:
         1.  If the [{{Exposed}}] [=extended attribute=] is specified on |C|, then:
@@ -8586,7 +8747,7 @@ This list of identifiers is known as the construct's
             then return the [=set/intersection=] of |C|'s [=own exposure set=]
             and |H|'s [=exposure set=].
         1.  Otherwise, set |C| to |H|.
-    1.  Assert: |C| is a [=interface=] or [=namespace=].
+    1.  Assert: |C| is a [=interface=], [=namespace=] or [=module=].
     1.  Assert: The [{{Exposed}}] [=extended attribute=] is specified on |C|.
     1.  Return |C|'s [=own exposure set=].
 </div>
@@ -8635,8 +8796,9 @@ with the the [=host interface=]'s [=exposure set=].
 Otherwise, it is the [=host interface=]'s [=exposure set=].
 
 <div algorithm>
-    An [=interface=], [=namespace=], or [=member=] |construct| is <dfn id="dfn-exposed" export>exposed</dfn>
-    in a given [=Realm=] |realm| if the following steps return true:
+    An [=interface=], [=namespace=], [=module=] or [=member=] |construct| is
+    <dfn id="dfn-exposed" export>exposed</dfn> in a given [=Realm=] |realm| if
+    the following steps return true:
 
     1.  If |realm|.\[[GlobalObject]] does not implement an [=interface=]
         that is in |construct|'s [=exposure set=], then return false.
@@ -8666,7 +8828,7 @@ for the specific requirements that the use of
 
 <div class="example">
 
-    [{{Exposed}}] is intended to be used to control whether [=interfaces=], [=namespaces=],
+    [{{Exposed}}] is intended to be used to control whether [=interfaces=], [=namespaces=], [=modules=],
     or individual [=interface member|interface=], [=interface mixin member|mixin=] or [=namespace members=]
     are available for use in workers, {{Worklet}}, {{Window}}, or any combination of the above.
 
@@ -9857,6 +10019,7 @@ If the [{{SecureContext}}] [=extended attribute=] appears on an
 [=partial interface mixin=],
 [=namespace=],
 [=partial namespace=],
+[=module=],
 [=interface member=],
 [=interface mixin member=], or
 [=namespace member=],
@@ -9876,7 +10039,7 @@ By default, constructs are <dfn export>available in both secure and non-secure c
     run the following steps:
 
     1.  Assert: |C| is an [=interface=], [=namespace=], [=interface member=], [=interface mixin member=],
-        or [=namespace member=].
+        [=namespace member=] or [=module=].
     1.  Let |H| be |C|'s [=host interface=] if |C| is an [=interface mixin member=], or null otherwise.
     1.  If |C| is an [=interface member=], [=interface mixin member=], or [=namespace member=], then:
         1.  If the [{{SecureContext}}] [=extended attribute=] is specified on |C|,
@@ -9895,7 +10058,7 @@ By default, constructs are <dfn export>available in both secure and non-secure c
         1.  If the [{{SecureContext}}] [=extended attribute=] is specified on |C|,
             then return true.
         1.  Otherwise, set |C| to |H|.
-    1.  Assert: |C| is a [=interface=] or [=namespace=]
+    1.  Assert: |C| is a [=interface=], [=namespace=] or [=module=]
     1.  If the [{{SecureContext}}] [=extended attribute=] is specified on |C|,
         then return true.
     1.  Otherwise, return false.
@@ -11293,7 +11456,7 @@ in which case they are exposed on every object that [=implements=] the interface
 
 <div algorithm>
     To <dfn id="dfn-create-operation-function" lt="creating an operation function">create an operation function</dfn>,
-    given an [=operation=] |op|, a [=namespace=] or [=interface=] |target|, and a [=Realm=] |realm|:
+    given an [=operation=] |op|, a [=namespace=], [=module=] or [=interface=] |target|, and a [=Realm=] |realm|:
 
     1.  Let |id| be |op|'s [=identifier=].
     1.  Let |steps| be the following series of steps, given function argument
@@ -12409,6 +12572,7 @@ the Realm given as an argument.
         1.  [=Define the regular attributes=] of |interface| on |instance|, given |realm|.
         1.  [=Define the global property references=] on |instance|, given |realm|.
         1.  Set |instance|.\[[SetPrototypeOf]] as defined in [[#platform-object-setprototypeof]].
+        1.  [=Initialize the module map=] of |realm|.
     1.  Otherwise, if |interfaces| contains an [=interface=] which
         [=support indexed properties|supports indexed properties=],
         [=support named properties|named properties=], or both:
@@ -12432,7 +12596,7 @@ the Realm given as an argument.
   perform the following steps:
 
     1.  Let |interfaces| be a [=list=] that contains every non-callback [=interface=] that is
-        [=exposed=] in |realm|.
+        not a [=module member=] and that is [=exposed=] in |realm|.
     1.  Sort |interfaces| in such a way that if |A| and |B| are [=list/items=] of |interfaces|,
         and |A| [=interface/inherits=] from |B|, |A| has a higher index in |interfaces| than |B|.
     1.  [=list/iterate|For every=] |interface| of |interfaces|:
@@ -13180,6 +13344,69 @@ The characteristics of a namespace object are described in [[#namespace-object]]
             interface object=] for |interface| with |id| in |realm|.
         1.  Perform [=!=] [$CreateMethodProperty$](|namespaceObject|, |id|, |interfaceObject|).
     1.  Return |namespaceObject|.
+</div>
+
+
+<h3 id="es-modules">Modules</h3>
+
+Modules are reified as entries in the [=module map=] as [=Synthetic Module
+Records=], allowing them to be imported as ECMAScript modules.
+
+<div algorithm>
+  To <dfn>create a synthetic module record</dfn> for a [=module=] |module| in a
+  [=Realm=] |realm|, perform the following steps:
+
+    1.  Let |exports| be « ».
+    1.  [=list/For each=] [=module member=] |member| of |module|:
+        1.  Assert: |member| is not annotated with either the [{{Exposed}}]
+                    or [{{SecureContext}}] extended attributes.
+        1.  Append the [=identifier=] of |member| to |exports|.
+    1.  Let |moduleRecord| be ! [=CreateSyntheticModule=](|exports|, the following steps, |realm|, undefined), with the following steps:
+        1. [=list/For each=] [=module member=] |member| of |module|:
+            1.  Let |id| be |member|'s [=identifier=].
+            1.  If |member| is an [=interface=]:
+                1.  Let |interfaceObject| be the result of [=create an interface
+                    object|creating an interface object=] for |member| with |id|
+                    in |realm|.
+                1.  Perform ! [=SetSyntheticModuleExport=](|moduleRecord|, |id|,
+                    |interfaceObject|).
+            1.  Otherwise, if |member| is an [=operation=]:
+                1.  Let |method| be the result of [=creating an operation function=]
+                    given |member|, |module|, and |realm|.
+                1.  Perform ! [=SetSyntheticModuleExport=](|moduleRecord|, |id|,
+                    |method|).
+            1.  Otherwise:
+                1.  Assert: |member| is an [=attribute=].
+                1.  Assert: The module evaluation steps will set each attribute.
+        1.  Run the [=module evaluation steps=] for the [=module/specifier=] of
+            |module|, if any are present.
+    1.  Return |moduleRecord|.
+</div>
+
+<div algorithm>
+  To <dfn>initialize the module map</dfn> of a [=Realm=] |realm|:
+
+    1.  Let |map| be the [=module map=] associated with |realm|'s [=relevant settings object=].
+    1.  For every [=module=] |module| that is [=exposed=] in |realm|,
+        1.  Let |name| be the [=module/specifier=] of |module|.
+        1.  Let |record| be the result of [=create a synthetic module record=]
+            for |module| in |realm|.
+        1.  [=map/Set=] |map|[|name|] to |record|.
+</div>
+
+<div algorithm>
+  To <dfn>set a module attribute</dfn> |attribute| of a module specifier |specifier| in a
+  [=Realm=] |realm| to an IDL value |value|:
+
+    1.  Let |esValue| be |value| [=converted to an ECMAScript value=].
+    1.  If |realm| is not provided, let |realm| be the [=current Realm=].
+    1.  Let |map| be the [=module map=] associated with |realm|'s [=relevant
+        settings object=].
+    1.  Assert: |map|[|specifier|] exists.
+    1.  Let |moduleRecord| be |map|[|specifier|].
+    1.  Assert: |moduleRecord|.\[[ExportNames]] [=list/contains=] |attribute|.
+    1.  Perform ! [=SetSyntheticModuleExport=](|moduleRecord|, |attribute|,
+        |esValue|).
 </div>
 
 
