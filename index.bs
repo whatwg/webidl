@@ -6769,24 +6769,24 @@ and comprise the following:
 *   <a href="#es-iterators">the function objects that correspond to iterators</a>
 *   [=map size getters=]
 
-Each [=Realm|ECMAScript global environment=]
+Each [=Realm=]
 must have its own unique set of each of
 the [=initial objects=], created
 before control enters any ECMAScript execution context associated with the
-environment, but after the global object for that environment is created.  The \[[Prototype]]s
-of all initial objects in a given global environment must come from
-that same global environment.
+Realm, but after the [=Realm/global object=] for that Realm is created.  The \[[Prototype]]s
+of all initial objects in a given [=Realm=] must come from
+that same [=Realm=].
 
 <div class="example">
 
-    In an HTML user agent, multiple global environments can exist when
+    In an HTML user agent, multiple [=Realms=] can exist when
     multiple frames or windows are created.  Each frame or window will have
     its own set of [=initial objects=],
     which the following HTML document demonstrates:
 
     <pre highlight="html">
         &lt;!DOCTYPE html&gt;
-        &lt;title&gt;Different global environments&lt;/title&gt;
+        &lt;title&gt;Different Realms&lt;/title&gt;
         &lt;iframe id=a&gt;&lt;/iframe&gt;
         &lt;script&gt;
         var iframe = document.getElementById("a");
@@ -6802,15 +6802,9 @@ that same global environment.
     </pre>
 </div>
 
-Unless otherwise specified, each ECMAScript global environment <dfn id="dfn-expose" for="ECMAScript global environment" export>exposes</dfn>
-all [=interfaces=]
-that the implementation supports.  If a given ECMAScript global environment does not
-expose an interface, then the requirements given in
-[[#es-interfaces]] are
-not followed for that interface.
-
-Note: This allows, for example, ECMAScript global environments for Web Workers to [=ECMAScript global environment/expose=]
-different sets of supported interfaces from those exposed in environments
+Note: All [=interfaces=] define which [=Realms=] they are [=exposed=] in.
+This allows, for example, [=Realms=] for Web Workers to [=expose=]
+different sets of supported interfaces from those exposed in Realms
 for Web pages.
 
 Although at the time of this writing the ECMAScript specification does not reflect this,
@@ -8742,7 +8736,7 @@ for the specific requirements that the use of
 
 If the [{{Global}}] [=extended attribute=] appears on an [=interface=],
 it indicates that objects implementing this interface can
-be used as the global object in an ECMAScript environment,
+be used as the global object in a [=Realm=],
 and that the structure of the prototype chain and how
 properties corresponding to [=interface members=]
 will be reflected on the prototype objects will be different from other
@@ -8804,7 +8798,7 @@ the [=named property getter=].
 
 The [{{Global}}] [=extended attribute=] must not
 be used on an [=interface=] that can have more
-than one object implementing it in the same ECMAScript global environment.
+than one object implementing it in the same [=Realm=].
 
 Note: This is because the [=named properties object=],
 which exposes the named properties, is in the prototype chain, and it would not make
@@ -9903,7 +9897,7 @@ By default, constructs are <dfn export>available in both secure and non-secure c
 </div>
 
 Note: Whether a construct is [=available only in secure contexts=]
-influences whether it is [=exposed=] in a given ECMAScript global environment.
+influences whether it is [=exposed=] in a given [=Realm=].
 
 If [{{SecureContext}}] appears on an [=overloaded=] [=operation=],
 then it must appear on all overloads.
@@ -10619,9 +10613,9 @@ Note: The HTML Standard defines how a security check is performed. [[!HTML]]
 <h3 id="es-interfaces">Interfaces</h3>
 
 For every non-callback [=interface=] that is [=exposed=] in
-a given ECMAScript global environment and that is not declared with
+a given [=Realm=] and that is not declared with
 the [{{NoInterfaceObject}}] or [{{LegacyNamespace}}] [=extended attributes=],
-a corresponding property exists on the ECMAScript environment's global object.
+a corresponding property exists on the [=Realm=]'s [=Realm/global object=].
 The name of the property is the [=identifier=] of the interface,
 and its value is an object called the <dfn id="dfn-interface-object" export>interface object</dfn>.
 The characteristics of an interface object are described in [[#interface-object]].
@@ -10886,9 +10880,9 @@ the [=interface=]’s [=qualified name=] and the string "<code>Prototype</code>"
 <h4 id="legacy-callback-interface-object">Legacy callback interface object</h4>
 
 For every [=callback interface=] that is [=exposed=] in
-a given ECMAScript global environment
+a given [=Realm=]
 and on which [=constants=] are defined,
-a corresponding property exists on the ECMAScript environment's global object.
+a corresponding property exists on the [=Realm=]'s [=Realm/global object=].
 The name of the property is the [=identifier=] of the interface,
 and its value is an object called the
 <dfn id="dfn-legacy-callback-interface-object" export>legacy callback interface object</dfn>.
@@ -10956,10 +10950,8 @@ is the concatenation of the [=interface=]’s
     is called with property key |P|, the following steps are taken:
 
     1.  Let |A| be the [=interface=] for the [=named properties object=] |O|.
-    1.  Let |object| be the sole object from |O|’s ECMAScript global environment that [=implements=] |A|.
-
-        Note: For example, if the [=interface=] is the {{Window}} interface,
-        then the sole object will be this global environment’s window object.
+    1.  Let |object| be |O|.\[[Realm]]'s [=Realm/global object=].
+    1.  Assert: |object| [=implements=] |A|.
     1.  If the result of running the [=named property visibility algorithm=] with
         property name |P| and object |object| is true, then:
         1.  Let |operation| be the operation used to declare the named property getter.
@@ -12479,13 +12471,13 @@ the Realm given as an argument.
   [=interface=] that it [=implements=].
 </div>
 
-The global environment that a given [=platform object=]
-is associated with can <dfn id="dfn-change-global-environment" for="global environment" export>change</dfn> after it has been created.  When
-the global environment associated with a platform object is changed, its
+The [=Realm=] that a given [=platform object=]
+is associated with can <dfn id="dfn-change-global-environment" for="Realm" export>change</dfn> after it has been created.  When
+the [=Realm=] associated with a platform object is changed, its
 \[[Prototype]] [=internal slot=] must be immediately
 updated to be the [=interface prototype object=]
 of the [=primary interface=]
-from the [=platform object=]’s newly associated global environment.
+from the [=platform object=]’s newly associated [=Realm=].
 
 The [=class string=] of
 a platform object that implements one or more interfaces
@@ -13143,8 +13135,8 @@ a return type that is a [=promise type=].
 
 <h3 id="es-namespaces">Namespaces</h3>
 
-For every [=namespace=] that is [=exposed=] in a given ECMAScript global environment,
-a corresponding property exists on the ECMAScript environment's global object.
+For every [=namespace=] that is [=exposed=] in a given [=Realm=],
+a corresponding property exists on the [=Realm=]'s [=Realm/global object=].
 The name of the property is the [=identifier=] of the namespace, and its value is an object
 called the <dfn id="dfn-namespace-object" export>namespace object</dfn>.
 
