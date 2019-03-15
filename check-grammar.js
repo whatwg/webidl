@@ -31,6 +31,10 @@ let path = process.argv[2];
 let html = fs.readFileSync(path, "utf8");
 let dom = new jsdom.JSDOM(html);
 let rules = getRulesFromDOM(dom.window);
+if (!rules.length) {
+    console.log("Did not find any grammar snippets in the generated specification.");
+    process.exit(1);
+}
 let bnf = toBNF(rules);
 let data = Grammar.dataFromString(bnf, "bnf");
 let grammar = Grammar.fromData(data, { mode: "LL1" });
