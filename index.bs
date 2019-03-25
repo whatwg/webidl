@@ -931,21 +931,23 @@ Note: See also the similarly named [=callback function=] definition.
 
 [=Callback interfaces=]
 must not [=interface/inherit=]
-from any non-callback interfaces, and non-callback interfaces must not
+from any interfaces, and non-callback interfaces must not
 inherit from any callback interfaces.
 Callback interfaces must not [=include=] any [=interface mixins=].
 
-[=Static attributes=] and
+[=Regular attributes=],
+[=static attributes=] and
 [=static operations=] must not
 be defined on a [=callback interface=].
+
+[=Callback interfaces=] must define exactly one [=regular operation=].
 
 <div class="advisement">
 
     Specification authors should not define
     [=callback interfaces=]
-    that have only a single [=operation=],
     unless required to describe the requirements of existing APIs.
-    Instead, a [=callback function=] should be used.
+    Instead, a [=callback function=] or a [=dictionary=] should be used.
 
     The definition of <code class="idl">EventListener</code> as a
     [=callback interface=]
@@ -957,68 +959,6 @@ be defined on a [=callback interface=].
     only a [=function object=] (in the ECMAScript
     language binding).
 
-</div>
-
-<p class="issue">
-    Perhaps this warning shouldn't apply if you are planning to extend the callback
-    interface in the future.  That's probably a good reason to start off with a single
-    operation callback interface.
-</p>
-
-<p class="issue">
-    I think we need to support operations not being implemented on a given
-    object implementing a callback interface.  If specs extending an existing
-    callback interface, we probably want to be able to avoid calling the
-    operations that aren't implemented (and having some default behavior instead).
-    So we should perhaps define a term that means whether the operation is
-    implemented, which in the ECMAScript binding would correspond to checking
-    for the property's existence.
-</p>
-
-<div class="note">
-
-    Specification authors wanting to define APIs that take ECMAScript objects
-    as “property bag” like function arguments are suggested to use
-    [=dictionaries=] rather than
-    [=callback interfaces=].
-
-    For example, instead of this:
-
-    <pre highlight="webidl">
-        callback interface Options {
-          attribute DOMString? option1;
-          attribute DOMString? option2;
-          attribute long? option3;
-        };
-
-        [Exposed=Window]
-        interface A {
-          void doTask(DOMString type, Options options);
-        };
-    </pre>
-
-    to be used like this:
-
-    <pre highlight="js">
-        var a = getA();  // Get an instance of A.
-
-        a.doTask("something", { option1: "banana", option3: 100 });
-    </pre>
-
-    instead write the following:
-
-    <pre highlight="webidl">
-        dictionary Options {
-          DOMString? option1;
-          DOMString? option2;
-          long? option3;
-        };
-
-        [Exposed=Window]
-        interface A {
-          void doTask(DOMString type, optional Options options);
-        };
-    </pre>
 </div>
 
 The IDL for interfaces can be split into multiple parts by using
@@ -1524,7 +1464,7 @@ and summarized in the following informative table:
         <tr>
             <th>[=Regular attributes=]</th>
             <td>●</td>
-            <td>●</td>
+            <td></td>
             <td>●</td>
             <td>Only [=read only=] attributes</td>
         </tr>
@@ -3608,7 +3548,7 @@ the following algorithm returns <i>true</i>.
 
         <pre highlight="idl">
             callback interface CBIface {
-                attribute DOMString attr1;
+                void handle();
             };
 
             [Exposed=Window]
@@ -9669,7 +9609,7 @@ must not be used on a
 
 The [{{PutForwards}}] extended attribute
 must not be used on an attribute declared on
-a [=callback interface=] or [=namespace=].
+a [=namespace=].
 
 See the <a href="#es-attributes">Attributes</a> section for how
 [{{PutForwards}}]
@@ -9742,10 +9682,6 @@ is not [=read only=].
 The [{{Replaceable}}] extended attribute
 must not be used on a
 [=static attribute=].
-
-The [{{Replaceable}}] extended attribute
-must not be used on an attribute declared on
-a [=callback interface=].
 
 The [{{Replaceable}}] extended attribute
 must not be used on an attribute declared on
@@ -12881,30 +12817,17 @@ implemented in script by any ECMAScript object.
 The following cases explain how a [=callback interface=]'s [=operation=] is invoked on a given
 object:
 
-: If the interface is a [=single operation callback interface=]:
-::  *   If the object is [=ECMAScript/callable=], then the implementation of the operation is the
-        callable object itself.
-    *   Otherwise, the implementation of the operation is calling the result of invoking the
-        internal \[[Get]] method on the object with a property name that is the [=identifier=] of
-        the operation.
-: If the interface is not a [=single operation callback interface=]:
-::  For each operation declared on the interface with a given [=identifier=], the implementation
-    is calling the result of invoking \[[Get]] on the object with a property name that is that
-    identifier.
+*   If the object is [=ECMAScript/callable=], then the implementation of the operation is the
+    callable object itself.
+*   Otherwise, the implementation of the operation is calling the result of invoking the
+    internal \[[Get]] method on the object with a property name that is the [=identifier=] of
+    the operation.
 
 Note that ECMAScript objects need not have
 properties corresponding to [=constants=]
 on them to be considered as
 implementing [=callback interfaces=] that happen
 to have constants declared on them.
-
-A <dfn id="dfn-single-operation-callback-interface" export>single operation callback interface</dfn> is
-a [=callback interface=] that:
-
-*   is not declared to [=interface/inherit=] from another interface,
-*   has no [=attributes=], and
-*   has one or more [=regular operations=] that all have the same [=identifier=],
-    and no others.
 
 A <dfn>Web IDL arguments list</dfn> is a [=list=] of values each of which is either an IDL value or
 the special value “missing”, which represents a missing optional argument.
@@ -12947,22 +12870,17 @@ the special value “missing”, which represents a missing optional argument.
     1.  Let |stored settings| be |value|'s [=callback context=].
     1.  [=Prepare to run script=] with |relevant settings|.
     1.  [=Prepare to run a callback=] with |stored settings|.
-    1.  Determine the implementation of the operation, |X|:
-        1.  If |value|'s interface is a [=single operation callback interface=] and
-            [=!=] <a abstract-op>IsCallable</a>(|O|) is true,
-            then set |X| to |O|.
-        1.  Otherwise:
-            1.  Let |getResult| be <a abstract-op>Get</a>(|O|, |opName|).
-            1.  If |getResult| is an [=abrupt completion=], set |completion|
-                to |getResult| and jump to the step labeled <a href="#call-user-object-operation-return"><i>return</i></a>.
-            1.  Set |X| to |getResult|.\[[Value]].
-    1.  If [=!=] <a abstract-op>IsCallable</a>(|X|) is <emu-val>false</emu-val>,
-        then set |completion| to a new <a abstract-op>Completion</a>{\[[Type]]: throw, \[[Value]]: a
-        newly created {{ECMAScript/TypeError}} object, \[[Target]]: empty}, and jump
-        to the step labeled <a href="#call-user-object-operation-return"><i>return</i></a>.
-    1.  If |value|'s interface is not a [=single operation callback interface=],
-        or if [=!=] <a abstract-op>IsCallable</a>(|O|) is <emu-val>false</emu-val>,
-        set |thisArg| to |O| (overriding the provided value).
+    1.  Let |X| be |O|.
+    1.  If [=!=] <a abstract-op>IsCallable</a>(|O|) is false, then:
+        1.  Let |getResult| be <a abstract-op>Get</a>(|O|, |opName|).
+        1.  If |getResult| is an [=abrupt completion=], set |completion|
+            to |getResult| and jump to the step labeled <a href="#call-user-object-operation-return"><i>return</i></a>.
+        1.  Set |X| to |getResult|.\[[Value]].
+        1.  If [=!=] <a abstract-op>IsCallable</a>(|X|) is <emu-val>false</emu-val>,
+            then set |completion| to a new <a abstract-op>Completion</a>{\[[Type]]: throw, \[[Value]]: a
+            newly created {{ECMAScript/TypeError}} object, \[[Target]]: empty}, and jump
+            to the step labeled <a href="#call-user-object-operation-return"><i>return</i></a>.
+        1.  Set |thisArg| to |O| (overriding the provided value).
     1.  Let |esArgs| be the result of [=Web IDL arguments list/converting=] |args| to an ECMAScript
         arguments list. If this throws an exception, set |completion| to the completion value
         representing the thrown exception and jump to the step labeled
@@ -12984,70 +12902,6 @@ the special value “missing”, which represents a missing optional argument.
             {{%Promise%}}, «|completion|.\[[Value]]»).
         1.  Return the result of [=converted to an IDL value|converting=]
             |rejectedPromise| to the operation's return type.
-</div>
-
-<div algorithm>
-
-    To <dfn id="get-a-user-objects-attribute-value" export>get a user object's attribute value</dfn>,
-    given a [=Interface types|callback interface type=] value |object| and
-    attribute name |attributeName|, perform the following steps.
-    These steps will either return an IDL value or throw an exception.
-
-    1.  Let |completion| be an uninitialized variable.
-    1.  Let |O| be the ECMAScript object corresponding to |object|.
-    1.  Let |realm| be |O|'s [=associated Realm=].
-    1.  Let |relevant settings| be |realm|'s [=Realm/settings object=].
-    1.  Let |stored settings| be |object|'s [=callback context=].
-    1.  [=Prepare to run script=] with |relevant settings|.
-    1.  [=Prepare to run a callback=] with |stored settings|.
-    1.  Let |getResult| be <a abstract-op>Get</a>(|O|, |attributeName|).
-    1.  If |getResult| is an [=abrupt completion=], set |completion| to
-        |getResult| and jump to the step labeled <a href="#get-user-object-attribute-return"><i>return</i></a>.
-    1.  Set |completion| to the result of
-        [=converted to an IDL value|converting=] |getResult|.\[[Value]] to
-        an IDL value of the same type as the attribute's type.
-    1.  <i id="get-user-object-attribute-return">Return:</i> at this
-        point |completion| will be set to an ECMAScript completion value.
-        1.  [=Clean up after running a callback=] with |stored settings|.
-        1.  [=Clean up after running script=] with |relevant settings|.
-        1.  If |completion| is a normal completion, return |completion|.
-        1.  If |completion| is an [=abrupt completion=] and the attribute's type is
-            <em>not</em> a [=promise type=], return |completion|.
-        1.  Let |rejectedPromise| be [=!=] <a abstract-op>Call</a>({{%Promise_reject%}},
-            {{%Promise%}}, «|completion|.\[[Value]]»).
-        1.  Return the result of [=converted to an IDL value|converting=]
-            |rejectedPromise| to the attribute's type.
-</div>
-
-<div algorithm>
-
-    To <dfn id="set-a-user-objects-attribute-value" export>set a user object's attribute value</dfn>,
-    given a [=Interface types|callback interface type=] value |object|,
-    attribute name |attributeName|, and IDL value |value|,
-    perform the following steps.
-    These steps will not return anything, but could throw an exception.
-
-    1.  Let |completion| be an uninitialized variable.
-    1.  Let |O| be the ECMAScript object corresponding to |object|.
-    1.  Let |realm| be |O|'s [=associated Realm=].
-    1.  Let |relevant settings| be |realm|'s [=Realm/settings object=].
-    1.  Let |stored settings| be |object|'s [=callback context=].
-    1.  [=Prepare to run script=] with |relevant settings|.
-    1.  [=Prepare to run a callback=] with |stored settings|.
-    1.  Let |convertResult| be the result of
-        [=converted to an ECMAScript value|converting=] |value|
-        to an ECMAScript value.
-    1.  If |convertResult| is an [=abrupt completion=], set |completion| to
-        |convertResult| and jump to the step labeled <a href="#set-user-object-attribute-return"><i>return</i></a>.
-    1.  Set |completion| to <a abstract-op>Set</a>(|O|, |attributeName|,
-        |convertResult|.\[[Value]], <emu-val>true</emu-val>).
-    1.  <i id="set-user-object-attribute-return">Return:</i> at this
-        point |completion| will be set to an ECMAScript completion value, which is
-        either an [=abrupt completion=] or a normal completion for the value <emu-val>true</emu-val> (as returned by <a abstract-op>Set</a>).
-        1.  [=Clean up after running a callback=] with |stored settings|.
-        1.  [=Clean up after running script=] with |relevant settings|.
-        1.  If |completion| is an [=abrupt completion=], return |completion|.
-        1.  Return <a abstract-op>NormalCompletion</a>({{void}}).
 </div>
 
 
