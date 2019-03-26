@@ -543,8 +543,9 @@ in [[#es-extended-attributes]].
           attribute DOMString imageURL;
         };
 
-        [Exposed=Window, Constructor]
+        [Exposed=Window]
         interface GraphicalWindow {
+          constructor();
           readonly attribute unsigned long width;
           readonly attribute unsigned long height;
 
@@ -571,12 +572,13 @@ in [[#es-extended-attributes]].
     objects; each ECMAScript object that implements <code class="idl">GraphicalWindow</code>
     will have that prototype object in its prototype chain.
 
-    The [{{Constructor}}] that appears on <code class="idl">GraphicalWindow</code>
-    is an [=extended attribute=].
-    This extended attribute causes a [=constructor=] to exist in ECMAScript implementations,
+    The [=constructor operation=] that appears on <code class="idl">GraphicalWindow</code>
+    causes a [=constructor=] to exist in ECMAScript implementations,
     so that calling <code>new GraphicalWindow()</code> would return a new object
     that implemented the interface.
 
+    All [=interfaces=] have the [{{Exposed}}] [=extended attribute=], which ensures the interfaces
+    are only available in [=Realms=] whose [=Realm/global object=] is a {{Window}} object.
 </div>
 
 
@@ -992,7 +994,6 @@ The relevant language binding determines how interfaces correspond to constructs
 in the language.
 
 The following extended attributes are applicable to interfaces:
-[{{Constructor}}],
 [{{Exposed}}],
 [{{Global}}],
 [{{LegacyWindowAlias}}],
@@ -1061,7 +1062,7 @@ The <dfn>qualified name</dfn> of an [=interface=] |interface| is defined as foll
 
 <pre class="grammar" id="prod-PartialInterfaceRest">
     PartialInterfaceRest :
-        identifier "{" InterfaceMembers "}" ";"
+        identifier "{" PartialInterfaceMembers "}" ";"
 </pre>
 
 <pre class="grammar" id="prod-InterfaceMembers">
@@ -1072,6 +1073,18 @@ The <dfn>qualified name</dfn> of an [=interface=] |interface| is defined as foll
 
 <pre class="grammar" id="prod-InterfaceMember">
     InterfaceMember :
+        PartialInterfaceMember
+        Constructor
+</pre>
+
+<pre class="grammar" id="prod-PartialInterfaceMembers">
+    PartialInterfaceMembers :
+        ExtendedAttributeList PartialInterfaceMember PartialInterfaceMembers
+        ε
+</pre>
+
+<pre class="grammar" id="prod-PartialInterfaceMember">
+    PartialInterfaceMember :
         Const
         Operation
         Stringifier
@@ -2166,7 +2179,8 @@ language bindings.
     </pre>
 </div>
 
-An operation is considered to be <dfn id="dfn-variadic" export>variadic</dfn>
+An operation or [=constructor operation=] is considered to be
+<dfn id="dfn-variadic" export>variadic</dfn>
 if the final argument uses the <emu-t>...</emu-t> token just
 after the argument type.  Declaring an operation to be variadic indicates that
 the operation can be invoked with any number of arguments after that final argument.
@@ -2185,8 +2199,7 @@ is the final argument in the operation’s argument list.
 
 [=Extended attributes=]
 that [=takes an argument list|take an argument list=]
-([{{Constructor}}] and
-[{{NamedConstructor}}], of those
+([{{NamedConstructor}}], of those
 defined in this specification) and [=callback functions=]
 are also considered to be [=variadic=]
 when the <emu-t>...</emu-t> token is used in their argument lists.
@@ -2590,6 +2603,82 @@ in which case the [=default toJSON operation=] is exposed instead.
         JSON.stringify(txn);
     </pre>
 </div>
+
+
+<h4 id=idl-constructors oldids="Constructor" dfn>Constructor operations</h4>
+
+If an [=interface=] has a [=constructor operation=] member (matching
+<emu-nt><a href="#prod-Constructor">Constructor</a></emu-nt>), it indicates that it is possible to
+create objects that [=implement=] the [=interface=] using a [=constructor=].
+
+Multiple [=constructor operations=] may appear on a given [=interface=].
+For each [=constructor operation=] on the [=interface=], there will be a way to attempt to
+construct an instance by passing the specified arguments.
+
+The prose definition of a [=constructor operation=] must either initialize the value passed as
+<b>[=this=]</b>, or throw an exception.
+
+See [[#interface-object]] for details on how a [=constructor operation=] is to be implemented.
+
+<div class="example">
+
+    The following IDL defines two interfaces. The second has [=constructor operations=], while the
+    first does not.
+
+    <pre highlight="webidl">
+        [Exposed=Window]
+        interface NodeList {
+          Node item(unsigned long index);
+          readonly attribute unsigned long length;
+        };
+
+        [Exposed=Window]
+        interface Circle {
+          constructor();
+          constructor(double radius);
+          attribute double r;
+          attribute double cx;
+          attribute double cy;
+          readonly attribute double circumference;
+        };
+    </pre>
+
+    An ECMAScript implementation supporting these interfaces would implement a \[[Construct]]
+    internal method on the <code class="idl">Circle</code> interface object which would return a
+    new object that [=implements=] the interface.
+    It would take either zero or one argument.
+
+    Issue(heycam/webidl#698): It is unclear whether the <code class="idl">NodeList</code> interface
+    object would implement a \[[Construct]] internal method. In any case, trying to use it as a
+    constructor will cause a {{TypeError}} to be thrown.
+
+    <pre highlight="js">
+        var x = new Circle();      // The uses the zero-argument constructor to create a
+                                   // reference to a platform object that implements the
+                                   // Circle interface.
+
+        var y = new Circle(1.25);  // This also creates a Circle object, this time using
+                                   // the one-argument constructor.
+
+        var z = new NodeList();    // This would throw a TypeError, since no
+                                   // constructor is declared.
+    </pre>
+</div>
+
+
+
+<pre class="grammar" id="prod-Constructor">
+    Constructor :
+        "constructor" "(" ArgumentList ")" ";"
+</pre>
+
+<div data-fill-with="grammar-ArgumentList"></div>
+<div data-fill-with="grammar-Arguments"></div>
+<div data-fill-with="grammar-Argument"></div>
+<div data-fill-with="grammar-ArgumentRest"></div>
+<div data-fill-with="grammar-ArgumentName"></div>
+<div data-fill-with="grammar-Ellipsis"></div>
+<div data-fill-with="grammar-ArgumentNameKeyword"></div>
 
 
 <h4 id="idl-special-operations">Special operations</h4>
@@ -3212,8 +3301,9 @@ of an overloaded operation is used to invoke one of the
 operations on an object that implements the interface, the
 number and types of the arguments passed to the operation
 determine which of the overloaded operations is actually
-invoked.  In the ECMAScript language binding, <a href="#Constructor">constructors</a>
-can be overloaded too.  There are some restrictions on the arguments
+invoked.
+[=Constructor operations=] can be overloaded too.
+There are some restrictions on the arguments
 that overloaded operations and constructors can be
 specified to take, and in order to describe these restrictions,
 the notion of an <em>effective overload set</em> is used.
@@ -3246,7 +3336,7 @@ definitions.
         };
     </pre>
 
-    Note that the [{{Constructor}}] and
+    Note that [=constructor operations=] and
     [{{NamedConstructor}}]
     [=extended attributes=] are disallowed from appearing
     on [=partial interface=] definitions,
@@ -3257,7 +3347,7 @@ definitions.
 An <dfn id="dfn-effective-overload-set" export>effective overload set</dfn>
 represents the allowable invocations for a particular
 [=operation=],
-constructor (specified with [{{Constructor}}]
+constructor (specified with a [=constructor operation=]
 or [{{NamedConstructor}}]), or
 [=callback function=].
 The algorithm to [=compute the effective overload set=]
@@ -3270,7 +3360,7 @@ the inputs to the algorithm needed to compute the set.
     *   the [=identifier=] of the operations
     *   the number of arguments to be passed
  :  For constructors
- :: *   the [=interface=] on which the [{{Constructor}}] [=extended attributes=] are to be found
+ :: *   the [=interface=] on which the [=constructor operations=] are to be found
     *   the number of arguments to be passed
  :  For named constructors
  :: *   the [=interface=] on which the [{{NamedConstructor}}] [=extended attributes=] are to be found
@@ -3326,8 +3416,7 @@ the same operation or constructor.
                 identifier |A| defined on interface |I|.
              :  For constructors
              :: The elements of |F| are the
-                [{{Constructor}}]
-                [=extended attributes=] on interface |I|.
+                [=constructor operations=] on interface |I|.
              :  For named constructors
              :: The elements of |F| are the
                 [{{NamedConstructor}}]
@@ -8789,87 +8878,6 @@ for the specific requirements that the use of
 </div>
 
 
-<h4 id="Constructor" extended-attribute lt="Constructor">[Constructor]</h4>
-
-If the [{{Constructor}}]
-[=extended attribute=]
-appears on an [=interface=], it indicates that
-the [=interface object=] for this interface
-will have an \[[Construct]] [=internal method=],
-allowing objects implementing the interface to be constructed.
-
-Multiple [{{Constructor}}] extended
-attributes may appear on a given interface.
-
-The [{{Constructor}}]
-extended attribute must either
-[=takes no arguments|take no arguments=] or
-[=takes an argument list|take an argument list=].
-The bare form, <code>[Constructor]</code>, has the same meaning as
-using an empty argument list, <code>[Constructor()]</code>.  For each
-[{{Constructor}}] extended attribute
-on the interface, there will be a way to construct an object that [=implements=]
-the interface by passing the specified arguments.
-
-The prose definition of a constructor must either initialize the value passed as <b>[=this=]</b>,
-or throw an exception.
-
-The [{{Constructor}}] and
-[{{NoInterfaceObject}}]
-extended attributes must not be specified on the same interface.
-
-The [{{Constructor}}] and [{{Global}}] [=extended attributes=] must not be specified on the same
-[=interface=].
-
-See [[#interface-object]] for details on how a constructor
-for an interface is to be implemented.
-
-<div class="example">
-
-    The following IDL defines two interfaces.  The second has the
-    [{{Constructor}}] extended
-    attribute, while the first does not.
-
-    <pre highlight="webidl">
-        [Exposed=Window]
-        interface NodeList {
-          Node item(unsigned long index);
-          readonly attribute unsigned long length;
-        };
-
-        [Exposed=Window,
-         Constructor,
-         Constructor(double radius)]
-        interface Circle {
-          attribute double r;
-          attribute double cx;
-          attribute double cy;
-          readonly attribute double circumference;
-        };
-    </pre>
-
-    An ECMAScript implementation supporting these interfaces would
-    have a \[[Construct]] property on the
-    <code class="idl">Circle</code> interface object which would
-    return a new object that [=implements=] the interface.  It would take
-    either zero or one argument.  The
-    <code class="idl">NodeList</code> interface object would not
-    have a \[[Construct]] property.
-
-    <pre highlight="js">
-        var x = new Circle();      // The uses the zero-argument constructor to create a
-                                   // reference to a platform object that implements the
-                                   // Circle interface.
-
-        var y = new Circle(1.25);  // This also creates a Circle object, this time using
-                                   // the one-argument constructor.
-
-        var z = new NodeList();    // This would throw a TypeError, since no
-                                   // [Constructor] is declared.
-    </pre>
-</div>
-
-
 <h4 id="Default" extended-attribute lt="Default">[Default]</h4>
 
 If the [{{Default}}] [=extended attribute=] appears on a [=regular operation=],
@@ -9264,6 +9272,7 @@ used on an [=interface=], then:
 
 *   The interface must not define a [=named property setter=].
 *   The interface must not define [=indexed property getters=] or [=indexed property setter|setters=].
+*   The interface must not define a [=constructor operation=].
 *   The interface must not also be declared with the [{{OverrideBuiltins}}]
     extended attribute.
 *   The interface must not [=interface/inherit=] from another interface with the
@@ -9911,15 +9920,12 @@ will not exist for the interface in the ECMAScript binding.
 The [{{NoInterfaceObject}}] extended attribute
 must [=takes no arguments|take no arguments=].
 
-If the [{{NoInterfaceObject}}] extended attribute
-is specified on an interface, then the [{{Constructor}}]
-extended attribute must not also be specified on that interface.
-A [{{NamedConstructor}}] extended attribute is fine,
-however.
-
 The [{{NoInterfaceObject}}] extended attribute
 must not be specified on an interface that has any
-[=static operations=] defined on it.
+[=constructors=] or [=static operations=] defined on it.
+
+Note: Combining the [{{NoInterfaceObject}}] and [{{NamedConstructor}}] extended attribute is not
+forbidden, however.
 
 An interface that does not have the [{{NoInterfaceObject}}] extended
 attribute specified must not inherit
@@ -11082,13 +11088,13 @@ It has properties that correspond to the [=constants=] and [=static operations=]
 defined on that interface,
 as described in sections [[#es-constants]] and [[#es-operations]].
 
-If the [=interface=] is declared with a [{{Constructor}}] [=extended attribute=],
+If the [=interface=] is declared with a [=constructor operation=],
 then the [=interface object=] can be called as a [=constructor=]
 to create an object that [=implements=] that interface.
 Calling that interface as a function will throw an exception.
 
 [=Interface objects=] whose [=interfaces=] are not declared
-with a [{{Constructor}}] [=extended attribute=] will throw when called,
+with a [=constructor operation=] will throw when called,
 both as a function and as a [=constructor=].
 
 An [=interface object=] for an [=interface=]
@@ -11107,7 +11113,7 @@ the <code>typeof</code> operator will return "function" when applied to an inter
     is <dfn lt="create an interface object">created</dfn> as follows:
 
     1.  Let |steps| be the following steps:
-        1.  If |I| was not declared with a [{{Constructor}}] [=extended attribute=],
+        1.  If |I| was not declared with a [=constructor operation=],
             then [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
         1.  If {{NewTarget}} is <emu-val>undefined</emu-val>, then
             [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
@@ -11145,7 +11151,7 @@ the <code>typeof</code> operator will return "function" when applied to an inter
         function|operation functions=].
     1.  Perform [=!=] <a abstract-op>SetFunctionName</a>(|F|, |id|).
     1.  Let |length| be 0.
-    1.  If |I| was declared with a [{{Constructor}}] [=extended attribute=], then
+    1.  If |I| was declared with a [=constructor operation=], then
         1.  [=Compute the effective overload set=] for constructors with [=identifier=] |id| on
             [=interface=] |I| and with argument count 0, and let |S| be the result.
         1.  Set |length| to the length of the
@@ -14483,8 +14489,8 @@ terminal symbol <emu-t>const</emu-t>, an
 [=identifier=]
 "<code>A</code>" is distinct from one named "<code>a</code>", and an
 [=extended attribute=]
-[<code class="idl">constructor</code>] will not be recognized as
-the [{{Constructor}}]
+[<code class="idl">namedconstructor</code>] will not be recognized as
+the [{{NamedConstructor}}]
 extended attribute.
 
 Implicitly, any number of <emu-t class="regex"><a href="#prod-whitespace">whitespace</a></emu-t> and
