@@ -444,6 +444,8 @@ The different kinds of <dfn id="dfn-definition">definitions</dfn> that can appea
 [=partial interface|partial interface definitions=],
 [=interface mixins=],
 [=partial interface mixin|partial mixin definitions=],
+[=callback functions=],
+[=callback interfaces=],
 [=namespaces=],
 [=partial namespace|partial namespace definitions=],
 [=dictionary|dictionaries=],
@@ -552,7 +554,8 @@ Every [=interface=],
 [=dictionary=],
 [=partial dictionary|partial dictionary definition=],
 [=enumeration=],
-[=callback function=] and
+[=callback function=],
+[=callback interface=] and
 [=typedef=] (together called <dfn id="dfn-named-definition" export lt="named definition">named definitions</dfn>)
 and every [=constant=],
 [=attribute=],
@@ -578,6 +581,7 @@ in the declaration:
         partial dictionary <mark>dictionary_identifier</mark> { /* dictionary_members... */ };
         enum <mark>enumeration_identifier</mark> { "enum", "values" /* , ... */ };
         callback <mark>callback_identifier</mark> = return_type (/* arguments... */);
+        callback interface <mark>callback_interface_identifier</mark> { /* interface_members... */ };
     </pre>
 *   For [=attributes=],
     [=typedefs=]
@@ -692,7 +696,8 @@ the [=identifier=] of every
 [=namespace=],
 [=dictionary=],
 [=enumeration=],
-[=callback function=] and
+[=callback function=],
+[=callback interface=] and
 [=typedef=]
 must not
 be the same as the identifier of any other
@@ -700,7 +705,8 @@ be the same as the identifier of any other
 [=namespace=],
 [=dictionary=],
 [=enumeration=],
-[=callback function=] or
+[=callback function=],
+[=callback interface=] or
 [=typedef=].
 
 Within an [=IDL fragment=], a reference
@@ -778,8 +784,7 @@ across [=IDL fragments=].
 describe object oriented systems.  In such systems, objects are entities
 that have identity and which are encapsulations of state and behavior.
 An <dfn id="dfn-interface" export>interface</dfn> is a definition (matching
-<emu-t>interface</emu-t> <emu-nt><a href="#prod-InterfaceRest">InterfaceRest</a></emu-nt> or
-<emu-t>callback</emu-t> <emu-t>interface</emu-t> <emu-nt><a href="#prod-InterfaceRest">InterfaceRest</a></emu-nt>) that declares some
+<emu-t>interface</emu-t> <emu-nt><a href="#prod-InterfaceRest">InterfaceRest</a></emu-nt>) that declares some
 state and behavior that an object implementing that interface will expose.
 
 <pre highlight="webidl" class="syntax">
@@ -914,52 +919,6 @@ which can control how the interface member will be handled in language bindings.
     };
 </pre>
 
-A <dfn id="dfn-callback-interface" export>callback interface</dfn> is
-an [=interface=]
-that uses the <emu-t>callback</emu-t> keyword at the start of
-its definition.  Callback interfaces are ones that can be
-implemented by any object, as described in [[#idl-objects]].
-
-<pre highlight="webidl" class="syntax">
-    callback interface identifier {
-      /* interface_members... */
-    };
-</pre>
-
-Note: See also the similarly named [=callback function=] definition.
-
-[=Callback interfaces=]
-must not [=interface/inherit=]
-from any interfaces, and non-callback interfaces must not
-inherit from any callback interfaces.
-Callback interfaces must not [=include=] any [=interface mixins=].
-
-[=Regular attributes=],
-[=static attributes=] and
-[=static operations=] must not
-be defined on a [=callback interface=].
-
-[=Callback interfaces=] must define exactly one [=regular operation=].
-
-<div class="advisement">
-
-    Specification authors should not define
-    [=callback interfaces=]
-    unless required to describe the requirements of existing APIs.
-    Instead, a [=callback function=] or a [=dictionary=] should be used.
-
-    The definition of <code class="idl">EventListener</code> as a
-    [=callback interface=]
-    is an example of an existing API that needs to allow
-    objects with a
-    given property (in this case <code class="idl">handleEvent</code>) to be considered to implement the interface.
-    For new APIs, and those for which there are no compatibility concerns,
-    using a [=callback function=] will allow
-    only a [=function object=] (in the ECMAScript
-    language binding).
-
-</div>
-
 The IDL for interfaces can be split into multiple parts by using
 <dfn id="dfn-partial-interface" export>partial interface</dfn> definitions
 (matching <emu-t>partial</emu-t> <emu-t>interface</emu-t>
@@ -1011,9 +970,8 @@ The following extended attributes are applicable to [=partial interfaces=]:
 [{{OverrideBuiltins}}], and
 [{{SecureContext}}].
 
-Non-callback [=interfaces=] which are not annotated
-with a [{{NoInterfaceObject}}] [=extended attribute=],
-and [=callback interfaces=] which declare [=constants=]
+[=Interfaces=] which are not annotated
+with a [{{NoInterfaceObject}}] [=extended attribute=]
 must be annotated with an [{{Exposed}}] [=extended attribute=].
 
 <div algorithm>
@@ -1034,12 +992,6 @@ The <dfn>qualified name</dfn> of an [=interface=] |interface| is defined as foll
     CallbackOrInterfaceOrMixin :
         "callback" CallbackRestOrInterface
         "interface" InterfaceOrMixin
-</pre>
-
-<pre class="grammar" id="prod-CallbackRestOrInterface">
-    CallbackRestOrInterface :
-        CallbackRest
-        "interface" InterfaceRest
 </pre>
 
 <pre class="grammar" id="prod-InterfaceOrMixin">
@@ -1130,8 +1082,8 @@ The <dfn>qualified name</dfn> of an [=interface=] |interface| is defined as foll
 <div class="example">
 
     The following [=IDL fragment=] defines
-    simplified versions of a few DOM [=interfaces=], one of which
-    is a [=callback interface=].
+    simplified versions of a DOM [=interfaces=]
+    and a [=callback interface=].
 
     <pre highlight="webidl">
         [Exposed=Window]
@@ -1147,9 +1099,8 @@ The <dfn>qualified name</dfn> of an [=interface=] |interface| is defined as foll
         };
     </pre>
 
-    Since the <code class="idl">EventListener</code> interface is annotated
-    callback interface, plain objects
-    can implement it:
+    Plain objects can implement a [=callback interface=] like
+    <code class="idl">EventListener</code>:
 
     <pre highlight="js">
         var node = getNode();                                // Obtain an instance of Node.
@@ -1164,7 +1115,8 @@ The <dfn>qualified name</dfn> of an [=interface=] |interface| is defined as foll
         node.addEventListener("click", function() { ... });  // As does this.
     </pre>
 
-    It is not possible for such an object to implement <code class="idl">Node</code>, however:
+    It is not possible for such an object to implement an [=interface=] like
+    <code class="idl">Node</code>, however:
 
     <pre highlight="js">
         var node = getNode();  // Obtain an instance of Node.
@@ -1259,7 +1211,7 @@ must additionally include the [=interface mixin member|members=] of [=interface 
     interface_identifier includes mixin_indentifier;
 </pre>
 
-The first [=identifier=] must reference a [=callback interface|non-callback=] [=interface=] |I|.
+The first [=identifier=] must reference a [=interface=] |I|.
 The second identifier must reference an [=interface mixin=] |M|.
 
 Each [=interface mixin member|member=] of |M| is considered to be
@@ -1408,6 +1360,73 @@ you can extend the {{WindowOrWorkerGlobalScope}} [=interface mixin=] using a [=p
     };
 </pre>
 
+
+<h3 id="idl-callback-interfaces">Callback interfaces</h3>
+
+A <dfn id="dfn-callback-interface" export>callback interface</dfn> is a [=definition=] matching
+<emu-t>callback</emu-t> <emu-t>interface</emu-t> <emu-nt><a href="#prod-InterfaceRest">InterfaceRest</a></emu-nt>.
+It can be implemented by any object, as described in [[#idl-objects]].
+
+Note: A [=callback interface=] is not an [=interface=]. The name and syntax are left over from
+earlier versions of this standard, where these concepts had more in common.
+
+A [=callback interface=] is a specification of a set of
+<dfn export lt="callback interface member">callback interface members</dfn>
+(matching <emu-nt><a href="#prod-CallbackInterfaceMembers">CallbackInterfaceMembers</a></emu-nt>).
+These are the [=members=] that appear between the braces in the interface declaration.
+
+<pre highlight="webidl" class="syntax">
+    callback interface identifier {
+      /* interface_members... */
+    };
+</pre>
+
+Note: See also the similarly named [=callback function=] definition.
+
+[=Callback interfaces=] must define exactly one [=regular operation=].
+
+<div class="advisement">
+
+    Specification authors should not define
+    [=callback interfaces=]
+    unless required to describe the requirements of existing APIs.
+    Instead, a [=callback function=] should be used.
+
+    The definition of <code class="idl">EventListener</code> as a
+    [=callback interface=]
+    is an example of an existing API that needs to allow
+    objects with a
+    given property (in this case <code class="idl">handleEvent</code>) to be considered to implement the interface.
+    For new APIs, and those for which there are no compatibility concerns,
+    using a [=callback function=] will allow
+    only a [=function object=] (in the ECMAScript
+    language binding).
+
+</div>
+
+[=Callback interfaces=] which declare [=constants=]
+must be annotated with an [{{Exposed}}] [=extended attribute=].
+
+
+<pre class="grammar" id="prod-CallbackRestOrInterface">
+    CallbackRestOrInterface :
+        CallbackRest
+        "interface" identifier "{" CallbackInterfaceMembers "}" ";"
+</pre>
+
+<pre class="grammar" id="prod-CallbackInterfaceMembers">
+    CallbackInterfaceMembers :
+        ExtendedAttributeList CallbackInterfaceMember CallbackInterfaceMember
+        ε
+</pre>
+
+<pre class="grammar" id="prod-CallbackInterfaceMember">
+    CallbackInterfaceMember :
+        Const
+        RegularOperation
+</pre>
+
+
 <h3 id="idl-members">Members</h3>
 
 [=Interfaces=], [=interface mixins=], and [=namespaces=] are specifications of a set of
@@ -1432,15 +1451,18 @@ that are exposed as a convenience to users of objects in the system.
 
 </div>
 
-Every [=regular operation=], [=regular attribute=] getter, and [=regular attribute=] setter's
-algorithm steps have access to a <dfn export>this</dfn> value, which is an IDL value of the type
-the member is declared on.
+The algorithm steps for every [=regular operation=], [=regular attribute=] getter, and
+[=regular attribute=] setter's defined on an [=interface=] or [=interface mixin=] have access to a
+<dfn export>this</dfn> value, which is an IDL value of the [=interface=] type that the member is
+declared on or that [=includes=] the [=interface mixin=] the member is declared on.
 
 [=Attribute=] setter's algorithm steps also have access to <dfn export>the given value</dfn>,
 which is an IDL value of the type the [=attribute=] is declared as.
 
-[=Interfaces=], [=interface mixins=], and [=namespaces=] each support a different set of [=members=],
-which are specified in [[#idl-interfaces]], [[#idl-interface-mixins]], and [[#idl-namespaces]],
+[=Interfaces=], [=interface mixins=], [=callback interfaces=] and [=namespaces=] each support a
+different set of [=members=],
+which are specified in [[#idl-interfaces]], [[#idl-interface-mixins]],
+[[#idl-callback-interfaces]], and [[#idl-namespaces]],
 and summarized in the following informative table:
 
 <table class="data complex non-normative">
@@ -1524,7 +1546,7 @@ and summarized in the following informative table:
 
 A <dfn id="dfn-constant" export>constant</dfn> is a declaration (matching
 <emu-nt><a href="#prod-Const">Const</a></emu-nt>) used to bind a constant value to a name.
-Constants can appear on [=interfaces=].
+Constants can appear on [=interfaces=] and [=callback interfaces=].
 
 <p class="advisement">
     Constants have in the past primarily been used to define
@@ -1540,13 +1562,13 @@ Constants can appear on [=interfaces=].
 The [=identifier=] of a
 [=constant=]
 must not be the same as the identifier
-of another [=interface member=]
-defined on the same interface.
+of another [=interface member=] or [=callback interface member=]
+defined on the same [=interface=] or [=callback interface=].
 The identifier also must not
 be "<code>length</code>", "<code>name</code>" or "<code>prototype</code>".
 
-Note: These three names are the names of properties that may exist on
-[=function objects=] at the time the [=function object=] is created in the ECMAScript language binding.
+Note: These three names are the names of properties that are defined on the
+[=interface object=] in the ECMAScript language binding.
 
 The type of a constant (matching <emu-nt><a href="#prod-ConstType">ConstType</a></emu-nt>)
 must not be any type other than
@@ -1663,7 +1685,7 @@ or |DT| is a [=nullable type=]
 whose [=nullable types/inner type=] is |VT|.
 
 [=Constants=] are not associated with
-particular instances of the [=interface=]
+particular instances of the [=interface=] or [=callback interface=]
 on which they appear.  It is language binding specific whether
 [=constants=] are exposed on instances.
 
@@ -1796,8 +1818,8 @@ that appears after the <emu-t>attribute</emu-t> keyword.
 If the <emu-nt><a href="#prod-Type">Type</a></emu-nt> is an
 [=identifier=] or an identifier followed by <emu-t>?</emu-t>,
 then the identifier must
-identify an interface, [=enumeration=],
-[=callback function=] or [=typedef=].
+identify an [=interface=], [=enumeration=],
+[=callback function=], [=callback interface=] or [=typedef=].
 
 The type of the attribute, after resolving typedefs, must not be a
 [=nullable type|nullable=] or non-nullable version of any of the following types:
@@ -1951,7 +1973,8 @@ are applicable only to regular attributes:
 
 <h4 id="idl-operations">Operations</h4>
 
-An <dfn id="dfn-operation" export>operation</dfn> is an [=interface member=] or [=namespace member=]
+An <dfn id="dfn-operation" export>operation</dfn> is an [=interface member=], [=callback interface
+member=] or [=namespace member=]
 (matching <emu-t>static</emu-t> <emu-nt><a href="#prod-RegularOperation">RegularOperation</a></emu-nt>,
 <emu-t>stringifier</emu-t> <emu-nt><a href="#prod-RegularOperation">RegularOperation</a></emu-nt>,
 <emu-nt><a href="#prod-RegularOperation">RegularOperation</a></emu-nt> or
@@ -1997,7 +2020,7 @@ then it declares a special operation.  A single operation can declare
 both a regular operation and a special operation;
 see [[#idl-special-operations]] for details on special operations.
 Note that in addition to being [=interface members=],
-regular operations can also be [=namespace members=].
+regular operations can also be [=callback interface members=] and [=namespace members=].
 
 If an operation has no identifier,
 then it must be declared to be a special operation
@@ -2006,7 +2029,7 @@ using one of the special keywords.
 The identifier of a [=regular operation=] or [=static operation=]
 must not be the same as the identifier
 of a [=constant=] or [=attribute=]
-defined on the same [=interface=].
+defined on the same [=interface=], [=callback interface=] or [=namespace=].
 The identifier of a static operation must not be "<code>prototype</code>".
 
 Note: The identifier can be the same
@@ -2025,8 +2048,8 @@ A return type of <dfn id="idl-void" interface>void</dfn> indicates that the oper
 If the return type is an
 [=identifier=] followed by <emu-t>?</emu-t>,
 then the identifier must
-identify an interface, dictionary, [=enumeration=],
-[=callback function=] or [=typedef=].
+identify an [=interface=], [=dictionary=], [=enumeration=],
+[=callback function=], [=callback interface=] or [=typedef=].
 
 An operation’s arguments (matching <emu-nt><a href="#prod-ArgumentList">ArgumentList</a></emu-nt>)
 are given between the parentheses in the declaration.  Each individual argument is specified
@@ -2039,8 +2062,8 @@ symbol without needing to escape it.
 
 If the <emu-nt><a href="#prod-Type">Type</a></emu-nt> of an operation argument is an identifier
 followed by <emu-t>?</emu-t>,
-then the identifier must identify an interface,
-[=enumeration=], [=callback function=]
+then the identifier must identify an [=interface=],
+[=enumeration=], [=callback function=], [=callback interface=],
 or [=typedef=].
 If the operation argument type is an [=identifier=]
 not followed by <emu-t>?</emu-t>, then the identifier must
@@ -2616,9 +2639,6 @@ Special operations declared using operations must not
 be [=variadic=] nor have any
 [=optional arguments=].
 
-Special operations must not be declared on
-[=callback interfaces=].
-
 If an object implements more than one [=interface=]
 that defines a given special operation, then it is undefined which (if any)
 special operation is invoked for that operation.
@@ -3036,9 +3056,6 @@ It is language binding specific whether it is possible to invoke
 a static operation or get or set a static attribute through a reference
 to an instance of the interface.
 
-Static attributes and operations must not be
-declared on [=callback interfaces=].
-
 <pre class="grammar" id="prod-StaticMember">
     StaticMember :
         "static" StaticMemberRest
@@ -3374,14 +3391,14 @@ the following algorithm returns <i>true</i>.
     <dl>
         <dt>interface-like</dt>
         <dd>
-            * non-[=callback interfaces|callback=] [=interface types=]
+            * [=interface types=]
             * [=exception types=]
             * [=buffer source types=]
         <dt>dictionary-like</dt>
         <dd>
             * [=dictionary types=]
             * [=record types=]
-            * [=callback interfaces|callback=] [=interface types=]
+            * [=callback interface types=]
         <dt>sequence-like</dt>
         <dd>
             * [=sequence types=]
@@ -4447,8 +4464,8 @@ If the <emu-nt><a href="#prod-Type">Type</a></emu-nt>
 is an [=identifier=]
 followed by <emu-t>?</emu-t>, then the identifier
 must identify an
-interface, [=enumeration=],
-[=callback function=] or [=typedef=].
+[=interface=], [=enumeration=],
+[=callback function=], [=callback interface=] or [=typedef=].
 If the dictionary member type is an identifier
 not followed by <emu-t>?</emu-t>, then the identifier must
 identify any one of those definitions or a [=dictionary=].
@@ -4506,7 +4523,7 @@ the dictionary it appears on.  A type includes a dictionary |D|
 if at least one of the following is true:
 
 *   the type is |D|
-*   the type is a dictionary that [=interface/inherits=] from |D|
+*   the type is a dictionary that [=dictionary/inherits=] from |D|
 *   the type is a [=nullable type=]
     whose [=nullable types/inner type=] includes |D|
 *   the type is a [=sequence type=] or [=frozen array type|frozen array=]
@@ -5227,7 +5244,7 @@ In a given implementation of a set of [=IDL fragments=],
 an object can be described as being a [=platform object=].
 
 <dfn id="dfn-platform-object" lt="platform object" export>Platform objects</dfn> are objects
-that implement a non-[=callback interface|callback=] [=interface=].
+that implement an [=interface=].
 
 <dfn id="dfn-legacy-platform-object" export>Legacy platform objects</dfn> are
 [=platform objects=] that implement an [=interface=] which
@@ -5308,7 +5325,8 @@ are {{ArrayBuffer}},
 and the [=typed array types=].
 
 The {{object}} type,
-all [=interface types=]
+all [=interface types=],
+all [=callback interface types=]
 and the [=exception types=]
 are known as <dfn id="dfn-object-type" export>object types</dfn>.
 
@@ -5810,15 +5828,8 @@ identifies an [=interface=] is used to refer to
 a type that corresponds to the set of all possible non-null references to objects that
 implement that interface.
 
-For non-callback interfaces, an IDL value of the interface type is represented just
-by an object reference.  For [=callback interfaces=], an IDL value of the interface type
-is represented by a tuple of an object reference and a <dfn id="dfn-callback-context" export>callback context</dfn>.
-The [=callback context=] is a language
-binding specific value, and is used to store information about the execution context at
-the time the language binding specific object reference is converted to an IDL value.
-
-Note: For ECMAScript objects, the [=callback context=] is used to hold a reference to the [=incumbent settings object=] at the time the Object value
-is converted to an IDL callback interface type value. See [[#es-interface]].
+An IDL value of the interface type is represented just
+by an object reference.
 
 There is no way to represent a constant object reference value for
 a particular interface type in IDL.
@@ -5829,6 +5840,31 @@ use a [=nullable type=].
 
 The [=type name=] of an interface type
 is the [=identifier=] of the interface.
+
+
+<h4 id="idl-callback-interface" dfn>Callback interface types</h4>
+
+An [=identifier=] that identifies a [=callback interface=] is used to refer to a type that
+corresponds to the set of all possible non-null references to objects.
+
+An IDL value of the interface type is represented by a tuple of an object reference and a
+<dfn id="dfn-callback-context" export>callback context</dfn>.
+The [=callback context=] is a language binding specific value, and is used to store information
+about the execution context at the time the language binding specific object reference is
+converted to an IDL value.
+
+Note: For ECMAScript objects, the [=callback context=] is used to hold a reference to the
+[=incumbent settings object=] at the time the Object value is converted to an IDL callback
+interface type value. See [[#es-callback-interface]].
+
+There is no way to represent a constant object reference value for a particular
+[=callback interface type=] in IDL.
+
+To denote a type that includes all possible references to objects plus the <emu-val>null</emu-val>
+value, use a [=nullable type=].
+
+The [=type name=] of a [=callback interface type=] is the [=identifier=] of the
+[=callback interface=].
 
 
 <h4 id="idl-dictionary" dfn>Dictionary types</h4>
@@ -5875,7 +5911,7 @@ a type whose values are references to objects that are functions with the given 
 An IDL value of the callback function type is represented by a tuple of an object
 reference and a [=callback context=].
 
-Note: As with [=interface type|callback interface types=], the [=callback context=] is used to hold a
+Note: As with [=callback interface types=], the [=callback context=] is used to hold a
 reference to the [=incumbent settings object=] at
 the time an ECMAScript Object value is converted to an IDL
 callback function type value.  See [[#es-callback-function]].
@@ -6392,6 +6428,7 @@ that can appear on
 types as [=annotated types=],
 [=interface members=],
 [=interface mixin members=],
+[=callback interface members=],
 [=namespace members=],
 [=dictionary members=],
 and [=operation=] arguments, and
@@ -7344,11 +7381,7 @@ values are represented by ECMAScript Object values (including [=function objects
     An ECMAScript value |V| is [=converted to an IDL value|converted=]
     to an IDL [=interface type=] value by running the following algorithm (where |I| is the [=interface=]):
 
-    1.  If <a abstract-op>Type</a>(|V|) is not Object, then [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
     1.  If |V| [=implements=] |I|, then return the IDL [=interface type=] value that represents a reference to that platform object.
-    1.  If |I| is a [=callback interface=], then return the IDL [=interface type=] value that
-        represents a reference to |V|, with the [=incumbent settings object=] as the
-        [=callback context=].
     1.  [=ECMAScript/Throw=] a {{ECMAScript/TypeError}}.
 </div>
 
@@ -7358,6 +7391,30 @@ values are represented by ECMAScript Object values (including [=function objects
     value to an ECMAScript value is the Object
     value that represents a reference to the same object that the IDL
     [=interface type=] value represents.
+</p>
+
+
+<h4 id="es-callback-interface">Callback interface types</h4>
+
+IDL [=callback interface type=]
+values are represented by ECMAScript Object values (including [=function objects=]).
+
+<div id="es-to-callback-interface" algorithm="convert an ECMAScript value to callback interface">
+
+    An ECMAScript value |V| is [=converted to an IDL value|converted=]
+    to an IDL [=callback interface type=] value by running the following algorithm:
+
+    1.  If <a abstract-op>Type</a>(|V|) is not Object, then [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
+    1.  Return the IDL [=callback interface type=] value that represents a reference to |V|, with
+        the [=incumbent settings object=] as the [=callback context=].
+</div>
+
+<p id="callback-interface-to-es">
+    The result of [=converted to an ECMAScript value|converting=]
+    an IDL [=callback interface type=]
+    value to an ECMAScript value is the Object
+    value that represents a reference to the same object that the IDL
+    [=callback interface type=] value represents.
 </p>
 
 
@@ -7908,7 +7965,7 @@ that correspond to the union’s [=member types=].
         1.  If |types| includes a [=callback interface=]
             type, then return the result of
             [=converted to an IDL value|converting=]
-            |V| to that interface type.
+            |V| to that [=callback interface type=].
         1.  If |types| includes {{object}}, then return the IDL value
             that is a reference to the object |V|.
     1.  If <a abstract-op>Type</a>(|V|) is Boolean, then:
@@ -8276,9 +8333,6 @@ The [{{Constructor}}] and
 [{{NoInterfaceObject}}]
 extended attributes must not be specified on the same interface.
 
-The [{{Constructor}}] extended attribute
-must not be used on a [=callback interface=].
-
 See [[#interface-object]] for details on how a constructor
 for an interface is to be implemented.
 
@@ -8471,6 +8525,7 @@ an [=interface=],
 [=partial interface=],
 [=interface mixin=],
 [=partial interface mixin=],
+[=callback interface=],
 [=namespace=],
 [=partial namespace=], or
 an individual [=interface member=],
@@ -8491,8 +8546,8 @@ This list of identifiers is known as the construct's
     To get the <dfn id="dfn-exposure-set" export>exposure set</dfn> of a construct |C|,
     run the following steps:
 
-    1.  Assert: |C| is an [=interface=], [=namespace=], [=interface member=], [=interface mixin member=],
-        or [=namespace member=].
+    1.  Assert: |C| is an [=interface=], [=callback interface=], [=namespace=],
+        [=interface member=], [=interface mixin member=], or [=namespace member=].
     1.  Let |H| be |C|'s [=host interface=] if |C| is an [=interface mixin member=], or null otherwise.
     1.  If |C| is an [=interface member=], [=interface mixin member=], or [=namespace member=], then:
         1.  If the [{{Exposed}}] [=extended attribute=] is specified on |C|, then:
@@ -8516,7 +8571,7 @@ This list of identifiers is known as the construct's
             then return the [=set/intersection=] of |C|'s [=own exposure set=]
             and |H|'s [=exposure set=].
         1.  Otherwise, set |C| to |H|.
-    1.  Assert: |C| is a [=interface=] or [=namespace=].
+    1.  Assert: |C| is an [=interface=], [=callback interface=] or [=namespace=].
     1.  Assert: The [{{Exposed}}] [=extended attribute=] is specified on |C|.
     1.  Return |C|'s [=own exposure set=].
 </div>
@@ -8565,8 +8620,9 @@ with the the [=host interface=]'s [=exposure set=].
 Otherwise, it is the [=host interface=]'s [=exposure set=].
 
 <div algorithm>
-    An [=interface=], [=namespace=], or [=member=] |construct| is <dfn id="dfn-exposed" export>exposed</dfn>
-    in a given [=Realm=] |realm| if the following steps return true:
+    An [=interface=], [=callback interface=], [=namespace=], or [=member=] |construct| is
+    <dfn id="dfn-exposed" export>exposed</dfn> in a given [=Realm=] |realm| if the following steps
+    return true:
 
     1.  If |realm|.\[[GlobalObject]] does not implement an [=interface=]
         that is in |construct|'s [=exposure set=], then return false.
@@ -8596,9 +8652,10 @@ for the specific requirements that the use of
 
 <div class="example">
 
-    [{{Exposed}}] is intended to be used to control whether [=interfaces=], [=namespaces=],
-    or individual [=interface member|interface=], [=interface mixin member|mixin=] or [=namespace members=]
-    are available for use in workers, {{Worklet}}, {{Window}}, or any combination of the above.
+    [{{Exposed}}] is intended to be used to control whether [=interfaces=],
+    [=callback interfaces=], [=namespaces=], or individual [=interface member|interface=],
+    [=interface mixin member|mixin=] or [=namespace members=] are available for use in workers,
+    {{Worklet}}, {{Window}}, or any combination of the above.
 
     The following IDL fragment shows how that might be achieved:
 
@@ -8853,9 +8910,6 @@ This identifier must be the identifier of a namespace.
 The [{{LegacyNamespace}}] and [{{NoInterfaceObject}}]
 extended attributes must not be specified on the same interface.
 
-The [{{LegacyNamespace}}] extended attribute
-must not be used on a [=callback interface=].
-
 See [[#namespace-object]] for details on how an interface is exposed on a namespace.
 
 <div class="example">
@@ -8979,9 +9033,6 @@ extended attributes must not be specified on the same interface.
 The [{{LegacyWindowAlias}}] extended attribute must not be specified
 on an interface that does not include the {{Window}} [=interface=]
 in its [=exposure set=].
-
-The [{{LegacyWindowAlias}}] extended attribute must not be specified
-on a [=callback interface=].
 
 An interface must not have more than one [{{LegacyWindowAlias}}] extended attributes specified.
 
@@ -9235,9 +9286,6 @@ that has an [=interface object=],
 and must not be one of the
 [=reserved identifiers=].
 
-The [{{NamedConstructor}}] extended attribute
-must not be used on a [=callback interface=].
-
 See [[#named-constructors]] for details on how named constructors
 are to be implemented.
 
@@ -9380,9 +9428,6 @@ however.
 The [{{NoInterfaceObject}}] extended attribute
 must not be specified on an interface that has any
 [=static operations=] defined on it.
-
-The [{{NoInterfaceObject}}] extended attribute
-must not be specified on a [=callback interface=].
 
 An interface that does not have the [{{NoInterfaceObject}}] extended
 attribute specified must not inherit
@@ -9781,6 +9826,7 @@ If the [{{SecureContext}}] [=extended attribute=] appears on an
 [=partial interface=],
 [=interface mixin=],
 [=partial interface mixin=],
+[=callback interface=],
 [=namespace=],
 [=partial namespace=],
 [=interface member=],
@@ -9801,8 +9847,8 @@ By default, constructs are <dfn export>available in both secure and non-secure c
     <dfn id="dfn-available-only-in-secure-contexts" export>available only in secure contexts</dfn>,
     run the following steps:
 
-    1.  Assert: |C| is an [=interface=], [=namespace=], [=interface member=], [=interface mixin member=],
-        or [=namespace member=].
+    1.  Assert: |C| is an [=interface=], [=callback interface=], [=namespace=],
+        [=interface member=], [=interface mixin member=], or [=namespace member=].
     1.  Let |H| be |C|'s [=host interface=] if |C| is an [=interface mixin member=], or null otherwise.
     1.  If |C| is an [=interface member=], [=interface mixin member=], or [=namespace member=], then:
         1.  If the [{{SecureContext}}] [=extended attribute=] is specified on |C|,
@@ -9821,7 +9867,7 @@ By default, constructs are <dfn export>available in both secure and non-secure c
         1.  If the [{{SecureContext}}] [=extended attribute=] is specified on |C|,
             then return true.
         1.  Otherwise, set |C| to |H|.
-    1.  Assert: |C| is a [=interface=] or [=namespace=]
+    1.  Assert: |C| is an [=interface=], [=callback interface=] or [=namespace=].
     1.  If the [{{SecureContext}}] [=extended attribute=] is specified on |C|,
         then return true.
     1.  Otherwise, return false.
@@ -10389,7 +10435,7 @@ Note: The HTML Standard defines how a security check is performed. [[!HTML]]
 
         1.  Otherwise: if <a abstract-op>Type</a>(|V|) is Object and
             there is an entry in |S| that has one of the following types at position |i| of its type list,
-            *   a [=callback interface=] type
+            *   a [=callback interface type=]
             *   a [=dictionary type=]
             *   a [=record type=]
             *   {{object}}
@@ -10543,7 +10589,7 @@ Note: The HTML Standard defines how a security check is performed. [[!HTML]]
 
 <h3 id="es-interfaces">Interfaces</h3>
 
-For every non-callback [=interface=] that is [=exposed=] in
+For every [=interface=] that is [=exposed=] in
 a given [=Realm=] and that is not declared with
 the [{{NoInterfaceObject}}] or [{{LegacyNamespace}}] [=extended attributes=],
 a corresponding property exists on the [=Realm=]'s [=Realm/global object=].
@@ -10581,7 +10627,7 @@ Calling that interface as a function will throw an exception.
 with a [{{Constructor}}] [=extended attribute=] will throw when called,
 both as a function and as a [=constructor=].
 
-An [=interface object=] for a non-callback [=interface=]
+An [=interface object=] for an [=interface=]
 has an associated object called the [=interface prototype object=].
 This object has properties that correspond to
 the [=regular attributes=] and [=regular operations=] defined on the interface,
@@ -10592,7 +10638,7 @@ the <code>typeof</code> operator will return "function" when applied to an inter
 
 <div algorithm>
 
-    The [=interface object=] for a given non-callback [=interface=] |I|
+    The [=interface object=] for a given [=interface=] |I|
     with [=identifier=] |id| and in [=Realm=] |realm|
     is <dfn lt="create an interface object">created</dfn> as follows:
 
@@ -10707,7 +10753,7 @@ implement the interface on which the
 <h4 id="interface-prototype-object">Interface prototype object</h4>
 
 There will exist an <dfn id="dfn-interface-prototype-object" export>interface prototype object</dfn>
-for every non-callback [=interface=] defined,
+for every [=interface=] defined,
 regardless of whether the interface was declared
 with the [{{NoInterfaceObject}}] [=extended attribute=].
 
@@ -10808,41 +10854,6 @@ Issue: Define those properties imperatively instead.
 
 The [=class string=] of an [=interface prototype object=] is the concatenation of
 the [=interface=]’s [=qualified name=] and the string "<code>Prototype</code>".
-
-
-<h4 id="legacy-callback-interface-object">Legacy callback interface object</h4>
-
-For every [=callback interface=] that is [=exposed=] in
-a given [=Realm=]
-and on which [=constants=] are defined,
-a corresponding property exists on the [=Realm=]'s [=Realm/global object=].
-The name of the property is the [=identifier=] of the interface,
-and its value is an object called the
-<dfn id="dfn-legacy-callback-interface-object" export>legacy callback interface object</dfn>.
-
-The [=legacy callback interface object=] for a given [=callback interface=]
-is a [=built-in function object=].
-It has properties that correspond to the [=constants=] defined on that interface,
-as described in sections [[#es-constants]].
-
-Note: Since a legacy callback interface object is a [=function object=]
-the <code>typeof</code> operator will return "function"
-when applied to a [=legacy callback interface object=].
-
-<div algorithm>
-
-    The [=legacy callback interface object=] for a given [=callback interface=] |interface|
-    with [=identifier=] |id| and in [=Realm=] |realm|
-    is <dfn lt="create a legacy callback interface object">created</dfn> as follows:
-
-    1.  Let |steps| be the following steps:
-        1.  [=ECMAScript/Throw=] a {{ECMAScript/TypeError}}.
-    1.  Let |F| be [=!=] <a abstract-op>CreateBuiltinFunction</a>(|steps|, « », |realm|).
-    1.  Perform [=!=] <a abstract-op>SetFunctionName</a>(|F|, |id|).
-    1.  Perform [=!=] <a abstract-op>SetFunctionLength</a>(|F|, 0).
-    1.  [=Define the constants=] of |interface| on |F| given |realm|.
-    1.  Return |F|.
-</div>
 
 
 <h4 id="named-properties-object">Named properties object</h4>
@@ -10966,10 +10977,10 @@ on the single object that [=implements=] the interface,
 when an interface is declared with the [{{Global}}] [=extended attribute=].
 
 <div algorithm>
-    To <dfn>define the constants</dfn> of [=interface=] |interface| on |target|,
-    given [=Realm=] |realm|, run the following steps:
+    To <dfn>define the constants</dfn> of [=interface=] or [=callback interface=] |definition| on
+    |target|, given [=Realm=] |realm|, run the following steps:
 
-    1.  [=list/For each=] [=constant=] |const| that is a [=member=] of |interface|:
+    1.  [=list/For each=] [=constant=] |const| that is a [=member=] of |definition|:
         1.  If |const| is not [=exposed=] in |realm|, then [=iteration/continue=].
         1.  Let |value| be the result of [=converted to an ECMAScript value|converting=]
             |const|’s IDL value to an ECMAScript value.
@@ -12357,8 +12368,8 @@ the Realm given as an argument.
   To <dfn>define the global property references</dfn> on |target|, given [=Realm=] |realm|,
   perform the following steps:
 
-    1.  Let |interfaces| be a [=list=] that contains every non-callback [=interface=] that is
-        [=exposed=] in |realm|.
+    1.  Let |interfaces| be a [=list=] that contains every [=interface=] that is [=exposed=] in
+        |realm|.
     1.  Sort |interfaces| in such a way that if |A| and |B| are [=list/items=] of |interfaces|,
         and |A| [=interface/inherits=] from |B|, |A| has a higher index in |interfaces| than |B|.
     1.  [=list/iterate|For every=] |interface| of |interfaces|:
@@ -12807,7 +12818,7 @@ internal method as follows.
     1.  Return <a abstract-op>OrdinaryGetOwnProperty</a>(|O|, |P|).
 </div>
 
-<h3 id="es-user-objects">Objects implementing callback interfaces</h3>
+<h3 id="es-user-objects">Callback interfaces</h3>
 
 As described in [[#idl-objects]],
 [=callback interfaces=] can be
@@ -12854,7 +12865,7 @@ the special value “missing”, which represents a missing optional argument.
 <div algorithm="to call a user object's operation">
 
     To <dfn id="call-a-user-objects-operation" export>call a user object's operation</dfn>,
-    given a [=Interface types|callback interface type=] value |value|,
+    given a [=callback interface type=] value |value|,
     operation name |opName|, [=Web IDL arguments list=] |args|, and optional
     <dfn id="dfn-callback-this-value" export>callback this value</dfn> |thisArg|,
     perform the following steps.
@@ -12900,6 +12911,41 @@ the special value “missing”, which represents a missing optional argument.
             {{%Promise%}}, «|completion|.\[[Value]]»).
         1.  Return the result of [=converted to an IDL value|converting=]
             |rejectedPromise| to the operation's return type.
+</div>
+
+
+<h4 id="legacy-callback-interface-object">Legacy callback interface object</h4>
+
+For every [=callback interface=] that is [=exposed=] in
+a given [=Realm=]
+and on which [=constants=] are defined,
+a corresponding property exists on the [=Realm=]'s [=Realm/global object=].
+The name of the property is the [=identifier=] of the [=callback interface=],
+and its value is an object called the
+<dfn id="dfn-legacy-callback-interface-object" export>legacy callback interface object</dfn>.
+
+The [=legacy callback interface object=] for a given [=callback interface=]
+is a [=built-in function object=].
+It has properties that correspond to the [=constants=] defined on that interface,
+as described in sections [[#es-constants]].
+
+Note: Since a [=legacy callback interface object=] is a [=function object=]
+the <code>typeof</code> operator will return "function"
+when applied to a [=legacy callback interface object=].
+
+<div algorithm>
+
+    The [=legacy callback interface object=] for a given [=callback interface=] |interface|
+    with [=identifier=] |id| and in [=Realm=] |realm|
+    is <dfn lt="create a legacy callback interface object">created</dfn> as follows:
+
+    1.  Let |steps| be the following steps:
+        1.  [=ECMAScript/Throw=] a {{ECMAScript/TypeError}}.
+    1.  Let |F| be [=!=] <a abstract-op>CreateBuiltinFunction</a>(|steps|, « », |realm|).
+    1.  Perform [=!=] <a abstract-op>SetFunctionName</a>(|F|, |id|).
+    1.  Perform [=!=] <a abstract-op>SetFunctionLength</a>(|F|, 0).
+    1.  [=Define the constants=] of |interface| on |F| given |realm|.
+    1.  Return |F|.
 </div>
 
 
