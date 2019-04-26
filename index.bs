@@ -82,6 +82,7 @@ urlPrefix: https://tc39.github.io/ecma262/; spec: ECMA-262
         text: Promise; url: sec-promise-objects
         text: Set; url: sec-set-objects
         text: SharedArrayBuffer; url: sec-sharedarraybuffer-objects
+        text: WeakMap; url: sec-weakmap-objects
         text: %ErrorPrototype%; url: sec-properties-of-the-error-prototype-object
         text: %FunctionPrototype%; url: sec-properties-of-the-function-prototype-object
         text: %IteratorPrototype%; url: sec-%iteratorprototype%-object
@@ -202,6 +203,14 @@ urlPrefix: https://tc39.github.io/ecma262/; spec: ECMA-262
 
 <pre class=biblio>
 {
+    "CLASS-FIELDS": {
+        "authors": [
+            "Daniel Ehrenberg",
+            "Jeff Morrison"
+        ],
+        "href": "https://tc39.github.io/proposal-class-fields/",
+        "title": "Public and private instance fields proposal"
+    },
     "GEOMETRY": {
         "aliasOf": "GEOMETRY-1"
     }
@@ -9819,6 +9828,23 @@ or {{object}}.
 </div>
 
 
+<h4 id="SameRealmBrandCheck" extended-attribute lt="SameRealmBrandCheck">[SameRealmBrandCheck]</h4>
+
+If the [{{SameRealmBrandCheck}}] [=extended attribute=] appears on an [=interface=], then it
+indicates that JavaScript objects will only be considered to [=implement=] the [=interface=] within
+the [=Realm=] where they were created.
+
+The [{{SameRealmBrandCheck}}] [=extended attribute=] must [=takes no arguments|take no arguments=].
+
+The [{{SameRealmBrandCheck}}] [=extended attribute=] must not be used on anything other than an
+[=interface=].
+
+Note: The [{{SameRealmBrandCheck}}] [=extended attribute=] produces semantics identical to using
+JavaScript's {{WeakMap}} or the proposed private class fields. This ensures an [=interface=] that
+uses it does not use any magic, like the platform's usual cross-realm brand checks, which go beyond
+what can be implemented in JavaScript. [[ECMA-262]] [[CLASS-FIELDS]]
+
+
 <h4 id="SecureContext" extended-attribute lt="SecureContext">[SecureContext]</h4>
 
 If the [{{SecureContext}}] [=extended attribute=] appears on an
@@ -12284,9 +12310,15 @@ The value of the [=function object=]’s <code class="idl">name</code> property 
 </div>
 
 <div algorithm>
-    An ECMAScript value |value| <dfn export>implements</dfn> an [=interface=] |interface|
-    if |value| [=is a platform object=] and the [=inclusive inherited interfaces=] of
-    |value|.\[[PrimaryInterface]] [=list/contains=] |interface|.
+    An ECMAScript value |value| <dfn export>implements</dfn> an [=interface=] |interface| if the
+    following steps return true:
+
+    1.  If |value| [=is a platform object|is not a platform object=], return false.
+    1.  If the [=inclusive inherited interfaces=] of |value|.\[[PrimaryInterface]] does not
+        [=list/contain=] |interface|, return false.
+    1.  If |interface| has a [{{SameRealmBrandCheck}}] [=extended attribute=] and
+        |value|.\[[Realm]] is not the [=current Realm=], return false.
+    1.  Return true.
 
     Specifications may reference the concept "|object| implements |interface|"
     in various ways, including "|object| is an |interface| object".
