@@ -10096,6 +10096,18 @@ See [[#es-DOMString]] for the specific requirements that the use of [{{TreatNull
 </div>
 
 
+<h4 id="UnenumerableOperations" extended-attribute lt="UnenumerableOperations">[UnenumerableOperations]</h4>
+
+If the [{{UnenumerableOperations}}] [=extended attribute=] appears on a [=interface=], it indicates
+that all the [=interface=]'s [=operations=] are unenumerable.
+
+The [{{UnenumerableOperations}}] [=extended attribute=] must
+[=takes no arguments|take no arguments=].
+
+See [[#es-operations]] for the specific requirements that the use of [{{UnenumerableOperations}}]
+entails.
+
+
 <h4 id="Unforgeable" extended-attribute lt="Unforgeable">[Unforgeable]</h4>
 
 If the [{{Unforgeable}}] [=extended attribute=] appears on
@@ -11215,6 +11227,9 @@ in which case they are exposed on every object that [=implements=] the interface
     To <dfn>define the operations</dfn> |operations| of [=interface=] or [=namespace=] |definition| on |target|,
     given [=Realm=] |realm|, run the following steps:
 
+    1.  Let |enumerable| be <emu-val>false</emu-val> if |definition| is an [=interface=] that has
+        the [{{UnenumerableOperations}}] [=extended attribute=] and <emu-val>true</emu-val>
+        otherwise.
     1.  [=list/For each=] [=operation=] |op| of |operations|:
         1.  If |op| is not [=exposed=] in |realm|, then [=iteration/continue=].
         1.  Let |method| be the result of [=creating an operation function=]
@@ -11222,7 +11237,7 @@ in which case they are exposed on every object that [=implements=] the interface
         1.  Let |modifiable| be <emu-val>false</emu-val> if |op| is [=unforgeable=]
             and <emu-val>true</emu-val> otherwise.
         1.  Let |desc| be the PropertyDescriptor{\[[Value]]: |method|,
-            \[[Writable]]: |modifiable|, \[[Enumerable]]: <emu-val>true</emu-val>,
+            \[[Writable]]: |modifiable|, \[[Enumerable]]: |enumerable|,
             \[[Configurable]]: |modifiable|}.
         1.  Let |id| be |op|'s [=identifier=].
         1.  Perform [=!=] <a abstract-op>DefinePropertyOrThrow</a>(|target|, |id|, |desc|).
