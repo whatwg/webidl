@@ -215,6 +215,7 @@ urlPrefix: https://tc39.github.io/ecma262/; spec: ECMA-262
             text: internal slot
         text: own property; url: sec-own-property
         text: Property Descriptor; url: sec-property-descriptor-specification-type
+        text: Source Text Module Record; url: sourctextmodule-record
         text: realm; url: realm
         text: ResolvedBinding Record; url: resolvedbinding-record
         text: running execution context; url: running-execution-context
@@ -224,6 +225,10 @@ urlPrefix: https://tc39.github.io/ecma262/; spec: ECMA-262
 {
     "GEOMETRY": {
         "aliasOf": "GEOMETRY-1"
+    },
+    "JSSTDLIB": {
+        "href": "https://github.com/tc39/proposal-javascript-standard-library/",
+        "title": "Standard Library Proposal"
     }
 }
 </pre>
@@ -13268,7 +13273,6 @@ the exact steps to take if <dfn>an exception was thrown</dfn>, or by explicitly 
 
 A <dfn export>Synthetic Module Record</dfn> is used to represent information about a module that is
 defined by specifications.
-Its exports are derived from a pair of lists, of string keys and of ECMAScript values.
 The set of exported names is static, and determined at creation time (as an argument to
 [$CreateSyntheticModule$]), while the set of exported values can be changed over time using
 [$SetSyntheticModuleExport$].
@@ -13276,6 +13280,10 @@ It has no imports or dependencies.
 
 Note: A [=Synthetic Module Record=] could be used for defining a variety of module types: for
 example, built-in modules, or JSON modules, or CSS modules.
+
+Note: [=Synthetic Module Records=] are being developed in concert with the authors of the
+<cite>JavaScript Standard Library</cite> proposal, and might eventually move to the ECMAScript
+specification. [[JSSTDLIB]] [[ECMA-262]].
 
 In addition to the [=Module Record Fields=], Synthetic Module Records have the additional fields
 listed below.
@@ -13303,7 +13311,7 @@ Each of these fields is initially set in [$CreateSyntheticModule$].
         They may return an abrupt completion.
 </table>
 
-<h4>CreateSyntheticModule</h4>
+<h4 id="createsyntheticmodule">CreateSyntheticModule</h4>
 
 <div algorithm>
 The abstract operation <dfn abstract-op>CreateSyntheticModule</dfn>(|exportNames|, |evaluationSteps|, |realm|, |hostDefined|) creates a [=Synthetic Module Record=] based upon
@@ -13320,11 +13328,11 @@ It performs the following steps:
         }.
 </div>
 
-Note: It seems we could set up the environment either here or in Instantiate().
-It is done in Instantiate() for symmetry with Source Text Module Records, but there doesn't seem to
-be any actual requirement in that regard.
+Note: we could set up \[[Environment]] either here or in [$Synthetic Module Record/Instantiate$]().
+It is done in [$Synthetic Module Record/Instantiate$]() for symmetry with [=Source Text Module Records=],
+but there is no observable difference.
 
-<h4>SetSyntheticModuleExport</h4>
+<h4 id="setsyntheticmoduleexport">SetSyntheticModuleExport</h4>
 
 <div algorithm>
 The abstract operation <dfn abstract-op>SetSyntheticModuleExport</dfn>(|module|, |exportName|,
@@ -13342,7 +13350,7 @@ It performs the following steps:
 The following are the concrete methods for [=Synthetic Module Record=] that implement the
 corresponding [=Module Record=] abstract methods.
 
-<h5>GetExportedNames</h5>
+<h5 id="smr-getexportednames">GetExportedNames</h5>
 
 <div algorithm>
 The <dfn abstract-op for="Synthetic Module Record">GetExportedNames</dfn>(<var
@@ -13355,7 +13363,7 @@ It performs the following steps:
     1.  Return |module|.\[[ExportNames]].
 </div>
 
-<h5>ResolveExport</h5>
+<h5 id="smr-resolveexport">ResolveExport</h5>
 
 <div algorithm>
 The <dfn abstract-op for="Synthetic Module Record">ResolveExport</dfn>(|exportName|, <var
@@ -13369,7 +13377,7 @@ It performs the following steps:
     1.  Return [=ResolvedBinding Record=] { \[[Module]]: |module|, \[[BindingName]]: |exportName| }.
 </div>
 
-<h5>Instantiate</h5>
+<h5 id="smr-instantiate">Instantiate</h5>
 
 <div algorithm>
 The <dfn abstract-op for="Synthetic Module Record">Instantiate</dfn>() concrete method of a
@@ -13391,7 +13399,7 @@ It performs the following steps:
     1.  Return <emu-val>undefined</emu-val>.
 </div>
 
-<h5>Evaluate</h5>
+<h5 id="smr-evaluate">Evaluate</h5>
 
 <div algorithm>
 The <dfn abstract-op for="Synthetic Module Record">Evaluate</dfn>() concrete method of a
