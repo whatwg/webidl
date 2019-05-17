@@ -406,7 +406,7 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
   <div class="head">
    <p data-fill-with="logo"><a class="logo" href="https://www.w3.org/"> <img alt="W3C" height="48" src="https://www.w3.org/StyleSheets/TR/2016/logos/W3C" width="72"> </a> </p>
    <h1 class="p-name no-ref" id="title">Web IDL</h1>
-   <h2 class="no-num no-toc no-ref heading settled" id="subtitle"><span class="content">Editor’s Draft, <time class="dt-updated" datetime="2019-05-14">14 May 2019</time></span></h2>
+   <h2 class="no-num no-toc no-ref heading settled" id="subtitle"><span class="content">Editor’s Draft, <time class="dt-updated" datetime="2019-05-17">17 May 2019</time></span></h2>
    <div data-fill-with="spec-metadata">
     <dl>
      <dt>This version:
@@ -734,6 +734,20 @@ are interoperable.</p>
         </li><li><a href="#es-exception-objects"><span class="secno">3.12.2</span> <span class="content">Exception objects</span></a>
         </li><li><a href="#es-creating-throwing-exceptions"><span class="secno">3.12.3</span> <span class="content">Creating and throwing exceptions</span></a>
         </li><li><a href="#es-handling-exceptions"><span class="secno">3.12.4</span> <span class="content">Handling exceptions</span></a>
+       </li></ol>
+      </li><li>
+       <a href="#synthetic-module-records"><span class="secno">3.13</span> <span class="content">Synthetic module records</span></a>
+       <ol class="toc">
+        <li><a href="#createsyntheticmodule"><span class="secno">3.13.1</span> <span class="content">CreateSyntheticModule</span></a>
+        </li><li><a href="#setsyntheticmoduleexport"><span class="secno">3.13.2</span> <span class="content">SetSyntheticModuleExport</span></a>
+        </li><li>
+         <a href="#smr-concrete-methods"><span class="secno">3.13.3</span> <span class="content">Concrete Methods</span></a>
+         <ol class="toc">
+          <li><a href="#smr-getexportednames"><span class="secno">3.13.3.1</span> <span class="content">GetExportedNames</span></a>
+          </li><li><a href="#smr-resolveexport"><span class="secno">3.13.3.2</span> <span class="content">ResolveExport</span></a>
+          </li><li><a href="#smr-instantiate"><span class="secno">3.13.3.3</span> <span class="content">Instantiate</span></a>
+          </li><li><a href="#smr-evaluate"><span class="secno">3.13.3.4</span> <span class="content">Evaluate</span></a>
+         </li></ol>
        </li></ol>
      </li></ol>
     </li><li>
@@ -11608,6 +11622,162 @@ d<c- p="">.</c->type <c- o="">=</c-> et<c- p="">;</c->
 <c- c1="">// propagates out of this block of code.</c->
 </pre>
    </div>
+   <h3 class="heading settled" data-level="3.13" id="synthetic-module-records"><span class="secno">3.13. </span><span class="content">Synthetic module records</span><a class="self-link" href="#synthetic-module-records"></a></h3>
+   <p>A <dfn class="dfn-paneled" data-dfn-type="dfn" data-export="" id="synthetic-module-record">Synthetic Module Record</dfn> is used to represent information about a module that is
+defined by specifications.
+The set of exported names is static, and determined at creation time (as an argument to <a data-link-type="abstract-op" href="#abstract-opdef-createsyntheticmodule" id="ref-for-abstract-opdef-createsyntheticmodule">CreateSyntheticModule</a>), while the set of exported values can be changed over time using <a data-link-type="abstract-op" href="#abstract-opdef-setsyntheticmoduleexport" id="ref-for-abstract-opdef-setsyntheticmoduleexport">SetSyntheticModuleExport</a>.
+It has no imports or dependencies.</p>
+   <p class="note" role="note"><span>Note:</span> A <a data-link-type="dfn" href="#synthetic-module-record" id="ref-for-synthetic-module-record">Synthetic Module Record</a> could be used for defining a variety of module types: for
+example, built-in modules, or JSON modules, or CSS modules.</p>
+   <p class="note" role="note"><span>Note:</span> <a data-link-type="dfn" href="#synthetic-module-record" id="ref-for-synthetic-module-record①">Synthetic Module Records</a> are being developed in concert with the authors of the <cite>JavaScript Standard Library</cite> proposal, and might eventually move to the ECMAScript
+specification. <a data-link-type="biblio" href="#biblio-jsstdlib">[JSSTDLIB]</a> <a data-link-type="biblio" href="#biblio-ecma-262">[ECMA-262]</a>.</p>
+   <p>In addition to the <a data-link-type="dfn" href="https://tc39.github.io/ecma262/#table-36" id="ref-for-table-36">Module Record Fields</a>, Synthetic Module Records have the additional fields
+listed below.
+Each of these fields is initially set in <a data-link-type="abstract-op" href="#abstract-opdef-createsyntheticmodule" id="ref-for-abstract-opdef-createsyntheticmodule①">CreateSyntheticModule</a>.</p>
+   <table class="data" id="table-synthetic-module-record-fields">
+    <caption>Additional Fields of Synthetic Module Records</caption>
+    <thead>
+     <tr>
+      <th>Field Name 
+      </th><th>Value Type 
+      </th><th>Meaning 
+    </th></tr></thead><tbody>
+     <tr>
+      <td>[[ExportNames]] 
+      </td><td>List of String 
+      </td><td>A List of all names that are exported. 
+     </td></tr><tr>
+      <td>[[EvaluationSteps]] 
+      </td><td>An abstract operation 
+      </td><td>An abstract operation that will be performed upon evaluation of the module, taking the <a data-link-type="dfn" href="#synthetic-module-record" id="ref-for-synthetic-module-record②">Synthetic Module Record</a> as its sole argument.
+        These will usually set up the exported values, by using <a data-link-type="abstract-op" href="#abstract-opdef-setsyntheticmoduleexport" id="ref-for-abstract-opdef-setsyntheticmoduleexport①">SetSyntheticModuleExport</a>.
+        They must not modify [[ExportNames]].
+        They may return an abrupt completion. 
+   </td></tr></tbody></table>
+   <h4 class="heading settled" data-level="3.13.1" id="createsyntheticmodule"><span class="secno">3.13.1. </span><span class="content">CreateSyntheticModule</span><a class="self-link" href="#createsyntheticmodule"></a></h4>
+   <div class="algorithm" data-algorithm="CreateSyntheticModule">
+     The abstract operation <dfn class="dfn-paneled" data-dfn-type="abstract-op" data-export="" id="abstract-opdef-createsyntheticmodule">CreateSyntheticModule</dfn>(<var>exportNames</var>, <var>evaluationSteps</var>, <var>realm</var>, <var>hostDefined</var>) creates a <a data-link-type="dfn" href="#synthetic-module-record" id="ref-for-synthetic-module-record③">Synthetic Module Record</a> based upon
+the given exported names and evaluation steps.
+It performs the following steps: 
+    <ol>
+     <li data-md="">
+      <p>Return <a data-link-type="dfn" href="#synthetic-module-record" id="ref-for-synthetic-module-record④">Synthetic Module Record</a> {
+    [[Realm]]: <var>realm</var>,
+    [[Environment]]: <emu-val>undefined</emu-val>,
+    [[Namespace]]: <emu-val>undefined</emu-val>,
+    [[HostDefined]]: <var>hostDefined</var>,
+    [[ExportNames]]: <var>exportNames</var>,
+    [[EvaluationSteps]]: <var>evaluationSteps</var> }.</p>
+    </li></ol>
+   </div>
+   <p class="note" role="note"><span>Note:</span> we could set up [[Environment]] either here or in <a data-link-type="abstract-op" href="#abstract-opdef-synthetic-module-record-instantiate" id="ref-for-abstract-opdef-synthetic-module-record-instantiate">Instantiate</a>().
+It is done in <a data-link-type="abstract-op" href="#abstract-opdef-synthetic-module-record-instantiate" id="ref-for-abstract-opdef-synthetic-module-record-instantiate①">Instantiate</a>() for symmetry with <a data-link-type="dfn" href="https://tc39.github.io/ecma262/#sourctextmodule-record" id="ref-for-sourctextmodule-record">Source Text Module Records</a>,
+but there is no observable difference.</p>
+   <h4 class="heading settled" data-level="3.13.2" id="setsyntheticmoduleexport"><span class="secno">3.13.2. </span><span class="content">SetSyntheticModuleExport</span><a class="self-link" href="#setsyntheticmoduleexport"></a></h4>
+   <div class="algorithm" data-algorithm="SetSyntheticModuleExport">
+     The abstract operation <dfn class="dfn-paneled" data-dfn-type="abstract-op" data-export="" id="abstract-opdef-setsyntheticmoduleexport">SetSyntheticModuleExport</dfn>(<var>module</var>, <var>exportName</var>, <var>exportValue</var>) can be used to set or change the exported value for a pre-established export of a
+Synthetic Module Record.
+It performs the following steps: 
+    <ol>
+     <li data-md="">
+      <p>Let <var>envRec</var> be <var>module</var>.[[Environment]]'s <a data-link-type="dfn" href="https://tc39.github.io/ecma262/#sec-lexical-environments" id="ref-for-sec-lexical-environments">EnvironmentRecord</a>.</p>
+     </li><li data-md="">
+      <p>Perform <var>envRec</var>.<a data-link-type="abstract-op" href="https://tc39.github.io/ecma262/#table-15" id="ref-for-table-15">SetMutableBinding</a>(<var>exportName</var>, <var>exportValue</var>, <emu-val>true</emu-val>).</p>
+    </li></ol>
+   </div>
+   <h4 class="heading settled" data-level="3.13.3" id="smr-concrete-methods"><span class="secno">3.13.3. </span><span class="content">Concrete Methods</span><a class="self-link" href="#smr-concrete-methods"></a></h4>
+   <p>The following are the concrete methods for <a data-link-type="dfn" href="#synthetic-module-record" id="ref-for-synthetic-module-record⑤">Synthetic Module Record</a> that implement the
+corresponding <a data-link-type="dfn" href="https://tc39.github.io/ecma262/#sec-abstract-module-records" id="ref-for-sec-abstract-module-records">Module Record</a> abstract methods.</p>
+   <h5 class="heading settled" data-level="3.13.3.1" id="smr-getexportednames"><span class="secno">3.13.3.1. </span><span class="content">GetExportedNames</span><a class="self-link" href="#smr-getexportednames"></a></h5>
+   <div class="algorithm" data-algorithm="GetExportedNames">
+     The <dfn data-dfn-for="Synthetic Module Record" data-dfn-type="abstract-op" data-export="" id="abstract-opdef-synthetic-module-record-getexportednames">GetExportedNames<a class="self-link" href="#abstract-opdef-synthetic-module-record-getexportednames"></a></dfn>(<var>exportStarSet</var>) concrete method of a <a data-link-type="dfn" href="#synthetic-module-record" id="ref-for-synthetic-module-record⑥">Synthetic Module Record</a> implements the
+corresponding <a data-link-type="dfn" href="https://tc39.github.io/ecma262/#sec-abstract-module-records" id="ref-for-sec-abstract-module-records①">Module Record</a> abstract method. 
+    <p>It performs the following steps:</p>
+    <ol>
+     <li data-md="">
+      <p>Let <var>module</var> be this <a data-link-type="dfn" href="#synthetic-module-record" id="ref-for-synthetic-module-record⑦">Synthetic Module Record</a>.</p>
+     </li><li data-md="">
+      <p>Return <var>module</var>.[[ExportNames]].</p>
+    </li></ol>
+   </div>
+   <h5 class="heading settled" data-level="3.13.3.2" id="smr-resolveexport"><span class="secno">3.13.3.2. </span><span class="content">ResolveExport</span><a class="self-link" href="#smr-resolveexport"></a></h5>
+   <div class="algorithm" data-algorithm="ResolveExport">
+     The <dfn data-dfn-for="Synthetic Module Record" data-dfn-type="abstract-op" data-export="" id="abstract-opdef-synthetic-module-record-resolveexport">ResolveExport<a class="self-link" href="#abstract-opdef-synthetic-module-record-resolveexport"></a></dfn>(<var>exportName</var>, <var>resolveSet</var>) concrete method of a <a data-link-type="dfn" href="#synthetic-module-record" id="ref-for-synthetic-module-record⑧">Synthetic Module Record</a> implements the
+corresponding <a data-link-type="dfn" href="https://tc39.github.io/ecma262/#sec-abstract-module-records" id="ref-for-sec-abstract-module-records②">Module Record</a> abstract method. 
+    <p>It performs the following steps:</p>
+    <ol>
+     <li data-md="">
+      <p>Let <var>module</var> be this <a data-link-type="dfn" href="#synthetic-module-record" id="ref-for-synthetic-module-record⑨">Synthetic Module Record</a>.</p>
+     </li><li data-md="">
+      <p>If <var>module</var>.[[ExportNames]] does not contain <var>exportName</var>, return <emu-val>null</emu-val>.</p>
+     </li><li data-md="">
+      <p>Return <a data-link-type="dfn" href="https://tc39.github.io/ecma262/#resolvedbinding-record" id="ref-for-resolvedbinding-record">ResolvedBinding Record</a> { [[Module]]: <var>module</var>, [[BindingName]]: <var>exportName</var> }.</p>
+    </li></ol>
+   </div>
+   <h5 class="heading settled" data-level="3.13.3.3" id="smr-instantiate"><span class="secno">3.13.3.3. </span><span class="content">Instantiate</span><a class="self-link" href="#smr-instantiate"></a></h5>
+   <div class="algorithm" data-algorithm="Instantiate">
+     The <dfn class="dfn-paneled" data-dfn-for="Synthetic Module Record" data-dfn-type="abstract-op" data-export="" id="abstract-opdef-synthetic-module-record-instantiate">Instantiate</dfn>() concrete method of a <a data-link-type="dfn" href="#synthetic-module-record" id="ref-for-synthetic-module-record①⓪">Synthetic Module Record</a> implements the corresponding <a data-link-type="dfn" href="https://tc39.github.io/ecma262/#sec-abstract-module-records" id="ref-for-sec-abstract-module-records③">Module Record</a> abstract method. 
+    <p>It performs the following steps:</p>
+    <ol>
+     <li data-md="">
+      <p>Let <var>module</var> be this <a data-link-type="dfn" href="#synthetic-module-record" id="ref-for-synthetic-module-record①①">Synthetic Module Record</a>.</p>
+     </li><li data-md="">
+      <p>Let <var>realm</var> be <var>module</var>.[[Realm]].</p>
+     </li><li data-md="">
+      <p class="assertion">Assert: <var>realm</var> is not <emu-val>undefined</emu-val>.</p>
+     </li><li data-md="">
+      <p>Let <var>env</var> be <a data-link-type="abstract-op" href="https://tc39.github.io/ecma262/#sec-newmoduleenvironment" id="ref-for-sec-newmoduleenvironment">NewModuleEnvironment</a>(<var>realm</var>.[[GlobalEnv]]).</p>
+     </li><li data-md="">
+      <p>Set <var>module</var>.[[Environment]] to <var>env</var>.</p>
+     </li><li data-md="">
+      <p>Let <var>envRec</var> be <var>env</var>’s <a data-link-type="dfn" href="https://tc39.github.io/ecma262/#sec-lexical-environments" id="ref-for-sec-lexical-environments①">EnvironmentRecord</a>.</p>
+     </li><li data-md="">
+      <p>For each <var>exportName</var> in <var>module</var>.[[ExportNames]],</p>
+      <ol>
+       <li data-md="">
+        <p>Perform <a data-link-type="dfn" href="https://tc39.github.io/ecma262/#sec-returnifabrupt-shorthands" id="ref-for-sec-returnifabrupt-shorthands①⓪⑨">!</a> <var>envRec</var>.<a data-link-type="abstract-op" href="https://tc39.github.io/ecma262/#table-15" id="ref-for-table-15①">CreateMutableBinding</a>(<var>exportName</var>, <emu-val>false</emu-val>).</p>
+       </li><li data-md="">
+        <p>Perform <a data-link-type="dfn" href="https://tc39.github.io/ecma262/#sec-returnifabrupt-shorthands" id="ref-for-sec-returnifabrupt-shorthands①①⓪">!</a> <var>envRec</var>.<a data-link-type="abstract-op" href="https://tc39.github.io/ecma262/#table-15" id="ref-for-table-15②">InitializeBinding</a>(<var>exportName</var>, <emu-val>undefined</emu-val>).</p>
+      </li></ol>
+     </li><li data-md="">
+      <p>Return <emu-val>undefined</emu-val>.</p>
+    </li></ol>
+   </div>
+   <h5 class="heading settled" data-level="3.13.3.4" id="smr-evaluate"><span class="secno">3.13.3.4. </span><span class="content">Evaluate</span><a class="self-link" href="#smr-evaluate"></a></h5>
+   <div class="algorithm" data-algorithm="Evaluate">
+     The <dfn data-dfn-for="Synthetic Module Record" data-dfn-type="abstract-op" data-export="" id="abstract-opdef-synthetic-module-record-evaluate">Evaluate<a class="self-link" href="#abstract-opdef-synthetic-module-record-evaluate"></a></dfn>() concrete method of a <a data-link-type="dfn" href="#synthetic-module-record" id="ref-for-synthetic-module-record①②">Synthetic Module Record</a> implements the corresponding <a data-link-type="dfn" href="https://tc39.github.io/ecma262/#sec-abstract-module-records" id="ref-for-sec-abstract-module-records④">Module Record</a> abstract method. 
+    <p>It performs the following steps:</p>
+    <ol>
+     <li data-md="">
+      <p>Let <var>module</var> be this <a data-link-type="dfn" href="#synthetic-module-record" id="ref-for-synthetic-module-record①③">Synthetic Module Record</a>.</p>
+     </li><li data-md="">
+      <p>Let <var>moduleCxt</var> be a new <a data-link-type="dfn" href="https://tc39.github.io/ecma262/#sec-execution-contexts" id="ref-for-sec-execution-contexts">ECMAScript code execution context</a>.</p>
+     </li><li data-md="">
+      <p>Set the <a data-link-type="dfn" href="https://tc39.github.io/ecma262/#table-22" id="ref-for-table-22">Function</a> of <var>moduleCxt</var> to <emu-val>null</emu-val>.</p>
+     </li><li data-md="">
+      <p class="assertion">Assert: <var>module</var>.[[Realm]] is not <emu-val>undefined</emu-val>.</p>
+     </li><li data-md="">
+      <p>Set the <a data-link-type="dfn" href="https://tc39.github.io/ecma262/#table-22" id="ref-for-table-22①">Realm</a> of <var>moduleCxt</var> to <var>module</var>.[[Realm]].</p>
+     </li><li data-md="">
+      <p>Set the <a data-link-type="dfn" href="https://tc39.github.io/ecma262/#table-22" id="ref-for-table-22②">ScriptOrModule</a> of <var>moduleCxt</var> to <var>module</var>.</p>
+     </li><li data-md="">
+      <p>Set the <a data-link-type="dfn" href="https://tc39.github.io/ecma262/#table-23" id="ref-for-table-23">VariableEnvironment</a> of <var>moduleCxt</var> to <var>module</var>.[[Environment]].</p>
+     </li><li data-md="">
+      <p>Set the <a data-link-type="dfn" href="https://tc39.github.io/ecma262/#table-23" id="ref-for-table-23①">LexicalEnvironment</a> of <var>moduleCxt</var> to <var>module</var>.[[Environment]].</p>
+     </li><li data-md="">
+      <p>Suspend the currently <a data-link-type="dfn" href="https://tc39.github.io/ecma262/#running-execution-context" id="ref-for-running-execution-context">running execution context</a>.</p>
+     </li><li data-md="">
+      <p>Push <var>moduleCxt</var> on to the <a data-link-type="dfn" href="https://tc39.github.io/ecma262/#execution-context-stack" id="ref-for-execution-context-stack">execution context stack</a>; <var>moduleCxt</var> is now the <a data-link-type="dfn" href="https://tc39.github.io/ecma262/#running-execution-context" id="ref-for-running-execution-context①">running execution context</a>.</p>
+     </li><li data-md="">
+      <p>Let <var>completion</var> be the result of performing <var>module</var>.[[EvaluationSteps]](<var>module</var>).</p>
+     </li><li data-md="">
+      <p>Suspend <var>moduleCxt</var> and remove it from the <a data-link-type="dfn" href="https://tc39.github.io/ecma262/#execution-context-stack" id="ref-for-execution-context-stack①">execution context stack</a>.</p>
+     </li><li data-md="">
+      <p>Resume the context that is now on the top of the <a data-link-type="dfn" href="https://tc39.github.io/ecma262/#execution-context-stack" id="ref-for-execution-context-stack②">execution context stack</a> as the <a data-link-type="dfn" href="https://tc39.github.io/ecma262/#running-execution-context" id="ref-for-running-execution-context②">running execution context</a>.</p>
+     </li><li data-md="">
+      <p>Return <a data-link-type="abstract-op" href="https://tc39.github.io/ecma262/#sec-completion" id="ref-for-sec-completion①">Completion</a>(<var>completion</var>).</p>
+    </li></ol>
+   </div>
    <h2 class="heading settled" data-level="4" id="common"><span class="secno">4. </span><span class="content">Common definitions</span><a class="self-link" href="#common"></a></h2>
    <p>This section specifies some common definitions that all <a data-link-type="dfn" href="#dfn-conforming-implementation" id="ref-for-dfn-conforming-implementation">conforming implementations</a> must support.</p>
    <h3 class="heading settled dfn-paneled idl-code" data-dfn-type="typedef" data-export="" data-level="4.1" data-lt="ArrayBufferView" id="ArrayBufferView"><span class="secno">4.1. </span><span class="content">ArrayBufferView</span><span id="common-ArrayBufferView"></span></h3>
@@ -12442,7 +12612,7 @@ window<c- p="">.</c->onload <c- o="">=</c-> <c- a="">function</c-><c- p="">()</c
    <ul>
     <li data-md="">
      <p>Algorithms use the <a data-link-type="dfn" href="https://tc39.github.io/ecma262/#sec-algorithm-conventions" id="ref-for-sec-algorithm-conventions②">conventions</a> of the ECMAScript specification,
-including the <a data-link-type="dfn" href="https://tc39.github.io/ecma262/#sec-returnifabrupt-shorthands" id="ref-for-sec-returnifabrupt-shorthands①⓪⑨">!</a> and <a data-link-type="dfn" href="https://tc39.github.io/ecma262/#sec-returnifabrupt-shorthands" id="ref-for-sec-returnifabrupt-shorthands①①⓪">?</a> notation for unwrapping <a data-link-type="dfn" href="https://tc39.github.io/ecma262/#sec-completion-record-specification-type" id="ref-for-sec-completion-record-specification-type⑦">Completion Records</a>.</p>
+including the <a data-link-type="dfn" href="https://tc39.github.io/ecma262/#sec-returnifabrupt-shorthands" id="ref-for-sec-returnifabrupt-shorthands①①①">!</a> and <a data-link-type="dfn" href="https://tc39.github.io/ecma262/#sec-returnifabrupt-shorthands" id="ref-for-sec-returnifabrupt-shorthands①①②">?</a> notation for unwrapping <a data-link-type="dfn" href="https://tc39.github.io/ecma262/#sec-completion-record-specification-type" id="ref-for-sec-completion-record-specification-type⑦">Completion Records</a>.</p>
     </li><li data-md="">
      <p>Algorithms sometimes treat returning/throwing values and returning <a data-link-type="dfn" href="https://tc39.github.io/ecma262/#sec-completion-record-specification-type" id="ref-for-sec-completion-record-specification-type⑧">Completion Records</a> interchangeably. That is, an algorithm that uses return/throw terminology may be treated as
 returning a <a data-link-type="dfn" href="https://tc39.github.io/ecma262/#sec-completion-record-specification-type" id="ref-for-sec-completion-record-specification-type⑨">Completion Record</a>, while one that returns a <a data-link-type="dfn" href="https://tc39.github.io/ecma262/#sec-completion-record-specification-type" id="ref-for-sec-completion-record-specification-type①⓪">Completion Record</a> may be treated as
@@ -12704,6 +12874,7 @@ language binding.</p>
    </li><li><a href="#create-an-interface-object">create an interface object</a><span>, in §3.6.1</span>
    </li><li><a href="#create-an-interface-prototype-object">create an interface prototype object</a><span>, in §3.6.3</span>
    </li><li><a href="#dfn-create-exception">created</a><span>, in §2.8</span>
+   </li><li><a href="#abstract-opdef-createsyntheticmodule">CreateSyntheticModule</a><span>, in §3.13.1</span>
    </li><li><a href="#create-frozen-array-from-iterable">Creating a frozen array from an iterable</a><span>, in §3.2.27</span>
    </li><li><a href="#dfn-create-operation-function">creating an operation function</a><span>, in §3.6.7</span>
    </li><li><a href="#create-sequence-from-iterable">Creating a sequence from an iterable</a><span>, in §3.2.20</span>
@@ -12759,6 +12930,7 @@ language binding.</p>
    </li><li><a href="#dfn-exception-error-name">error name</a><span>, in §2.8</span>
    </li><li><a href="#dfn-error-names-table">error names table</a><span>, in §2.8.1</span>
    </li><li><a href="#exceptiondef-evalerror">EvalError</a><span>, in §2.8</span>
+   </li><li><a href="#abstract-opdef-synthetic-module-record-evaluate">Evaluate</a><span>, in §3.13.3.4</span>
    </li><li><a href="#dfn-example-term">example term</a><span>, in §Unnumbered section</span>
    </li><li><a href="#dfn-exception">exception</a><span>, in §2.8</span>
    </li><li><a href="#es-exception-objects">Exception objects</a><span>, in §3.12.1</span>
@@ -12781,6 +12953,7 @@ language binding.</p>
    </li><li><a href="#Function">Function</a><span>, in §4.4</span>
    </li><li><a href="#dfn-get-buffer-source-copy">get a copy of the buffer source</a><span>, in §2.13.32</span>
    </li><li><a href="#dfn-get-buffer-source-reference">get a reference to the buffer source</a><span>, in §2.13.32</span>
+   </li><li><a href="#abstract-opdef-synthetic-module-record-getexportednames">GetExportedNames</a><span>, in §3.13.3.1</span>
    </li><li><a href="#legacy-platform-object-getownproperty">GetOwnProperty</a><span>, in §3.8</span>
    </li><li><a href="#dfn-getter">getter</a><span>, in §2.5.4</span>
    </li><li><a href="#get-the-underlying-value">get the underlying value</a><span>, in §2.5.2</span>
@@ -12817,6 +12990,7 @@ language binding.</p>
      <li><a href="#annotated-types-inner-type">dfn for annotated types</a><span>, in §2.13.30</span>
      </li><li><a href="#dfn-inner-type">dfn for nullable types</a><span>, in §2.13.25</span>
     </li></ul>
+   </li><li><a href="#abstract-opdef-synthetic-module-record-instantiate">Instantiate</a><span>, in §3.13.3.3</span>
    </li><li><a href="#idl-Int16Array">Int16Array</a><span>, in §2.13.32</span>
    </li><li><a href="#idl-Int32Array">Int32Array</a><span>, in §2.13.32</span>
    </li><li><a href="#idl-Int8Array">Int8Array</a><span>, in §2.13.32</span>
@@ -12958,6 +13132,7 @@ language binding.</p>
    </li><li><a href="#Replaceable">Replaceable</a><span>, in §3.3.17</span>
    </li><li><a href="#required-dictionary-member">required dictionary member</a><span>, in §2.7</span>
    </li><li><a href="#dfn-reserved-identifier">reserved identifiers</a><span>, in §2.1</span>
+   </li><li><a href="#abstract-opdef-synthetic-module-record-resolveexport">ResolveExport</a><span>, in §3.13.3.2</span>
    </li><li><a href="#dfn-return-type">return type</a><span>, in §2.5.3</span>
    </li><li><a href="#SameObject">SameObject</a><span>, in §3.3.18</span>
    </li><li><a href="#SecureContext">SecureContext</a><span>, in §3.3.19</span>
@@ -12969,6 +13144,7 @@ language binding.</p>
    </li><li><a href="#dfn-setlike">setlike</a><span>, in §2.5.9</span>
    </li><li><a href="#dfn-setlike-declaration">setlike declaration</a><span>, in §2.5.9</span>
    </li><li><a href="#dfn-set-size-getter">set size getter</a><span>, in §3.6.11.1</span>
+   </li><li><a href="#abstract-opdef-setsyntheticmoduleexport">SetSyntheticModuleExport</a><span>, in §3.13.2</span>
    </li><li><a href="#dfn-setter">setter</a><span>, in §2.5.4</span>
    </li><li><a href="#dfn-set-the-value-of-a-new-indexed-property">set the value of a new indexed property</a><span>, in §2.5.4.2</span>
    </li><li><a href="#dfn-set-the-value-of-a-new-named-property">set the value of a new named property</a><span>, in §2.5.4.3</span>
@@ -12991,6 +13167,7 @@ language binding.</p>
    </li><li><a href="#idl-symbol">symbol</a><span>, in §2.13.18</span>
    </li><li><a href="#dom-domexception-syntax_err">SYNTAX_ERR</a><span>, in §2.8.1</span>
    </li><li><a href="#syntaxerror">SyntaxError</a><span>, in §2.8.1</span>
+   </li><li><a href="#synthetic-module-record">Synthetic Module Record</a><span>, in §3.13</span>
    </li><li><a href="#dfn-xattr-named-argument-list">takes a named argument list</a><span>, in §2.14</span>
    </li><li><a href="#dfn-xattr-argument-list">takes an argument list</a><span>, in §2.14</span>
    </li><li><a href="#dfn-xattr-identifier">takes an identifier</a><span>, in §2.14</span>
@@ -13176,7 +13353,8 @@ language binding.</p>
     </li><li><a href="#ref-for-sec-returnifabrupt-shorthands①⓪③">3.10. Invoking callback functions</a> <a href="#ref-for-sec-returnifabrupt-shorthands①⓪④">(2)</a> <a href="#ref-for-sec-returnifabrupt-shorthands①⓪⑤">(3)</a>
     </li><li><a href="#ref-for-sec-returnifabrupt-shorthands①⓪⑥">3.11.1. Namespace object</a> <a href="#ref-for-sec-returnifabrupt-shorthands①⓪⑦">(2)</a>
     </li><li><a href="#ref-for-sec-returnifabrupt-shorthands①⓪⑧">3.12.3. Creating and throwing exceptions</a>
-    </li><li><a href="#ref-for-sec-returnifabrupt-shorthands①⓪⑨">Document conventions</a> <a href="#ref-for-sec-returnifabrupt-shorthands①①⓪">(2)</a>
+    </li><li><a href="#ref-for-sec-returnifabrupt-shorthands①⓪⑨">3.13.3.3. Instantiate</a> <a href="#ref-for-sec-returnifabrupt-shorthands①①⓪">(2)</a>
+    </li><li><a href="#ref-for-sec-returnifabrupt-shorthands①①①">Document conventions</a> <a href="#ref-for-sec-returnifabrupt-shorthands①①②">(2)</a>
    </li></ul>
   </aside>
   <aside class="dfn-panel" data-for="term-for-sec-array.prototype.entries">
@@ -13310,7 +13488,8 @@ language binding.</p>
     </li><li><a href="#ref-for-sec-returnifabrupt-shorthands①⓪③">3.10. Invoking callback functions</a> <a href="#ref-for-sec-returnifabrupt-shorthands①⓪④">(2)</a> <a href="#ref-for-sec-returnifabrupt-shorthands①⓪⑤">(3)</a>
     </li><li><a href="#ref-for-sec-returnifabrupt-shorthands①⓪⑥">3.11.1. Namespace object</a> <a href="#ref-for-sec-returnifabrupt-shorthands①⓪⑦">(2)</a>
     </li><li><a href="#ref-for-sec-returnifabrupt-shorthands①⓪⑧">3.12.3. Creating and throwing exceptions</a>
-    </li><li><a href="#ref-for-sec-returnifabrupt-shorthands①⓪⑨">Document conventions</a> <a href="#ref-for-sec-returnifabrupt-shorthands①①⓪">(2)</a>
+    </li><li><a href="#ref-for-sec-returnifabrupt-shorthands①⓪⑨">3.13.3.3. Instantiate</a> <a href="#ref-for-sec-returnifabrupt-shorthands①①⓪">(2)</a>
+    </li><li><a href="#ref-for-sec-returnifabrupt-shorthands①①①">Document conventions</a> <a href="#ref-for-sec-returnifabrupt-shorthands①①②">(2)</a>
    </li></ul>
   </aside>
   <aside class="dfn-panel" data-for="term-for-sec-well-known-symbols">
@@ -13411,6 +13590,7 @@ language binding.</p>
    <a href="https://tc39.github.io/ecma262/#sec-completion">https://tc39.github.io/ecma262/#sec-completion</a><b>Referenced in:</b>
    <ul>
     <li><a href="#ref-for-sec-completion">3.9. Callback interfaces</a>
+    </li><li><a href="#ref-for-sec-completion①">3.13.3.4. Evaluate</a>
    </li></ul>
   </aside>
   <aside class="dfn-panel" data-for="term-for-sec-construct">
@@ -13459,6 +13639,13 @@ language binding.</p>
    <ul>
     <li><a href="#ref-for-sec-createmethodproperty">3.7. Platform objects implementing interfaces</a> <a href="#ref-for-sec-createmethodproperty①">(2)</a> <a href="#ref-for-sec-createmethodproperty②">(3)</a> <a href="#ref-for-sec-createmethodproperty③">(4)</a> <a href="#ref-for-sec-createmethodproperty④">(5)</a>
     </li><li><a href="#ref-for-sec-createmethodproperty⑤">3.11.1. Namespace object</a>
+   </li></ul>
+  </aside>
+  <aside class="dfn-panel" data-for="term-for-table-15">
+   <a href="https://tc39.github.io/ecma262/#table-15">https://tc39.github.io/ecma262/#table-15</a><b>Referenced in:</b>
+   <ul>
+    <li><a href="#ref-for-table-15">3.13.2. SetSyntheticModuleExport</a>
+    </li><li><a href="#ref-for-table-15①">3.13.3.3. Instantiate</a> <a href="#ref-for-table-15②">(2)</a>
    </li></ul>
   </aside>
   <aside class="dfn-panel" data-for="term-for-sec-createsetiterator">
@@ -13539,6 +13726,13 @@ language binding.</p>
     </li><li><a href="#ref-for-sec-getmethod⑥">3.6.11. Setlike declarations</a>
    </li></ul>
   </aside>
+  <aside class="dfn-panel" data-for="term-for-table-15">
+   <a href="https://tc39.github.io/ecma262/#table-15">https://tc39.github.io/ecma262/#table-15</a><b>Referenced in:</b>
+   <ul>
+    <li><a href="#ref-for-table-15">3.13.2. SetSyntheticModuleExport</a>
+    </li><li><a href="#ref-for-table-15①">3.13.3.3. Instantiate</a> <a href="#ref-for-table-15②">(2)</a>
+   </li></ul>
+  </aside>
   <aside class="dfn-panel" data-for="term-for-sec-iscallable">
    <a href="https://tc39.github.io/ecma262/#sec-iscallable">https://tc39.github.io/ecma262/#sec-iscallable</a><b>Referenced in:</b>
    <ul>
@@ -13610,6 +13804,12 @@ language binding.</p>
     </li><li><a href="#ref-for-sec-map-objects⑥">3.6.10.6. delete</a>
     </li><li><a href="#ref-for-sec-map-objects⑦">3.6.10.7. set</a>
     </li><li><a href="#ref-for-sec-map-objects⑧">Document conventions</a>
+   </li></ul>
+  </aside>
+  <aside class="dfn-panel" data-for="term-for-sec-newmoduleenvironment">
+   <a href="https://tc39.github.io/ecma262/#sec-newmoduleenvironment">https://tc39.github.io/ecma262/#sec-newmoduleenvironment</a><b>Referenced in:</b>
+   <ul>
+    <li><a href="#ref-for-sec-newmoduleenvironment">3.13.3.3. Instantiate</a>
    </li></ul>
   </aside>
   <aside class="dfn-panel" data-for="term-for-sec-built-in-function-objects">
@@ -13724,6 +13924,13 @@ language binding.</p>
    <a href="https://tc39.github.io/ecma262/#sec-setintegritylevel">https://tc39.github.io/ecma262/#sec-setintegritylevel</a><b>Referenced in:</b>
    <ul>
     <li><a href="#ref-for-sec-setintegritylevel">3.2.27. Frozen arrays — FrozenArray&lt;T&gt;</a>
+   </li></ul>
+  </aside>
+  <aside class="dfn-panel" data-for="term-for-table-15">
+   <a href="https://tc39.github.io/ecma262/#table-15">https://tc39.github.io/ecma262/#table-15</a><b>Referenced in:</b>
+   <ul>
+    <li><a href="#ref-for-table-15">3.13.2. SetSyntheticModuleExport</a>
+    </li><li><a href="#ref-for-table-15①">3.13.3.3. Instantiate</a> <a href="#ref-for-table-15②">(2)</a>
    </li></ul>
   </aside>
   <aside class="dfn-panel" data-for="term-for-sec-sharedarraybuffer-objects">
@@ -14019,6 +14226,12 @@ language binding.</p>
     </li><li><a href="#ref-for-sec-ordinary-object-internal-methods-and-internal-slots④">3.7. Platform objects implementing interfaces</a>
    </li></ul>
   </aside>
+  <aside class="dfn-panel" data-for="term-for-sec-execution-contexts">
+   <a href="https://tc39.github.io/ecma262/#sec-execution-contexts">https://tc39.github.io/ecma262/#sec-execution-contexts</a><b>Referenced in:</b>
+   <ul>
+    <li><a href="#ref-for-sec-execution-contexts">3.13.3.4. Evaluate</a>
+   </li></ul>
+  </aside>
   <aside class="dfn-panel" data-for="term-for-sec-ecmascript-language-types-string-type">
    <a href="https://tc39.github.io/ecma262/#sec-ecmascript-language-types-string-type">https://tc39.github.io/ecma262/#sec-ecmascript-language-types-string-type</a><b>Referenced in:</b>
    <ul>
@@ -14029,6 +14242,13 @@ language binding.</p>
    <a href="https://tc39.github.io/ecma262/#sec-property-attributes">https://tc39.github.io/ecma262/#sec-property-attributes</a><b>Referenced in:</b>
    <ul>
     <li><a href="#ref-for-sec-property-attributes">3.2.21. Records — record&lt;K, V&gt;</a>
+   </li></ul>
+  </aside>
+  <aside class="dfn-panel" data-for="term-for-sec-lexical-environments">
+   <a href="https://tc39.github.io/ecma262/#sec-lexical-environments">https://tc39.github.io/ecma262/#sec-lexical-environments</a><b>Referenced in:</b>
+   <ul>
+    <li><a href="#ref-for-sec-lexical-environments">3.13.2. SetSyntheticModuleExport</a>
+    </li><li><a href="#ref-for-sec-lexical-environments①">3.13.3.3. Instantiate</a>
    </li></ul>
   </aside>
   <aside class="dfn-panel" data-for="term-for-sec-ecmascript-language-types-number-type">
@@ -14049,10 +14269,22 @@ language binding.</p>
     </li><li><a href="#ref-for-sec-error-objects④">3.12.1. DOMException custom bindings</a>
    </li></ul>
   </aside>
+  <aside class="dfn-panel" data-for="term-for-execution-context-stack">
+   <a href="https://tc39.github.io/ecma262/#execution-context-stack">https://tc39.github.io/ecma262/#execution-context-stack</a><b>Referenced in:</b>
+   <ul>
+    <li><a href="#ref-for-execution-context-stack">3.13.3.4. Evaluate</a> <a href="#ref-for-execution-context-stack①">(2)</a> <a href="#ref-for-execution-context-stack②">(3)</a>
+   </li></ul>
+  </aside>
   <aside class="dfn-panel" data-for="term-for-eqn-floor">
    <a href="https://tc39.github.io/ecma262/#eqn-floor">https://tc39.github.io/ecma262/#eqn-floor</a><b>Referenced in:</b>
    <ul>
     <li><a href="#ref-for-eqn-floor">3.2.4.9. Abstract operations</a>
+   </li></ul>
+  </aside>
+  <aside class="dfn-panel" data-for="term-for-table-22">
+   <a href="https://tc39.github.io/ecma262/#table-22">https://tc39.github.io/ecma262/#table-22</a><b>Referenced in:</b>
+   <ul>
+    <li><a href="#ref-for-table-22">3.13.3.4. Evaluate</a> <a href="#ref-for-table-22①">(2)</a> <a href="#ref-for-table-22②">(3)</a>
    </li></ul>
   </aside>
   <aside class="dfn-panel" data-for="term-for-function-object">
@@ -14114,6 +14346,12 @@ language binding.</p>
     </li><li><a href="#ref-for-sec-ordinary-object-internal-methods-and-internal-slots④">3.7. Platform objects implementing interfaces</a>
    </li></ul>
   </aside>
+  <aside class="dfn-panel" data-for="term-for-table-23">
+   <a href="https://tc39.github.io/ecma262/#table-23">https://tc39.github.io/ecma262/#table-23</a><b>Referenced in:</b>
+   <ul>
+    <li><a href="#ref-for-table-23">3.13.3.4. Evaluate</a> <a href="#ref-for-table-23①">(2)</a>
+   </li></ul>
+  </aside>
   <aside class="dfn-panel" data-for="term-for-eqn-max">
    <a href="https://tc39.github.io/ecma262/#eqn-max">https://tc39.github.io/ecma262/#eqn-max</a><b>Referenced in:</b>
    <ul>
@@ -14125,6 +14363,22 @@ language binding.</p>
    <a href="https://tc39.github.io/ecma262/#eqn-min">https://tc39.github.io/ecma262/#eqn-min</a><b>Referenced in:</b>
    <ul>
     <li><a href="#ref-for-eqn-min">3.2.4.9. Abstract operations</a>
+   </li></ul>
+  </aside>
+  <aside class="dfn-panel" data-for="term-for-sec-abstract-module-records">
+   <a href="https://tc39.github.io/ecma262/#sec-abstract-module-records">https://tc39.github.io/ecma262/#sec-abstract-module-records</a><b>Referenced in:</b>
+   <ul>
+    <li><a href="#ref-for-sec-abstract-module-records">3.13.3. Concrete Methods</a>
+    </li><li><a href="#ref-for-sec-abstract-module-records①">3.13.3.1. GetExportedNames</a>
+    </li><li><a href="#ref-for-sec-abstract-module-records②">3.13.3.2. ResolveExport</a>
+    </li><li><a href="#ref-for-sec-abstract-module-records③">3.13.3.3. Instantiate</a>
+    </li><li><a href="#ref-for-sec-abstract-module-records④">3.13.3.4. Evaluate</a>
+   </li></ul>
+  </aside>
+  <aside class="dfn-panel" data-for="term-for-table-36">
+   <a href="https://tc39.github.io/ecma262/#table-36">https://tc39.github.io/ecma262/#table-36</a><b>Referenced in:</b>
+   <ul>
+    <li><a href="#ref-for-table-36">3.13. Synthetic module records</a>
    </li></ul>
   </aside>
   <aside class="dfn-panel" data-for="term-for-eqn-modulo">
@@ -14169,25 +14423,40 @@ language binding.</p>
     </li><li><a href="#ref-for-sec-property-descriptor-specification-type②">3.8.7. Abstract operations</a> <a href="#ref-for-sec-property-descriptor-specification-type③">(2)</a>
    </li></ul>
   </aside>
-  <aside class="dfn-panel" data-for="term-for-realm">
-   <a href="https://tc39.github.io/ecma262/#realm">https://tc39.github.io/ecma262/#realm</a><b>Referenced in:</b>
+  <aside class="dfn-panel" data-for="term-for-table-22">
+   <a href="https://tc39.github.io/ecma262/#table-22">https://tc39.github.io/ecma262/#table-22</a><b>Referenced in:</b>
    <ul>
-    <li><a href="#ref-for-realm">3.1. ECMAScript environment</a> <a href="#ref-for-realm①">(2)</a> <a href="#ref-for-realm②">(3)</a> <a href="#ref-for-realm③">(4)</a> <a href="#ref-for-realm④">(5)</a> <a href="#ref-for-realm⑤">(6)</a> <a href="#ref-for-realm⑥">(7)</a>
-    </li><li><a href="#ref-for-realm⑦">3.3.6. [Exposed]</a>
-    </li><li><a href="#ref-for-realm⑧">3.3.7. [Global]</a> <a href="#ref-for-realm⑨">(2)</a>
-    </li><li><a href="#ref-for-realm①⓪">3.3.20. [SecureContext]</a>
-    </li><li><a href="#ref-for-realm①①">3.6. Interfaces</a> <a href="#ref-for-realm①②">(2)</a>
-    </li><li><a href="#ref-for-realm①③">3.6.1. Interface object</a>
-    </li><li><a href="#ref-for-realm①④">3.6.3. Interface prototype object</a>
-    </li><li><a href="#ref-for-realm①⑤">3.6.4. Named properties object</a>
-    </li><li><a href="#ref-for-realm①⑥">3.6.5. Constants</a>
-    </li><li><a href="#ref-for-realm①⑦">3.6.6. Attributes</a> <a href="#ref-for-realm①⑧">(2)</a> <a href="#ref-for-realm①⑨">(3)</a> <a href="#ref-for-realm②⓪">(4)</a> <a href="#ref-for-realm②①">(5)</a> <a href="#ref-for-realm②②">(6)</a>
-    </li><li><a href="#ref-for-realm②③">3.6.7. Operations</a> <a href="#ref-for-realm②④">(2)</a> <a href="#ref-for-realm②⑤">(3)</a> <a href="#ref-for-realm②⑥">(4)</a> <a href="#ref-for-realm②⑦">(5)</a>
-    </li><li><a href="#ref-for-realm②⑧">3.7. Platform objects implementing interfaces</a> <a href="#ref-for-realm②⑨">(2)</a> <a href="#ref-for-realm③⓪">(3)</a> <a href="#ref-for-realm③①">(4)</a> <a href="#ref-for-realm③②">(5)</a>
-    </li><li><a href="#ref-for-realm③③">3.9.1. Legacy callback interface object</a> <a href="#ref-for-realm③④">(2)</a> <a href="#ref-for-realm③⑤">(3)</a>
-    </li><li><a href="#ref-for-realm③⑥">3.11. Namespaces</a> <a href="#ref-for-realm③⑦">(2)</a>
-    </li><li><a href="#ref-for-realm③⑧">3.11.1. Namespace object</a>
-    </li><li><a href="#ref-for-realm③⑨">3.12.3. Creating and throwing exceptions</a> <a href="#ref-for-realm④⓪">(2)</a> <a href="#ref-for-realm④①">(3)</a>
+    <li><a href="#ref-for-table-22">3.13.3.4. Evaluate</a> <a href="#ref-for-table-22①">(2)</a> <a href="#ref-for-table-22②">(3)</a>
+   </li></ul>
+  </aside>
+  <aside class="dfn-panel" data-for="term-for-resolvedbinding-record">
+   <a href="https://tc39.github.io/ecma262/#resolvedbinding-record">https://tc39.github.io/ecma262/#resolvedbinding-record</a><b>Referenced in:</b>
+   <ul>
+    <li><a href="#ref-for-resolvedbinding-record">3.13.3.2. ResolveExport</a>
+   </li></ul>
+  </aside>
+  <aside class="dfn-panel" data-for="term-for-running-execution-context">
+   <a href="https://tc39.github.io/ecma262/#running-execution-context">https://tc39.github.io/ecma262/#running-execution-context</a><b>Referenced in:</b>
+   <ul>
+    <li><a href="#ref-for-running-execution-context">3.13.3.4. Evaluate</a> <a href="#ref-for-running-execution-context①">(2)</a> <a href="#ref-for-running-execution-context②">(3)</a>
+   </li></ul>
+  </aside>
+  <aside class="dfn-panel" data-for="term-for-table-22">
+   <a href="https://tc39.github.io/ecma262/#table-22">https://tc39.github.io/ecma262/#table-22</a><b>Referenced in:</b>
+   <ul>
+    <li><a href="#ref-for-table-22">3.13.3.4. Evaluate</a> <a href="#ref-for-table-22①">(2)</a> <a href="#ref-for-table-22②">(3)</a>
+   </li></ul>
+  </aside>
+  <aside class="dfn-panel" data-for="term-for-sourctextmodule-record">
+   <a href="https://tc39.github.io/ecma262/#sourctextmodule-record">https://tc39.github.io/ecma262/#sourctextmodule-record</a><b>Referenced in:</b>
+   <ul>
+    <li><a href="#ref-for-sourctextmodule-record">3.13.1. CreateSyntheticModule</a>
+   </li></ul>
+  </aside>
+  <aside class="dfn-panel" data-for="term-for-table-23">
+   <a href="https://tc39.github.io/ecma262/#table-23">https://tc39.github.io/ecma262/#table-23</a><b>Referenced in:</b>
+   <ul>
+    <li><a href="#ref-for-table-23">3.13.3.4. Evaluate</a> <a href="#ref-for-table-23①">(2)</a>
    </li></ul>
   </aside>
   <aside class="dfn-panel" data-for="term-for-ext_blend_minmax">
@@ -14823,6 +15092,7 @@ language binding.</p>
      </li><li><span class="dfn-paneled" id="term-for-sec-createiterresultobject" style="color:initial">CreateIterResultObject</span>
      </li><li><span class="dfn-paneled" id="term-for-sec-createmapiterator" style="color:initial">CreateMapIterator</span>
      </li><li><span class="dfn-paneled" id="term-for-sec-createmethodproperty" style="color:initial">CreateMethodProperty</span>
+     </li><li><span class="dfn-paneled" id="term-for-table-15" style="color:initial">CreateMutableBinding</span>
      </li><li><span class="dfn-paneled" id="term-for-sec-createsetiterator" style="color:initial">CreateSetIterator</span>
      </li><li><span class="dfn-paneled" id="term-for-sec-dataview-objects" style="color:initial">DataView</span>
      </li><li><span class="dfn-paneled" id="term-for-sec-definepropertyorthrow" style="color:initial">DefinePropertyOrThrow</span>
@@ -14832,6 +15102,7 @@ language binding.</p>
      </li><li><span class="dfn-paneled" id="term-for-sec-getfunctionrealm" style="color:initial">GetFunctionRealm</span>
      </li><li><span class="dfn-paneled" id="term-for-sec-getiterator" style="color:initial">GetIterator</span>
      </li><li><span class="dfn-paneled" id="term-for-sec-getmethod" style="color:initial">GetMethod</span>
+     </li><li><span class="dfn-paneled" id="term-for-table-15①" style="color:initial">InitializeBinding</span>
      </li><li><span class="dfn-paneled" id="term-for-sec-iscallable" style="color:initial">IsCallable</span>
      </li><li><span class="dfn-paneled" id="term-for-sec-isconstructor" style="color:initial">IsConstructor</span>
      </li><li><span class="dfn-paneled" id="term-for-sec-isdatadescriptor" style="color:initial">IsDataDescriptor</span>
@@ -14842,6 +15113,7 @@ language binding.</p>
      </li><li><span class="dfn-paneled" id="term-for-sec-iteratorvalue" style="color:initial">IteratorValue</span>
      </li><li><span class="dfn-paneled" id="term-for-sec-json.stringify" style="color:initial">JSON.stringify()</span>
      </li><li><span class="dfn-paneled" id="term-for-sec-map-objects" style="color:initial">Map</span>
+     </li><li><span class="dfn-paneled" id="term-for-sec-newmoduleenvironment" style="color:initial">NewModuleEnvironment</span>
      </li><li><span class="dfn-paneled" id="term-for-sec-built-in-function-objects" style="color:initial">NewTarget</span>
      </li><li><span class="dfn-paneled" id="term-for-sec-objectcreate" style="color:initial">ObjectCreate</span>
      </li><li><span class="dfn-paneled" id="term-for-sec-ordinarydefineownproperty" style="color:initial">OrdinaryDefineOwnProperty</span>
@@ -14854,6 +15126,7 @@ language binding.</p>
      </li><li><span class="dfn-paneled" id="term-for-sec-setfunctionname" style="color:initial">SetFunctionName</span>
      </li><li><span class="dfn-paneled" id="term-for-sec-set-immutable-prototype" style="color:initial">SetImmutablePrototype</span>
      </li><li><span class="dfn-paneled" id="term-for-sec-setintegritylevel" style="color:initial">SetIntegrityLevel</span>
+     </li><li><span class="dfn-paneled" id="term-for-table-15②" style="color:initial">SetMutableBinding</span>
      </li><li><span class="dfn-paneled" id="term-for-sec-sharedarraybuffer-objects" style="color:initial">SharedArrayBuffer</span>
      </li><li><span class="dfn-paneled" id="term-for-sec-native-error-types-used-in-this-standard-syntaxerror" style="color:initial">SyntaxError</span>
      </li><li><span class="dfn-paneled" id="term-for-sec-toboolean" style="color:initial">ToBoolean</span>
@@ -14878,24 +15151,36 @@ language binding.</p>
      </li><li><span class="dfn-paneled" id="term-for-sec-built-in-function-objects②" style="color:initial">ecma-262 built-in function objects</span>
      </li><li><span class="dfn-paneled" id="term-for-sec-immutable-prototype-exotic-objects" style="color:initial">ecma-262 immutable prototype exotic objects</span>
      </li><li><span class="dfn-paneled" id="term-for-sec-ordinary-object-internal-methods-and-internal-slots" style="color:initial">ecma-262 ordinary object internal methods and internal slots</span>
+     </li><li><span class="dfn-paneled" id="term-for-sec-execution-contexts" style="color:initial">ecmascript code execution context</span>
      </li><li><span class="dfn-paneled" id="term-for-sec-ecmascript-language-types-string-type" style="color:initial">element</span>
      </li><li><span class="dfn-paneled" id="term-for-sec-property-attributes" style="color:initial">enumerable</span>
+     </li><li><span class="dfn-paneled" id="term-for-sec-lexical-environments" style="color:initial">environmentrecord</span>
      </li><li><span class="dfn-paneled" id="term-for-sec-ecmascript-language-types-number-type" style="color:initial">equally close values</span>
      </li><li><span class="dfn-paneled" id="term-for-sec-error-objects①" style="color:initial">error objects</span>
+     </li><li><span class="dfn-paneled" id="term-for-execution-context-stack" style="color:initial">execution context stack</span>
      </li><li><span class="dfn-paneled" id="term-for-eqn-floor" style="color:initial">floor</span>
+     </li><li><span class="dfn-paneled" id="term-for-table-22" style="color:initial">function</span>
      </li><li><span class="dfn-paneled" id="term-for-function-object" style="color:initial">function object</span>
      </li><li><span class="dfn-paneled" id="term-for-sec-immutable-prototype-exotic-objects①" style="color:initial">immutable prototype exotic object</span>
      </li><li><span class="dfn-paneled" id="term-for-sec-ordinary-object-internal-methods-and-internal-slots①" style="color:initial">internal method <small>(for ordinary object)</small></span>
      </li><li><span class="dfn-paneled" id="term-for-sec-ordinary-object-internal-methods-and-internal-slots②" style="color:initial">internal slot <small>(for ordinary object)</small></span>
+     </li><li><span class="dfn-paneled" id="term-for-table-23" style="color:initial">lexicalenvironment</span>
      </li><li><span class="dfn-paneled" id="term-for-eqn-max" style="color:initial">max</span>
      </li><li><span class="dfn-paneled" id="term-for-eqn-min" style="color:initial">min</span>
+     </li><li><span class="dfn-paneled" id="term-for-sec-abstract-module-records" style="color:initial">module record</span>
+     </li><li><span class="dfn-paneled" id="term-for-table-36" style="color:initial">module record fields</span>
      </li><li><span class="dfn-paneled" id="term-for-eqn-modulo" style="color:initial">modulo</span>
      </li><li><span class="dfn-paneled" id="term-for-sec-ecmascript-language-types-number-type①" style="color:initial">number type</span>
      </li><li><span class="dfn-paneled" id="term-for-sec-literals-numeric-literals" style="color:initial">numericliteral</span>
      </li><li><span class="dfn-paneled" id="term-for-sec-object-type" style="color:initial">object</span>
      </li><li><span class="dfn-paneled" id="term-for-sec-own-property" style="color:initial">own property</span>
      </li><li><span class="dfn-paneled" id="term-for-sec-property-descriptor-specification-type" style="color:initial">property descriptor</span>
-     </li><li><span class="dfn-paneled" id="term-for-realm" style="color:initial">realm</span>
+     </li><li><span class="dfn-paneled" id="term-for-table-22①" style="color:initial">realm <small>(for Execution context)</small></span>
+     </li><li><span class="dfn-paneled" id="term-for-resolvedbinding-record" style="color:initial">resolvedbinding record</span>
+     </li><li><span class="dfn-paneled" id="term-for-running-execution-context" style="color:initial">running execution context</span>
+     </li><li><span class="dfn-paneled" id="term-for-table-22②" style="color:initial">scriptormodule</span>
+     </li><li><span class="dfn-paneled" id="term-for-sourctextmodule-record" style="color:initial">source text module record</span>
+     </li><li><span class="dfn-paneled" id="term-for-table-23①" style="color:initial">variableenvironment</span>
     </li></ul>
    </li><li>
     <a data-link-type="biblio">[ext_blend_minmax]</a> defines the following terms:
@@ -15101,6 +15386,8 @@ language binding.</p>
    </dt><dd>Andrei Popescu. <a href="http://dev.w3.org/geo/api/spec-source.html">Geolocation API Specification 2nd Edition</a>. URL: <a href="http://dev.w3.org/geo/api/spec-source.html">http://dev.w3.org/geo/api/spec-source.html</a>
    </dd><dt id="biblio-geometry">[GEOMETRY]
    </dt><dd>Simon Pieters; Chris Harrelson. <a href="https://drafts.fxtf.org/geometry/">Geometry Interfaces Module Level 1</a>. URL: <a href="https://drafts.fxtf.org/geometry/">https://drafts.fxtf.org/geometry/</a>
+   </dd><dt id="biblio-jsstdlib">[JSSTDLIB]
+   </dt><dd><a href="https://github.com/tc39/proposal-javascript-standard-library/">Standard Library Proposal</a>. URL: <a href="https://github.com/tc39/proposal-javascript-standard-library/">https://github.com/tc39/proposal-javascript-standard-library/</a>
    </dd><dt id="biblio-mediacapture-streams">[MEDIACAPTURE-STREAMS]
    </dt><dd>Daniel Burnett; et al. <a href="https://w3c.github.io/mediacapture-main/">Media Capture and Streams</a>. URL: <a href="https://w3c.github.io/mediacapture-main/">https://w3c.github.io/mediacapture-main/</a>
    </dd><dt id="biblio-omgidl">[OMGIDL]
@@ -18591,6 +18878,36 @@ language binding.</p>
     <li><a href="#ref-for-an-exception-was-thrown">3.6.6. Attributes</a>
     </li><li><a href="#ref-for-an-exception-was-thrown①">3.6.7. Operations</a>
     </li><li><a href="#ref-for-an-exception-was-thrown②">Document conventions</a>
+   </li></ul>
+  </aside>
+  <aside class="dfn-panel" data-for="synthetic-module-record">
+   <b><a href="#synthetic-module-record">#synthetic-module-record</a></b><b>Referenced in:</b>
+   <ul>
+    <li><a href="#ref-for-synthetic-module-record">3.13. Synthetic module records</a> <a href="#ref-for-synthetic-module-record①">(2)</a> <a href="#ref-for-synthetic-module-record②">(3)</a>
+    </li><li><a href="#ref-for-synthetic-module-record③">3.13.1. CreateSyntheticModule</a> <a href="#ref-for-synthetic-module-record④">(2)</a>
+    </li><li><a href="#ref-for-synthetic-module-record⑤">3.13.3. Concrete Methods</a>
+    </li><li><a href="#ref-for-synthetic-module-record⑥">3.13.3.1. GetExportedNames</a> <a href="#ref-for-synthetic-module-record⑦">(2)</a>
+    </li><li><a href="#ref-for-synthetic-module-record⑧">3.13.3.2. ResolveExport</a> <a href="#ref-for-synthetic-module-record⑨">(2)</a>
+    </li><li><a href="#ref-for-synthetic-module-record①⓪">3.13.3.3. Instantiate</a> <a href="#ref-for-synthetic-module-record①①">(2)</a>
+    </li><li><a href="#ref-for-synthetic-module-record①②">3.13.3.4. Evaluate</a> <a href="#ref-for-synthetic-module-record①③">(2)</a>
+   </li></ul>
+  </aside>
+  <aside class="dfn-panel" data-for="abstract-opdef-createsyntheticmodule">
+   <b><a href="#abstract-opdef-createsyntheticmodule">#abstract-opdef-createsyntheticmodule</a></b><b>Referenced in:</b>
+   <ul>
+    <li><a href="#ref-for-abstract-opdef-createsyntheticmodule">3.13. Synthetic module records</a> <a href="#ref-for-abstract-opdef-createsyntheticmodule①">(2)</a>
+   </li></ul>
+  </aside>
+  <aside class="dfn-panel" data-for="abstract-opdef-setsyntheticmoduleexport">
+   <b><a href="#abstract-opdef-setsyntheticmoduleexport">#abstract-opdef-setsyntheticmoduleexport</a></b><b>Referenced in:</b>
+   <ul>
+    <li><a href="#ref-for-abstract-opdef-setsyntheticmoduleexport">3.13. Synthetic module records</a> <a href="#ref-for-abstract-opdef-setsyntheticmoduleexport①">(2)</a>
+   </li></ul>
+  </aside>
+  <aside class="dfn-panel" data-for="abstract-opdef-synthetic-module-record-instantiate">
+   <b><a href="#abstract-opdef-synthetic-module-record-instantiate">#abstract-opdef-synthetic-module-record-instantiate</a></b><b>Referenced in:</b>
+   <ul>
+    <li><a href="#ref-for-abstract-opdef-synthetic-module-record-instantiate">3.13.1. CreateSyntheticModule</a> <a href="#ref-for-abstract-opdef-synthetic-module-record-instantiate①">(2)</a>
    </li></ul>
   </aside>
   <aside class="dfn-panel" data-for="ArrayBufferView">
