@@ -4792,13 +4792,11 @@ listed in the [=error names table=] below.
 The table also indicates the {{DOMException}}'s integer code for that error name,
 if it has one.
 
-There are two types that can be used to refer to exception objects:
-{{DOMException}} and {{Error!!interface}},
-where the latter encompasses [=simple exceptions=] and {{DOMException}}.
+There is one type that can be used to refer to exception objects:
+{{DOMException}}.
 This allows for example an [=operation=]
 to be declared to have a {{DOMException}}
-[=return type=] or an [=attribute=]
-to be of type {{Error!!interface}}.
+[=return type=].
 
 [=Simple exceptions=] can be <dfn id="dfn-create-exception" for="exception" export>created</dfn>
 by providing their [=error name=].
@@ -5332,7 +5330,7 @@ The <dfn id="dfn-string-type" export>string types</dfn> are
 {{ByteString}} and {{USVString}}.
 
 The <dfn id="dfn-exception-type" export>exception types</dfn> are
-{{Error!!interface}} and {{DOMException}}.
+{{DOMException}}.
 
 The <dfn id="dfn-typed-array-type" export>typed array types</dfn> are
 {{Int8Array}},
@@ -5419,7 +5417,6 @@ type.
         "sequence" "&lt;" TypeWithExtendedAttributes "&gt;" Null
         "object" Null
         "symbol" Null
-        "Error" Null
         BufferRelatedType Null
         "FrozenArray" "&lt;" TypeWithExtendedAttributes "&gt;" Null
         RecordType Null
@@ -6318,19 +6315,6 @@ type name of the original type with the set of strings corresponding to the [=id
 <div class="example">
     The [=type name=] for a type of the form <code>[B, A] long?</code> is "LongOrNullAB".
 </div>
-
-<h4 oldids="dom-Error" id="idl-Error" interface>Error</h4>
-
-The {{Error!!interface}} type corresponds to the
-set of all possible non-null references to exception objects,
-including [=simple exceptions=] and {{DOMException}} objects.
-
-There is no way to represent a constant {{Error!!interface}}
-value in IDL.
-
-The [=type name=] of the
-{{Error!!interface}} type is "<code>Error</code>".
-
 
 <h4 id="idl-buffer-source-types">Buffer source types</h4>
 
@@ -7930,19 +7914,6 @@ that correspond to the union’s [=member types=].
             [=implements=], then return the IDL value that is a reference to the object |V|.
         1.  If |types| includes {{object}}, then return the IDL value
             that is a reference to the object |V|.
-    1.  If |V| is a {{DOMException}} platform object, then:
-        1.  If |types| includes {{DOMException}} or
-            {{Error!!interface}}, then return the
-            result of [=converted to an IDL value|converting=]
-            |V| to that type.
-        1.  If |types| includes {{object}}, then return the IDL value
-            that is a reference to the object |V|.
-    1.  If <a abstract-op>Type</a>(|V|) is Object and |V| has an \[[ErrorData]] [=internal slot=]), then:
-        1.  If |types| includes {{Error!!interface}}, then return the
-            result of [=converted to an IDL value|converting=]
-            |V| to {{Error!!interface}}.
-        1.  If |types| includes {{object}}, then return the IDL value
-            that is a reference to the object |V|.
     1.  If <a abstract-op>Type</a>(|V|) is Object and |V| has an \[[ArrayBufferData]] [=internal slot=], then:
         1.  If |types| includes {{ArrayBuffer}}, then return the
             result of [=converted to an IDL value|converting=]
@@ -8024,32 +7995,6 @@ that correspond to the union’s [=member types=].
     <emu-val>undefined</emu-val> value.  Otherwise,
     the rules for converting the [=specific type=]
     of the IDL union type value as described in this section ([[#es-type-mapping]]).
-</p>
-
-
-<h4 id="es-Error">Error</h4>
-
-IDL {{Error!!interface}} values are represented
-by native ECMAScript {{ECMAScript/Error}} objects and
-by {{DOMException}} platform objects.
-
-<div id="es-to-Error" algorithm="convert an ECMAScript value to Error">
-
-    An ECMAScript value |V| is [=converted to an IDL value|converted=]
-    to an IDL {{Error!!interface}} value by running the following algorithm:
-
-    1.  If <a abstract-op>Type</a>(|V|) is not Object,
-        or |V| does not have an \[[ErrorData]] [=internal slot=],
-        then [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
-    1.  Return the IDL {{Error!!interface}} value that is a reference
-        to the same object as |V|.
-</div>
-
-<p id="Error-to-es">
-    The result of [=converted to an ECMAScript value|converting=]
-    an IDL {{Error!!interface}} value to an ECMAScript
-    value is the {{ECMAScript/Error}} value that represents a reference to the same object that the
-    IDL {{Error!!interface}} represents.
 </p>
 
 
@@ -10368,29 +10313,6 @@ Note: The HTML Standard defines how a security check is performed. [[!HTML]]
             *   an [=interface type=] that |V| [=implements=]
             *   {{object}}
             *   a [=nullable type|nullable=] version of any of the above types
-            *   an [=annotated type=] whose [=annotated types/inner type=] is one of the above types
-            *   a [=union type=], [=nullable type|nullable=] union type, or [=annotated type|annotated=] union type
-                that has one of the above types in its [=flattened member types=]
-
-            then remove from |S| all other entries.
-
-        1.  Otherwise: if |V| is a {{DOMException}} platform object and
-            there is an entry in |S| that has one of the following types at position |i| of its type list,
-            *   {{DOMException}}
-            *   {{Error!!interface}}
-            *   {{object}}
-            *   a [=nullable type|nullable=] version of either of the above types
-            *   an [=annotated type=] whose [=annotated types/inner type=] is one of the above types
-            *   a [=union type=], [=nullable type|nullable=] union type, or [=annotated type|annotated=] union type
-                that has one of the above types in its [=flattened member types=]
-
-            then remove from |S| all other entries.
-
-        1.  Otherwise: if <a abstract-op>Type</a>(|V|) is Object, |V| has an \[[ErrorData]] [=internal slot=], and
-            there is an entry in |S| that has one of the following types at position |i| of its type list,
-            *   {{Error!!interface}}
-            *   {{object}}
-            *   a [=nullable type|nullable=] version of either of the above types
             *   an [=annotated type=] whose [=annotated types/inner type=] is one of the above types
             *   a [=union type=], [=nullable type|nullable=] union type, or [=annotated type|annotated=] union type
                 that has one of the above types in its [=flattened member types=]
