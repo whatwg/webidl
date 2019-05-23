@@ -12029,17 +12029,24 @@ and the string "<code> Iterator</code>".
 
 <h5 id="es-default-asynchronous-iterator-object">Default asynchronous iterator objects</h5>
 
-A <dfn id="dfn-default-asynchronous-iterator-object" export>default asynchronous iterator object</dfn>
-for a given [=interface=], target and iteration kind is an object whose \[[Prototype]]
+A <dfn id="dfn-default-asynchronous-iterator-object" export>default asynchronous iterator
+object</dfn> for a given [=interface=], target and iteration kind is an object whose \[[Prototype]]
 [=internal slot=] is the [=asynchronous iterator prototype object=] for the [=interface=].
 
 A [=default asynchronous iterator object=] has internal values:
 
-*   its <em>target</em>, which is an object whose values are to be iterated,
-*   its <em>kind</em>, which is the iteration kind,
-*   its <em>ongoing promise</em>, which is a {{Promise}},
-*   its <em>state</em>, which is an opaque value used to store the position of the iterator by the
-    algorithm to [=get the next iteration result=], or null.
+*   its <dfn for="default asynchronous iterator object">target</dfn>, which is an object whose
+    values are to be iterated,
+*   its <dfn for="default asynchronous iterator object">kind</dfn>, which is the iteration kind,
+*   its <dfn for="default asynchronous iterator object">ongoing promise</dfn>, which is a
+    {{Promise}} or undefined,
+*   its <dfn for="default asynchronous iterator object">state</dfn>, which is an opaque value used
+    to store the position of the iterator by the algorithm to [=get the next iteration result=], or
+    null.
+
+    Note: This value is associated with the iterator instance, rather than the [=interface=]
+    instance. It is explicitly handled here because the iterator instance is not exposed to the
+    prose that [=get the next iteration result|gets the next iteration result=].
 
 When a [=default asynchronous iterator object=] is first created, its state is not given.
 
@@ -12063,8 +12070,8 @@ The \[[Prototype]] [=internal slot=] of an [=asynchronous iterator prototype obj
 <div algorithm="to invoke the next property of asynchronous iterators">
 
     An [=asynchronous iterator prototype object=] must have a <code class="idl">next</code> data
-    property with attributes
-    { \[[Writable]]: <emu-val>true</emu-val>, \[[Enumerable]]: <emu-val>true</emu-val>, \[[Configurable]]: <emu-val>true</emu-val> }
+    property with attributes { \[[Writable]]: <emu-val>true</emu-val>,
+    \[[Enumerable]]: <emu-val>true</emu-val>, \[[Configurable]]: <emu-val>true</emu-val> }
     and whose value is a [=built-in function object=] that behaves as follows:
 
     1.  Let |interface| be the [=interface=] for which the
@@ -12096,28 +12103,30 @@ The \[[Prototype]] [=internal slot=] of an [=asynchronous iterator prototype obj
 
     1.  Let |nextSteps| be the following steps:
         1.  Let |nextPromiseCapability| be [=!=] [$NewPromiseCapability$]({{%Promise%}}).
-        1.  Let |oldState| be |object|'s state.
+        1.  Let |oldState| be |object|'s [=default asynchronous iterator object/state=].
         1.  If |oldState| is null, then:
             1.  Let |result| be [$CreateIterResultObject$](<emu-val>undefined</emu-val>,
                 <emu-val>true</emu-val>).
             1.  Perform [=!=] [$Call$](|nextPromiseCapability|.\[[Resolve]],
                 <emu-val>undefined</emu-val>, « |result| »).
             1.  Return |nextPromiseCapability|.\[[Promise]].
-        1.  Let |kind| be |object|'s kind.
+        1.  Let |kind| be |object|'s [=default asynchronous iterator object/kind=].
         1.  Let |nextPromise| be the result of
             [=get the next iteration result|getting the next iteration result=] with |object|'s
-            target as <b>[=this=]</b> and |oldState| as the <b>[=current state=]</b>.
+            [=default asynchronous iterator object/target=] as <b>[=this=]</b> and |oldState| as
+            the <b>[=current state=]</b>.
         1.  Let |resolveSteps| be the following steps, given |next|:
-            1.  Set |object|'s ongoing promise to undefined.
+            1.  Set |object|'s [=default asynchronous iterator object/ongoing promise=] to
+                undefined.
             1.  If |next| is undefined, then:
-                1.  Set |object|'s state to null.
+                1.  Set |object|'s [=default asynchronous iterator object/state=] to null.
                 1.  Let |result| be [$CreateIterResultObject$](<emu-val>undefined</emu-val>,
                     <emu-val>true</emu-val>).
                 1.  Perform [=!=] [$Call$](|nextPromiseCapability|.\[[Resolve]],
                     <emu-val>undefined</emu-val>, « |result| »).
             1.  Otherwise:
                 1.  Let (|key|, |value|, |newState|) be |next|.
-                1.  Set |object|'s state to |newState|.
+                1.  Set |object|'s [=default asynchronous iterator object/state=] to |newState|.
                 1.  Let |result| be the [=iterator result=] for (|key|, |value|) and |kind|.
                 1.  Perform [=!=] [$Call$](|nextPromiseCapability|.\[[Resolve]],
                     <emu-val>undefined</emu-val>, « |result| »).
@@ -12126,22 +12135,26 @@ The \[[Prototype]] [=internal slot=] of an [=asynchronous iterator prototype obj
             <emu-val>undefined</emu-val>, |nextPromiseCapability|).
         1.  Return |nextPromiseCapability|.\[[Promise]].
 
-    1.  If |object|'s ongoing promise is not undefined, then:
+    1.  Let |promise| be |object|'s [=default asynchronous iterator object/ongoing promise=].
+
+    1.  If |promise| is not undefined, then:
         1.  Let |afterOngoingPromiseCapability| be [=!=] [$NewPromiseCapability$]({{%Promise%}}).
         1.  Let |onFulfilled| be [=!=] [$CreateBuiltinFunction$](|nextSteps|, « »).
-        1.  Perform [=!=] [$PerformPromiseThen$](|object|'s ongoing promise, |onFulfilled|,
+        1.  Perform [=!=] [$PerformPromiseThen$](|promise|, |onFulfilled|,
             <emu-val>undefined</emu-val>, |afterOngoingPromiseCapability|).
-        1.  Set |object|'s ongoing promise to |afterOngoingPromiseCapability|.\[[Promise]].
+        1.  Set |object|'s [=default asynchronous iterator object/ongoing promise=] to
+            |afterOngoingPromiseCapability|.\[[Promise]].
 
     1.  Otherwise:
-        1.  Run |nextSteps| and set |object|'s ongoing promise to the result.
+        1.  Run |nextSteps| and set |object|'s
+            [=default asynchronous iterator object/ongoing promise=] to the result.
 
-    1.  Return |object|'s ongoing promise.
+    1.  Return |object|'s [=default asynchronous iterator object/ongoing promise=].
 </div>
 
-Issue: The [=class string=] of an [=asynchronous iterator prototype object=] for a given
-[=interface=] is the result of concatenating the [=identifier=] of the [=interface=] and the string
-"<code> Iterator</code>".
+The [=class string=] of an [=asynchronous iterator prototype object=] for a given [=interface=] is
+the result of concatenating the [=identifier=] of the [=interface=] and the string
+"<code> AsyncIterator</code>".
 
 
 <h4 id="es-maplike">Maplike declarations</h4>
