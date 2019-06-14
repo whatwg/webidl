@@ -4,7 +4,7 @@ This is the repository where the [Web IDL](http://heycam.github.io/webidl/) spec
 
 ## Contributing
 
-Good first bugs are marked as [short and easy](https://github.com/heycam/webidl/issues?utf8=%E2%9C%93&q=is%3Aopen+label%3A%22%E2%8C%9B+duration:short%22+label%3A%22%E2%98%95+difficulty:easy%22).
+Good first issues are labeled as a [short good first issue](https://github.com/heycam/webidl/issues?q=is%3Aopen+label%3A%22%E2%8C%9B+duration%3Ashort%22+label%3A%22good+first+issue%22).
 
 IDL generally follows the [WHATWG Contributor Guidelines](https://github.com/whatwg/meta/blob/master/CONTRIBUTING.md) and [WHATWG Committer Guidelines](https://github.com/whatwg/meta/blob/master/COMMITTING.md), except as otherwise noted.
 
