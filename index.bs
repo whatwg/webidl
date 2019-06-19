@@ -4138,9 +4138,16 @@ An [=interface=] can be declared to be asynchronously iterable by using an
 
 <pre class="syntax">
     interface interface_identifier {
+      async_iterable&lt;value_type&gt;;
       async_iterable&lt;key_type, value_type&gt;;
     };
 </pre>
+
+If a single type parameter is given, then the [=interface=] has an
+<dfn>asynchronous value iterator</dfn> and provides values of the specified type.
+If two type parameters are given, then the [=interface=] has an
+<dfn>asynchronous pair iterator</dfn> and provides value pairs, where the first value is a key and
+the second is the value associated with the key.
 
 Objects that [=implement=] an [=interface=] that is declared to be asynchronously iterable support
 being iterated over asynchronously to obtain a sequence of values.
@@ -4154,19 +4161,28 @@ Prose accompanying an [=interface=] with an [=asynchronously iterable declaratio
 This algorithm receives a <b>[=this=]</b> value, which is an instance of the [=interface=] that it
 is defined for, and the <dfn export>current state</dfn>.
 It must return a {{Promise}} that either resolves with undefined – to signal the end of the
-iteration – or a tuple with three elements:
+iteration – or a tuple.
+
+The tuple must have three elements if the [=interface=] has an
+[=asynchronous pair iterator=]:
 
 1.  a value of the first type given in the declaration;
 1.  a value of the second type given in the declaration;
+1.  an opaque value that is passed back to the next invocation of the algorithm,
+
+The tuple must have two elements if the [=interface=] has an
+[=asynchronous value iterator=]:
+
+1.  a value of the type given in the declaration;
 1.  an opaque value that is passed back to the next invocation of the algorithm,
 
 The prose may also define <dfn>asynchronous iterator initialization steps</dfn> for the
 [=interface=] with an [=asynchronously iterable declaration=], which would then be called with the
 newly created iterator object.
 
-[=Interfaces=] with an [=asynchronously iterable declaration=] must not have any
-[=interface members=] named "<code>entries</code>", "<code>keys</code>", or "<code>values</code>",
-or have any [=inherited interfaces=] that have [=interface members=] with these names.
+[=Interfaces=] with an [=asynchronous pair iterator=] must not have any [=interface members=]
+named "<code>entries</code>", "<code>keys</code>", or "<code>values</code>", or have any
+[=inherited interfaces=] that have [=interface members=] with these names.
 
 <div class="example">
 
@@ -4261,7 +4277,7 @@ When they are, the effect will be as you would expect.
 
 <pre class="grammar" id="prod-AsyncIterable">
     AsyncIterable :
-        "async_iterable" "&lt;" TypeWithExtendedAttributes "," TypeWithExtendedAttributes "&gt;" ";"
+        "async_iterable" "&lt;" TypeWithExtendedAttributes OptionalType "&gt;" ";"
 </pre>
 
 
@@ -11670,9 +11686,11 @@ The location of the property is determined as follows:
         is declared.
     1.  If |object| does not [=implement=] |interface|, then [=ECMAScript/throw=] a
         {{ECMAScript/TypeError}}.
+    1.  Let |kind| be "<code>key+value</code>" if |interface| has an [=asynchronous pair iterator=],
+        and "<code>value only</code>" if |interface| has an [=asynchronous value iterator=],
     1.  Let |iterator| be a newly created [=default asynchronous iterator object=] for |interface|
         with |object| as its [=default asynchronous iterator object/target=] and
-        "<code>key+value</code>" as its [=default asynchronous iterator object/kind=].
+        |kind| as its [=default asynchronous iterator object/kind=].
     1.  Run the [=asynchronous iterator initialization steps=] for |interface| with |iterator|, if
         any.
     1.  Return |iterator|.
@@ -11791,7 +11809,7 @@ property is the String value "<code>forEach</code>".
 
 <h5 id="es-iterable-entries">entries</h5>
 
-If the [=interface=] has an [=iterable declaration=] or an [=asynchronously iterable declaration=],
+If the [=interface=] has an [=iterable declaration=] or an [=asynchronous pair iterator=],
 then an <code class="idl">entries</code> data property must exist with attributes
 { \[[Writable]]: <emu-val>true</emu-val>, \[[Enumerable]]: <emu-val>true</emu-val>, \[[Configurable]]: <emu-val>true</emu-val> }
 and whose value is a [=function object=].
@@ -11809,12 +11827,12 @@ If the interface has a [=pair iterator=],
 then the [=function object=] is
 the value of the {{@@iterator}} property.
 
-If the interface has an [=asynchronously iterable declaration=], then the [=function object=] is
+If the interface has an [=asynchronous pair iterator=], then the [=function object=] is
 the value of the {{@@asyncIterator}} property.
 
 <h5 id="es-iterable-keys">keys</h5>
 
-If the [=interface=] has an [=iterable declaration=] or an [=asynchronously iterable declaration=],
+If the [=interface=] has an [=iterable declaration=] or an [=asynchronous pair iterator=],
 then a <code class="idl">keys</code> data property must exist with attributes
 { \[[Writable]]: <emu-val>true</emu-val>, \[[Enumerable]]: <emu-val>true</emu-val>, \[[Configurable]]: <emu-val>true</emu-val> }
 and whose value is a [=function object=].
@@ -11850,7 +11868,7 @@ then the [=function object=] is {{%ArrayProto_keys%}}.
 
 <div algorithm="to invoke the keys method of asynchronously iterable interfaces">
 
-    If the interface has an [=asynchronously iterable declaration=], then the method, when invoked,
+    If the interface has an [=asynchronous pair iterator=], then the method, when invoked,
     must behave as follows:
 
     1.  Let |object| be the result of calling [$ToObject$] on the <emu-val>this</emu-val> value.
@@ -11858,7 +11876,7 @@ then the [=function object=] is {{%ArrayProto_keys%}}.
         *   the platform object |object|,
         *   the identifier "<code>keys</code>", and
         *   the type "<code>method</code>".
-    1.  Let |interface| be the [=interface=] on which the [=asynchronously iterable declaration=]
+    1.  Let |interface| be the [=interface=] on which the [=asynchronous pair iterator=]
         is declared.
     1.  If |object| does not [=implement=] |interface|, then [=ECMAScript/throw=] a
         {{ECMAScript/TypeError}}.
@@ -11877,7 +11895,7 @@ The value of the [=function object=]’s <code class="idl">name</code> property 
 
 <h5 id="es-iterable-values">values</h5>
 
-If the [=interface=] has an [=iterable declaration=] or an [=asynchronously iterable declaration=],
+If the [=interface=] has an [=iterable declaration=] or an [=asynchronous pair iterator=],
 then a <code class="idl">values</code> data property must exist
 with attributes { \[[Writable]]: <emu-val>true</emu-val>, \[[Enumerable]]: <emu-val>true</emu-val>, \[[Configurable]]: <emu-val>true</emu-val> }
 and whose value is a [=function object=].
@@ -11914,7 +11932,7 @@ the value of the {{@@iterator}} property.
 
 <div algorithm="to invoke the values method of asynchronously iterable interfaces">
 
-    If the interface has an [=asynchronously iterable declaration=], then the method, when invoked,
+    If the interface has an [=asynchronous pair iterator=], then the method, when invoked,
     must behave as follows:
 
     1.  Let |object| be the result of calling [$ToObject$] on the <emu-val>this</emu-val> value.
@@ -11922,7 +11940,7 @@ the value of the {{@@iterator}} property.
         *   the platform object |object|,
         *   the identifier "<code>entries</code>", and
         *   the type "<code>method</code>".
-    1.  Let |interface| be the [=interface=] on which the [=asynchronously iterable declaration=]
+    1.  Let |interface| be the [=interface=] on which the [=asynchronous pair iterator=]
         is declared.
     1.  If |object| does not [=implement=] |interface|, then [=ECMAScript/throw=] a
         {{ECMAScript/TypeError}}.
@@ -12129,20 +12147,22 @@ The \[[Prototype]] [=internal slot=] of an [=asynchronous iterator prototype obj
             [=default asynchronous iterator object/target=] as <b>[=this=]</b> and |oldState| as
             the <b>[=current state=]</b>.
         1.  Let |resolveSteps| be the following steps, given |next|:
-            1.  Set |object|'s [=default asynchronous iterator object/ongoing promise=] to
-                undefined.
             1.  If |next| is undefined, then:
-                1.  Set |object|'s [=default asynchronous iterator object/state=] to null.
                 1.  Let |result| be [$CreateIterResultObject$](<emu-val>undefined</emu-val>,
                     <emu-val>true</emu-val>).
-                1.  Perform [=!=] [$Call$](|nextPromiseCapability|.\[[Resolve]],
-                    <emu-val>undefined</emu-val>, « |result| »).
+                1.  Let |newState| be null.
             1.  Otherwise:
-                1.  Let (|key|, |value|, |newState|) be |next|.
-                1.  Set |object|'s [=default asynchronous iterator object/state=] to |newState|.
-                1.  Let |result| be the [=iterator result=] for (|key|, |value|) and |kind|.
-                1.  Perform [=!=] [$Call$](|nextPromiseCapability|.\[[Resolve]],
-                    <emu-val>undefined</emu-val>, « |result| »).
+                1.  If |kind| is "<code>value only</code>", then:
+                    1.  Let (|value|, |newState|) be |next|.
+                    1.  Let |result| be the result of [=converted to an ECMAScript value|converting=] |value| to an ECMAScript value.
+                1.  Otherwise:
+                    1.  Let (|key|, |value|, |newState|) be |next|.
+                    1.  Let |result| be the [=iterator result=] for (|key|, |value|) and |kind|.
+            1.  Set |object|'s [=default asynchronous iterator object/ongoing promise=] to
+                undefined.
+            1.  Set |object|'s [=default asynchronous iterator object/state=] to |newState|.
+            1.  Perform [=!=] [$Call$](|nextPromiseCapability|.\[[Resolve]],
+                <emu-val>undefined</emu-val>, « |result| »).
         1.  Let |onFulfilled| be [=!=] [$CreateBuiltinFunction$](|resolveSteps|, « »).
         1.  Perform [=!=] [$PerformPromiseThen$](|nextPromise|, |onFulfilled|,
             <emu-val>undefined</emu-val>, |nextPromiseCapability|).
