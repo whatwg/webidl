@@ -11783,6 +11783,33 @@ for the interface.
 The \[[Prototype]] [=internal slot=] of an [=iterator prototype object=]
 must be {{%IteratorPrototype%}}.
 
+<div algorithm>
+  The <dfn>iterator result</dfn> for a pair of IDL values |pair| and a kind |kind| is given by the
+  following steps:
+
+    1.  Let |result| be a value determined by the value of |kind|:
+        <dl class="switch">
+             :  "<code>key</code>"
+             :: 1.  Let |idlKey| be |pair|’s key.
+                1.  Let |key| be the result of [=converted to an ECMAScript value|converting=] |idlKey| to an ECMAScript value.
+                1.  |result| is |key|.
+             :  "<code>value</code>"
+             :: 1.  Let |idlValue| be |pair|’s value.
+                1.  Let |value| be the result of [=converted to an ECMAScript value|converting=] |idlValue| to an ECMAScript value.
+                1.  |result| is |value|.
+             :  "<code>key+value</code>"
+             :: 1.  Let |idlKey| be |pair|’s key.
+                1.  Let |idlValue| be |pair|’s value.
+                1.  Let |key| be the result of [=converted to an ECMAScript value|converting=] |idlKey| to an ECMAScript value.
+                1.  Let |value| be the result of [=converted to an ECMAScript value|converting=] |idlValue| to an ECMAScript value.
+                1.  Let |array| be the result of performing [$ArrayCreate$](2).
+                1.  Call [$CreateDataProperty$](|array|, "<code>0</code>", |key|).
+                1.  Call [$CreateDataProperty$](|array|, "<code>1</code>", |value|).
+                1.  |result| is |array|.
+        </dl>
+    1.  Return [$CreateIterResultObject$](|result|, <emu-val>false</emu-val>).
+</div>
+
 <div algorithm="to invoke the next property of iterators">
 
     An [=iterator prototype object=] must have a <code class="idl">next</code> data property with attributes
@@ -11807,27 +11834,7 @@ must be {{%IteratorPrototype%}}.
         return <a abstract-op>CreateIterResultObject</a>(<emu-val>undefined</emu-val>, <emu-val>true</emu-val>).
     1.  Let |pair| be the entry in |values| at index |index|.
     1.  Set |object|’s index to |index| + 1.
-    1.  Let |result| be a value determined by the value of |kind|:
-        <dl class="switch">
-             :  "<code>key</code>"
-             :: 1.  Let |idlKey| be |pair|’s key.
-                1.  Let |key| be the result of [=converted to an ECMAScript value|converting=] |idlKey| to an ECMAScript value.
-                1.  |result| is |key|.
-             :  "<code>value</code>"
-             :: 1.  Let |idlValue| be |pair|’s value.
-                1.  Let |value| be the result of [=converted to an ECMAScript value|converting=] |idlValue| to an ECMAScript value.
-                1.  |result| is |value|.
-             :  "<code>key+value</code>"
-             :: 1.  Let |idlKey| be |pair|’s key.
-                1.  Let |idlValue| be |pair|’s value.
-                1.  Let |key| be the result of [=converted to an ECMAScript value|converting=] |idlKey| to an ECMAScript value.
-                1.  Let |value| be the result of [=converted to an ECMAScript value|converting=] |idlValue| to an ECMAScript value.
-                1.  Let |array| be the result of performing <a abstract-op>ArrayCreate</a>(2).
-                1.  Call <a abstract-op>CreateDataProperty</a>(|array|, "<code>0</code>", |key|).
-                1.  Call <a abstract-op>CreateDataProperty</a>(|array|, "<code>1</code>", |value|).
-                1.  |result| is |array|.
-        </dl>
-    1.  Return <a abstract-op>CreateIterResultObject</a>(|result|, <emu-val>false</emu-val>).
+    1.  Return the [=iterator result=] for |pair| and |kind|.
 </div>
 
 The [=class string=] of an [=iterator prototype object=] for a given [=interface=]
