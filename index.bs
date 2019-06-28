@@ -1616,8 +1616,8 @@ or one of the three special floating point constant values
 (<emu-t>-Infinity</emu-t>, <emu-t>Infinity</emu-t> and <emu-t>NaN</emu-t>).
 
 Note: These values – in addition to strings and the empty sequence – can also be used to specify the
-[=dictionary member/default value|default value of a dictionary member=] or [=optional argument/default value|of an optional argument=].  Note that strings and the
-empty sequence <code>[]</code> cannot be used as the value of a
+[=dictionary member/default value|default value of a dictionary member=] or [=optional argument/default value|of an optional argument=].  Note that strings, the
+empty sequence <emu-t>[]</emu-t>, and the default dictionary <emu-t>{}</emu-t> cannot be used as the value of a
 [=constant=].
 
 The value of the boolean literal tokens <emu-t>true</emu-t> and
@@ -2242,12 +2242,12 @@ corresponding argument omitted.
     conversion of <emu-val>undefined</emu-val> to be used (i.e., <emu-val>false</emu-val>).
 </p>
 
-If the type of an argument is a [=dictionary type=] or a [=union type=] that has a dictionary as one
+If the type of an argument is a [=dictionary type=] or a [=union type=] that has
+a [=dictionary type=] as one
 of its [=flattened member types=], and that dictionary type and its ancestors have no
 [=required dictionary member|required members=], and the argument is either the final argument or is
-followed only by [=optional arguments=], then the argument must be specified as optional. Such
-arguments are always considered to have a [=optional argument/default value=] of an empty
-dictionary, unless otherwise specified.
+followed only by [=optional arguments=], then the argument must be specified as
+optional and have a default value provided.
 
 <div class="note">
 
@@ -2255,11 +2255,10 @@ dictionary, unless otherwise specified.
     empty dictionary value when they wish only to use the dictionary’s
     default values.
 
-    Dictionary types cannot have a default value specified explicitly, so the
-    “unless otherwise specified” clause above can only be invoked for
-    a [=union type=] that has a
-    dictionary type as one of its [=flattened member types=].
-
+    Usually the default value provided will be <emu-t>{}</emu-t>, but in the
+    case of a [=union type=] that has a dictionary type as one of its
+    [=flattened member types=] a default value could be provided that
+    initializes some other member of the union.
 </div>
 
 When a boolean literal token (<emu-t>true</emu-t> or <emu-t>false</emu-t>),
@@ -2303,12 +2302,19 @@ is an [=enumeration=], then its
 be one of the [=enumeration values|enumeration’s values=].
 
 Optional argument default values can also be specified using the
-two token value <code>[]</code>, which represents an empty sequence
+two token value <emu-t>[]</emu-t>, which represents an empty sequence
 value.  The type of this value is the same as the type of the optional
 argument it is being used as the default value of.  That type
 must be a [=sequence type=], a [=nullable type=] whose [=nullable types/inner type=] is a
 [=sequence type=] or a [=union type=] or [=nullable type|nullable=] union type
 that has a [=sequence type=] in its [=flattened member types=].
+
+Optional argument default values can also be specified using the two token value
+<emu-t>{}</emu-t>, which represents a default-initialized (as if from ES
+<emu-t>null</emu-t> or an object with no properties) dictionary value.  The type
+of this value is the same as the type of the optional argument it is being used
+as the default value of.  That type must be a [=dictionary type=], or a [=union
+type=] that has a [=dictionary type=] in its [=flattened member types=].
 
 <div class="example">
 
@@ -2337,6 +2343,31 @@ that has a [=sequence type=] in its [=flattened member types=].
     </pre>
 </div>
 
+<div class="example">
+
+    The following [=IDL fragment=]
+    defines an [=interface=]
+    with an operation that takes a dictionary argument:
+
+    <!-- Should be `highlight="webidl"`, but that gives bikeshed conniptions
+         because it does not know about the syntax we are introducing -->
+    <pre>
+        dictionary LookupOptions {
+          boolean caseSensitive = false;
+        };
+
+        [Exposed=Window]
+        interface AddressBook {
+          boolean hasAddressForName(USVString name, optional LookupOptions options = {});
+        };
+    </pre>
+
+    If <code>hasAddressForName</code> is called with only one argument, the
+    second argument will be a default-initialized <code>LookupOptions</code>
+    dictionary, which will cause <code>caseSensitive</code> to be set to
+    <emu-t>false</emu-t>.
+</div>
+
 The following extended attributes are applicable to operations:
 [{{Default}}],
 [{{Exposed}}],
@@ -2349,6 +2380,7 @@ The following extended attributes are applicable to operations:
         ConstValue
         string
         "[" "]"
+        "{" "}"
         "null"
 </pre>
 
@@ -4524,8 +4556,9 @@ an <emu-t class="regex"><a href="#prod-integer">integer</a></emu-t> token, a
 <emu-t class="regex"><a href="#prod-decimal">decimal</a></emu-t> token,
 one of the three special floating point literal values (<emu-t>Infinity</emu-t>,
 <emu-t>-Infinity</emu-t> or <emu-t>NaN</emu-t>),
-a <emu-t class="regex"><a href="#prod-string">string</a></emu-t> token or
-the two token sequence <emu-t>[]</emu-t> used as the
+a <emu-t class="regex"><a href="#prod-string">string</a></emu-t> token, the two
+token sequence <emu-t>[]</emu-t>, or the two token sequence <emu-t>{}</emu-t> is
+used as the
 [=dictionary member/default value=],
 it is interpreted in the same way as for an [=operation=]’s
 [=optional argument/default value|optional argument default value=].
