@@ -13392,7 +13392,8 @@ fragment:
 <pre class="idl">
 [
  Exposed=(Window,Worker),
- Constructor(optional DOMString message = "", optional DOMString name = "Error")
+ Constructor(optional DOMString message = "", optional DOMString name = "Error"),
+ Serializable
 ]
 interface DOMException { // but see below note about ECMAScript binding
   readonly attribute DOMString name;
@@ -13449,6 +13450,26 @@ The <dfn attribute for="DOMException"><code>code</code></dfn> attribute's getter
 legacy code indicated in the [=error names table=] for this {{DOMException}} object's
 [=DOMException/name=], or 0 if no such entry exists in the table.
 
+{{DOMException}} objects are [=serializable objects=].
+
+Their [=serialization steps=], given <var>value</var> and <var>serialized</var>, are:
+
+<ol>
+    <li>Set <var>serialized</var>.\[[Name]] to <var>value</var>'s [=DOMException/name=].</li>
+    <li>Set <var>serialized</var>.\[[Message]] to <var>value</var>'s [=DOMException/message=].</li>
+    <li>User agents should attach a serialized representation of any interesting accompanying data
+    which are not yet specified, notably the <code>stack</code> property, to
+    <var>serialized</var>.</li>
+</ol>
+
+Their [=deserialization steps=], given <var>value</var> and <var>serialized</var>, are:
+
+<ol>
+    <li><Set <var>value</var>'s [=DOMException/name=] to <var>serialized</var>.\[[Name]].</li>
+    <li><Set <var>value</var>'s [=DOMException/message=] to <var>serialized</var>.\[[Message]].</li>
+    <li>If any other data is attached to <var>serialized</var>, then deserialize and attach it to
+    <var>value</var>.</li>
+</ol>
 
 <h3 id="DOMTimeStamp" typedef oldids="common-DOMTimeStamp">DOMTimeStamp</h3>
 
