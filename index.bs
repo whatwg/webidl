@@ -818,12 +818,25 @@ across [=IDL fragments=].
 
 <h3 id="idl-interfaces">Interfaces</h3>
 
-[=IDL fragments=] are used to
-describe object oriented systems.  In such systems, objects are entities
-that have identity and which are encapsulations of state and behavior.
-An <dfn id="dfn-interface" export>interface</dfn> is a definition (matching
-<emu-t>interface</emu-t> <emu-nt><a href="#prod-InterfaceRest">InterfaceRest</a></emu-nt>) that declares some
-state and behavior that an object implementing that interface will expose.
+Web IDL is used to describe object oriented systems.
+In such systems, objects are entities that have identity and which are encapsulations of state and
+behavior.
+
+An <dfn id="dfn-interface" export>interface</dfn> is an entity that can be implemented by
+particular objects and that describes the behavior of the objects that implement it.
+The objects implement a single primary interface, as well as any interface that the primary
+interface [=interface/inherits=] from.
+
+In bindings for object oriented languages, it is expected that an object that implements a
+particular [=interface=] provides ways to inspect and modify the object's state and to invoke the
+behavior described by the [=interface=].
+The relevant language binding determines how [=interfaces=] correspond to constructs in the
+language.
+
+An [=interface=] must exist for every [=definition=] matching <emu-t>interface</emu-t>
+<emu-nt><a href="#prod-InterfaceRest">InterfaceRest</a></emu-nt> in an [=IDL fragment=] supported
+by the implementation.
+This [=definition=] defines the [=interface's=] [=identifier=].
 
 <pre highlight="webidl" class="syntax">
     [extended_attributes]
@@ -832,33 +845,132 @@ state and behavior that an object implementing that interface will expose.
     };
 </pre>
 
-An interface is a specification of a set of
-<dfn id="dfn-interface-member" export lt="interface member">interface members</dfn>
-(matching <emu-nt><a href="#prod-InterfaceMembers">InterfaceMembers</a></emu-nt>).
-These are the [=members=] that appear between the braces in the interface declaration.
+The following [=extended attributes=] are applicable to interface [=definitions=]:
+[{{Exposed}}],
+[{{Global}}],
+[{{LegacyNamespace}}],
+[{{LegacyWindowAlias}}],
+[{{NamedConstructor}}],
+[{{NoInterfaceObject}}],
+[{{OverrideBuiltins}}], and
+[{{SecureContext}}].
 
-Interfaces in Web IDL describe how objects that implement the
-interface behave.  In bindings for object oriented languages, it is
-expected that an object that implements a particular IDL interface
-provides ways to inspect and modify the object's state and to
-invoke the behavior described by the interface.
+If an interface [=definition=] is annotated with an [=extended attribute=], the [=interface=]
+itself is also considered to be annotated with that [=extended attribute=]
 
-An interface can be defined to <dfn id="dfn-inherit" for="interface" export>inherit</dfn> from another interface.
-If the identifier of the interface is followed by a
-<span class="char">U+003A COLON (":")</span> character
-and an [=identifier=],
-then that identifier identifies the inherited interface.
-An object that implements an interface that inherits from another
-also implements that inherited interface.  The object therefore will also
-have members that correspond to the interface members from the inherited interface.
+[=Interfaces=] which are not annotated with a [{{NoInterfaceObject}}] [=extended attribute=] must
+be annotated with an [{{Exposed}}] [=extended attribute=].
+
+
+<div algorithm>
+
+The <dfn>qualified name</dfn> of an [=interface=] |interface| is defined as follows:
+
+1.  Let |identifier| be the [=identifier=] of |interface|.
+1.  If |interface| has a [{{LegacyNamespace}}] [=extended attribute=], then:
+    1.  Let |namespace| be the identifier argument of the [{{LegacyNamespace}}]
+        [=extended attribute=].
+    1.  Return the [=concatenation=] of « |namespace|, |identifier| » with
+        separator <span class="char">U+002E FULL STOP (".")</span>.
+1. Return |identifier|.
+
+</div>
+
+
+<h4 id="idl-interfaces-members">Members</h4>
+
+An [=interface=] contains a [=list=] of [=interface members=], which define most of the behavior
+of the objects that implement it. These can be declared in several locations:
+
+*   as part of the initial interface [=definition=];
+*   as part of a [=partial interface=] [=definition=];
+*   as part of an [=interface mixin=] or a [=partial interface mixin=] [=definition=], using an
+    [=includes statement=] to associate them with the [=interface=].
+
+<div algorithm>
+
+The <dfn id="dfn-interface-member" export lt="interface member">interface members</dfn> of an
+[=interface=] |I| are given by the following algorithm:
+
+1.  Let |members| be « ».
+1.  Let |initialDefinition| be the [=definition=] that matches <emu-t>interface</emu-t>
+    <emu-nt><a href="#prod-InterfaceRest">InterfaceRest</a></emu-nt>, and whose [=identifier=]
+    matches |I|'s.
+1.  Let |initialMembers| be the [=list=] of [=members=] defined by the
+    <emu-nt><a href="#prod-InterfaceMembers">InterfaceMembers</a></emu-nt> non-terminal in
+    |initialDefinition|.
+1.  [=list/Extend=] |members| with |initialMembers|.
+1.  Let |partialDefinitions| be the unordered [=/set=] of [=definitions=] that match
+    <emu-t>partial</emu-t> <emu-t>interface</emu-t>
+    <emu-nt><a href="#prod-PartialInterfaceRest">PartialInterfaceRest</a></emu-nt>, and whose
+    [=identifier=] matches |I|'s.
+1.  [=set/For each=] |partialDefinition| of |partialDefinitions|:
+    1.  Let |partialMembers| be the [=list=] of [=members=] defined by the
+        <emu-nt><a href="#prod-InterfaceMembers">InterfaceMembers</a></emu-nt> non-terminal in
+        |partialDefinition|.
+    1.  [=list/Extend=] |members| with |partialMembers|.
+1.  Let |mixins| be the unordered [=/set=] of [=interface mixins=] that |I| [=includes=].
+1.  [=set/For each=] |mixin| of |mixins|:
+    1.  Let |mixinMembers| be |mixin|'s [=interface mixin members=].
+
+        Note: This includes any [=members=] defined in [=partial interface mixins=].
+    1.  [=list/For each=] |member| of |mixinMembers|:
+        1.  Let |hostMember| be a copy of |member|.
+        1.  Set |hostMember|'s [=host interface=] to |I|.
+        1.  [=list/Append=] |hostMember| to |members|.
+1.  Return |members|.
+
+Note: The [=interface members=] of [=interface=] that |I| [=interface/inherits=] from are not
+included.
+
+Note: The order that members appear in has significance for property enumeration in the
+<a href="#es-interfaces">ECMAScript binding</a>.
+
+Note: There are web compatibility requirements for the order of the members within a particular
+[=definition=] (involving {{CanvasPath/arc()}} and {{CanvasPath/arcTo()}}). We are not
+currently aware of any other web compatibility requirements.
+
+Issue(heycam/webidl#432): The order of the members is yet to be defined precisely.
+</div>
+
+Each interface member can be preceded by a list of [=extended attributes=] (matching
+<emu-nt><a href="#prod-ExtendedAttributeList">ExtendedAttributeList</a></emu-nt>),
+which can control how the interface member will be handled in language bindings.
+
+<pre highlight="webidl" class="syntax">
+    [extended_attributes]
+    interface identifier {
+      [<mark>extended_attributes</mark>]
+      const type constant_identifier = 42;
+
+      [<mark>extended_attributes</mark>]
+      attribute type identifier;
+
+      [<mark>extended_attributes</mark>]
+      return_type identifier(/* arguments... */);
+    };
+</pre>
+
+
+<h4 id="idl-interfaces-inheritance">Inheritance</h4>
+
+If the <emu-nt><a href="#prod-Inheritance">Inheritance</a></emu-nt> production of this
+[=definition=] matches <emu-t>:</emu-t>
+<emu-t class="regex"><a href="#prod-identifier">identifier</a></emu-t>, this [=interface=]
+<dfn id="dfn-inherit" for="interface" export lt="inherit">inherits</dfn> from the [=interface=]
+whose [=identifier=] matches the identifier.
+There must be such an [=interface=].
+
+An object that implements an [=interface=] that [=interface/inherits=] from another is also
+considered to implement that inherited [=interface=].
+
+Note: General multiple inheritance is not supported.
 
 <pre highlight="webidl" class="syntax">
     interface identifier : <mark>identifier_of_inherited_interface</mark> {
       /* interface_members... */
     };
 </pre>
-
-The order that members appear in has significance for property enumeration in the <a href="#es-interfaces">ECMAScript binding</a>.
 
 Interfaces may specify an interface member that has the same name as
 one from an inherited interface.  Objects that implement the derived
@@ -929,33 +1041,8 @@ interface |B| that inherits from |A|, and so on.
     1.  Return |result|.
 </div>
 
-Note that general multiple inheritance of interfaces is not supported, and
-objects also cannot implement arbitrary sets of interfaces.
-Objects can be defined to implement a single given interface |A|,
-which means that it also implements all of |A|’s [=inherited interfaces=].
-In addition, an [=includes statement=] can be used
-to define that objects implementing an [=interface=] |A|
-will always also include the [=interface mixin member|members=]
-of the [=interface mixins=] |A| [=includes=].
 
-Each interface member can be preceded by a list of [=extended attributes=] (matching
-<emu-nt><a href="#prod-ExtendedAttributeList">ExtendedAttributeList</a></emu-nt>),
-which can control how the interface member will be handled in language bindings.
-
-<pre highlight="webidl" class="syntax">
-    [extended_attributes]
-    interface identifier {
-
-      [<mark>extended_attributes</mark>]
-      const type constant_identifier = 42;
-
-      [<mark>extended_attributes</mark>]
-      attribute type identifier;
-
-      [<mark>extended_attributes</mark>]
-      return_type identifier(/* arguments... */);
-    };
-</pre>
+<h4 id="idl-interfaces-partial">Partial interfaces</h4>
 
 The IDL for interfaces can be split into multiple parts by using
 <dfn id="dfn-partial-interface" export>partial interface</dfn> definitions
@@ -963,9 +1050,7 @@ The IDL for interfaces can be split into multiple parts by using
 <emu-nt><a href="#prod-PartialInterfaceRest">PartialInterfaceRest</a></emu-nt>).
 The [=identifier=] of a partial
 interface definition must be the same
-as the identifier of an interface definition.  All of
-the members that appear on each of the partial interfaces are considered to be
-members of the interface itself.
+as the identifier of an interface definition.
 
 <pre highlight="webidl" class="syntax">
     interface <mark>SomeInterface</mark> {
@@ -990,40 +1075,13 @@ Note: A partial interface definition cannot specify that the interface
 Inheritance must be specified on the original [=interface=]
 definition.
 
-The relevant language binding determines how interfaces correspond to constructs
-in the language.
-
-The following extended attributes are applicable to interfaces:
-[{{Exposed}}],
-[{{Global}}],
-[{{LegacyWindowAlias}}],
-[{{NamedConstructor}}],
-[{{NoInterfaceObject}}],
-[{{OverrideBuiltins}}], and
-[{{SecureContext}}].
-
-The following extended attributes are applicable to [=partial interfaces=]:
+The following extended attributes are applicable to [=partial interface=] [=definitions=]:
 [{{Exposed}}],
 [{{OverrideBuiltins}}], and
 [{{SecureContext}}].
 
-[=Interfaces=] which are not annotated
-with a [{{NoInterfaceObject}}] [=extended attribute=]
-must be annotated with an [{{Exposed}}] [=extended attribute=].
 
-<div algorithm>
-
-The <dfn>qualified name</dfn> of an [=interface=] |interface| is defined as follows:
-
-1.  Let |identifier| be the [=identifier=] of |interface|.
-1.  If |interface| has a [{{LegacyNamespace}}] [=extended attribute=], then:
-    1.  Let |namespace| be the identifier argument of the [{{LegacyNamespace}}]
-        [=extended attribute=].
-    1.  Return the [=concatenation=] of « |namespace|, |identifier| » with
-        separator <span class="char">U+002E FULL STOP (".")</span>.
-1. Return |identifier|.
-
-</div>
+<h4 id="idl-interfaces-syntax">Syntax</h4>
 
 <pre class="grammar" id="prod-CallbackOrInterfaceOrMixin">
     CallbackOrInterfaceOrMixin :
@@ -1188,10 +1246,15 @@ The <dfn>qualified name</dfn> of an [=interface=] |interface| is defined as foll
 
 <h3 id="idl-interface-mixins">Interface mixins</h3>
 
-An <dfn export>interface mixin</dfn> is a definition (matching <emu-t>interface</emu-t> <emu-nt><a href="#prod-MixinRest">MixinRest</a></emu-nt>)
-that declares state and behavior that can be [=included=] by one or more [=interfaces=],
+An <dfn export>interface mixin</dfn> is an entity that declares state and behavior in the form of
+[=interface mixin members=] that can be [=included=] by one or more [=interfaces=],
 and that are exposed by objects that implement an [=interface=]
 that [=includes=] the [=interface mixin=].
+
+An [=interface mixin=] must exist for every [=definition=] matching <emu-t>interface</emu-t>
+<emu-nt><a href="#prod-MixinRest">MixinRest</a></emu-nt> in an [=IDL fragment=] supported by the
+implementation.
+This [=definition=] defines the [=interface mixin's=] [=identifier=].
 
 <pre highlight="webidl" class="syntax">
     interface mixin identifier {
@@ -1207,28 +1270,89 @@ They are not meant to be exposed through language bindings.
 Guidance on when to choose [=partial interfaces=], [=interface mixins=],
 or [=partial interface mixins=] can be found in [[#using-mixins-and-partials]].
 
-An [=interface mixin=] is a specification of a set of <dfn export lt="interface mixin member">interface mixin members</dfn>
-(matching <emu-nt><a href="#prod-MixinMembers">MixinMembers</a></emu-nt>),
-which are the [=constants=], [=regular operations=], [=regular attributes=], and [=stringifiers=]
-that appear between the braces in the [=interface mixin=] declaration.
+Note: Unlike [=interfaces=] or [=dictionaries=], [=interface mixins=] do not create types.
 
-These [=constants=], [=regular operations=], [=regular attributes=], and [=stringifiers=]
-describe the behaviors that can be implemented by an object,
-as if they were specified on the [=interface=] that [=includes=] them.
+Of the extended attributes defined in this specification,
+only the [{{Exposed}}] and [{{SecureContext}}] extended attributes
+are applicable to [=interface mixins=].
 
-[=Static attributes=], [=static operations=], [=special operations=] except for [=stringifiers=], and
-[=iterable declaration|iterable=], [=asynchronously iterable declaration|asynchronously iterable=],
-[=maplike declaration|maplike=], and [=setlike declarations=] cannot appear in [=interface mixin=]
-declarations.
+
+<h4 id="idl-interface-mixins-members">Members</h4>
+
+An [=interface mixin=] contains a [=list=] of [=interface mixin members=], which define most of its
+behavior. These can be declared in the initial interface mixin [=definition=] as well as in a
+[=partial interface mixin=] [=definition=].
+
+<div algorithm>
+
+The <dfn export lt="interface mixin member">interface mixin members</dfn> of an [=interface mixin=]
+|M| are given by the following algorithm:
+
+1.  Let |members| be « ».
+1.  Let |initialDefinition| be the [=definition=] that matches <emu-t>interface</emu-t>
+    <emu-nt><a href="#prod-MixinRest">MixinRest</a></emu-nt>, and whose [=identifier=] matches
+    |M|'s.
+1.  Let |initialMembers| be the [=list=] of [=members=] defined by the
+    <emu-nt><a href="#prod-MixinMembers">MixinMembers</a></emu-nt> non-terminal in
+    |initialDefinition|.
+1.  [=list/Extend=] |members| with |initialMembers|.
+1.  Let |partialDefinitions| be the unordered [=/set=] of [=definitions=] that match
+    <emu-t>partial</emu-t> <emu-t>interface</emu-t>
+    <emu-nt><a href="#prod-MixinRest">MixinRest</a></emu-nt>.
+1.  [=set/For each=] |partialDefinition| of |partialDefinitions|:
+    1.  Let |partialMembers| be the [=list=] of [=members=] defined by the
+        <emu-nt><a href="#prod-MixinMembers">MixinMembers</a></emu-nt> non-terminal in
+        |partialDefinition|.
+    1.  [=list/Extend=] |members| with |partialMembers|.
+1.  Return |members|.
+
+Note: The result includes [=constants=], [=regular operations=], [=regular attributes=], and
+[=stringifiers=].
+[=Static attributes=], [=static operations=], [=special operations=] except for
+[=stringifiers=], and [=iterable declaration|iterable=],
+[=asynchronously iterable declaration|asynchronously iterable=],
+[=maplike declaration|maplike=], and [=setlike declarations=] cannot be included in the
+<emu-nt><a href="#prod-MixinMembers">MixinMembers</a></emu-nt> non-terminal.
+
+Note: The order that members appear in has significance for property enumeration
+in the <a href="#es-namespaces">ECMAScript binding</a>.
+
+Issue(heycam/webidl#432): The order of the members is yet to be defined precisely.
+</div>
+
+[=Interface mixin members=] have a <dfn>host interface</dfn>, which is initially unset.
+
+Note: The [=host interface=] of an [=interface mixin member=] is used to decide whether the
+[=interface mixin member|member=] is [=exposed=].
+
+Note: When an [=interface=] |I| [=interface/includes=] an [=interface mixin=] |M|, |I|'s [=list=]
+of [=interface members=] has a copy of each of the [=interface mixin member|members=] of |M|,
+with their [=host interface=] set to |I|.
+In particular, if two [=interfaces=] [=interface/include=] a single [=interface mixin=], each
+[=interface=] gets an independent copy of the [=interface mixin members|members=].
+
+Note: In ECMAScript, this implies that each [=regular operation=]
+declared as a [=interface mixin member|member=] of [=interface mixin=] |M|,
+and exposed as a data property with a [=built-in function object=] value,
+is a distinct [=built-in function object=]
+in each [=interface prototype object=]
+whose associated [=interface=] [=includes=] |M|.
+Similarly, for [=attributes=], each copy of the accessor property has
+distinct [=built-in function objects=] for its getters and setters.
+
+
+<h4 id="idl-interface-mixins-partial">Partial interface mixins</h4>
 
 As with interfaces, the IDL for [=interface mixins=] can be split into multiple parts by using
 <dfn export>partial interface mixin</dfn> definitions
 (matching <emu-t>partial</emu-t> <emu-t>interface</emu-t> <emu-nt><a href="#prod-MixinRest">MixinRest</a></emu-nt>).
 The [=identifier=] of a [=partial interface mixin=] [=definition=] must
 be the same as the [=identifier=] of an [=interface mixin=] [=definition=].
-All of the [=interface mixin member|members=] that appear on each of the [=partial interface mixin=] [=definitions=]
-are considered to be [=members=] of the [=interface mixin=] itself,
-and—by extension—of the [=interfaces=] that [=include=] the [=interface mixin=].
+
+Note: All of the [=interface mixin member|members=] that appear on each of the
+[=partial interface mixin=] [=definitions=] are considered to be [=interface mixin member|members=]
+of the [=interface mixin=] itself, and—by extension—[=interface members=] of the [=interfaces=]
+that [=include=] the [=interface mixin=].
 
 <pre highlight="webidl" class="syntax">
     interface mixin <mark>SomeMixin</mark> {
@@ -1240,20 +1364,14 @@ and—by extension—of the [=interfaces=] that [=include=] the [=interface mixi
     };
 </pre>
 
-The order that members appear in has significance for property enumeration
-in the <a href="#es-namespaces">ECMAScript binding</a>.
 
-Note that unlike [=interfaces=] or [=dictionaries=], [=interface mixins=] do not create types.
-
-Of the extended attributes defined in this specification,
-only the [{{Exposed}}] and [{{SecureContext}}] extended attributes
-are applicable to [=interface mixins=].
+<h4 id="idl-interface-mixins-includes">Includes statements</h4>
 
 An <dfn>includes statement</dfn> is a definition
 (matching <emu-nt><a href="#prod-IncludesStatement">IncludesStatement</a></emu-nt>)
-used to declare that all objects implementing an [=interface=] |I|
+used to declare that the [=interface members|members=] of an [=interface=] |I|
 (identified by the first [=identifier=])
-must additionally include the [=interface mixin member|members=] of [=interface mixin=] |M|
+will additionally include the [=interface mixin member|members=] of [=interface mixin=] |M|
 (identified by the second identifier).
 [=Interface=] |I| is said to <dfn id="include" for="interface" export>include</dfn>
 [=interface mixin=] |M|.
@@ -1264,32 +1382,6 @@ must additionally include the [=interface mixin member|members=] of [=interface 
 
 The first [=identifier=] must reference a [=interface=] |I|.
 The second identifier must reference an [=interface mixin=] |M|.
-
-Each [=interface mixin member|member=] of |M| is considered to be
-a [=member=] of each [=interface=] |I|, |J|, |K|, … that [=includes=] |M|,
-as if a copy of each [=interface mixin member|member=] had been made.
-So for a given member <var ignore>m</var> of |M|,
-interface |I| is considered to have a [=member=] <var>m<sub>I</sub></var>,
-interface |J| is considered to have a [=member=] <var>m<sub>J</sub></var>,
-interface |K| is considered to have a [=member=] <var>m<sub>K</sub></var>, and so on.
-The <dfn>host interfaces</dfn> of <var>m<sub>I</sub></var>, <var>m<sub>J</sub></var>,
-and <var>m<sub>K</sub></var>, are |I|, |J|, and |K| respectively.
-
-Note: In ECMAScript, this implies that each [=regular operation=]
-declared as a [=interface mixin member|member=] of [=interface mixin=] |M|,
-and exposed as a data property with a [=built-in function object=] value,
-is a distinct [=built-in function object=]
-in each [=interface prototype object=]
-whose associated [=interface=] [=includes=] |M|.
-Similarly, for [=attributes=], each copy of the accessor property has
-distinct [=built-in function objects=] for its getters and setters.
-
-The order of appearance of [=includes statements=] affects the order in which [=interface mixin=]
-are [=included=] by their [=host interface=].
-
-Issue: [=interface mixin member|Member=] order isn't clearly specified,
-in particular when [=interface mixins=] are defined in separate documents.
-It is discussed in <a href="https://github.com/heycam/webidl/issues/432">issue #432</a>.
 
 No [=extended attributes=] defined in this specification are applicable to [=includes statements=].
 
@@ -1327,6 +1419,8 @@ No [=extended attributes=] defined in this specification are applicable to [=inc
 
 </div>
 
+<h4 id="idl-interface-mixins-syntax">Syntax</h4>
+
 <div data-fill-with="grammar-CallbackOrInterfaceOrMixin"></div>
 
 <div data-fill-with="grammar-CallbackRestOrInterfaceOrMixin"></div>
@@ -1336,6 +1430,8 @@ No [=extended attributes=] defined in this specification are applicable to [=inc
 <div data-fill-with="grammar-Partial"></div>
 
 <div data-fill-with="grammar-PartialDefinition"></div>
+
+<div data-fill-with="grammar-PartialInterfaceOrPartialMixin"></div>
 
 <pre class="grammar" id="prod-MixinRest">
     MixinRest :
