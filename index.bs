@@ -8416,17 +8416,20 @@ JavaScript code.
     The <code>addDelay(|ms|, |promise|)</code> method steps are:
 
     1.  Let |realm| be <b>this</b>'s [=relevant Realm=].
+    1.  Let |taskSource| be some appropriate [=task source=].
     1.  If |ms| is NaN, let |ms| be +0; otherwise let |ms| be the maximum of |ms| and +0.
     1.  Let |p| be [=a new promise=] in |realm|.
     1.  [=Upon settling=] of |promise|:
         *   If |promise| was fulfilled with value |v|, then:
             1.  Run the following steps [=in parallel=]:
                 1.  Wait |ms| milliseconds.
-                1.  [=Resolve=] |promise| with |v|.
+                1.  [=Queue a task=] to run the following steps on |taskSource|:
+                    1.  [=Resolve=] |p| with |v|.
         *   If |promise| was rejected with reason |r|, then:
             1.  Run the following steps [=in parallel=]:
                 1.  Wait |ms| milliseconds.
-                1.  [=Reject=] |promise| with |r|.
+                1.  [=Queue a task=] to run the following steps on |taskSource|:
+                    1.  [=Reject=] |p| with |r|.
     1.  Return |p|.
 </div>
 </div>
@@ -14351,6 +14354,7 @@ The editor would like to thank the following people for contributing
 to this specification:
 Glenn Adams,
 David Andersson,
+Jake Archibald,
 L. David Baron,
 Art Barstow,
 Nils Barth,
