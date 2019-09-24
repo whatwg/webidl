@@ -8,7 +8,7 @@ index.html : index.bs
 ifdef bs_installed
 	bikeshed spec index.bs
 else
-	@echo Can't find a local version of Bikeshed. To install it, visit:
+	@echo Can\'t find a local version of Bikeshed. To install it, visit:
 	@echo
 	@echo https://github.com/tabatkins/bikeshed/blob/master/docs/install.md
 	@echo
