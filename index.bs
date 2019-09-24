@@ -4299,19 +4299,17 @@ and {{@@asyncIterator}} properties on its [=interface prototype object=].
 
 Prose accompanying an [=interface=] with an [=asynchronously iterable declaration=] must define a
 <dfn id="dfn-get-the-next-iteration-result">get the next iteration result</dfn> algorithm.
-This algorithm receives a <b>[=this=]</b> value, which is an instance of the [=interface=] that it
-is defined for, and the <dfn export>current state</dfn>.
+This algorithm receives the instance of the [=interface=] that is being iterated, as well as the
+async iterator itself (which can be useful for storing state).
 It must return a {{Promise}} that either resolves with undefined – to signal the end of the
-iteration – or a tuple with three elements:
+iteration – or a tuple with two elements:
 
 1.  a value of the first type given in the declaration;
-1.  a value of the second type given in the declaration;
-1.  an opaque value that is passed back to the next invocation of the algorithm as the
-    <b>[=current state=]</b>.
+1.  a value of the second type given in the declaration.
 
 The prose may also define <dfn>asynchronous iterator initialization steps</dfn> for the
 [=interface=] with an [=asynchronously iterable declaration=], which would then be called with the
-newly created iterator object.
+instance of the [=interface=] being iterated, as well as the newly created iterator object.
 
 [=Interfaces=] with an [=asynchronously iterable declaration=] must not have any
 [=interface members=] named "<code>entries</code>", "<code>keys</code>", or "<code>values</code>",
@@ -4341,26 +4339,35 @@ or have any [=inherited interfaces=] that have [=interface members=] with these 
 
     <blockquote>
 
-        To [=get the next iteration result=] for <code class="idl">SessionManager</code>, run the
-        following steps:
+        The [=asynchronous iterator initialization steps=] for a <code class="idl">SessionManager</code>
+        async iterator |iterator| are:
+
+        1.  Set |iterator|'s <dfn for="SessionManager async iterator">current state</dfn> to "not
+            yet started".
+
+        To [=get the next iteration result=] for a <code class="idl">SessionManager</code>
+        |manager| and its async iterator |iterator|:
 
         1.  Let |promise| be a new promise.
         1.  Let |key| be the following value, if it exists, or null otherwise:
             <dl class="switch">
-                  :  If <b>current state</b> is "not yet started"
-                  :: the smallest username in <b>this</b>'s open sessions, in lexicographical order
+                  :  If |iterator|'s [=SessionManager async iterator/current state=] is "not yet
+                     started"
+                  :: the smallest username in |manager|'s open sessions, in lexicographical order
 
                   :  Otherwise
-                  :: the smallest username in <b>this</b>'s open sessions that is greater than
-                     <b>current state</b>, in lexicographical order
+                  :: the smallest username in |manager|'s open sessions that is greater than
+                     |iterator|'s current state, in lexicographical order
             </dl>
 
-            Note: <b>current state</b> might no longer be present in the open sessions.
+            Note: |iterator|'s [=SessionManager async iterator/current state=] might no longer be
+            present in the open sessions.
         1.  If |key| is null, then:
             1.  Resolve |promise| with undefined.
         1.  Otherwise:
             1.  Let |session| be the <code class="idl">Session</code> object corresponding to |key|.
-            1.  Resolve |promise| with (|username|, |session|, |username|).
+            1.  Resolve |promise| with (|username|, |session|).
+            1.  Set |iterator|'s [=SessionManager async iterator/current state=] to |username|.
         1.  Return |promise|.
 
     </blockquote>
@@ -12109,10 +12116,11 @@ The location of the property is determined as follows:
     1.  If |object| does not [=implement=] |interface|, then [=ECMAScript/throw=] a
         {{ECMAScript/TypeError}}.
     1.  Let |iterator| be a newly created [=default asynchronous iterator object=] for |interface|
-        with |object| as its [=default asynchronous iterator object/target=] and
-        "<code>key+value</code>" as its [=default asynchronous iterator object/kind=].
-    1.  Run the [=asynchronous iterator initialization steps=] for |interface| with |iterator|, if
-        any.
+        with |object| as its [=default asynchronous iterator object/target=],
+        "<code>key+value</code>" as its [=default asynchronous iterator object/kind=], and
+        [=default asynchronous iterator object/is finished=] set to false.
+    1.  Run the [=asynchronous iterator initialization steps=] for |interface| with |object| and
+        |iterator|, if any such steps exist.
     1.  Return |iterator|.
 </div>
 
@@ -12299,10 +12307,11 @@ then the [=function object=] is {{%ArrayProto_keys%}}.
     1.  If |object| does not [=implement=] |interface|, then [=ECMAScript/throw=] a
         {{ECMAScript/TypeError}}.
     1.  Let |iterator| be a newly created [=default asynchronous iterator object=] for |interface|
-        with |object| as its [=default asynchronous iterator object/target=] and
-        "<code>key</code>" as its [=default asynchronous iterator object/kind=].
-    1.  Run the [=asynchronous iterator initialization steps=] for |interface| with |iterator|, if
-        any.
+        with |object| as its [=default asynchronous iterator object/target=],
+        "<code>key</code>" as its [=default asynchronous iterator object/kind=], and
+        [=default asynchronous iterator object/is finished=] set to false.
+    1.  Run the [=asynchronous iterator initialization steps=] for |interface| with |object| and
+        |iterator|, if any such steps exist.
     1.  Return |iterator|.
 </div>
 
@@ -12363,10 +12372,11 @@ the value of the {{@@iterator}} property.
     1.  If |object| does not [=implement=] |interface|, then [=ECMAScript/throw=] a
         {{ECMAScript/TypeError}}.
     1.  Let |iterator| be a newly created [=default asynchronous iterator object=] for |interface|
-        with |object| as its [=default asynchronous iterator object/target=] and
-        "<code>value</code>" as its [=default asynchronous iterator object/kind=].
-    1.  Run the [=asynchronous iterator initialization steps=] for |interface| with |iterator|, if
-        any.
+        with |object| as its [=default asynchronous iterator object/target=],
+        "<code>value</code>" as its [=default asynchronous iterator object/kind=], and
+        [=default asynchronous iterator object/is finished=] set to false.
+    1.  Run the [=asynchronous iterator initialization steps=] for |interface| with |object| and
+        |iterator|, if any such steps exist.
     1.  Return |iterator|.
 </div>
 
@@ -12489,16 +12499,7 @@ A [=default asynchronous iterator object=] has internal values:
 *   its <dfn for="default asynchronous iterator object">kind</dfn>, which is the iteration kind,
 *   its <dfn for="default asynchronous iterator object">ongoing promise</dfn>, which is a
     {{Promise}} or undefined,
-*   its <dfn for="default asynchronous iterator object">state</dfn>, which is one of
-    "not yet started" and "finished", or an opaque value used to store the position of the iterator
-    by the algorithm to [=get the next iteration result=].
-
-    Note: This value is associated with the iterator instance, rather than the [=interface=]
-    instance. It is explicitly handled here because the iterator instance is not exposed to the
-    prose that [=get the next iteration result|gets the next iteration result=].
-
-When a [=default asynchronous iterator object=] is first created, its
-[=default asynchronous iterator object/state=] is "not yet started".
+*   its <dfn for="default asynchronous iterator object">is finished</dfn>, which is a boolean.
 
 Note: [=Default asynchronous iterator objects=] do not have [=class strings=]; when
 <code class="idl">Object.prototype.toString()</code> is called on a
@@ -12553,8 +12554,7 @@ The \[[Prototype]] [=internal slot=] of an [=asynchronous iterator prototype obj
 
     1.  Let |nextSteps| be the following steps:
         1.  Let |nextPromiseCapability| be [=!=] [$NewPromiseCapability$]({{%Promise%}}).
-        1.  Let |oldState| be |object|'s [=default asynchronous iterator object/state=].
-        1.  If |oldState| is "finished", then:
+        1.  If |object|'s [=default asynchronous iterator object/is finished=] is true, then:
             1.  Let |result| be [$CreateIterResultObject$](<emu-val>undefined</emu-val>,
                 <emu-val>true</emu-val>).
             1.  Perform [=!=] [$Call$](|nextPromiseCapability|.\[[Resolve]],
@@ -12563,20 +12563,18 @@ The \[[Prototype]] [=internal slot=] of an [=asynchronous iterator prototype obj
         1.  Let |kind| be |object|'s [=default asynchronous iterator object/kind=].
         1.  Let |nextPromise| be the result of
             [=get the next iteration result|getting the next iteration result=] with |object|'s
-            [=default asynchronous iterator object/target=] as <b>[=this=]</b> and |oldState| as
-            the <b>[=current state=]</b>.
+            [=default asynchronous iterator object/target=] and |object|.
         1.  Let |resolveSteps| be the following steps, given |next|:
             1.  Set |object|'s [=default asynchronous iterator object/ongoing promise=] to
                 undefined.
             1.  If |next| is undefined, then:
-                1.  Set |object|'s [=default asynchronous iterator object/state=] to null.
+                1.  Set |object|'s [=default asynchronous iterator object/is finished=] to true.
                 1.  Let |result| be [$CreateIterResultObject$](<emu-val>undefined</emu-val>,
                     <emu-val>true</emu-val>).
                 1.  Perform [=!=] [$Call$](|nextPromiseCapability|.\[[Resolve]],
                     <emu-val>undefined</emu-val>, « |result| »).
             1.  Otherwise:
-                1.  Let (|key|, |value|, |newState|) be |next|.
-                1.  Set |object|'s [=default asynchronous iterator object/state=] to |newState|.
+                1.  Let (|key|, |value|) be |next|.
                 1.  Let |result| be the [=iterator result=] for (|key|, |value|) and |kind|.
                 1.  Perform [=!=] [$Call$](|nextPromiseCapability|.\[[Resolve]],
                     <emu-val>undefined</emu-val>, « |result| »).
