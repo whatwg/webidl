@@ -4295,8 +4295,11 @@ An [=interface=] can be declared to be asynchronously iterable by using an
 (matching <emu-nt><a href="#prod-AsyncIterable">AsyncIterable</a></emu-nt>) in the body of the
 [=interface=].
 
-<pre highlight="webidl" class="syntax">
+<!-- TODO: add highlight="idl" after idlparser gets updated -->
+<pre class="syntax">
     interface interface_identifier {
+      async iterable&lt;value_type&gt;;
+      async iterable&lt;value_type&gt;(/* arguments... */);
       async iterable&lt;key_type, value_type&gt;;
     };
 </pre>
@@ -4304,19 +4307,29 @@ An [=interface=] can be declared to be asynchronously iterable by using an
 Objects that [=implement=] an [=interface=] that is declared to be asynchronously iterable support
 being iterated over asynchronously to obtain a sequence of values.
 
+If a single type parameter is given, then the interface has a
+<dfn export>value asynchronously iterable declaration</dfn> and asynchronously provides values of the
+specified type. If two type parameters are given, then the interface has a
+<dfn export>pair asynchronously iterable declaration</dfn> and asynchronously provides
+[=value pairs=] with the given types.
+
 Note: In the ECMAScript language binding, an interface that is asynchronously iterable will have
-<code class="idl">entries</code>, <code class="idl">keys</code>, <code class="idl">values</code>,
-and {{@@asyncIterator}} properties on its [=interface prototype object=].
+{{@@asyncIterator}} and <code class="idl">values</code> properties on its
+[=interface prototype object=]. If the interface has a [=pair asynchronously iterable declaration=],
+it will additionally have <code class="idl">entries</code> and <code class="idl">keys</code>
+properties.
 
 Prose accompanying an [=interface=] with an [=asynchronously iterable declaration=] must define a
 <dfn id="dfn-get-the-next-iteration-result" export>get the next iteration result</dfn> algorithm.
 This algorithm receives the instance of the [=interface=] that is being iterated, as well as the
 async iterator itself (which can be useful for storing state).
 It must return a {{Promise}} that either rejects, resolves with undefined to signal the end of the
-iteration, or resolves with a tuple containing two elements:
+iteration, or resolves with one of the following:
 
-1.  a value of the first type given in the declaration;
-1.  a value of the second type given in the declaration.
+: for [=value asynchronously iterable declarations=]:
+::  a value of the type given in the declaration;
+: for [=pair asynchronously iterable declarations=]:
+::  a tuple containing a value of the first type given in the declaration, and a value of the second type given in the declaration.
 
 The prose may also define an <dfn export>asynchronous iterator return</dfn> algorithm. This
 algorithm receives the instance of the [=interface=] that is being iterated, the async iterator
@@ -4335,12 +4348,19 @@ but if you are creating an API that needs such capabilities, please
 <a href="https://github.com/heycam/webidl/issues/new?title=Enhancement%20request%20for%20Async%20Iterables">file an issue</a>.
 
 The prose may also define <dfn export>asynchronous iterator initialization steps</dfn>. These
-receive the instance of the [=interface=] being iterated, as well as the newly-created
-iterator object.
+receive the instance of the [=interface=] being iterated, the newly-created iterator object, and a
+[=list=] of IDL values representing the arguments passed, if any.
 
 [=Interfaces=] with an [=asynchronously iterable declaration=] must not have any
 [=interface members=] named "<code>entries</code>", "<code>keys</code>", or "<code>values</code>",
 or have any [=inherited interfaces=] that have [=interface members=] with these names.
+
+If given, an [=asynchronously iterable declaration=]'s arguments (matching
+<emu-nt><a href="#prod-ArgumentList">ArgumentList</a></emu-nt>) must all be [=optional arguments=].
+
+<p class="note">This ensures that, in the ECMAScript binding,
+<code>for</code>-<code>await</code>-<code>of</code> can work directly on instances of the
+interface.
 
 <div class="example">
 
@@ -4445,7 +4465,13 @@ When they are, the effect will be as you would expect.
 
 <pre class="grammar" id="prod-AsyncIterable">
     AsyncIterable :
-        "async" "iterable" "&lt;" TypeWithExtendedAttributes "," TypeWithExtendedAttributes "&gt;" ";"
+        "async" "iterable" "&lt;" TypeWithExtendedAttributes OptionalType "&gt;" OptionalArgumentList ";"
+</pre>
+
+<pre class="grammar" id="prod-OptionalArgumentList">
+    OptionalArgumentList :
+        "(" ArgumentList ")"
+        ε
 </pre>
 
 
@@ -12501,11 +12527,13 @@ and the string "<code> Iterator</code>".
     To <dfn>define the asynchronous iteration methods</dfn> of [=interface=] |definition| on
     |target|, given [=Realm=] |realm|, run the following steps:
 
-    1.  If |definition| does not have an an [=asynchronously iterable declaration=], then return.
+    1.  If |definition| does not have an an [=asynchronously iterable declaration=] (of either
+        sort), then return.
     1.  Assert: |definition| does not have an [=indexed property getter=] or an
         [=iterable declaration=].
-    1.  Define the {{@@asyncIterator}} and <code class="idl">entries</code> methods:
-        1.  Let |steps| be the following series of steps:
+    1.  If |definition| has a [=pair asynchronously iterable declaration=], then define the
+        {{@@asyncIterator}} and <code class="idl">entries</code> methods:
+        1.  Let |steps| be the following series of steps, given function argument values |args|:
             1.  Let |esValue| be [=?=] [$ToObject$](<emu-val>this</emu-val> value).
             1.  If |esValue| [=is a platform object=], then [=perform a security check=], passing
                 |esValue|, "<code>@@asyncIterator</code>", and "<code>method</code>".
@@ -12513,21 +12541,24 @@ and the string "<code> Iterator</code>".
                 {{ECMAScript/TypeError}}.
             1.  Let |idlObject| be the IDL [=interface type=] value that represents a reference to
                 |esValue|.
+            1.  Let |idlArgs| be the result of
+                [=converting arguments for an asynchronous iterator method=] given |args|.
             1.  Let |iterator| be a newly created [=default asynchronous iterator object=] for
                 |definition| with |idlObject| as its
                 [=default asynchronous iterator object/target=], "<code>key+value</code>" as its
                 [=default asynchronous iterator object/kind=], and
                 [=default asynchronous iterator object/is finished=] set to false.
             1.  Run the [=asynchronous iterator initialization steps=] for |definition| with
-                |idlObject| and |iterator|, if any such steps exist.
+                |idlObject|, |iterator|, and |idlArgs|, if any such steps exist.
             1.  Return |iterator|.
         1.  Let |F| be [=!=] [$CreateBuiltinFunction$](|steps|, « », |realm|).
         1.  Perform [=!=] [$SetFunctionName$](|F|, "<code>entries</code>").
         1.  Perform [=!=] [$SetFunctionLength$](|F|, 0).
         1.  Perform [=!=] [$CreateMethodProperty$](|target|, {{@@asyncIterator}}, |F|).
         1.  Perform [=!=] [$CreateDataProperty$](|target|, "<code>entries</code>", |F|).
-    1.  Define the <code class="idl">keys</code> method:
-        1.  Let |steps| be the following series of steps:
+    1.  If |definition| has a [=pair asynchronously iterable declaration=], then define the
+        <code class="idl">keys</code> method:
+        1.  Let |steps| be the following series of steps, given function argument values |args|:
             1.  Let |esValue| be [=?=] [$ToObject$](<emu-val>this</emu-val> value).
             1.  If |esValue| [=is a platform object=], then [=perform a security check=], passing
                 |esValue|, "<code>keys</code>", and "<code>method</code>".
@@ -12535,20 +12566,22 @@ and the string "<code> Iterator</code>".
                 {{ECMAScript/TypeError}}.
             1.  Let |idlObject| be the IDL [=interface type=] value that represents a reference to
                 |esValue|.
+            1.  Let |idlArgs| be the result of
+                [=converting arguments for an asynchronous iterator method=] given |args|.
             1.  Let |iterator| be a newly created [=default asynchronous iterator object=] for
                 |definition| with |idlObject| as its
                 [=default asynchronous iterator object/target=], "<code>key</code>" as its
                 [=default asynchronous iterator object/kind=], and
                 [=default asynchronous iterator object/is finished=] set to false.
             1.  Run the [=asynchronous iterator initialization steps=] for |definition| with
-                |idlObject| and |iterator|, if any such steps exist.
+                |idlObject|, |iterator|, and |idlArgs|, if any such steps exist.
             1.  Return |iterator|.
         1.  Let |F| be [=!=] [$CreateBuiltinFunction$](|steps|, « », |realm|).
         1.  Perform [=!=] [$SetFunctionName$](|F|, "<code>keys</code>").
         1.  Perform [=!=] [$SetFunctionLength$](|F|, 0).
         1.  Perform [=!=] [$CreateDataProperty$](|target|, "<code>keys</code>", |F|).
-    1.  Define the <code class="idl">values</code> method:
-        1.  Let |steps| be the following series of steps:
+    1.  Define the <code class="idl">values</code>, and possibly {{@@asyncIterator}}, methods:
+        1.  Let |steps| be the following series of steps, given function argument values |args|:
             1.  Let |esValue| be [=?=] [$ToObject$](<emu-val>this</emu-val> value).
             1.  If |esValue| [=is a platform object=], then [=perform a security check=], passing
                 |esValue|, "<code>values</code>", and "<code>method</code>".
@@ -12556,20 +12589,51 @@ and the string "<code> Iterator</code>".
                 {{ECMAScript/TypeError}}.
             1.  Let |idlObject| be the IDL [=interface type=] value that represents a reference to
                 |esValue|.
+            1.  Let |idlArgs| be the result of
+                [=converting arguments for an asynchronous iterator method=] given |args|.
             1.  Let |iterator| be a newly created [=default asynchronous iterator object=] for
                 |definition| with |idlObject| as its
                 [=default asynchronous iterator object/target=], "<code>value</code>" as its
                 [=default asynchronous iterator object/kind=], and
                 [=default asynchronous iterator object/is finished=] set to false.
             1.  Run the [=asynchronous iterator initialization steps=] for |definition| with
-                |idlObject| and |iterator|, if any such steps exist.
+                |idlObject|, |iterator|, and |idlArgs|, if any such steps exist.
             1.  Return |iterator|.
         1.  Let |F| be [=!=] [$CreateBuiltinFunction$](|steps|, « », |realm|).
         1.  Perform [=!=] [$SetFunctionName$](|F|, "<code>values</code>").
         1.  Perform [=!=] [$SetFunctionLength$](|F|, 0).
         1.  Perform [=!=] [$CreateDataProperty$](|target|, "<code>values</code>", |F|).
+        1.  If |definition| has a [=value asynchronously iterable declaration=], then perform [=!=]
+            [$CreateMethodProperty$](|target|, {{@@asyncIterator}}, |F|).
 </div>
 
+<div algorithm>
+    To <dfn lt="converting arguments for an asynchronous iterator method">convert arguments for an asynchronous iterator method</dfn>,
+    given an [=interface=] |definition| that has an [=asynchronously iterable declaration=] and a
+    [=list=] of ECMAScript values |args|:
+
+    1.  Let |idlArgs| be an empty list.
+    1.  Let |argCount| be the number of arguments of |definition|'s
+        [=asynchronously iterable declaration=], or 0 if the [=asynchronously iterable declaration=]
+        does not have an argument list.
+    1.  Let |i| be 0.
+    1.  While |i| &lt; |argCount| and |i|:
+        1.  If |i| ≥ |args|'s [=list/size=], or if |args|[|i|] is <emu-val>undefined</emu-val>,
+            then:
+            1.  If the argument to the [=asynchronously iterable declaration=] at index |i| is
+                declared with a [=optional argument/default value=], then [=list/append=] that
+                default value to |idlArgs|.
+            1.  Otherwise, [=list/append=] to |idlArgs| the special value "missing".
+        1.  Otherwise, [=list/append=] to |idlArgs| the result of
+            [=converted to an IDL value|converting=] |args|[|i|] to the IDL type given in the
+            [=asynchronously iterable declaration=]'s argument list at index |i|.
+        1.  Set |i| to |i| + 1.
+    1.  Return |idlArgs|.
+
+    <p class="note">This is essentially a hyper-specialization of the
+    [=overload resolution algorithm=] for the case where no overloads are allowed and all arguments
+    are optional.</p>
+</div>
 
 <h5 id="es-default-asynchronous-iterator-object">Default asynchronous iterator objects</h5>
 
@@ -12655,8 +12719,16 @@ The \[[Prototype]] [=internal slot=] of an [=asynchronous iterator prototype obj
                 1.  Set |object|'s [=default asynchronous iterator object/is finished=] to true.
                 1.  Return [=!=] [$CreateIterResultObject$](<emu-val>undefined</emu-val>,
                     <emu-val>true</emu-val>).
-            1.  Otherwise:
+            1.  Otherwise, if the corresponding [=asynchronously iterable declaration=] is a
+                [=pair asynchronously iterable declaration=]:
+                1.  Assert: |next| is a [=value pair=].
                 1.  Return the [=iterator result=] for |next| and |kind|.
+            1.  Otherwise:
+                1.  Assert: the corresponding [=asynchronously iterable declaration=] is a
+                    [=value asynchronously iterable declaration=].
+                1.  Assert: |next| is a value of the type that appears in the declaration.
+                1.  Let |value| be |next|, [=converted to an ECMAScript value=].
+                1.  Return [=!=] [$CreateIterResultObject$](|value|, <emu-val>false</emu-val>).
         1.  Let |onFulfilled| be [=!=] [$CreateBuiltinFunction$](|fulfillSteps|, « »).
         1.  Perform [=!=] [$PerformPromiseThen$](|nextPromise|, |onFulfilled|,
             <emu-val>undefined</emu-val>, |nextPromiseCapability|).
