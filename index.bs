@@ -4284,7 +4284,7 @@ An [=interface=] can be declared to be asynchronously iterable by using an
 (matching <emu-nt><a href="#prod-AsyncIterable">AsyncIterable</a></emu-nt>) in the body of the
 [=interface=].
 
-<pre class="syntax">
+<pre highlight="webidl" class="syntax">
     interface interface_identifier {
       async iterable&lt;key_type, value_type&gt;;
     };
@@ -4298,7 +4298,7 @@ Note: In the ECMAScript language binding, an interface that is asynchronously it
 and {{@@asyncIterator}} properties on its [=interface prototype object=].
 
 Prose accompanying an [=interface=] with an [=asynchronously iterable declaration=] must define a
-<dfn id="dfn-get-the-next-iteration-result">get the next iteration result</dfn> algorithm.
+<dfn id="dfn-get-the-next-iteration-result" export>get the next iteration result</dfn> algorithm.
 This algorithm receives the instance of the [=interface=] that is being iterated, as well as the
 async iterator itself (which can be useful for storing state).
 It must return a {{Promise}} that either rejects, resolves with undefined to signal the end of the
@@ -4307,9 +4307,9 @@ iteration, or resolves with a tuple containing two elements:
 1.  a value of the first type given in the declaration;
 1.  a value of the second type given in the declaration.
 
-The prose may also define <dfn>asynchronous iterator initialization steps</dfn> for the
-[=interface=] with an [=asynchronously iterable declaration=], which would then be called with the
-instance of the [=interface=] being iterated, as well as the newly created iterator object.
+The prose may also define <dfn export>asynchronous iterator initialization steps</dfn>. These
+receive the instance of the [=interface=] being iterated, as well as the newly-created
+iterator object.
 
 [=Interfaces=] with an [=asynchronously iterable declaration=] must not have any
 [=interface members=] named "<code>entries</code>", "<code>keys</code>", or "<code>values</code>",
@@ -4320,7 +4320,7 @@ or have any [=inherited interfaces=] that have [=interface members=] with these 
     Consider the following interface <code class="idl">SessionManager</code>, which allows access
     to a number of <code class="idl">Session</code> objects keyed by username:
 
-    <pre>
+    <pre highlight="webidl">
         [Exposed=Window]
         interface SessionManager {
           Session getSessionForUser(DOMString username);
@@ -12546,7 +12546,6 @@ The \[[Prototype]] [=internal slot=] of an [=asynchronous iterator prototype obj
         1.  Return |thisValidationPromiseCapability|.\[[Promise]].
 
     1.  If |object| is not a [=default asynchronous iterator object=] for |interface|, then:
-        1.  Issue: [=Realm=] check?
         1.  Let |error| be a new {{ECMAScript/TypeError}}.
         1.  Perform [=!=] [$Call$](|thisValidationPromiseCapability|.\[[Reject]],
             <emu-val>undefined</emu-val>, « |error| »).
@@ -12564,21 +12563,16 @@ The \[[Prototype]] [=internal slot=] of an [=asynchronous iterator prototype obj
         1.  Let |nextPromise| be the result of
             [=get the next iteration result|getting the next iteration result=] with |object|'s
             [=default asynchronous iterator object/target=] and |object|.
-        1.  Let |resolveSteps| be the following steps, given |next|:
+        1.  Let |fulfillSteps| be the following steps, given |next|:
             1.  Set |object|'s [=default asynchronous iterator object/ongoing promise=] to
                 undefined.
             1.  If |next| is undefined, then:
                 1.  Set |object|'s [=default asynchronous iterator object/is finished=] to true.
-                1.  Let |result| be [$CreateIterResultObject$](<emu-val>undefined</emu-val>,
+                1.  Return [=!=] [$CreateIterResultObject$](<emu-val>undefined</emu-val>,
                     <emu-val>true</emu-val>).
-                1.  Perform [=!=] [$Call$](|nextPromiseCapability|.\[[Resolve]],
-                    <emu-val>undefined</emu-val>, « |result| »).
             1.  Otherwise:
-                1.  Let (|key|, |value|) be |next|.
-                1.  Let |result| be the [=iterator result=] for (|key|, |value|) and |kind|.
-                1.  Perform [=!=] [$Call$](|nextPromiseCapability|.\[[Resolve]],
-                    <emu-val>undefined</emu-val>, « |result| »).
-        1.  Let |onFulfilled| be [=!=] [$CreateBuiltinFunction$](|resolveSteps|, « »).
+                1.  Return the [=iterator result=] for |next| and |kind|.
+        1.  Let |onFulfilled| be [=!=] [$CreateBuiltinFunction$](|fulfillSteps|, « »).
         1.  Perform [=!=] [$PerformPromiseThen$](|nextPromise|, |onFulfilled|,
             <emu-val>undefined</emu-val>, |nextPromiseCapability|).
         1.  Return |nextPromiseCapability|.\[[Promise]].
