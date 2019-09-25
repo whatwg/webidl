@@ -4310,6 +4310,22 @@ iteration, or resolves with a tuple containing two elements:
 1.  a value of the first type given in the declaration;
 1.  a value of the second type given in the declaration.
 
+The prose may also define an <dfn export>asynchronous iterator return</dfn> algorithm. This
+algorithm receives the instance of the [=interface=] that is being iterated, the async iterator
+itself, and a single argument value. This algorithm is invoked in the case of premature termination
+of the async iterator. It must return a {{Promise}}; if that promise fulfills, its fulfillment value
+will be ignored, but if it rejects, that failure will be passed on to users of the async iterator
+API.
+
+<p class="note">In the ECMAScript binding, this algorithm allows customizing the behavior when the
+async iterator's <code>return()</code> method is invoked. This most commonly occurs when a
+<code>break</code> or <code>return</code> statement causes an exit from a
+<code>for</code>-<code>await</code>-<code>of</code> loop.
+
+<p class="note">We could add a similar hook for <code>throw()</code>. So far there has been no need,
+but if you are creating an API that needs such capabilities, please
+<a href="https://github.com/heycam/webidl/issues/new?title=Enhancement%20request%20for%20Async%20Iterables">file an issue</a>.
+
 The prose may also define <dfn export>asynchronous iterator initialization steps</dfn>. These
 receive the instance of the [=interface=] being iterated, as well as the newly-created
 iterator object.
@@ -12600,7 +12616,70 @@ The \[[Prototype]] [=internal slot=] of an [=asynchronous iterator prototype obj
     1.  Return |object|'s [=default asynchronous iterator object/ongoing promise=].
 </div>
 
-Issue: <code>return</code>; <code>throw</code> methods?
+<div algorithm="to invoke the return property of asynchronous iterators">
+
+    If an [=asynchronous iterator return=] algorithm is defined for the [=inferface=], then the
+    [=asynchronous iterator prototype object=] must have a <code class="idl">return</code> data
+    property with attributes { \[[Writable]]: <emu-val>true</emu-val>,
+    \[[Enumerable]]: <emu-val>true</emu-val>, \[[Configurable]]: <emu-val>true</emu-val> }
+    and whose value is a [=built-in function object=], taking one argument |value|, that behaves as
+    follows:
+
+    1.  Let |interface| be the [=interface=] for which the
+        [=asynchronous iterator prototype object=] exists.
+
+    1.  Let |returnPromiseCapability| be [=!=] [$NewPromiseCapability$]({{%Promise%}}).
+
+    1.  Let |object| be the result of calling [$ToObject$] on the
+        <emu-val>this</emu-val> value.
+
+    1.  [$IfAbruptRejectPromise$](|object|, |returnPromiseCapability|).
+
+    1.  If |object| [=is a platform object=], then [=perform a security check=], passing:
+        *   the platform object |object|,
+        *   the identifier "<code>return</code>", and
+        *   the type "<code>method</code>".
+
+        If this threw an exception |e|, then:
+        1.  Perform [=!=] [$Call$](|returnPromiseCapability|.\[[Reject]],
+            <emu-val>undefined</emu-val>, « |e| »).
+        1.  Return |returnPromiseCapability|.\[[Promise]].
+
+    1.  If |object| is not a [=default asynchronous iterator object=] for |interface|, then:
+        1.  Let |error| be a new {{ECMAScript/TypeError}}.
+        1.  Perform [=!=] [$Call$](|returnPromiseCapability|.\[[Reject]],
+            <emu-val>undefined</emu-val>, « |error| »).
+        1.  Return |returnPromiseCapability|.\[[Promise]].
+
+    1.  If |object|'s [=default asynchronous iterator object/ongoing promise=] is not undefined, then:
+        1.  Let |error| be a new {{ECMAScript/TypeError}}.
+        1.  Perform [=!=] [$Call$](|returnPromiseCapability|.\[[Reject]],
+            <emu-val>undefined</emu-val>, « |error| »).
+        1.  Return |returnPromiseCapability|.\[[Promise]].
+
+    1.  If |object|'s [=default asynchronous iterator object/is finished=] is true, then:
+        1.  Let |result| be [=!=] [$CreateIterResultObject$](|value|,
+            <emu-val>true</emu-val>).
+        1.  Perform [=!=] [$Call$](|returnPromiseCapability|.\[[Resolve]],
+            <emu-val>undefined</emu-val>, « |result| »).
+        1.  Return |returnPromiseCapability|.\[[Promise]].
+
+    1.  Set |object|'s [=default asynchronous iterator object/is finished=] to true.
+
+    1.  Let |returnPromise| be the result of running the [=asynchronous iterator return=] algorithm
+        for |interface|, given |object|'s [=default asynchronous iterator object/target=],
+        |object|, and |value|.
+
+    1.  Let |fulfillSteps| be the following steps:
+        1.  Return [=!=] [$CreateIterResultObject$](|value|, <emu-val>true</emu-val>).
+
+    1.  Let |onFulfilled| be [=!=] [$CreateBuiltinFunction$](|fulfillSteps|, « »).
+
+    1.  Perform [=!=] [$PerformPromiseThen$](|returnPromise|, |onFulfilled|,
+        <emu-val>undefined</emu-val>, |returnPromiseCapability|).
+
+    1.  Return |returnPromiseCapability|.\[[Promise]].
+</div>
 
 The [=class string=] of an [=asynchronous iterator prototype object=] for a given [=interface=] is
 the result of concatenating the [=identifier=] of the [=interface=] and the string
