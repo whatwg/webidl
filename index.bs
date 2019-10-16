@@ -4312,10 +4312,10 @@ iteration, or resolves with a tuple containing two elements:
 
 The prose may also define an <dfn export>asynchronous iterator return</dfn> algorithm. This
 algorithm receives the instance of the [=interface=] that is being iterated, the async iterator
-itself, and a single argument value. This algorithm is invoked in the case of premature termination
-of the async iterator. It must return a {{Promise}}; if that promise fulfills, its fulfillment value
-will be ignored, but if it rejects, that failure will be passed on to users of the async iterator
-API.
+itself, and a single argument value of type {{any}}. This algorithm is invoked in the case of
+premature termination of the async iterator. It must return a {{Promise}}; if that promise
+fulfills, its fulfillment value will be ignored, but if it rejects, that failure will be passed on
+to users of the async iterator API.
 
 <p class="note">In the ECMAScript binding, this algorithm allows customizing the behavior when the
 async iterator's <code>return()</code> method is invoked. This most commonly occurs when a
@@ -12520,7 +12520,7 @@ A [=default asynchronous iterator object=] has internal values:
     values are to be iterated,
 *   its <dfn for="default asynchronous iterator object">kind</dfn>, which is the iteration kind,
 *   its <dfn for="default asynchronous iterator object">ongoing promise</dfn>, which is a
-    {{Promise}} or undefined,
+    {{Promise}} or null,
 *   its <dfn for="default asynchronous iterator object">is finished</dfn>, which is a boolean.
 
 Note: [=Default asynchronous iterator objects=] do not have [=class strings=]; when
@@ -12587,8 +12587,8 @@ The \[[Prototype]] [=internal slot=] of an [=asynchronous iterator prototype obj
             [=default asynchronous iterator object/target=] and |object|.
         1.  Let |fulfillSteps| be the following steps, given |next|:
             1.  Set |object|'s [=default asynchronous iterator object/ongoing promise=] to
-                undefined.
-            1.  If |next| is undefined, then:
+                null.
+            1.  If |next| is <emu-val>undefined</emu-val>, then:
                 1.  Set |object|'s [=default asynchronous iterator object/is finished=] to true.
                 1.  Return [=!=] [$CreateIterResultObject$](<emu-val>undefined</emu-val>,
                     <emu-val>true</emu-val>).
@@ -12601,7 +12601,7 @@ The \[[Prototype]] [=internal slot=] of an [=asynchronous iterator prototype obj
 
     1.  Let |promise| be |object|'s [=default asynchronous iterator object/ongoing promise=].
 
-    1.  If |promise| is not undefined, then:
+    1.  If |promise| is not null, then:
         1.  Let |afterOngoingPromiseCapability| be [=!=] [$NewPromiseCapability$]({{%Promise%}}).
         1.  Let |onFulfilled| be [=!=] [$CreateBuiltinFunction$](|nextSteps|, « »).
         1.  Perform [=!=] [$PerformPromiseThen$](|promise|, |onFulfilled|,
@@ -12651,7 +12651,7 @@ The \[[Prototype]] [=internal slot=] of an [=asynchronous iterator prototype obj
             <emu-val>undefined</emu-val>, « |error| »).
         1.  Return |returnPromiseCapability|.\[[Promise]].
 
-    1.  If |object|'s [=default asynchronous iterator object/ongoing promise=] is not undefined, then:
+    1.  If |object|'s [=default asynchronous iterator object/ongoing promise=] is not null, then:
         1.  Let |error| be a new {{ECMAScript/TypeError}}.
         1.  Perform [=!=] [$Call$](|returnPromiseCapability|.\[[Reject]],
             <emu-val>undefined</emu-val>, « |error| »).
