@@ -3655,7 +3655,7 @@ the following algorithm returns <i>true</i>.
             <th>bigint</th>
             <td class="belowdiagonal"></td>
             <td class="belowdiagonal"></td>
-            <td></td>
+            <td>(b)</td>
             <td>●</td>
             <td>●</td>
             <td>●</td>
@@ -3761,6 +3761,10 @@ the following algorithm returns <i>true</i>.
         1.  The two identified interface-like types are
             not the same, and no single [=platform object=] implements both
             interface-like types.
+        1.  The types are distinguishable, but there is
+            <a href="#limit-bigint-numeric-overloading">a separate restriction on their use in
+            overloading</a> below. Please also note <a href="#limit-bigint-numeric-unions">the
+            advice about using unions of these types</a>.
     </ol>
 
     <div class="example" id="example-distinguishability-diff-types">
@@ -3810,6 +3814,11 @@ then for those items there must be an index |i| such that
 for each pair of items the types at index |i| are [=distinguishable=].
 The lowest such index is termed the <dfn id="dfn-distinguishing-argument-index" export>distinguishing argument index</dfn>
 for the items of the [=effective overload set=] with the given type list size.
+
+<p id="limit-bigint-numeric-overloading">An [=effective overload set=] must not contain more than
+one [=list/item=] with the same [=type list=] [=list/size=], where one [=list/item=] has a
+{{bigint}} argument at the [=distinguishing argument index=] and another has a [=numeric type=]
+argument at the [=distinguishing argument index=].
 
 <div class="example">
 
@@ -6569,6 +6578,19 @@ A type <dfn id="dfn-includes-a-nullable-type" export>includes a nullable type</d
 Each pair of [=flattened member types=]
 in a [=union type=], <var ignore>T</var> and <var ignore>U</var>,
 must be [=distinguishable=].
+
+<p class="advisement" id="limit-bigint-numeric-unions">
+It is possible to create a union of {{bigint}} and a [=numeric type=].
+However, this is generally only supposed to be used for interfaces such as
+[[ECMA-402#numberformat-objects|NumberFormat]], which formats the values rather than using them in
+calculations.
+It would not be appropriate to accept such a union, only to then convert values of the
+[=numeric type=] to a {{bigint}} for further processing, as this runs the risk of introducing
+precision errors.
+Please
+<a href="https://github.com/heycam/webidl/issues/new?title=Intent%20to%20use%20bigint/numeric union">file an issue</a>
+to discuss before using this feature.
+</p>
 
 [=Union type=] constant values
 in IDL are represented in the same way that constant values of their
