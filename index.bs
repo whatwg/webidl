@@ -9432,6 +9432,80 @@ corresponding to [=interface members=].
 </div>
 
 
+<h4 id="LegacyEnumerableMethod" extended-attribute lt="LegacyEnumerableMethod">[LegacyEnumerableMethod]</h4>
+
+<p class="advisement">
+    The [{{LegacyEnumerableMethod}}] [=extended attribute=] is an undesirable feature.
+    It exists only so that legacy Web platform features can be specified.
+    It should not be used in specifications
+    unless required to specify the behavior of legacy APIs,
+    or for consistency with these APIs.
+    Editors who wish to use this feature are strongly advised to discuss this
+    by <a href="https://github.com/heycam/webidl/issues/new?title=Intent%20to%20use%20[LegacyEnumerableMethod]">filing an issue</a>
+    before proceeding.
+</p>
+
+If the [{{LegacyEnumerableMethod}}]
+[=extended attribute=]
+appears on a [=regular operation|regular=]
+or [=static operations|static=]
+[=operation=] specified on an interface with [{{NonEnumerableMethods}}],
+then it indicates that the ECMAScript property will be enumerable.
+
+The [{{LegacyEnumerableMethod}}]
+extended attribute must
+[=takes no arguments|take no arguments=]
+and must not appear on methods of an interface
+that does not have [{{NonEnumerableMethods}}].
+
+<div class="example">
+
+    The following [=IDL fragment=] defines an interface with
+    [{{NonEnumerableMethods}}], which also specifies an instance
+    and static operation with [{{LegacyEnumerableMethod}}]:
+
+    <pre highlight="webidl">
+        [Exposed=Window,
+         NonEnumerableMethods]
+        interface HasEnumerableAndNonEnumerableMethods {
+          [LegacyEnumerableMethod]
+          static void staticFoo();
+          static void staticBar();
+          static attribute any staticDataProperty;
+
+          [LegacyEnumerableMethod]
+          void instanceFoo();
+          void instanceBar();
+          attribute any instanceDataProperty;
+        };
+    </pre>
+
+    An ECMAScript implementation of the above IDL would have the methods
+    of <code class="idl">HasEnumerableAndNonEnumerableMethods</code>
+    non-enumerable by default, but operations with [{{LegacyEnumerableMethod}}]
+    would be enumerable.
+
+    <pre highlight="js">
+        for (const key in HasEnumerableAndNonEnumerableMethods) {
+          // logs only "staticFoo" and "staticDataProperty"
+          console.log(key);
+        }
+
+        for (const key in HasEnumerableAndNonEnumerableMethods.prototype) {
+          // logs only "instanceFoo" and "instanceDataProperty"
+          console.log(key);
+        }
+
+        // logs an array containing "staticFoo", "staticBar" and "staticDataProperty"
+        console.log(Object.getOwnPropertyNames(HasEnumerableAndNonEnumerableMethods));
+
+        // logs an array containing "instanceFoo", "instanceBar" and "instanceDataProperty"
+        console.log(Object.getOwnPropertyNames(HasEnumerableAndNonEnumerableMethods.prototype));
+    </pre>
+
+</div>
+
+
 <h4 id="LegacyNamespace" extended-attribute lt="LegacyNamespace">[LegacyNamespace]</h4>
 
 <p class="advisement">
@@ -10023,6 +10097,82 @@ for the specific requirements that the use of
         typeof Query;                          // evaluates to "undefined"
         var fn = Query.prototype.lookupEntry;  // exception, Query isn’t defined
     </pre>
+</div>
+
+
+<h4 id="NonEnumerableMethods" extended-attribute lt="NonEnumerableMethods">[NonEnumerableMethods]</h4>
+
+If the [{{NonEnumerableMethods}}] [=extended attribute=]
+appears on an [=interface=],
+it indicates that all methods on that interface
+without [{{LegacyEnumerableMethod}}] will be non-enumerable.
+
+The [{{NonEnumerableMethods}}]
+extended attribute must
+[=takes no arguments|take no arguments=].
+
+Note: Combining the [{{NonEnumerableMethods}}] and [{{LegacyUnenumerableNamedProperties}}]
+extended attributes is not forbidden.
+
+<div class="example">
+
+    The following [=IDL fragment=] defines two interfaces, one which
+    has [{{NonEnumerableMethods}}], and one which doesn’t:
+
+    <pre highlight="webidl">
+        [Exposed=Window]
+        interface HasEnumerableMethods {
+          static void staticFoo();
+          static attribute any staticDataProperty;
+
+          void instanceFoo();
+          attribute any instanceDataProperty;
+        };
+
+        [Exposed=Window,
+         NonEnumerableMethods]
+        interface NonEnumerableMethods {
+          static void staticBar();
+          static attribute any staticDataProperty;
+
+          void instanceBar();
+          attribute any instanceDataProperty;
+        };
+    </pre>
+
+    An ECMAScript implementation of the above IDL would have
+    the methods of <code class="idl">HasEnumerableMethods</code>
+    enumerable, but <code class="idl">NonEnumerableMethods</code>
+    would only have data properties enumerable.
+
+    <pre highlight="js">
+        for (const key in HasEnumerableMethods) {
+          // logs both "staticFoo" and "staticDataProperty"
+          console.log(key);
+        }
+
+        for (const key in HasEnumerableMethods.prototype) {
+          // logs both "instanceFoo" and "instanceDataProperty"
+          console.log(key);
+        }
+
+        for (const key in NonEnumerableMethods) {
+          // logs only "staticDataProperty"
+          console.log(key);
+        }
+
+        for (const key in NonEnumerableMethods.prototype) {
+          // logs only "instanceDataProperty"
+          console.log(key);
+        }
+
+        // logs an array containing "staticBar" and "staticDataProperty"
+        console.log(Object.getOwnPropertyNames(NonEnumerableMethods));
+
+        // logs an array containing "instanceBar" and "instanceDataProperty"
+        console.log(Object.getOwnPropertyNames(NonEnumerableMethods.prototype));
+    </pre>
+
 </div>
 
 
