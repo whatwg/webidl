@@ -10103,8 +10103,8 @@ for the specific requirements that the use of
 <h4 id="NonEnumerableMethods" extended-attribute lt="NonEnumerableMethods">[NonEnumerableMethods]</h4>
 
 If the [{{NonEnumerableMethods}}] [=extended attribute=]
-appears on an [=interface=],
-it indicates that all methods on that interface
+appears on an [=interface=], [=interface mixin=] or [=namespace=],
+it indicates that all methods defined on that interface
 without [{{LegacyEnumerableMethod}}] will be non-enumerable.
 
 The [{{NonEnumerableMethods}}]
@@ -11907,8 +11907,12 @@ in which case they are exposed on every object that [=implements=] the interface
             given |op|, |definition|, and |realm|.
         1.  Let |modifiable| be <emu-val>false</emu-val> if |op| is [=unforgeable=]
             and <emu-val>true</emu-val> otherwise.
+        1.  Let |enumerable| be <emu-val>true</emu-val>
+        1.  If |definition| is declared with [{{NonEnumerableMethods}}]
+            and |op| is not declared with [{{LegacyEnumerableMethod}}]
+            set |enumerable| to <emu-val>false</emu-val>
         1.  Let |desc| be the PropertyDescriptor{\[[Value]]: |method|,
-            \[[Writable]]: |modifiable|, \[[Enumerable]]: <emu-val>true</emu-val>,
+            \[[Writable]]: |modifiable|, \[[Enumerable]]: |enumerable|,
             \[[Configurable]]: |modifiable|}.
         1.  Let |id| be |op|'s [=identifier=].
         1.  Perform [=!=] <a abstract-op>DefinePropertyOrThrow</a>(|target|, |id|, |desc|).
@@ -12145,9 +12149,10 @@ then there must exist a property with the following characteristics:
     then the property exists on every object that [=implements=] the interface.
     Otherwise, the property exists on the [=interface prototype object=].
 *   The property has attributes
-    { \[[Writable]]: |B|, \[[Enumerable]]: <emu-val>true</emu-val>, \[[Configurable]]: |B| },
+    { \[[Writable]]: |B|, \[[Enumerable]]: |E|, \[[Configurable]]: |B| },
     where |B| is <emu-val>false</emu-val> if the stringifier is [=unforgeable=] on the interface,
-    and <emu-val>true</emu-val> otherwise.
+    and <emu-val>true</emu-val> otherwise, and where |E| is <emu-val>false</emu-val> if the interface
+    is declared with [{{NonEnumerableMethods}}] and <emu-val>true</emu-val> otherwise.
 *   <div algorithm="to invoke the toString method of interfaces">
 
         The value of the property is a [=built-in function object=], which behaves as follows:
