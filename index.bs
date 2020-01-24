@@ -84,6 +84,8 @@ urlPrefix: https://tc39.github.io/ecma262/; spec: ECMA-262
         text: Set; url: sec-set-objects
         text: SharedArrayBuffer; url: sec-sharedarraybuffer-objects
         text: %AsyncIteratorPrototype%; url: sec-asynciteratorprototype
+        text: %Array%; url: sec-array-constructor
+        text: %ArrayPrototype%; url: sec-properties-of-the-array-prototype-object
         text: %ErrorPrototype%; url: sec-properties-of-the-error-prototype-object
         text: %FunctionPrototype%; url: sec-properties-of-the-function-prototype-object
         text: %IteratorPrototype%; url: sec-%iteratorprototype%-object
@@ -110,6 +112,8 @@ urlPrefix: https://tc39.github.io/ecma262/; spec: ECMA-262
         url: sec-well-known-symbols
             text: @@asyncIterator
             text: @@iterator
+            text: @@isConcatSpreadable
+            text: @@species
             text: @@toStringTag
             text: @@unscopables
     type: argument
@@ -3031,6 +3035,7 @@ The following requirements apply to the definitions of indexed property getters 
     by a description of how to <dfn id="dfn-set-the-value-of-an-existing-indexed-property" export>set the value of an existing indexed property</dfn>
     and how to <dfn id="dfn-set-the-value-of-a-new-indexed-property" export>set the value of a new indexed property</dfn>
     for a given property index and value.
+*   Interfaces may also specify how to <dfn>delete an indexed property</dfn> given a property index.
 
 <div class="note">
 
@@ -5756,6 +5761,7 @@ type.
         "symbol" Null
         BufferRelatedType Null
         "FrozenArray" "&lt;" TypeWithExtendedAttributes "&gt;" Null
+        "ObservableArray" "&lt;" TypeWithExtendedAttributes "&gt;" Null
         RecordType Null
 </pre>
 
@@ -6775,6 +6781,139 @@ The [=type name=] of a frozen array
 type is the concatenation of the type name for |T| and the string
 "<code>Array</code>".
 
+<h4 id="idl-observable-array" interface lt="ObservableArrayT|ObservableArray&lt;T&gt;">Observable array types — ObservableArray&lt;|T|&gt;</h4>
+
+An <dfn id="dfn-observable-array-type" export>observable array type</dfn> is a parametrized type
+whose values are references to objects of type |T|. The contents of the array can be mutated, both
+by specifications and by author code, and specification code can define how it reacts to such
+mutations, including by rejecting them.  
+
+Observable array types serve as a wrapper type to impose type-parametrization semantics on the
+{{ObservableArray}} interface, to ease specification authoring. This is similar to how
+[=promise types=] wrap around ECMAScript promise objects, or [=sequence types=] wrap around
+ECMAScript arrays.
+
+Observable arrays must only be used as attributes, and not as operation arguments.
+
+<p class="note">We could also allow them as operation return values with a bit more work. Please 
+<a href="https://github.com/heycam/webidl/issues/new?title=Enhancement%20request%20for%20observable%20array%20return%20values">file an issue</a>
+if you would like to use them as such.</p>
+
+For an attribute whose type is an observable array type, specification authors can specify a
+<dfn for="observable array attribute">before hook</dfn> and an
+<dfn for="observable array attribute">after hook</dfn> for the attribute, which are algorithms
+that recieve the new value and the index which is being updated. The before hook can throw an
+an exception to signal that the modification is not acceptable, which would prevent it from taking
+place; the after hook can react to the modification, e.g. by conveying it to other parts of the
+system. Both hooks will recieve undefined, in place of the value, if the array entry at that index
+is being deleted. Both hooks are optional, and if not provided, the default behavior will be to do
+nothing.
+
+Specification authors can refer to an an attribute's
+<dfn export>backing observable array contents</dfn>, which is the [=list=] obtained by retrieving
+the attribute's <a>backing <code>ObservableArray</code></a>'s [=ObservableArray/contents=].
+Mutations to this list (e.g. by [=list/appending=] to it) will be visible to authors, and any
+mutations by authors to the observable array's contents (e.g. by using
+<code>obj.observableArrayAttr.push(value)</code>) will be observable as changes to the list, after
+running through the above hooks.
+
+Every attribute whose type is an observable array type has a
+<dfn>backing <code>ObservableArray</code></dfn>, which is an instance of the {{ObservableArray}}
+interface, whose [=ObservableArray/type=] is |T|, [=ObservableArray/before hook=] is the
+[=observable array attribute/before hook=] defined for the attribute, if any, and
+[=ObservableArray/after hook=] is the [=observable array attribute/after hook=] defined for the
+attribute, if any. Specification authors do not need to interface with this directly; instead they
+can use the above mechanisms.
+
+There is no way to represent a constant observable array value in IDL.
+
+The [=type name=] of a frozen array type is the concatenation of the type name for |T| and the
+string "<code>ObservableArray</code>".
+
+<div class="example">
+    The following [=IDL fragment=] defines an [=interface=] with an observable array attribute:
+
+    <!-- TODO: use highlight="idl" after parser update. -->
+    <pre>
+        [Exposed=Window]
+        interface Building {
+          attribute ObservableArray&lt;Employee> employees;
+        };
+    </pre>
+
+    The behavior of the attribute could be defined like so:
+
+    <blockquote>
+        The [=observable array attribute/before hook=] for <code class="idl">Building</code>'s
+        <code class="idl">employees</code> attribute, given |employee| and |index|, is:
+
+        1.  If |employee| is not allowed to enter the building today, then throw an
+            "{{NotAllowedError}}" {{DOMException}}.
+        1.  If |index| is greater than 200, then throw a "{{QuotaExceededError}}" {{DOMException}}.
+
+        The [=observable array attribute/after hook=] for <code class="idl">Building</code>'s
+        <code class="idl">employees</code> attribute, given |employee| and |index|, is:
+
+        1.  If |employee| is not undefined, then alert security that |employee| has entered the
+            building.
+        1.  If |employee| is undefined, then alert security that there is one less employee in the
+            building.
+    </blockquote>
+
+    At any time, other parts of the specification can refer to a <code class="idl">Building</code>
+    instance's <code class="idl">employees</code> attribute's [=backing observable array contents=].
+
+    Then, ECMAScript code could manipulate the <code class="idl">employees</code> property in
+    various ways:
+
+    <pre highlight="js">
+        // Get an instance of Building.
+        const building = getBuilding();
+
+        building.employees.push(new Employee("A"));
+        building.employees.push(new Employee("B"));
+        building.employees.push(new Employee("C"));
+
+        building.employees.splice(1, 1);
+        const employeeB = building.employees.pop();
+
+        building.employees = [new Employee("D"), employeeB, new Employee("C")];
+
+        building.employees.length = 0;
+
+        // Will throw:
+        building.employees.push("not an Employee; a string instead");
+    </pre>
+
+    All of these manipulations would pass through the above-defined
+    [=observable array attribute/before hook=], potentially throwing if the employee in question was
+    not allowed to enter the building today. They would also all alert security about arrivals and
+    departures, and ensure that the [=backing observable array contents=] can be referenced from
+    any part of the specification to get an up-to-date view of the employees in the building.
+
+    Note also how all of the ECMAScript array methods from {{%ArrayPrototype%}} work on the
+    observable array; this is because it is a subclass of the ECMAScript <code>Array</code> class.
+    The following illustrates some extra features that are available with observable arrays:
+
+    <pre highlight="js">
+        const normalArray = [];
+
+        normalArray.concat(building.employees);
+
+        // If building.employees were defined as an indexed property getter interface: normalArray
+        // would contains a single item, building.employees.
+        //
+        // For observable arrays and frozen arrays: normalArray contains all of the items inside of
+        // building.employees.
+
+        const names = building.employees.map(employee => employee.name);
+
+        // names is an ECMAScript Array, not an ObservableArray.
+
+        // Passes the instanceof check:
+        console.assert(building.employees instanceof Array);
+    </pre>
+</div>
 
 <h3 id="idl-extended-attributes">Extended attributes</h3>
 
@@ -6930,6 +7069,7 @@ five forms are allowed.
         "FrozenArray"
         "Infinity"
         "NaN"
+        "ObservableArray"
         "Promise"
         "USVString"
         "any"
@@ -8802,10 +8942,8 @@ Array object references.
 </div>
 
 <div algorithm>
-
     To <dfn id="dfn-create-frozen-array" export>create a frozen array</dfn>
     from a sequence of values of type |T|, follow these steps:
-
     1.  Let |array| be the result of
         [=converted to an ECMAScript value|converting=]
         the sequence of values of type |T| to an ECMAScript value.
@@ -8817,6 +8955,15 @@ The result of [=converted to an ECMAScript value|converting=]
 an IDL <a interface lt="FrozenArray">FrozenArray&lt;|T|&gt;</a> value to an ECMAScript
 value is the Object value that represents a reference
 to the same object that the IDL <a interface lt="FrozenArray">FrozenArray&lt;|T|&gt;</a> represents.
+
+
+<h4 id="es-observable-array">Observable arrays — ObservableArray&lt;|T|&gt;</h4>
+
+Values of observable array types are represented by ECMAScript objects representing
+{{ObservableArray}} interface instances, with their [=ObservableArray/type=] set to |T|.
+
+Instead of the usual conversion algorithms, observable array types have special handling as part of
+the [=attribute getter=] and [=attribute setter=] algorithms.
 
 
 <h5 id="create-frozen-array-from-iterable" dfn>Creating a frozen array from an iterable</h5>
@@ -11308,6 +11455,8 @@ with the [{{NoInterfaceObject}}] [=extended attribute=].
         of that [=inherited interface=].
     1.  Otherwise, if |interface| is the {{DOMException}} [=interface=],
         then set |proto| to |realm|.\[[Intrinsics]].[[{{%ErrorPrototype%}}]].
+    1.  Otherwise, if |interface| is the {{ObservableArray}} [=interface=],
+        then set |proto| to |realm|.\[[Intrinsics]].[[{{%ArrayPrototype%}}]].
     1.  Otherwise, set |proto| to |realm|.\[[Intrinsics]].[[{{%ObjectPrototype%}}]].
     1.  Assert: <a abstract-op>Type</a>(|proto|) is Object.
     1.  Let |interfaceProtoObj| be [=!=] <a abstract-op>ObjectCreate</a>(|proto|).
@@ -11345,6 +11494,16 @@ with the [{{NoInterfaceObject}}] [=extended attribute=].
             \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val>,
             \[[Value]]: |constructor|}.
         1.  Perform [=!=] <a abstract-op>DefinePropertyOrThrow</a>(|interfaceProtoObj|, "<code>constructor</code>", |desc|).
+    1.  If |interface| is the {{ObservableArray}} [=interface=], then:
+        1.  Let |speciesDesc| be the PropertyDescriptor{\[[Writable]]: <emu-val>false</emu-val>,
+            \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val>,
+            \[[Value]]: {{%Array%}}}.
+        1.  Perform [=!=] <a abstract-op>DefinePropertyOrThrow</a>(|interfaceProtoObj|, {{@@species}}, |speciesDesc|).
+        1.  Let |isConcatSpreadableDesc| be the PropertyDescriptor{\[[Writable]]: <emu-val>false</emu-val>,
+            \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val>,
+            \[[Value]]: {{%Array%}}}.
+        1.  Perform [=!=] <a abstract-op>DefinePropertyOrThrow</a>(|interfaceProtoObj|, {{@@isConcatSpreadable}},
+            |isConcatSpreadableDesc|).
     1.  Return |interfaceProtoObj|.
 </div>
 
@@ -11607,6 +11766,8 @@ in which case they are exposed on every object that [=implements=] the interface
                     1.  Otherwise, [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
                 1.  Set |idlObject| to the IDL [=interface type=] value that represents a reference
                     to |esValue|.
+            1.  If |attribute|'s type is a [=observable array type=], then return |attribute|'s
+                <a>backing <code>ObservableArray</code></a>.
             1.  Let |R| be the result of [=get the underlying value|getting the underlying value=]
                 of |attribute| given |idlObject|.
             1.  Return the result of [=converted to an ECMAScript value|converting=] |R| to an
@@ -11668,6 +11829,26 @@ in which case they are exposed on every object that [=implements=] the interface
                 1.  Let |forwardId| be the identifier argument of the [{{PutForwards}}] extended
                     attribute.
                 1.  Perform [=?=] <a abstract-op>Set</a>(|Q|, |forwardId|, |V|, <emu-val>false</emu-val>).
+                1.  Return <emu-val>undefined</emu-val>.
+            1.  If |attribute|'s type is a [=observable array type=] with type argument |T|, then:
+                1.  Let |newValues| be the result of [=converted to an IDL value|converting=] |V| to
+                    an IDL value of type <a lt="sequence type">sequence&lt;|T|&gt;</a>.
+                1.  Let |backingOA| be the |attribute|'s <a>backing <code>ObservableArray</code></a>.
+                1.  Let |backingList| be |backingOA|'s [=ObservableArray/contents=].
+                1.  Let |deleteI| be |backingList|'s [=list/size=].
+                1.  [=While=] |deleteI| &gt; 0:
+                    1.  Run |attribute|'s [=observable array attribute/before hook=] given
+                        undefined and |deleteI|. Rethrow any exceptions.
+                    1.  [=list/Remove=] the value at index |deleteI| from |backingList|.
+                    1.  Run |attribute|'s [=observable array attribute/after hook=] given
+                        undefined and |deleteI|.
+                1.  Let |addI| be 0.
+                1.  While |addI| &lt; |newValues|'s [=list/size=]:
+                    1.  Run |attribute|'s [=observable array attribute/before hook=] given
+                        |newValues|[|addI|] and |addI|. Rethrow any exceptions.
+                    1.  [=list/Append=] |newValues|[|addI|] to |backingList|.
+                    1.  Run |attribute|'s [=observable array attribute/after hook=] given
+                        |newValues|[|addI|] and |addI|.
                 1.  Return <emu-val>undefined</emu-val>.
             1.  Set |idlObject| to the IDL [=interface type=] value that represents a reference
                 to |esValue|.
@@ -13404,6 +13585,8 @@ Additionally, [=legacy platform objects=] have internal methods as defined in:
         |P| [=is an array index=], then:
         1.  Let |index| be the result of calling <a abstract-op>ToUint32</a>(|P|).
         1.  If |index| is not a [=supported property indices|supported property index=], then return <emu-val>true</emu-val>.
+        1.  If |O| implements an interface with steps to [=delete an indexed property=], then run those steps, given
+            |index|, and return <emu-val>true</emu-val>.
         1.  Return <emu-val>false</emu-val>.
     1.  If |O| [=support named properties|supports named properties=],
         |O| does not implement an [=interface=] with the [{{Global}}] [=extended attribute=]
@@ -14054,6 +14237,15 @@ the exact steps to take if <dfn>an exception was thrown</dfn>, or by explicitly 
 </div>
 
 
+<h3 id="es-ObservableArray-specialness">{{ObservableArray}} custom bindings</h3>
+
+In the ECMAScript binding, the [=interface prototype object=] for {{ObservableArray}}
+has its \[[Prototype]] [=internal slot=] set to the intrinsic object {{%ArrayPrototype%}},
+as defined in the [=create an interface prototype object=] abstract operation. It also has
+customized {{@@species}} and {{@@isConcatSpreadable}} values installed on the
+[=interface prototype object=] there.
+
+
 <h3 id="synthetic-module-records">Synthetic module records</h3>
 
 A <dfn export>Synthetic Module Record</dfn> is used to represent information about a module that is
@@ -14352,6 +14544,112 @@ The {{VoidFunction}} [=callback function=]
 type is used for representing function values that take no arguments and do not
 return any value.
 
+<h3 id="ObservableArray" interface>ObservableArray</h3>
+
+The {{ObservableArray}} type is an [=interface type=] defined by the following IDL fragment:
+
+<pre class="idl">
+[Exposed=(Window,Worker)]
+interface ObservableArray { // but see below note about ECMAScript binding
+  constructor(optional ObservableArrayReactors reactors = {});
+
+  getter any (unsigned long long index);
+  setter void (unsigned long long index, any value);
+  attribute unsigned long long length;
+};
+
+callback ObservableArrayReactor = void (any item, unsigned long long index);
+
+dictionary ObservableArrayReactors {
+  ObservableArrayReactor before;
+  ObservableArrayReactor after;
+};
+</pre>
+
+Note: as discussed in [[#es-ObservableArray-specialness]], the ECMAScript binding imposes additional
+requirements beyond the normal ones for [=interface types=].
+
+Each {{ObservableArray}} has the following associated pieces of state:
+
+*   <dfn for="ObservableArray">type</dfn>, a Web IDL [=type=], which defaults to {{any}};
+*   <dfn for="ObservableArray">contents</dfn>, a [=list=] of Web IDL values of the type given by the
+    observable array's [=ObservableArray/type=], which is initially a new empty list;
+*   <dfn for="ObservableArray">before hook</dfn>, an algorithm taking a value of either the
+    observable array's [=ObservableArray/type=], for updates, or undefined, for deletions, plus a
+    numeric index, which defaults to doing nothing; and
+*   <dfn for="ObservableArray">after hook</dfn>, an algorithm taking the same arguments as the
+    before hook, which also defaults to doing nothing.
+
+The object's [=supported property indices=] are given by the numbers in the range zero to one less
+than [=this=]'s [=ObservableArray/contents=]'s [=list/size=], or the empty list if [=this=]'s
+[=ObservableArray/contents=]'s [=list/size=] is zero.
+
+To [=determine the value of an indexed property=] for an index |index|, return [=this=]'s
+[=ObservableArray/contents=][|index|].
+
+To [=set the value of an existing indexed property=] for an index |index| and value |value|:
+
+1.  Set |esValue| to the result of [=converted to an ECMAScript value|converting=] |value| to an
+    ECMAScript value. (This just converts type systems, since |value| is declared as {{any}}.)
+1.  Set |idlValue| to the result of [=converted to an IDL value|converting=] |esValue| to an IDL
+    value of the type given by [=this=]'s [=ObservableArray/type=].
+1.  Run [=this=]'s [=ObservableArray/before hook=] algorithm, given |idlValue| and |index|.
+    Rethrow any exceptions.
+1.  Set [=this=]'s [=ObservableArray/contents=][|index|] to |value|.
+1.  Run [=this=]'s [=ObservableArray/after hook=] algorithm, given |idlValue| and |index|.
+    Rethrow any exceptions.
+
+To [=set the value of a new indexed property=] for an index |index| and value |value|:
+
+1.  If |index| is not equal to [=this=]'s [=ObservableArray/contents=]'s [=list/size=], then throw a
+    {{TypeError}} exception.
+    <p class="note">Allowing setting the beyond the end of the [=ObservableArray/contents=] would
+    necessitate creating developer-observable "holes" in the observable array, which is complicated
+    and undesirable in all known cases. If there is a case where this would be desirable behavior
+    for your observable array,
+    <a href="https://github.com/heycam/webidl/issues/new?title=Enhancement%20request%20for%20holey%20observable%20arrays">file an issue</a>.
+1.  Set |esValue| to the result of [=converted to an ECMAScript value|converting=] |value| to an
+    ECMAScript value. (This just converts type systems, since |value| is declared as {{any}}.)
+1.  Set |idlValue| to the result of [=converted to an IDL value|converting=] |esValue| to an IDL
+    value of the type given by [=this=]'s [=ObservableArray/type=].
+1.  Run [=this=]'s [=ObservableArray/before hook=] algorithm, given |value| and |index|.
+    Rethrow any exceptions.
+1.  Set [=this=]'s [=ObservableArray/contents=][|index|] to |value|.
+1.  Run [=this=]'s [=ObservableArray/after hook=] algorithm, given |value| and |index|.
+    Rethrow any exceptions.
+
+To [=delete an indexed property=] for an index |index|:
+
+1.  If |index| is not equal to [=ObservableArray/contents=]'s [=list/size=] minus one, then throw a
+    {{TypeError}} exception.
+    <p class="note">As with the previous algorithm, allowing deletions in the middle of the array
+    would 
+
+The <dfn attribute for="ObservableArray"><code>length</code></dfn> attribute's getter steps are to
+return [=this=]'s [=ObservableArray/contents=]'s [=list/size=].
+
+The {{ObservableArray/length}} attribute's setter steps are:
+
+1.  If |index| is greater than or equal to [=this=]'s [=ObservableArray/contents=]'s [=list/size=],
+    then throw a {{TypeError}} exception.
+    <p class="note">This would allow creating holes.</p>
+1.  Let |deleteI| be [=this=]'s [=ObservableArray/contents=]'s [=list/size=].
+1.  [=While=] |deleteI| is greater than [=the given value=] minus one:
+    1.  Run [=this=]'s [=ObservableArray/before hook=] algorithm, given undefined and |index|.
+        Rethrow any exceptions.
+    1.  Remove [=this=]'s [=ObservableArray/contents=]'s item at index |deleteI|.
+    1.  Run [=this=]'s [=ObservableArray/after hook=] algorithm, given undefined and |index|.
+        Rethrow any exceptions.
+
+The <dfn constructor for="ObservableArray"><code>ObservableArray(|reactors|)</code></dfn>
+constructor steps are:
+
+1.  Set [=this=]'s [=ObservableArray/before hook=] to the following algorithm, given |value| and
+    |index|:
+    1. If |reactors|["<code>before</code>"] was given, then [=invoke=] it with « |value|, |index| ».
+1.  Set [=this=]'s [=ObservableArray/after hook=] to the following algorithm, given |value| and
+    |index|:
+    1. If |reactors|["<code>after</code>"] was given, then [=invoke=] it with « |value|, |index| ».
 
 <h2 id="extensibility">Extensibility</h2>
 
