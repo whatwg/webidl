@@ -84,6 +84,7 @@ urlPrefix: https://tc39.github.io/ecma262/; spec: ECMA-262
         text: Set; url: sec-set-objects
         text: SharedArrayBuffer; url: sec-sharedarraybuffer-objects
         text: %AsyncIteratorPrototype%; url: sec-asynciteratorprototype
+        text: %ArrayPrototype%; url: sec-properties-of-the-array-prototype-object
         text: %ErrorPrototype%; url: sec-properties-of-the-error-prototype-object
         text: %FunctionPrototype%; url: sec-properties-of-the-function-prototype-object
         text: %IteratorPrototype%; url: sec-%iteratorprototype%-object
@@ -138,6 +139,7 @@ urlPrefix: https://tc39.github.io/ecma262/; spec: ECMA-262
         text: GetIterator; url: sec-getiterator
         text: GetMethod; url: sec-getmethod
         text: IfAbruptRejectPromise; url: sec-ifabruptrejectpromise
+        text: IsArray; url: sec-isarray
         text: IsAccessorDescriptor; url: sec-isaccessordescriptor
         text: IsCallable; url: sec-iscallable
         text: IsConstructor; url: sec-isconstructor
@@ -156,6 +158,7 @@ urlPrefix: https://tc39.github.io/ecma262/; spec: ECMA-262
         text: OrdinaryPreventExtensions; url: sec-ordinarypreventextensions
         text: OrdinarySetWithOwnDescriptor; url: sec-ordinarysetwithowndescriptor
         text: PerformPromiseThen; url: sec-performpromisethen
+        text: ProxyCreate; url: sec-proxycreate
         text: Set; url: sec-set-o-p-v-throw
         text: SetFunctionLength; url: sec-setfunctionlength
         text: SetFunctionName; url: sec-setfunctionname
@@ -165,6 +168,8 @@ urlPrefix: https://tc39.github.io/ecma262/; spec: ECMA-262
         text: ToInt32; url: sec-toint32
         text: ToNumber; url: sec-tonumber
         text: ToObject; url: sec-toobject
+        text: ToPropertyDescriptor; url: sec-topropertydescriptor
+        text: ToPropertyKey; url: sec-topropertykey
         text: ToString; url: sec-tostring
         text: ToUint16; url: sec-touint16
         text: ToUint32; url: sec-touint32
@@ -221,6 +226,7 @@ urlPrefix: https://tc39.github.io/ecma262/; spec: ECMA-262
         text: own property; url: sec-own-property
         text: PromiseCapability; url: sec-promisecapability-records
         text: Property Descriptor; url: sec-property-descriptor-specification-type
+        text: Proxy exotic object; url: sec-proxy-object-internal-methods-and-internal-slots
         text: Source Text Module Record; url: sourctextmodule-record
         text: realm; url: realm
         text: ResolvedBinding Record; url: resolvedbinding-record
@@ -5756,6 +5762,7 @@ type.
         "symbol" Null
         BufferRelatedType Null
         "FrozenArray" "&lt;" TypeWithExtendedAttributes "&gt;" Null
+        "ObservableArray" "&lt;" TypeWithExtendedAttributes "&gt;" Null
         RecordType Null
 </pre>
 
@@ -6775,6 +6782,122 @@ The [=type name=] of a frozen array
 type is the concatenation of the type name for |T| and the string
 "<code>Array</code>".
 
+<h4 id="idl-observable-array" interface lt="ObservableArrayT|ObservableArray&lt;T&gt;">Observable array types — ObservableArray&lt;|T|&gt;</h4>
+
+An <dfn id="dfn-observable-array-type" export>observable array type</dfn> is a parametrized type
+whose values are references to objects of type |T|. The contents of the array can be mutated, both
+by specifications and by author code, and specification code can define how it reacts to such
+mutations, including by rejecting them.  
+
+Similar to [=sequence types=] and [=frozen array types=], observable array types wrap around
+ECMAScript array types, imposing additional semantics on their usage.
+
+Observable array types must only be used as the type of [=regular attributes=].
+
+<p class="note">We could also allow them as operation return values with a bit more work. Please 
+<a href="https://github.com/heycam/webidl/issues/new?title=Enhancement%20request%20for%20observable%20array%20return%20values">file an issue</a>
+if you would like to use them as such.</p>
+
+For an attribute whose type is an observable array type, specification authors can specify a series
+algorithms:
+
+*   <dfn for="observable array attribute">set an indexed value</dfn>, which accepts an IDL value
+    that is about to be set in the observable array, and the index at which it is being set;
+*   <dfn for="observable array attribute">delete an indexed value</dfn>, which accepts an IDL value
+    that is about to be removed from the observable array, and the index from which it is being
+    removed.
+
+Both of these algorithms are optional, and if not provided, the default behavior will be to do
+nothing. Either algorithm may throw an exception, e.g. to reject invalid values.
+
+There is no way to represent a constant observable array value in IDL.
+
+The [=type name=] of an observable array type is the concatenation of the type name for |T| and the
+string "<code>ObservableArray</code>".
+
+<div class="example">
+    The following [=IDL fragment=] defines an [=interface=] with an observable array attribute:
+
+    <!-- TODO: use highlight="idl" after parser update. -->
+    <pre>
+        [Exposed=Window]
+        interface Building {
+          attribute ObservableArray&lt;Employee> employees;
+        };
+    </pre>
+
+    The behavior of the attribute could be defined like so:
+
+    <blockquote>
+        The [=observable array attribute/set an indexed value=] algorithm for
+        <code class="idl">Building</code>'s <code class="idl">employees</code> attribute, given
+        |employee| and |index|, is:
+
+        1.  If |employee| is not allowed to enter the building today, then throw an
+            "{{NotAllowedError}}" {{DOMException}}.
+        1.  If |index| is greater than 200, then throw a "{{QuotaExceededError}}" {{DOMException}}.
+        1.  Put |employee| to work!
+
+        The [=observable array attribute/delete an indexed value=] algorithm for
+        <code class="idl">Building</code>'s <code class="idl">employees</code> attribute, given
+        |employee|, is:
+
+        1.  Alert security that |employee| has left the building.
+    </blockquote>
+
+    Then, ECMAScript code could manipulate the <code class="idl">employees</code> property in
+    various ways:
+
+    <pre highlight="js">
+        // Get an instance of Building.
+        const building = getBuilding();
+
+        building.employees.push(new Employee("A"));
+        building.employees.push(new Employee("B"));
+        building.employees.push(new Employee("C"));
+
+        building.employees.splice(1, 1);
+        const employeeB = building.employees.pop();
+
+        building.employees = [new Employee("D"), employeeB, new Employee("C")];
+
+        building.employees.length = 0;
+
+        // Will throw:
+        building.employees.push("not an Employee; a string instead");
+    </pre>
+
+    All of these manipulations would pass through the above-defined
+    [=observable array attribute/set an indexed value=] algorithm, potentially throwing if the
+    conditions described there were met. They would also perform the appropriate side effects listed
+    there and in the [=observable array attribute/delete an indexed value=] algorithm.
+
+    Another thing to note about the above code example is how all of the ECMAScript array methods
+    from {{%ArrayPrototype%}} work on the observable array. Indeed, it fully behaves like an
+    <code>Array</code> instance:
+
+    <pre highlight="js">
+        const normalArray = [];
+
+        // If building.employees were defined as an indexed property getter interface: normalArray
+        // would contains a single item, building.employees.
+        //
+        // For observable arrays (and frozen arrays): normalArray contains all of the items inside
+        // of building.employees.
+        normalArray.concat(building.employees);
+
+        // names is an ECMAScript Array.
+        const names = building.employees.map(employee => employee.name);
+
+        // Passes various brand checks:
+        console.assert(building.employees instanceof Array);
+        console.assert(Array.isArray(building.employees));
+        console.assert(building.employees.constructor === Array);
+
+        // Even is treated as an array by JSON.stringify!
+        console.assert(JSON.stringify(building.employees) === `["object Employee"]`);
+    </pre>
+</div>
 
 <h3 id="idl-extended-attributes">Extended attributes</h3>
 
@@ -6930,6 +7053,7 @@ five forms are allowed.
         "FrozenArray"
         "Infinity"
         "NaN"
+        "ObservableArray"
         "Promise"
         "USVString"
         "any"
@@ -8831,6 +8955,65 @@ to the same object that the IDL <a interface lt="FrozenArray">FrozenArray&lt;|T|
     1.  Return the result of [=create a frozen array|creating a frozen array=] from |values|.
 </div>
 
+<h4 id="es-observable-array">Observable arrays — ObservableArray&lt;|T|&gt;</h4>
+
+Values of observable array types are represented by [=observable array exotic objects=].
+
+Instead of the usual conversion algorithms, observable array types have special handling as part of
+the [=attribute getter=] and [=attribute setter=] algorithms.
+
+In the ECMAScript binding, ECMAScript objects that represent [=platform objects=] have a
+<dfn>backing observable array exotic object</dfn> for each [=regular attribute=] of an
+[=observable array type=]. These are created and managed as part of the [=define the attributes=]
+algorithm.
+
+<h5 id="observable-array-operations">Working with observable array attributes</h5>
+
+There is currently no way to introspect the current contents of an observable array attribute.
+Instead, specification authors are expected to react to changes using the
+[=observable array attribute/set an indexed value=] and
+[=observable array attribute/delete an indexed value=] algorithms.
+
+<p class="note">If you believe introspecting the contents of an observable array attribute would be
+useful for your specification, please
+<a href="https://github.com/heycam/webidl/issues/new?title=Request%20for%20observable%20array%20introspection">file an issue</a>
+to discuss your case, and we can work on adding something.</p>
+
+Specification authors must only use the below algorithms to manipulate the contents of an observable
+array:
+
+<div algorithm>
+    To <dfn for="observable array attribute" export>clear</dfn> an observable array attribute, given
+    a [=platform object=] |obj| and an attribute |attribute|:
+
+    1.  Assert: |obj| [=implements=] an [=interface=] with the [=regular attribute=] |attribute|.
+    1.  Let |oa| be |obj|'s [=backing observable array exotic object=] for |attribute|.
+    1.  Perform [=?=] |oa|.\[[DefineOwnProperty]]("length", 0).
+</div>
+
+<div algorithm>
+    To <dfn for="observable array attribute" export>reset</dfn> an observable array attribute, given
+    a [=platform object=] |obj|, an attribute |attribute|, and a [=list=] |newValues| of Web IDL
+    values whose types are the same as that parametrized by |attribute|'s type:
+
+    1.  Assert: |obj| [=implements=] an [=interface=] with the [=regular attribute=] |attribute|.
+    1.  Let |oa| be |obj|'s [=backing observable array exotic object=] for |attribute|.
+    1.  Perform [=?=] |oa|.\[[DefineOwnProperty]]("length", 0).
+    1.  Let |index| be 0.
+    1.  [=list/For each=] |value| of |newValues|:
+        1.  Let |esValue| be |value|, [=converted to an ECMAScript value=].
+        1.  Perform [=?=] |oa|.\[[DefineOwnProperty]]([=!=] [$ToPropertyKey$](|index|), PropertyDescriptor{\[[Value]]: |esValue|}).
+        1.  Set |index| to |index| + 1.
+</div>
+
+<p class="note">These algorithms will throw exceptions if and only if the attribute's
+[=observable array attribute/set an indexed value=] and
+[=observable array attribute/delete an indexed value=] algorithms do.</p>
+
+<p class="note">We can expand this list of algorithms upon request. For now it includes only the basic
+bulk-manipulation operations known to be necessary for various uses in the specification ecosystem. Please
+<a href="https://github.com/heycam/webidl/issues/new?title=Request%20for%20more%20observable%20array%20operations">file an issue</a>
+if there is a way your specification would like to manipulate observable arrays and we can add it.</p>
 
 <h3 id="es-extended-attributes">ECMAScript-specific extended attributes</h3>
 
@@ -11580,6 +11763,11 @@ in which case they are exposed on every object that [=implements=] the interface
             \[[Enumerable]]: <emu-val>true</emu-val>, \[[Configurable]]: |configurable|}.
         1.  Let |id| be |attr|'s [=identifier=].
         1.  Perform [=!=] <a abstract-op>DefinePropertyOrThrow</a>(|target|, |id|, |desc|).
+            1.  If |attr|'s type is an [=observable array type=] with type argument |T|, then set
+                |target|'s [=backing observable array exotic object=] for |attr| to the result of
+                [=creating an observable array exotic object=] in |realm|, given |T|, |attr|'s
+                [=set an indexed value=] algorithm, and |attr|'s [=delete an indexed value=]
+                algorithm.
 
 </div>
 
@@ -11605,6 +11793,8 @@ in which case they are exposed on every object that [=implements=] the interface
                     1.  If |attribute| was specified with the [{{LenientThis}}]
                         [=extended attribute=], then return <emu-val>undefined</emu-val>.
                     1.  Otherwise, [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
+                1.  If |attribute|'s type is an [=observable array type=], then return |esValue|'s
+                    [=backing observable array exotic object=] for |attribute|.
                 1.  Set |idlObject| to the IDL [=interface type=] value that represents a reference
                     to |esValue|.
             1.  Let |R| be the result of [=get the underlying value|getting the underlying value=]
@@ -11671,6 +11861,12 @@ in which case they are exposed on every object that [=implements=] the interface
                 1.  Return <emu-val>undefined</emu-val>.
             1.  Set |idlObject| to the IDL [=interface type=] value that represents a reference
                 to |esValue|.
+            1.  If |attribute|'s type is an [=observable array type=] with type argument |T|:
+                1.  Let |newValues| be the result of [=converted to an IDL value|converting=] |V| to
+                    an IDL value of type <a lt="sequence type">sequence&lt;|T|&gt;</a>.
+                1.  [=observable array attribute/Reset=] |idlObject|'s |attribute| attribute to
+                    |newValues|.
+                1.  Return <emu-val>undefined</emu-val>.
         1.  Let |idlValue| be determined as follows:
 
             <dl class="switch">
@@ -13627,6 +13823,103 @@ internal method as follows.
             1.  Set |desc|.\[[Configurable]] to <emu-val>true</emu-val>.
             1.  Return |desc|.
     1.  Return <a abstract-op>OrdinaryGetOwnProperty</a>(|O|, |P|).
+</div>
+
+<h3 id="es-observable-arrays">Observable array exotic objects</h3>
+
+An <dfn>observable array exotic object</dfn> is a specific type of ECMAScript
+[=Proxy exotic object=] which is created using the proxy hooks defined in this section. They are
+defined in this manner because the ECMAScript specification includes special treatment for
+[=Proxy exotic objects=] that have <code>Array</code> instances as their proxy target, and we want
+to ensure that [=observable array types=] are exposed to ECMAScript code with this special treatment
+intact.
+
+<div algorithm>
+    To <dfn lt="creating an observable array exotic object">create an observable array exotic object</dfn>
+    in a [=Realm=] |realm|, given Web IDL type |T| and algorithms |setAlgorithm| and |deleteAlgorithm|:
+
+    1.  Let |innerArray| be [=!=] [$ArrayCreate$](0).
+    1.  Let |handler| be [$ObjectCreate$](<emu-val>null</emu-val>, « \[[Type]], \[[SetAlgorithm]], \[[DeleteAlgorithm]] »).
+    1.  Set |handler|.\[[Type]] to |T|.
+    1.  Set |handler|.\[[SetAlgorithm]] to |setAlgorithm|.
+    1.  Set |handler|.\[[DeleteAlgorithm]] to |deleteAlgorithm|.
+    1.  Let |deleteProperty| be [=!=] [$CreateBuiltinFunction$](the steps from [[#es-observable-array-deleteProperty]], « », |realm|).
+    1.  Perform [=!=] [$CreateDataProperty$](|handler|, "deleteProperty", |deleteProperty|).
+    1.  Let |defineProperty| be [=!=] [$CreateBuiltinFunction$](the steps from [[#es-observable-array-defineProperty]], « », |realm|).
+    1.  Perform [=!=] [$CreateDataProperty$](|handler|, "defineProperty", |defineProperty|).
+    1.  Let |preventExtensions| be [=!=] [$CreateBuiltinFunction$](the steps from [[#es-observable-array-preventExtensions]], « », |realm|).
+    1.  Perform [=!=] [$CreateDataProperty$](|handler|, "preventExtensions", |preventExtensions|).
+    1.  Return [=!=] [$ProxyCreate$](|innerArray|, |handler|).
+</div>
+
+<h4 id="es-observable-array-defineProperty"><code>defineProperty</code></h4>
+
+<div algorithm="observable array exotic object defineProperty trap">
+    The steps for the <code>defineProperty</code> proxy trap for
+    [=observable array exotic objects=], given |O|, |P|, and |descriptorObj| are as follows:
+
+    1.  Let |handler| be the <emu-val>this</emu-val> value.
+    1.  Let |descriptor| be [=?=] [$ToPropertyDescriptor$](|descriptorObj|).
+    1.  If |P| is "length", then:
+        1.  If [=!=] [$IsAccessorDescriptor$](|descriptor|) is <emu-val>true</emu-val>, then return
+            <emu-val>false</emu-val>.
+        1.  If |descriptor| has a \[[Configurable]] field and |descriptor|.\[[Configurable]] is
+            <emu-val>true</emu-val>, return <emu-val>false</emu-val>.
+        1.  If |descriptor| has a \[[Enumerable]] field and |descriptor|.\[[Enumerable]] is
+            <emu-val>true</emu-val>, return <emu-val>false</emu-val>.
+        1.  If |descriptor| has a \[[Writable]] field and |descriptor|.\[[Writable]] is
+            <emu-val>false</emu-val>, return <emu-val>false</emu-val>.
+    1. Else if |P| [=is an array index=], then:
+        1.  If [=!=] [$IsAccessorDescriptor$](|descriptor|) is <emu-val>true</emu-val>, then return
+            <emu-val>false</emu-val>.
+        1.  If |descriptor| has a \[[Configurable]] field and |descriptor|.\[[Configurable]] is
+            <emu-val>false</emu-val>, return <emu-val>false</emu-val>.
+        1.  If |descriptor| has a \[[Enumerable]] field and |descriptor|.\[[Enumerable]] is
+            <emu-val>false</emu-val>, return <emu-val>false</emu-val>.
+        1.  If |descriptor| has a \[[Writable]] field and |descriptor|.\[[Writable]] is
+            <emu-val>false</emu-val>, return <emu-val>false</emu-val>.
+        1.  Let |idlValue| be the result of [=converted to an IDL value|converting=]
+            |descriptor|.\[[Value]] to the type given by |handler|.\[[Type]].
+        1.  Perform the algorithm steps given by |handler|.\[[SetAlgorithm]], given |idlValue| and
+            |P|.
+        1.  Let |esValue| be the result of [=converted to an ECMAScript value|converting=]
+            |idlValue| to an ECMAScript value.
+        1.  Set |descriptor|.\[[Value]] to |esValue|.
+        1.  Perform [=?=] |O|.\[[Delete]](|P|).
+            <p class="note">The purpose of this step is to trigger
+            <a href="#es-observable-array-deleteProperty">the <code>deleteProperty</code> trap</a>
+            and the corresponding [=observable array attribute/delete an indexed value=]
+            algorithm.</p>
+    1. Return [=?=] |O|.\[[DefineOwnProperty]](|P|, |descriptor|).
+</div>
+
+<h4 id="es-observable-array-deleteProperty"><code>deleteProperty</code></h4>
+
+<div algorithm="observable array exotic object deleteProperty trap">
+    The steps for the <code>deleteProperty</code> proxy trap for
+    [=observable array exotic objects=], given |O| and |P|, are as follows:
+
+    1.  Let |handler| be the <emu-val>this</emu-val> value.
+    1.  If |P| [=is an array index=], then:
+        1.  Let |existingDescriptor| be [=!=] [$OrdinaryGetOwnProperty$](|O|, |P|).
+        1.  If |existingDescriptor| is not <emu-val>undefined</emu-val>, then:
+            1.  Let |idlValue| be the result of [=converted to an IDL value|converting=]
+                |existingDescriptor|.\[[Value]] to the type given by |handler|.\[[Type]].
+            1.  Assert: the above step never throws an exception, since we already went through the
+                conversions in
+                <a href="#es-observable-array-defineProperty">the <code>defineProperty</code> trap</a>.
+            1.  Perform the algorithm steps given by |handler|.\[[DeleteAlgorithm]], given
+                |idlValue| and |P|.
+    1. Return [=?=] |O|.\[[Delete]](|O|, |P|).
+</div>
+
+<h4 id="es-observable-array-preventExtensions"><code>preventExtensions</code></h4>
+
+<div algorithm="observable array exotic object preventExtensions trap">
+    The steps for the <code>preventExtensions</code> proxy trap for
+    [=observable array exotic objects=] are as follows:
+
+    1.  Return <emu-val>false</emu-val>.
 </div>
 
 <h3 id="es-user-objects">Callback interfaces</h3>
