@@ -13834,6 +13834,19 @@ defined in this manner because the ECMAScript specification includes special tre
 to ensure that [=observable array types=] are exposed to ECMAScript code with this special treatment
 intact.
 
+The proxy traps used by observable array exotic objects work to ensure a number of invariants beyond
+those of normal <code>Array</code> instances:
+
+*   The array should have no holes, i.e. every property in the inclusive range 0 through
+    <code>observableArray.length</code> will be filled with a value compatible with the specified
+    Web IDL type.
+*   The property descriptors for important properties cannot be changed from their default
+    configuration; indexed properties always remain as configurable, enumerable, and writable data
+    properties, while the <code>length</code> property remains as a non-configurable,
+    non-enumerable, and writable data property.
+*   Adding additional properties to the array cannot be prevented using, for example,
+    <code>Object.preventExtensions()</code>.
+
 <div algorithm>
     To <dfn lt="creating an observable array exotic object">create an observable array exotic object</dfn>
     in a [=Realm=] |realm|, given Web IDL type |T| and algorithms |setAlgorithm| and |deleteAlgorithm|:
@@ -13860,6 +13873,9 @@ intact.
 
     1.  Let |handler| be the <emu-val>this</emu-val> value.
     1.  Let |descriptor| be [=?=] [$ToPropertyDescriptor$](|descriptorObj|).
+    1.  Let |oldLenDesc| be [$OrdinaryGetOwnProperty$](|O|, "length").
+    1.  Assert: [=!=] [$IsDataDescriptor$](|oldLenDesc|) is <emu-val>true</emu-val>.
+    1.  Let |oldLen| be |oldLenDesc|.\[[Value]].
     1.  If |P| is "length", then:
         1.  If [=!=] [$IsAccessorDescriptor$](|descriptor|) is <emu-val>true</emu-val>, then return
             <emu-val>false</emu-val>.
@@ -13869,6 +13885,8 @@ intact.
             <emu-val>true</emu-val>, return <emu-val>false</emu-val>.
         1.  If |descriptor| has a \[[Writable]] field and |descriptor|.\[[Writable]] is
             <emu-val>false</emu-val>, return <emu-val>false</emu-val>.
+        1.  If |descriptorObj|.\[[Value]] is present and |descriptorObj|.\[[Value]] > |oldLen|,
+            return <emu-val>false</emu-val>.
     1. Else if |P| [=is an array index=], then:
         1.  If [=!=] [$IsAccessorDescriptor$](|descriptor|) is <emu-val>true</emu-val>, then return
             <emu-val>false</emu-val>.
@@ -13878,18 +13896,22 @@ intact.
             <emu-val>false</emu-val>, return <emu-val>false</emu-val>.
         1.  If |descriptor| has a \[[Writable]] field and |descriptor|.\[[Writable]] is
             <emu-val>false</emu-val>, return <emu-val>false</emu-val>.
+        1.  If [=!=] [$ToUint32$](|P|) > |oldLen|, return <emu-val>false</emu-val>.
         1.  Let |idlValue| be the result of [=converted to an IDL value|converting=]
             |descriptor|.\[[Value]] to the type given by |handler|.\[[Type]].
+        1.  Let |existingDescriptor| be [=!=] [$OrdinaryGetOwnProperty$](|O|, |P|).
+        1.  Assert: |existingDescriptor| is not <emu-val>undefined</emu-val>.
+        1.  Let |existingIDLValue| be the result of [=converted to an IDL value|converting=]
+            |existingDescriptor|.\[[Value]] to the type given by |handler|.\[[Type]].
+        1.  Assert: the above step never throws an exception, since we already went through the
+            conversions when we first stored the value.
+        1.  Perform the algorithm steps given by |handler|.\[[DeleteAlgorithm]], given
+            |existingIDLValue| and |P|.
         1.  Perform the algorithm steps given by |handler|.\[[SetAlgorithm]], given |idlValue| and
             |P|.
         1.  Let |esValue| be the result of [=converted to an ECMAScript value|converting=]
             |idlValue| to an ECMAScript value.
         1.  Set |descriptor|.\[[Value]] to |esValue|.
-        1.  Perform [=?=] |O|.\[[Delete]](|P|).
-            <p class="note">The purpose of this step is to trigger
-            <a href="#es-observable-array-deleteProperty">the <code>deleteProperty</code> trap</a>
-            and the corresponding [=observable array attribute/delete an indexed value=]
-            algorithm.</p>
     1. Return [=?=] |O|.\[[DefineOwnProperty]](|P|, |descriptor|).
 </div>
 
@@ -13901,16 +13923,22 @@ intact.
 
     1.  Let |handler| be the <emu-val>this</emu-val> value.
     1.  If |P| [=is an array index=], then:
+        1.  Let |oldLenDesc| be [=!=] [$OrdinaryGetOwnProperty$](|O|, "length").
+        1.  Assert: [=!=] [$IsDataDescriptor$](|oldLenDesc|) is <emu-val>true</emu-val>.
+        1.  Let |oldLen| be |oldLenDesc|.\[[Value]].
+        1.  If [=!=] [$ToUint32$](|P|) ≠ |oldLen|, return <emu-val>false</emu-val>.
         1.  Let |existingDescriptor| be [=!=] [$OrdinaryGetOwnProperty$](|O|, |P|).
-        1.  If |existingDescriptor| is not <emu-val>undefined</emu-val>, then:
-            1.  Let |idlValue| be the result of [=converted to an IDL value|converting=]
-                |existingDescriptor|.\[[Value]] to the type given by |handler|.\[[Type]].
-            1.  Assert: the above step never throws an exception, since we already went through the
-                conversions in
-                <a href="#es-observable-array-defineProperty">the <code>defineProperty</code> trap</a>.
-            1.  Perform the algorithm steps given by |handler|.\[[DeleteAlgorithm]], given
-                |idlValue| and |P|.
-    1. Return [=?=] |O|.\[[Delete]](|O|, |P|).
+        1.  Assert: |existingDescriptor| is not <emu-val>undefined</emu-val>.
+        1.  Let |idlValue| be the result of [=converted to an IDL value|converting=]
+            |existingDescriptor|.\[[Value]] to the type given by |handler|.\[[Type]].
+        1.  Assert: the above step never throws an exception, since we already went through the
+            conversions in
+            <a href="#es-observable-array-defineProperty">the <code>defineProperty</code> trap</a>.
+        1.  Perform the algorithm steps given by |handler|.\[[DeleteAlgorithm]], given
+            |idlValue| and |P|.
+        1.  Perform [=!=] |O|.\[[Delete]](|O|, |P|).
+        1.  Perform [=!=] |O|.\[[DefineOwnProperty]]("length", PropertyDescriptor{\[[Value]]: |oldLen| &minus; 1}).
+    1.  Otherwise, return [=?=] |O|.\[[Delete]](|O|, |P|).
 </div>
 
 <h4 id="es-observable-array-preventExtensions"><code>preventExtensions</code></h4>
