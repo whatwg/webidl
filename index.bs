@@ -6787,7 +6787,9 @@ type is the concatenation of the type name for |T| and the string
 An <dfn id="dfn-observable-array-type" export>observable array type</dfn> is a parametrized type
 whose values are references to objects of type |T|. The contents of the array can be mutated, both
 by specifications and by author code, and specification code can define how it reacts to such
-mutations, including by rejecting them.  
+mutations, including by rejecting them.
+
+The parametrized type must not be a [=dictionary type=], [=sequence type=], or [=record type=].
 
 Similar to [=sequence types=] and [=frozen array types=], observable array types wrap around
 ECMAScript array types, imposing additional semantics on their usage.
@@ -6833,7 +6835,7 @@ string "<code>ObservableArray</code>".
         <code class="idl">Building</code>'s <code class="idl">employees</code> attribute, given
         |employee| and |index|, is:
 
-        1.  If |employee| is not allowed to enter the building today, then throw an
+        1.  If |employee| is not allowed to enter the building today, then throw a
             "{{NotAllowedError}}" {{DOMException}}.
         1.  If |index| is greater than 200, then throw a "{{QuotaExceededError}}" {{DOMException}}.
         1.  Put |employee| to work!
@@ -13900,13 +13902,13 @@ those of normal <code>Array</code> instances:
         1.  Let |idlValue| be the result of [=converted to an IDL value|converting=]
             |descriptor|.\[[Value]] to the type given by |handler|.\[[Type]].
         1.  Let |existingDescriptor| be [=!=] [$OrdinaryGetOwnProperty$](|O|, |P|).
-        1.  Assert: |existingDescriptor| is not <emu-val>undefined</emu-val>.
-        1.  Let |existingIDLValue| be the result of [=converted to an IDL value|converting=]
-            |existingDescriptor|.\[[Value]] to the type given by |handler|.\[[Type]].
-        1.  Assert: the above step never throws an exception, since we already went through the
-            conversions when we first stored the value.
-        1.  Perform the algorithm steps given by |handler|.\[[DeleteAlgorithm]], given
-            |existingIDLValue| and |P|.
+        1.  If |existingDescriptor| is not <emu-val>undefined</emu-val>, then:
+            1.  Let |existingIDLValue| be the result of [=converted to an IDL value|converting=]
+                |existingDescriptor|.\[[Value]] to the type given by |handler|.\[[Type]].
+            1.  Assert: the above step never throws an exception, since we already went through the
+                conversions when we first stored the value.
+            1.  Perform the algorithm steps given by |handler|.\[[DeleteAlgorithm]], given
+                |existingIDLValue| and |P|.
         1.  Perform the algorithm steps given by |handler|.\[[SetAlgorithm]], given |idlValue| and
             |P|.
         1.  Let |esValue| be the result of [=converted to an ECMAScript value|converting=]
@@ -13926,7 +13928,7 @@ those of normal <code>Array</code> instances:
         1.  Let |oldLenDesc| be [=!=] [$OrdinaryGetOwnProperty$](|O|, "length").
         1.  Assert: [=!=] [$IsDataDescriptor$](|oldLenDesc|) is <emu-val>true</emu-val>.
         1.  Let |oldLen| be |oldLenDesc|.\[[Value]].
-        1.  If [=!=] [$ToUint32$](|P|) ≠ |oldLen|, return <emu-val>false</emu-val>.
+        1.  If [=!=] [$ToUint32$](|P|) ≠ |oldLen| &minus; 1, return <emu-val>false</emu-val>.
         1.  Let |existingDescriptor| be [=!=] [$OrdinaryGetOwnProperty$](|O|, |P|).
         1.  Assert: |existingDescriptor| is not <emu-val>undefined</emu-val>.
         1.  Let |idlValue| be the result of [=converted to an IDL value|converting=]
