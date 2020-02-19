@@ -8971,15 +8971,19 @@ algorithm.
 
 <h5 id="observable-array-operations">Working with observable array attributes</h5>
 
-There is currently no way to introspect the current contents of an observable array attribute.
-Instead, specification authors are expected to react to changes using the
-[=observable array attribute/set an indexed value=] and
-[=observable array attribute/delete an indexed value=] algorithms.
+<div algorithm>
+    The <dfn for="observable array attribute" export>backing list</dfn> for an observable array
+    attribute, given a [=platform object=] |obj| and an attribute |attribute|, is the [=list=]
+    returned by the following algorithm:
 
-<p class="note">If you believe introspecting the contents of an observable array attribute would be
-useful for your specification, please
-<a href="https://github.com/heycam/webidl/issues/new?title=Request%20for%20observable%20array%20introspection">file an issue</a>
-to discuss your case, and we can work on adding something.</p>
+    1.  Assert: |obj| [=implements=] an [=interface=] with the [=regular attribute=] |attribute|.
+    1.  Let |oa| be |obj|'s [=backing observable array exotic object=] for |attribute|.
+    1.  Return |oa|.\[[ProxyHandler]].\[[BackingList]].
+
+    Specification authors must not modify the backing list, as that will cause it to get out of sync
+    with the JavaScript-visible contents of the array. Instead, they must use the below manipulation
+    algorithms.
+</div>
 
 Specification authors must only use the below algorithms to manipulate the contents of an observable
 array:
@@ -13854,7 +13858,7 @@ those of normal <code>Array</code> instances:
     in a [=Realm=] |realm|, given Web IDL type |T| and algorithms |setAlgorithm| and |deleteAlgorithm|:
 
     1.  Let |innerArray| be [=!=] [$ArrayCreate$](0).
-    1.  Let |handler| be [$ObjectCreate$](<emu-val>null</emu-val>, « \[[Type]], \[[SetAlgorithm]], \[[DeleteAlgorithm]] »).
+    1.  Let |handler| be [$ObjectCreate$](<emu-val>null</emu-val>, « \[[Type]], \[[SetAlgorithm]], \[[DeleteAlgorithm]], \[[BackingList]] »).
     1.  Set |handler|.\[[Type]] to |T|.
     1.  Set |handler|.\[[SetAlgorithm]] to |setAlgorithm|.
     1.  Set |handler|.\[[DeleteAlgorithm]] to |deleteAlgorithm|.
@@ -13898,7 +13902,8 @@ those of normal <code>Array</code> instances:
             <emu-val>false</emu-val>, return <emu-val>false</emu-val>.
         1.  If |descriptor| has a \[[Writable]] field and |descriptor|.\[[Writable]] is
             <emu-val>false</emu-val>, return <emu-val>false</emu-val>.
-        1.  If [=!=] [$ToUint32$](|P|) > |oldLen|, return <emu-val>false</emu-val>.
+        1.  Let |index| be [=!=] [$ToUint32$](|P|).
+        1.  If |index| > |oldLen|, return <emu-val>false</emu-val>.
         1.  Let |idlValue| be the result of [=converted to an IDL value|converting=]
             |descriptor|.\[[Value]] to the type given by |handler|.\[[Type]].
         1.  Let |existingDescriptor| be [=!=] [$OrdinaryGetOwnProperty$](|O|, |P|).
@@ -13911,6 +13916,8 @@ those of normal <code>Array</code> instances:
                 |existingIDLValue| and |P|.
         1.  Perform the algorithm steps given by |handler|.\[[SetAlgorithm]], given |idlValue| and
             |P|.
+        1.  If |index| = |oldLen|, then [=list/append=] |idlValue| to |handler|.\[[BackingList]].
+        1.  Otherwise, set |handler|.\[[BackingList]][|index|] to |idlValue|.
         1.  Let |esValue| be the result of [=converted to an ECMAScript value|converting=]
             |idlValue| to an ECMAScript value.
         1.  Set |descriptor|.\[[Value]] to |esValue|.
@@ -13939,6 +13946,7 @@ those of normal <code>Array</code> instances:
         1.  Perform the algorithm steps given by |handler|.\[[DeleteAlgorithm]], given
             |idlValue| and |P|.
         1.  Perform [=!=] |O|.\[[Delete]](|O|, |P|).
+        1.  [=list/Remove=] the last item from |handler|.\[[BackingList]].
         1.  Perform [=!=] |O|.\[[DefineOwnProperty]]("length", PropertyDescriptor{\[[Value]]: |oldLen| &minus; 1}).
     1.  Otherwise, return [=?=] |O|.\[[Delete]](|O|, |P|).
 </div>
