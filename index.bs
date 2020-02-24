@@ -13803,7 +13803,7 @@ internal method as follows.
 <h3 id="es-observable-arrays">Observable array exotic objects</h3>
 
 An <dfn>observable array exotic object</dfn> is a specific type of ECMAScript
-[=Proxy exotic object=] which is created using the proxy hooks defined in this section. They are
+[=Proxy exotic object=] which is created using the proxy traps defined in this section. They are
 defined in this manner because the ECMAScript specification includes special treatment for
 [=Proxy exotic objects=] that have <code>Array</code> instances as their proxy target, and we want
 to ensure that [=observable array types=] are exposed to ECMAScript code with this special treatment
@@ -13813,8 +13813,8 @@ The proxy traps used by observable array exotic objects work to ensure a number 
 those of normal <code>Array</code> instances:
 
 *   The arrays have no holes, i.e. every property in the inclusive range 0 through
-    <code>observableArray.length</code> will be filled with a value compatible with the specified
-    Web IDL type, and no [=array index=] properties will exist outside that range.
+    <code>observableArray.length</code> &minus; 1 will be filled with a value compatible with the
+    specified Web IDL type, and no [=array index=] properties will exist outside that range.
 *   The property descriptors for important properties cannot be changed from their default
     configuration; indexed properties always remain as configurable, enumerable, and writable data
     properties, while the <code>length</code> property remains as a non-configurable,
@@ -13832,21 +13832,21 @@ those of normal <code>Array</code> instances:
     1.  Set |handler|.\[[SetAlgorithm]] to |setAlgorithm|.
     1.  Set |handler|.\[[DeleteAlgorithm]] to |deleteAlgorithm|.
     1.  Let |defineProperty| be [=!=] [$CreateBuiltinFunction$](the steps from [[#es-observable-array-defineProperty]], « », |realm|).
-    1.  Perform [=!=] [$CreateDataProperty$](|handler|, "defineProperty", |defineProperty|).
+    1.  Perform [=!=] [$CreateDataProperty$](|handler|, "<code>defineProperty</code>", |defineProperty|).
     1.  Let |deleteProperty| be [=!=] [$CreateBuiltinFunction$](the steps from [[#es-observable-array-deleteProperty]], « », |realm|).
-    1.  Perform [=!=] [$CreateDataProperty$](|handler|, "deleteProperty", |deleteProperty|).
+    1.  Perform [=!=] [$CreateDataProperty$](|handler|, "<code>deleteProperty</code>", |deleteProperty|).
     1.  Let |get| be [=!=] [$CreateBuiltinFunction$](the steps from [[#es-observable-array-get]], « », |realm|).
-    1.  Perform [=!=] [$CreateDataProperty$](|handler|, "get", |get|).
+    1.  Perform [=!=] [$CreateDataProperty$](|handler|, "<code>get</code>", |get|).
     1.  Let |getOwnPropertyDescriptor| be [=!=] [$CreateBuiltinFunction$](the steps from [[#es-observable-array-getOwnPropertyDescriptor]], « », |realm|).
-    1.  Perform [=!=] [$CreateDataProperty$](|handler|, "getOwnPropertyDescriptor", |getOwnPropertyDescriptor|).
+    1.  Perform [=!=] [$CreateDataProperty$](|handler|, "<code>getOwnPropertyDescriptor</code>", |getOwnPropertyDescriptor|).
     1.  Let |has| be [=!=] [$CreateBuiltinFunction$](the steps from [[#es-observable-array-has]], « », |realm|).
-    1.  Perform [=!=] [$CreateDataProperty$](|handler|, "has", |has|).
-    1.  Let |preventExtensions| be [=!=] [$CreateBuiltinFunction$](the steps from [[#es-observable-array-preventExtensions]], « », |realm|).
-    1.  Perform [=!=] [$CreateDataProperty$](|handler|, "preventExtensions", |preventExtensions|).
-    1.  Let |set| be [=!=] [$CreateBuiltinFunction$](the steps from [[#es-observable-array-set]], « », |realm|).
-    1.  Perform [=!=] [$CreateDataProperty$](|handler|, "set", |set|).
+    1.  Perform [=!=] [$CreateDataProperty$](|handler|, "<code>has</code>", |has|).
     1.  Let |ownKeys| be [=!=] [$CreateBuiltinFunction$](the steps from [[#es-observable-array-ownKeys]], « », |realm|).
-    1.  Perform [=!=] [$CreateDataProperty$](|handler|, "ownKeys", |ownKeys|).
+    1.  Perform [=!=] [$CreateDataProperty$](|handler|, "<code>ownKeys</code>", |ownKeys|).
+    1.  Let |preventExtensions| be [=!=] [$CreateBuiltinFunction$](the steps from [[#es-observable-array-preventExtensions]], « », |realm|).
+    1.  Perform [=!=] [$CreateDataProperty$](|handler|, "<code>preventExtensions</code>", |preventExtensions|).
+    1.  Let |set| be [=!=] [$CreateBuiltinFunction$](the steps from [[#es-observable-array-set]], « », |realm|).
+    1.  Perform [=!=] [$CreateDataProperty$](|handler|, "<code>set</code>", |set|).
     1.  Return [=!=] [$ProxyCreate$](|innerArray|, |handler|).
 </div>
 
@@ -13857,16 +13857,16 @@ those of normal <code>Array</code> instances:
     [=observable array exotic objects=], given |O|, |P|, and |descriptorObj| are as follows:
 
     1.  Let |handler| be the <emu-val>this</emu-val> value.
-    1.  Let |descriptor| be [=?=] [$ToPropertyDescriptor$](|descriptorObj|).
+    1.  Let |descriptor| be [=!=] [$ToPropertyDescriptor$](|descriptorObj|).
     1.  If |P| is "length", then:
         1.  If [=!=] [$IsAccessorDescriptor$](|descriptor|) is <emu-val>true</emu-val>, then return
             <emu-val>false</emu-val>.
-        1.  If |descriptor| has a \[[Configurable]] field and |descriptor|.\[[Configurable]] is
-            <emu-val>true</emu-val>, return <emu-val>false</emu-val>.
-        1.  If |descriptor| has a \[[Enumerable]] field and |descriptor|.\[[Enumerable]] is
-            <emu-val>true</emu-val>, return <emu-val>false</emu-val>.
-        1.  If |descriptor| has a \[[Writable]] field and |descriptor|.\[[Writable]] is
-            <emu-val>false</emu-val>, return <emu-val>false</emu-val>.
+        1.  If |descriptor|.\[[Configurable]] is present and has the value <emu-val>true</emu-val>,
+            then return <emu-val>false</emu-val>.
+        1.  If |descriptor|.\[[Enumerable]] is present and has the value <emu-val>true</emu-val>,
+            then return <emu-val>false</emu-val>.
+        1.  If |descriptor|.\[[Writable]] is present and has the value <emu-val>false</emu-val>,
+            then return <emu-val>false</emu-val>.
         1.  If |descriptor|.\[[Value]] is present, then return the result of
             [=observable array exotic object/setting the length=] given |handler| and
             |descriptor|.\[[Value]].
@@ -13874,12 +13874,12 @@ those of normal <code>Array</code> instances:
     1. If |P| [=is an array index=], then:
         1.  If [=!=] [$IsAccessorDescriptor$](|descriptor|) is <emu-val>true</emu-val>, then return
             <emu-val>false</emu-val>.
-        1.  If |descriptor| has a \[[Configurable]] field and |descriptor|.\[[Configurable]] is
-            <emu-val>false</emu-val>, return <emu-val>false</emu-val>.
-        1.  If |descriptor| has a \[[Enumerable]] field and |descriptor|.\[[Enumerable]] is
-            <emu-val>false</emu-val>, return <emu-val>false</emu-val>.
-        1.  If |descriptor| has a \[[Writable]] field and |descriptor|.\[[Writable]] is
-            <emu-val>false</emu-val>, return <emu-val>false</emu-val>.
+        1.  If |descriptor|.\[[Configurable]] is present and has the value <emu-val>false</emu-val>,
+            then return <emu-val>false</emu-val>.
+        1.  If |descriptor|.\[[Enumerable]] is present and has the value <emu-val>false</emu-val>,
+            then return <emu-val>false</emu-val>.
+        1.  If |descriptor|.\[[Writable]] is present and has the value <emu-val>false</emu-val>,
+            then return <emu-val>false</emu-val>.
         1.  If |descriptor|.\[[Value]] is present, then return the result of
             [=observable array exotic object/setting the indexed value=] given |handler|, |P|, and
             |descriptor|.\[[Value]].
