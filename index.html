@@ -3,7 +3,7 @@
   <meta content="width=device-width, initial-scale=1, shrink-to-fit=no" name="viewport">
   <title>Web IDL</title>
   <link href="https://www.w3.org/StyleSheets/TR/2016/W3C-ED" rel="stylesheet" type="text/css">
-  <meta content="Bikeshed version 811139e88557b020c23cfc4db749a6220e4f7dcb" name="generator">
+  <meta content="Bikeshed version 5200e023b5b76bb01f8f0ff295f799cb9f4a94f0" name="generator">
   <link href="https://heycam.github.io/webidl/" rel="canonical">
 <style>
         pre.set {
@@ -409,7 +409,7 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
   <div class="head">
    <p data-fill-with="logo"><a class="logo" href="https://www.w3.org/"> <img alt="W3C" height="48" src="https://www.w3.org/StyleSheets/TR/2016/logos/W3C" width="72"> </a> </p>
    <h1 class="p-name no-ref" id="title">Web IDL</h1>
-   <h2 class="no-num no-toc no-ref heading settled" id="subtitle"><span class="content">Editor’s Draft, <time class="dt-updated" datetime="2020-01-21">21 January 2020</time></span></h2>
+   <h2 class="no-num no-toc no-ref heading settled" id="subtitle"><span class="content">Editor’s Draft, <time class="dt-updated" datetime="2020-03-11">11 March 2020</time></span></h2>
    <div data-fill-with="spec-metadata">
     <dl>
      <dt>This version:
@@ -4946,69 +4946,8 @@ To allow <emu-val>null</emu-val>, a <a data-link-type="dfn" href="#dfn-nullable-
 written as <code>DOMString?</code> in IDL, needs to be used.</p>
    <p>Nothing in this specification requires a <code class="idl"><a data-link-type="idl" href="#idl-DOMString" id="ref-for-idl-DOMString②④">DOMString</a></code> value to be a valid UTF-16 string.  For example, a <code class="idl"><a data-link-type="idl" href="#idl-DOMString" id="ref-for-idl-DOMString②⑤">DOMString</a></code> value might include unmatched surrogate pair characters.  However, authors
 of specifications using Web IDL might want to obtain a sequence of <a data-link-type="dfn" href="http://www.unicode.org/glossary/#unicode_scalar_value" id="ref-for-unicode_scalar_value①">Unicode scalar values</a> given a particular sequence of <a data-link-type="dfn" href="#dfn-code-unit" id="ref-for-dfn-code-unit①">code units</a>.</p>
-   <div class="algorithm" data-algorithm="obtain Unicode">
-    <p>The following algorithm defines a way to <dfn class="dfn-paneled" data-dfn-type="dfn" data-export="" data-lt="obtain Unicode|convert to a sequence of Unicode scalar values" id="dfn-obtain-unicode">convert a DOMString to a sequence of Unicode scalar values</dfn>:</p>
-    <ol>
-     <li data-md="">
-      <p>Let <var>S</var> be the <code class="idl"><a data-link-type="idl" href="#idl-DOMString" id="ref-for-idl-DOMString②⑥">DOMString</a></code> value.</p>
-     </li><li data-md="">
-      <p>Let <var>n</var> be the length of <var>S</var>.</p>
-     </li><li data-md="">
-      <p>Initialize <var>i</var> to 0.</p>
-     </li><li data-md="">
-      <p>Initialize <var>U</var> to be an empty sequence of Unicode characters.</p>
-     </li><li data-md="">
-      <p>While <var>i</var> &lt; <var>n</var>:</p>
-      <ol>
-       <li data-md="">
-        <p>Let <var>c</var> be the <a data-link-type="dfn" href="#dfn-code-unit" id="ref-for-dfn-code-unit②">code unit</a> in <var>S</var> at index <var>i</var>.</p>
-       </li><li data-md="">
-        <p>Depending on the value of <var>c</var>:</p>
-        <dl class="switch">
-         <dt data-md=""><var>c</var> &lt; 0xD800 or <var>c</var> &gt; 0xDFFF
-         </dt><dd data-md="">
-          <p>Append to <var>U</var> the Unicode character with code point <var>c</var>.</p>
-         </dd><dt data-md="">0xDC00 ≤ <var>c</var> ≤ 0xDFFF
-         </dt><dd data-md="">
-          <p>Append to <var>U</var> a <span class="char">U+FFFD REPLACEMENT CHARACTER</span>.</p>
-         </dd><dt data-md="">0xD800 ≤ <var>c</var> ≤ 0xDBFF
-         </dt><dd data-md="">
-          <ol class="only">
-           <li data-md="">
-            <p>If <var>i</var> = <var>n</var>−1, then append to <var>U</var> a <span class="char">U+FFFD REPLACEMENT CHARACTER</span>.</p>
-           </li><li data-md="">
-            <p>Otherwise, <var>i</var> &lt; <var>n</var>−1:</p>
-            <ol>
-             <li data-md="">
-              <p>Let <var>d</var> be the code unit in <var>S</var> at index <var>i</var>+1.</p>
-             </li><li data-md="">
-              <p>If 0xDC00 ≤ <var>d</var> ≤ 0xDFFF, then:</p>
-              <ol>
-               <li data-md="">
-                <p>Let <var>a</var> be <var>c</var> &amp; 0x3FF.</p>
-               </li><li data-md="">
-                <p>Let <var>b</var> be <var>d</var> &amp; 0x3FF.</p>
-               </li><li data-md="">
-                <p>Append to <var>U</var> the Unicode character with
-code point 2<sup>16</sup>+2<sup>10</sup><var>a</var>+<var>b</var>.</p>
-               </li><li data-md="">
-                <p>Set <var>i</var> to <var>i</var>+1.</p>
-              </li></ol>
-             </li><li data-md="">
-              <p>Otherwise, <var>d</var> &lt; 0xDC00 or <var>d</var> &gt; 0xDFFF.
-Append to <var>U</var> a <span class="char">U+FFFD REPLACEMENT CHARACTER</span>.</p>
-            </li></ol>
-          </li></ol>
-        </dd></dl>
-       </li><li data-md="">
-        <p>Set <var>i</var> to <var>i</var>+1.</p>
-      </li></ol>
-     </li><li data-md="">
-      <p>Return <var>U</var>.</p>
-    </li></ol>
-   </div>
-   <p>There is no way to represent a constant <code class="idl"><a data-link-type="idl" href="#idl-DOMString" id="ref-for-idl-DOMString②⑦">DOMString</a></code> value in IDL, although <code class="idl"><a data-link-type="idl" href="#idl-DOMString" id="ref-for-idl-DOMString②⑧">DOMString</a></code> <a data-link-type="dfn" href="#dfn-dictionary-member" id="ref-for-dfn-dictionary-member①⓪">dictionary member</a> <a data-link-type="dfn" href="#dfn-dictionary-member-default-value" id="ref-for-dfn-dictionary-member-default-value⑦">default values</a> and <a data-link-type="dfn" href="#dfn-optional-argument" id="ref-for-dfn-optional-argument①⑦">operation optional argument</a> <a data-link-type="dfn" href="#dfn-optional-argument-default-value" id="ref-for-dfn-optional-argument-default-value⑦">default values</a> can be set to <a data-link-type="dfn" href="#value-of-string-literal-tokens" id="ref-for-value-of-string-literal-tokens">the value</a> of a <emu-t class="regex"><a href="#prod-string">string</a></emu-t> literal.</p>
-   <p>The <a data-link-type="dfn" href="#dfn-type-name" id="ref-for-dfn-type-name①⑤">type name</a> of the <code class="idl"><a data-link-type="idl" href="#idl-DOMString" id="ref-for-idl-DOMString②⑨">DOMString</a></code> type is "<code>String</code>".</p>
+   <p>There is no way to represent a constant <code class="idl"><a data-link-type="idl" href="#idl-DOMString" id="ref-for-idl-DOMString②⑥">DOMString</a></code> value in IDL, although <code class="idl"><a data-link-type="idl" href="#idl-DOMString" id="ref-for-idl-DOMString②⑦">DOMString</a></code> <a data-link-type="dfn" href="#dfn-dictionary-member" id="ref-for-dfn-dictionary-member①⓪">dictionary member</a> <a data-link-type="dfn" href="#dfn-dictionary-member-default-value" id="ref-for-dfn-dictionary-member-default-value⑦">default values</a> and <a data-link-type="dfn" href="#dfn-optional-argument" id="ref-for-dfn-optional-argument①⑦">operation optional argument</a> <a data-link-type="dfn" href="#dfn-optional-argument-default-value" id="ref-for-dfn-optional-argument-default-value⑦">default values</a> can be set to <a data-link-type="dfn" href="#value-of-string-literal-tokens" id="ref-for-value-of-string-literal-tokens">the value</a> of a <emu-t class="regex"><a href="#prod-string">string</a></emu-t> literal.</p>
+   <p>The <a data-link-type="dfn" href="#dfn-type-name" id="ref-for-dfn-type-name①⑤">type name</a> of the <code class="idl"><a data-link-type="idl" href="#idl-DOMString" id="ref-for-idl-DOMString②⑧">DOMString</a></code> type is "<code>String</code>".</p>
    <h4 class="heading settled dfn-paneled idl-code" data-dfn-type="interface" data-export="" data-level="2.13.17" data-lt="ByteString" id="idl-ByteString"><span class="secno">2.13.17. </span><span class="content">ByteString</span><span id="dom-ByteString"></span></h4>
    <p>The <code class="idl"><a data-link-type="idl" href="#idl-ByteString" id="ref-for-idl-ByteString②">ByteString</a></code> type
 corresponds to the set of all possible sequences of bytes.
@@ -5017,7 +4956,7 @@ Such sequences might be interpreted as UTF-8 encoded strings <a data-link-type="
    <p>The <a data-link-type="dfn" href="#dfn-type-name" id="ref-for-dfn-type-name①⑥">type name</a> of the <code class="idl"><a data-link-type="idl" href="#idl-ByteString" id="ref-for-idl-ByteString⑤">ByteString</a></code> type is "<code>ByteString</code>".</p>
    <p class="advisement"> Specifications should only use <code class="idl"><a data-link-type="idl" href="#idl-ByteString" id="ref-for-idl-ByteString⑥">ByteString</a></code> for interfacing with protocols
     that use bytes and strings interchangeably, such as HTTP.  In general,
-    strings should be represented with <code class="idl"><a data-link-type="idl" href="#idl-DOMString" id="ref-for-idl-DOMString③⓪">DOMString</a></code> values, even if it is expected
+    strings should be represented with <code class="idl"><a data-link-type="idl" href="#idl-DOMString" id="ref-for-idl-DOMString②⑨">DOMString</a></code> values, even if it is expected
     that values of the string will always be in ASCII or some
     8 bit character encoding. <a data-link-type="dfn" href="#sequence-type" id="ref-for-sequence-type⑨">Sequences</a> or <a data-link-type="dfn" href="#dfn-frozen-array-type" id="ref-for-dfn-frozen-array-type③">frozen arrays</a> with <code class="idl"><a data-link-type="idl" href="#idl-octet" id="ref-for-idl-octet④">octet</a></code> or <code class="idl"><a data-link-type="idl" href="#idl-byte" id="ref-for-idl-byte④">byte</a></code> elements, <code class="idl"><a data-link-type="idl" href="#idl-Uint8Array" id="ref-for-idl-Uint8Array①">Uint8Array</a></code>, or <code class="idl"><a data-link-type="idl" href="#idl-Int8Array" id="ref-for-idl-Int8Array①">Int8Array</a></code> should be used for holding
     8 bit data rather than <code class="idl"><a data-link-type="idl" href="#idl-ByteString" id="ref-for-idl-ByteString⑦">ByteString</a></code>. </p>
@@ -5031,8 +4970,8 @@ surrogate code points.</p>
    <p class="advisement"> Specifications should only use <code class="idl"><a data-link-type="idl" href="#idl-USVString" id="ref-for-idl-USVString⑧">USVString</a></code> for APIs that perform
     text processing and need a string of Unicode
     scalar values to operate on.  Most APIs that use strings
-    should instead be using <code class="idl"><a data-link-type="idl" href="#idl-DOMString" id="ref-for-idl-DOMString③①">DOMString</a></code>,
-    which does not make any interpretations of the <a data-link-type="dfn" href="#dfn-code-unit" id="ref-for-dfn-code-unit③">code units</a> in the string.  When in doubt, use <code class="idl"><a data-link-type="idl" href="#idl-DOMString" id="ref-for-idl-DOMString③②">DOMString</a></code>. </p>
+    should instead be using <code class="idl"><a data-link-type="idl" href="#idl-DOMString" id="ref-for-idl-DOMString③⓪">DOMString</a></code>,
+    which does not make any interpretations of the <a data-link-type="dfn" href="#dfn-code-unit" id="ref-for-dfn-code-unit②">code units</a> in the string.  When in doubt, use <code class="idl"><a data-link-type="idl" href="#idl-DOMString" id="ref-for-idl-DOMString③①">DOMString</a></code>. </p>
    <h4 class="heading settled dfn-paneled idl-code" data-dfn-type="interface" data-export="" data-level="2.13.19" data-lt="object" id="idl-object"><span class="secno">2.13.19. </span><span class="content">object</span><span id="dom-object"></span></h4>
    <p>The <code class="idl"><a data-link-type="idl" href="#idl-object" id="ref-for-idl-object②">object</a></code> type corresponds to the set of
 all possible non-null object references.</p>
@@ -5084,8 +5023,8 @@ is the <a data-link-type="dfn" href="#dfn-identifier" id="ref-for-dfn-identifier
    <h4 class="heading settled dfn-paneled" data-dfn-type="dfn" data-export="" data-level="2.13.24" data-lt="Enumeration types" id="idl-enumeration"><span class="secno">2.13.24. </span><span class="content">Enumeration types</span></h4>
    <p>An <a data-link-type="dfn" href="#dfn-identifier" id="ref-for-dfn-identifier⑤①">identifier</a> that
 identifies an <a data-link-type="dfn" href="#dfn-enumeration" id="ref-for-dfn-enumeration①③">enumeration</a> is used to
-refer to a type whose values are the set of strings (sequences of <a data-link-type="dfn" href="#dfn-code-unit" id="ref-for-dfn-code-unit④">code units</a>, as with <code class="idl"><a data-link-type="idl" href="#idl-DOMString" id="ref-for-idl-DOMString③③">DOMString</a></code>) that are the <a data-link-type="dfn" href="#dfn-enumeration-value" id="ref-for-dfn-enumeration-value③">enumeration’s values</a>.</p>
-   <p>Like <code class="idl"><a data-link-type="idl" href="#idl-DOMString" id="ref-for-idl-DOMString③④">DOMString</a></code>, there is no way to represent a constant <a data-link-type="dfn" href="#dfn-enumeration" id="ref-for-dfn-enumeration①④">enumeration</a> value in IDL, although enumeration-typed <a data-link-type="dfn" href="#dfn-dictionary-member" id="ref-for-dfn-dictionary-member①③">dictionary member</a> <a data-link-type="dfn" href="#dfn-dictionary-member-default-value" id="ref-for-dfn-dictionary-member-default-value①⓪">default values</a> and <a data-link-type="dfn" href="#dfn-optional-argument" id="ref-for-dfn-optional-argument②⓪">operation optional argument</a> <a data-link-type="dfn" href="#dfn-optional-argument-default-value" id="ref-for-dfn-optional-argument-default-value①⓪">default values</a> can be set to <a data-link-type="dfn" href="#value-of-string-literal-tokens" id="ref-for-value-of-string-literal-tokens③">the value</a> of a <emu-t class="regex"><a href="#prod-string">string</a></emu-t> literal.</p>
+refer to a type whose values are the set of strings (sequences of <a data-link-type="dfn" href="#dfn-code-unit" id="ref-for-dfn-code-unit③">code units</a>, as with <code class="idl"><a data-link-type="idl" href="#idl-DOMString" id="ref-for-idl-DOMString③②">DOMString</a></code>) that are the <a data-link-type="dfn" href="#dfn-enumeration-value" id="ref-for-dfn-enumeration-value③">enumeration’s values</a>.</p>
+   <p>Like <code class="idl"><a data-link-type="idl" href="#idl-DOMString" id="ref-for-idl-DOMString③③">DOMString</a></code>, there is no way to represent a constant <a data-link-type="dfn" href="#dfn-enumeration" id="ref-for-dfn-enumeration①④">enumeration</a> value in IDL, although enumeration-typed <a data-link-type="dfn" href="#dfn-dictionary-member" id="ref-for-dfn-dictionary-member①③">dictionary member</a> <a data-link-type="dfn" href="#dfn-dictionary-member-default-value" id="ref-for-dfn-dictionary-member-default-value①⓪">default values</a> and <a data-link-type="dfn" href="#dfn-optional-argument" id="ref-for-dfn-optional-argument②⓪">operation optional argument</a> <a data-link-type="dfn" href="#dfn-optional-argument-default-value" id="ref-for-dfn-optional-argument-default-value①⓪">default values</a> can be set to <a data-link-type="dfn" href="#value-of-string-literal-tokens" id="ref-for-value-of-string-literal-tokens③">the value</a> of a <emu-t class="regex"><a href="#prod-string">string</a></emu-t> literal.</p>
    <p>The <a data-link-type="dfn" href="#dfn-type-name" id="ref-for-dfn-type-name②③">type name</a> of an enumeration type
 is the <a data-link-type="dfn" href="#dfn-identifier" id="ref-for-dfn-identifier⑤②">identifier</a> of the enumeration.</p>
    <h4 class="heading settled dfn-paneled" data-dfn-type="dfn" data-level="2.13.25" data-lt="Callback function types" data-noexport="" id="idl-callback-function"><span class="secno">2.13.25. </span><span class="content">Callback function types</span></h4>
@@ -5132,7 +5071,7 @@ the string "<code>OrNull</code>".</p>
 };
 </pre>
     <p>The following <a data-link-type="dfn" href="#dfn-interface" id="ref-for-dfn-interface⑨⑤">interface</a> has two <a data-link-type="dfn" href="#dfn-attribute" id="ref-for-dfn-attribute②⑦">attributes</a>: one whose value can
-    be a <code class="idl"><a data-link-type="idl" href="#idl-DOMString" id="ref-for-idl-DOMString③⑤">DOMString</a></code> or the <emu-val>null</emu-val> value, and another whose value can be a reference to a <code class="idl">Node</code> object or the <emu-val>null</emu-val> value:</p>
+    be a <code class="idl"><a data-link-type="idl" href="#idl-DOMString" id="ref-for-idl-DOMString③④">DOMString</a></code> or the <emu-val>null</emu-val> value, and another whose value can be a reference to a <code class="idl">Node</code> object or the <emu-val>null</emu-val> value:</p>
 <pre class="highlight">[<c- g="">Exposed</c->=<c- n="">Window</c->]
 <c- b="">interface</c-> <c- g="">Node</c-> {
   <c- b="">readonly</c-> <c- b="">attribute</c-> <c- b="">DOMString</c->? <c- g="">namespaceURI</c->;
@@ -5166,7 +5105,7 @@ the string "<code>Sequence</code>".</p>
 only <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#list-item" id="ref-for-list-item③">items</a> that are of type <var>T</var>.</p>
    <h4 class="heading settled dfn-paneled" data-dfn-type="dfn" data-export="" data-level="2.13.28" data-lt="record" id="idl-record"><span class="secno">2.13.28. </span><span class="content">Record types — record&lt;<var>K</var>, <var>V</var>&gt;</span></h4>
    <p>A <dfn class="dfn-paneled" data-dfn-type="dfn" data-export="" id="record-type">record type</dfn> is a parameterized type whose values are <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#ordered-map" id="ref-for-ordered-map③">ordered maps</a> with <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#map-key" id="ref-for-map-key②">keys</a> that are instances of <var>K</var> and <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#map-value" id="ref-for-map-value②">values</a> that are instances of <var>V</var>. <var>K</var> must be one
-of <code class="idl"><a data-link-type="idl" href="#idl-DOMString" id="ref-for-idl-DOMString③⑥">DOMString</a></code>, <code class="idl"><a data-link-type="idl" href="#idl-USVString" id="ref-for-idl-USVString⑨">USVString</a></code>, or <code class="idl"><a data-link-type="idl" href="#idl-ByteString" id="ref-for-idl-ByteString⑧">ByteString</a></code>.</p>
+of <code class="idl"><a data-link-type="idl" href="#idl-DOMString" id="ref-for-idl-DOMString③⑤">DOMString</a></code>, <code class="idl"><a data-link-type="idl" href="#idl-USVString" id="ref-for-idl-USVString⑨">USVString</a></code>, or <code class="idl"><a data-link-type="idl" href="#idl-ByteString" id="ref-for-idl-ByteString⑧">ByteString</a></code>.</p>
    <p>The literal syntax for <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#ordered-map" id="ref-for-ordered-map④">ordered maps</a> may also be used to represent records, when it is implicitly
 understood from context that the map is being treated as a record. However, there is no way to
 represent a constant record value inside IDL fragments.</p>
@@ -5772,7 +5711,7 @@ return the <code class="idl"><a data-link-type="idl" href="#idl-boolean" id="ref
 return the result of <a href="#es-to-unrestricted-double">converting</a> <var>V</var> to an <code class="idl"><a data-link-type="idl" href="#idl-unrestricted-double" id="ref-for-idl-unrestricted-double⑧">unrestricted double</a></code>.</p>
      </li><li data-md="">
       <p>If <a data-link-type="abstract-op" href="https://tc39.github.io/ecma262/#sec-ecmascript-data-types-and-values" id="ref-for-sec-ecmascript-data-types-and-values②">Type</a>(<var>V</var>) is String, then
-return the result of <a href="#es-DOMString">converting</a> <var>V</var> to a <code class="idl"><a data-link-type="idl" href="#idl-DOMString" id="ref-for-idl-DOMString③⑦">DOMString</a></code>.</p>
+return the result of <a href="#es-DOMString">converting</a> <var>V</var> to a <code class="idl"><a data-link-type="idl" href="#idl-DOMString" id="ref-for-idl-DOMString③⑥">DOMString</a></code>.</p>
      </li><li data-md="">
       <p>If <a data-link-type="abstract-op" href="https://tc39.github.io/ecma262/#sec-ecmascript-data-types-and-values" id="ref-for-sec-ecmascript-data-types-and-values③">Type</a>(<var>V</var>) is Symbol, then
 return the result of <a href="#es-symbol">converting</a> <var>V</var> to a <code class="idl"><a data-link-type="idl" href="#idl-symbol" id="ref-for-idl-symbol③">symbol</a></code>.</p>
@@ -6137,21 +6076,21 @@ the one that represents the same numeric value as the IDL <code class="idl"><a d
    </div>
    <h4 class="heading settled" data-level="3.2.9" id="es-DOMString"><span class="secno">3.2.9. </span><span class="content">DOMString</span><a class="self-link" href="#es-DOMString"></a></h4>
    <div class="algorithm" data-algorithm="convert an ECMAScript value to DOMString" id="es-to-DOMString">
-    <p>An ECMAScript value <var>V</var> is <a data-link-type="dfn" href="#dfn-convert-ecmascript-to-idl-value" id="ref-for-dfn-convert-ecmascript-to-idl-value①⑤">converted</a> to an IDL <code class="idl"><a data-link-type="idl" href="#idl-DOMString" id="ref-for-idl-DOMString③⑧">DOMString</a></code> value by running the following algorithm:</p>
+    <p>An ECMAScript value <var>V</var> is <a data-link-type="dfn" href="#dfn-convert-ecmascript-to-idl-value" id="ref-for-dfn-convert-ecmascript-to-idl-value①⑤">converted</a> to an IDL <code class="idl"><a data-link-type="idl" href="#idl-DOMString" id="ref-for-idl-DOMString③⑦">DOMString</a></code> value by running the following algorithm:</p>
     <ol>
      <li data-md="">
       <p>If <var>V</var> is <emu-val>null</emu-val> and the conversion is to an IDL type <a data-link-type="dfn" href="#idl-type-extended-attribute-associated-with" id="ref-for-idl-type-extended-attribute-associated-with⑦">associated with</a> the [<code class="idl"><a data-link-type="idl" href="#TreatNullAs" id="ref-for-TreatNullAs①">TreatNullAs</a></code>] extended
-attribute, then return the <code class="idl"><a data-link-type="idl" href="#idl-DOMString" id="ref-for-idl-DOMString③⑨">DOMString</a></code> value that represents the empty string.</p>
+attribute, then return the <code class="idl"><a data-link-type="idl" href="#idl-DOMString" id="ref-for-idl-DOMString③⑧">DOMString</a></code> value that represents the empty string.</p>
      </li><li data-md="">
       <p>Let <var>x</var> be <a data-link-type="abstract-op" href="https://tc39.github.io/ecma262/#sec-tostring" id="ref-for-sec-tostring②">ToString</a>(<var>V</var>).</p>
      </li><li data-md="">
-      <p>Return the IDL <code class="idl"><a data-link-type="idl" href="#idl-DOMString" id="ref-for-idl-DOMString④⓪">DOMString</a></code> value that represents the same sequence of code units as the one the ECMAScript String value <var>x</var> represents.</p>
+      <p>Return the IDL <code class="idl"><a data-link-type="idl" href="#idl-DOMString" id="ref-for-idl-DOMString③⑨">DOMString</a></code> value that represents the same sequence of code units as the one the ECMAScript String value <var>x</var> represents.</p>
     </li></ol>
    </div>
-   <p id="DOMString-to-es"> The result of <a data-link-type="dfn" href="#dfn-convert-idl-to-ecmascript-value" id="ref-for-dfn-convert-idl-to-ecmascript-value①⑤">converting</a> an IDL <code class="idl"><a data-link-type="idl" href="#idl-DOMString" id="ref-for-idl-DOMString④①">DOMString</a></code> value to an ECMAScript
+   <p id="DOMString-to-es"> The result of <a data-link-type="dfn" href="#dfn-convert-idl-to-ecmascript-value" id="ref-for-dfn-convert-idl-to-ecmascript-value①⑤">converting</a> an IDL <code class="idl"><a data-link-type="idl" href="#idl-DOMString" id="ref-for-idl-DOMString④⓪">DOMString</a></code> value to an ECMAScript
     value is the String
-    value that represents the same sequence of <a data-link-type="dfn" href="#dfn-code-unit" id="ref-for-dfn-code-unit⑤">code units</a> that the
-    IDL <code class="idl"><a data-link-type="idl" href="#idl-DOMString" id="ref-for-idl-DOMString④②">DOMString</a></code> represents. </p>
+    value that represents the same sequence of <a data-link-type="dfn" href="#dfn-code-unit" id="ref-for-dfn-code-unit④">code units</a> that the
+    IDL <code class="idl"><a data-link-type="idl" href="#idl-DOMString" id="ref-for-idl-DOMString④①">DOMString</a></code> represents. </p>
    <h4 class="heading settled" data-level="3.2.10" id="es-ByteString"><span class="secno">3.2.10. </span><span class="content">ByteString</span><a class="self-link" href="#es-ByteString"></a></h4>
    <div class="algorithm" data-algorithm="convert an ECMAScript value to ByteString" id="es-to-ByteString">
     <p>An ECMAScript value <var>V</var> is <a data-link-type="dfn" href="#dfn-convert-ecmascript-to-idl-value" id="ref-for-dfn-convert-ecmascript-to-idl-value①⑥">converted</a> to an IDL <code class="idl"><a data-link-type="idl" href="#idl-ByteString" id="ref-for-idl-ByteString⑨">ByteString</a></code> value by running the following algorithm:</p>
@@ -6176,9 +6115,9 @@ the value of the corresponding element of <var>x</var>.</p>
     <p>An ECMAScript value <var>V</var> is <a data-link-type="dfn" href="#dfn-convert-ecmascript-to-idl-value" id="ref-for-dfn-convert-ecmascript-to-idl-value①⑦">converted</a> to an IDL <code class="idl"><a data-link-type="idl" href="#idl-USVString" id="ref-for-idl-USVString①⓪">USVString</a></code> value by running the following algorithm:</p>
     <ol>
      <li data-md="">
-      <p>Let <var>string</var> be the result of <a data-link-type="dfn" href="#dfn-convert-ecmascript-to-idl-value" id="ref-for-dfn-convert-ecmascript-to-idl-value①⑧">converting</a> <var>V</var> to a <code class="idl"><a data-link-type="idl" href="#idl-DOMString" id="ref-for-idl-DOMString④③">DOMString</a></code>.</p>
+      <p>Let <var>string</var> be the result of <a data-link-type="dfn" href="#dfn-convert-ecmascript-to-idl-value" id="ref-for-dfn-convert-ecmascript-to-idl-value①⑧">converting</a> <var>V</var> to a <code class="idl"><a data-link-type="idl" href="#idl-DOMString" id="ref-for-idl-DOMString④②">DOMString</a></code>.</p>
      </li><li data-md="">
-      <p>Return an IDL <code class="idl"><a data-link-type="idl" href="#idl-USVString" id="ref-for-idl-USVString①①">USVString</a></code> value that is the result of <a data-link-type="dfn" href="#dfn-obtain-unicode" id="ref-for-dfn-obtain-unicode">converting</a> <var>string</var> to a sequence of <a data-link-type="dfn" href="http://www.unicode.org/glossary/#unicode_scalar_value" id="ref-for-unicode_scalar_value③">Unicode scalar values</a>.</p>
+      <p>Return an IDL <code class="idl"><a data-link-type="idl" href="#idl-USVString" id="ref-for-idl-USVString①①">USVString</a></code> value that is the result of <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#javascript-string-convert" id="ref-for-javascript-string-convert">converting</a> <var>string</var> to a sequence of <a data-link-type="dfn" href="http://www.unicode.org/glossary/#unicode_scalar_value" id="ref-for-unicode_scalar_value③">Unicode scalar values</a>.</p>
     </li></ol>
    </div>
    <div class="algorithm" data-algorithm="convert an USVString to an ECMAScript value" id="USVString-to-es">
@@ -6187,9 +6126,9 @@ the value of the corresponding element of <var>x</var>.</p>
      <li data-md="">
       <p>Let <var>scalarValues</var> be the sequence of <a data-link-type="dfn" href="http://www.unicode.org/glossary/#unicode_scalar_value" id="ref-for-unicode_scalar_value④">Unicode scalar values</a> the <code class="idl"><a data-link-type="idl" href="#idl-USVString" id="ref-for-idl-USVString①③">USVString</a></code> represents.</p>
      </li><li data-md="">
-      <p>Let <var>string</var> be the sequence of <a data-link-type="dfn" href="#dfn-code-unit" id="ref-for-dfn-code-unit⑥">code units</a> that results from encoding <var>scalarValues</var> in UTF-16.</p>
+      <p>Let <var>string</var> be the sequence of <a data-link-type="dfn" href="#dfn-code-unit" id="ref-for-dfn-code-unit⑤">code units</a> that results from encoding <var>scalarValues</var> in UTF-16.</p>
      </li><li data-md="">
-      <p>Return the String value that represents the same sequence of <a data-link-type="dfn" href="#dfn-code-unit" id="ref-for-dfn-code-unit⑦">code units</a> as <var>string</var>.</p>
+      <p>Return the String value that represents the same sequence of <a data-link-type="dfn" href="#dfn-code-unit" id="ref-for-dfn-code-unit⑥">code units</a> as <var>string</var>.</p>
     </li></ol>
    </div>
    <h4 class="heading settled" data-level="3.2.12" id="es-object"><span class="secno">3.2.12. </span><span class="content">object</span><a class="self-link" href="#es-object"></a></h4>
@@ -6360,7 +6299,7 @@ then <a data-link-type="dfn" href="#ecmascript-throw" id="ref-for-ecmascript-thr
    </div>
    <p id="enumeration-to-es"> The result of <a data-link-type="dfn" href="#dfn-convert-idl-to-ecmascript-value" id="ref-for-dfn-convert-idl-to-ecmascript-value②④">converting</a> an IDL <a data-link-type="dfn" href="#dfn-enumeration" id="ref-for-dfn-enumeration①⑦">enumeration type</a> value to an ECMAScript
     value is the String
-    value that represents the same sequence of <a data-link-type="dfn" href="#dfn-code-unit" id="ref-for-dfn-code-unit⑧">code units</a> as
+    value that represents the same sequence of <a data-link-type="dfn" href="#dfn-code-unit" id="ref-for-dfn-code-unit⑦">code units</a> as
     the <a data-link-type="dfn" href="#dfn-enumeration-value" id="ref-for-dfn-enumeration-value⑤">enumeration value</a>. </p>
    <h4 class="heading settled" data-level="3.2.18" id="es-callback-function"><span class="secno">3.2.18. </span><span class="content">Callback function types</span><a class="self-link" href="#es-callback-function"></a></h4>
    <p>IDL <a data-link-type="dfn" href="#idl-callback-function" id="ref-for-idl-callback-function">callback function types</a> are represented by ECMAScript <a data-link-type="dfn" href="https://tc39.github.io/ecma262/#function-object" id="ref-for-function-object⑧">function objects</a>, except in the
@@ -8633,12 +8572,12 @@ manager<c- p="">.</c->handler2<c- p="">;</c->            <c- c1="">// Evaluates 
     or for consistency with these APIs.
     Editors who wish to use this feature are strongly advised to discuss this
     by <a href="https://github.com/heycam/webidl/issues/new?title=Intent%20to%20use%20[TreatNullAs]">filing an issue</a> before proceeding. </p>
-   <p>If the [<code class="idl"><a data-link-type="idl" href="#TreatNullAs" id="ref-for-TreatNullAs③">TreatNullAs</a></code>] <a data-link-type="dfn" href="#dfn-extended-attribute" id="ref-for-dfn-extended-attribute①⓪④">extended attribute</a> appears on the <code class="idl"><a data-link-type="idl" href="#idl-DOMString" id="ref-for-idl-DOMString④④">DOMString</a></code> type, it creates a new
+   <p>If the [<code class="idl"><a data-link-type="idl" href="#TreatNullAs" id="ref-for-TreatNullAs③">TreatNullAs</a></code>] <a data-link-type="dfn" href="#dfn-extended-attribute" id="ref-for-dfn-extended-attribute①⓪④">extended attribute</a> appears on the <code class="idl"><a data-link-type="idl" href="#idl-DOMString" id="ref-for-idl-DOMString④③">DOMString</a></code> type, it creates a new
 IDL type such that that when an ECMAScript <emu-val>null</emu-val> is converted to the IDL type, it
 will be handled differently from its default handling. Instead of being stringified to
 "<code>null</code>", which is the default, it will be converted to the empty string.</p>
    <p>The [<code class="idl"><a data-link-type="idl" href="#TreatNullAs" id="ref-for-TreatNullAs④">TreatNullAs</a></code>] extended attribute must <a data-link-type="dfn" href="#dfn-xattr-identifier" id="ref-for-dfn-xattr-identifier⑥">take the identifier</a> <code>EmptyString</code>.</p>
-   <p>The [<code class="idl"><a data-link-type="idl" href="#TreatNullAs" id="ref-for-TreatNullAs⑤">TreatNullAs</a></code>] extended attribute must not be <a data-link-type="dfn" href="#idl-type-extended-attribute-associated-with" id="ref-for-idl-type-extended-attribute-associated-with①⑦">associated with</a> a type that is not <code class="idl"><a data-link-type="idl" href="#idl-DOMString" id="ref-for-idl-DOMString④⑤">DOMString</a></code>.</p>
+   <p>The [<code class="idl"><a data-link-type="idl" href="#TreatNullAs" id="ref-for-TreatNullAs⑤">TreatNullAs</a></code>] extended attribute must not be <a data-link-type="dfn" href="#idl-type-extended-attribute-associated-with" id="ref-for-idl-type-extended-attribute-associated-with①⑦">associated with</a> a type that is not <code class="idl"><a data-link-type="idl" href="#idl-DOMString" id="ref-for-idl-DOMString④④">DOMString</a></code>.</p>
    <p class="note" role="note"><span>Note:</span> This means that even <code class="idl">DOMString?</code> must not use [<code class="idl"><a data-link-type="idl" href="#TreatNullAs" id="ref-for-TreatNullAs⑥">TreatNullAs</a></code>], since <emu-val>null</emu-val> is a valid value of that type.</p>
    <p>See <a href="#es-DOMString">§ 3.2.9 DOMString</a> for the specific requirements that the use of [<code class="idl"><a data-link-type="idl" href="#TreatNullAs" id="ref-for-TreatNullAs⑦">TreatNullAs</a></code>] entails.</p>
    <div class="example" id="example-7007b061">
@@ -12715,9 +12654,9 @@ fragment:</p>
 <pre class="idl highlight def">[<a class="idl-code" data-link-type="extended-attribute" href="#Exposed" id="ref-for-Exposed③①"><c- g="">Exposed</c-></a>=(<c- n="">Window</c->,<c- n="">Worker</c->),
  <a class="idl-code" data-link-type="extended-attribute" href="https://html.spec.whatwg.org/multipage/structured-data.html#serializable" id="ref-for-serializable"><c- g="">Serializable</c-></a>]
 <c- b="">interface</c-> <a class="idl-code" data-link-type="interface" href="#idl-DOMException" id="ref-for-idl-DOMException③⑦"><c- g="">DOMException</c-></a> { // but see below note about ECMAScript binding
-  <a class="idl-code" data-link-type="constructor" href="#dom-domexception-domexception" id="ref-for-dom-domexception-domexception"><c- g="">constructor</c-></a>(<c- b="">optional</c-> <a class="idl-code" data-link-type="interface" href="#idl-DOMString" id="ref-for-idl-DOMString④⑥"><c- b="">DOMString</c-></a> <dfn class="idl-code" data-dfn-for="DOMException/constructor(message, name), DOMException/constructor(message), DOMException/constructor()" data-dfn-type="argument" data-export="" id="dom-domexception-constructor-message-name-message"><code><c- g="">message</c-></code><a class="self-link" href="#dom-domexception-constructor-message-name-message"></a></dfn> = "", <c- b="">optional</c-> <a class="idl-code" data-link-type="interface" href="#idl-DOMString" id="ref-for-idl-DOMString④⑦"><c- b="">DOMString</c-></a> <dfn class="idl-code" data-dfn-for="DOMException/constructor(message, name), DOMException/constructor(message), DOMException/constructor()" data-dfn-type="argument" data-export="" id="dom-domexception-constructor-message-name-name"><code><c- g="">name</c-></code><a class="self-link" href="#dom-domexception-constructor-message-name-name"></a></dfn> = "Error");
-  <c- b="">readonly</c-> <c- b="">attribute</c-> <a class="idl-code" data-link-type="interface" href="#idl-DOMString" id="ref-for-idl-DOMString④⑧"><c- b="">DOMString</c-></a> <a class="idl-code" data-link-type="attribute" data-readonly="" data-type="DOMString" href="#dom-domexception-name" id="ref-for-dom-domexception-name"><c- g="">name</c-></a>;
-  <c- b="">readonly</c-> <c- b="">attribute</c-> <a class="idl-code" data-link-type="interface" href="#idl-DOMString" id="ref-for-idl-DOMString④⑨"><c- b="">DOMString</c-></a> <a class="idl-code" data-link-type="attribute" data-readonly="" data-type="DOMString" href="#dom-domexception-message" id="ref-for-dom-domexception-message"><c- g="">message</c-></a>;
+  <a class="idl-code" data-link-type="constructor" href="#dom-domexception-domexception" id="ref-for-dom-domexception-domexception"><c- g="">constructor</c-></a>(<c- b="">optional</c-> <a class="idl-code" data-link-type="interface" href="#idl-DOMString" id="ref-for-idl-DOMString④⑤"><c- b="">DOMString</c-></a> <dfn class="idl-code" data-dfn-for="DOMException/DOMException(message, name), DOMException/constructor(message, name), DOMException/DOMException(message), DOMException/constructor(message), DOMException/DOMException(), DOMException/constructor()" data-dfn-type="argument" data-export="" id="dom-domexception-domexception-message-name-message"><code><c- g="">message</c-></code><a class="self-link" href="#dom-domexception-domexception-message-name-message"></a></dfn> = "", <c- b="">optional</c-> <a class="idl-code" data-link-type="interface" href="#idl-DOMString" id="ref-for-idl-DOMString④⑥"><c- b="">DOMString</c-></a> <dfn class="idl-code" data-dfn-for="DOMException/DOMException(message, name), DOMException/constructor(message, name), DOMException/DOMException(message), DOMException/constructor(message), DOMException/DOMException(), DOMException/constructor()" data-dfn-type="argument" data-export="" id="dom-domexception-domexception-message-name-name"><code><c- g="">name</c-></code><a class="self-link" href="#dom-domexception-domexception-message-name-name"></a></dfn> = "Error");
+  <c- b="">readonly</c-> <c- b="">attribute</c-> <a class="idl-code" data-link-type="interface" href="#idl-DOMString" id="ref-for-idl-DOMString④⑦"><c- b="">DOMString</c-></a> <a class="idl-code" data-link-type="attribute" data-readonly="" data-type="DOMString" href="#dom-domexception-name" id="ref-for-dom-domexception-name"><c- g="">name</c-></a>;
+  <c- b="">readonly</c-> <c- b="">attribute</c-> <a class="idl-code" data-link-type="interface" href="#idl-DOMString" id="ref-for-idl-DOMString④⑧"><c- b="">DOMString</c-></a> <a class="idl-code" data-link-type="attribute" data-readonly="" data-type="DOMString" href="#dom-domexception-message" id="ref-for-dom-domexception-message"><c- g="">message</c-></a>;
   <c- b="">readonly</c-> <c- b="">attribute</c-> <a class="idl-code" data-link-type="interface" href="#idl-unsigned-short" id="ref-for-idl-unsigned-short⑨"><c- b="">unsigned</c-> <c- b="">short</c-></a> <a class="idl-code" data-link-type="attribute" data-readonly="" data-type="unsigned short" href="#dom-domexception-code" id="ref-for-dom-domexception-code"><c- g="">code</c-></a>;
 
   <c- b="">const</c-> <a class="idl-code" data-link-type="interface" href="#idl-unsigned-short" id="ref-for-idl-unsigned-short①⓪"><c- b="">unsigned</c-> <c- b="">short</c-></a> <a class="idl-code" data-link-type="const" href="#dom-domexception-index_size_err" id="ref-for-dom-domexception-index_size_err"><c- g="">INDEX_SIZE_ERR</c-></a> = 1;
@@ -12749,7 +12688,7 @@ fragment:</p>
 </pre>
    <p class="note" role="note"><span>Note:</span> as discussed in <a href="#es-DOMException-specialness">§ 3.12.1 DOMException custom bindings</a>, the ECMAScript binding imposes additional
 requirements beyond the normal ones for <a data-link-type="dfn" href="#idl-interface" id="ref-for-idl-interface②⓪">interface types</a>.</p>
-   <p>Each <code class="idl"><a data-link-type="idl" href="#idl-DOMException" id="ref-for-idl-DOMException③⑧">DOMException</a></code> object has an associated <dfn class="dfn-paneled" data-dfn-for="DOMException" data-dfn-type="dfn" data-noexport="" id="domexception-name">name</dfn> and <dfn class="dfn-paneled" data-dfn-for="DOMException" data-dfn-type="dfn" data-noexport="" id="domexception-message">message</dfn>, both <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#javascript-string" id="ref-for-javascript-string">JavaScript strings</a>.</p>
+   <p>Each <code class="idl"><a data-link-type="idl" href="#idl-DOMException" id="ref-for-idl-DOMException③⑧">DOMException</a></code> object has an associated <dfn class="dfn-paneled" data-dfn-for="DOMException" data-dfn-type="dfn" data-noexport="" id="domexception-name">name</dfn> and <dfn class="dfn-paneled" data-dfn-for="DOMException" data-dfn-type="dfn" data-noexport="" id="domexception-message">message</dfn>, both <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#string" id="ref-for-string">strings</a>.</p>
    <p>The <dfn class="dfn-paneled idl-code" data-dfn-for="DOMException" data-dfn-type="constructor" data-export="" data-lt="DOMException(message, name)|constructor(message, name)|DOMException(message)|constructor(message)|DOMException()|constructor()" id="dom-domexception-domexception"><code>DOMException(<var>message</var>, <var>name</var>)</code></dfn> constructor, when invoked, must run these steps:</p>
    <ol>
     <li data-md="">
@@ -13814,7 +13753,6 @@ language binding.</p>
    </li><li><a href="#dfn-convert-idl-to-ecmascript-value">converted to ECMAScript values</a><span>, in §3.2</span>
    </li><li><a href="#dfn-convert-ecmascript-to-idl-value">converted to IDL values</a><span>, in §3.2</span>
    </li><li><a href="#web-idl-arguments-list-converting">converting</a><span>, in §3.9</span>
-   </li><li><a href="#dfn-obtain-unicode">convert to a sequence of Unicode scalar values</a><span>, in §2.13.16</span>
    </li><li><a href="#abstract-opdef-converttoint">ConvertToInt</a><span>, in §3.2.4.9</span>
    </li><li><a href="#corresponding-default-operation">corresponding default operation</a><span>, in §3.6.7.1</span>
    </li><li><a href="#dfn-create-frozen-array">create a frozen array</a><span>, in §3.2.25</span>
@@ -14053,7 +13991,6 @@ language binding.</p>
    </li><li><a href="#dfn-numeric-type">numeric types</a><span>, in §2.13</span>
    </li><li><a href="#idl-object">object</a><span>, in §2.13.18</span>
    </li><li><a href="#dfn-object-type">object types</a><span>, in §2.13</span>
-   </li><li><a href="#dfn-obtain-unicode">obtain Unicode</a><span>, in §2.13.16</span>
    </li><li><a href="#idl-octet">octet</a><span>, in §2.13.4</span>
    </li><li><a href="#default-asynchronous-iterator-object-ongoing-promise">ongoing promise</a><span>, in §3.6.9.6</span>
    </li><li><a href="#dfn-operation">operation</a><span>, in §2.5.3</span>
@@ -15889,6 +15826,12 @@ language binding.</p>
     </li><li><a href="#ref-for-iteration-continue②">3.6.7. Operations</a>
    </li></ul>
   </aside>
+  <aside class="dfn-panel" data-for="term-for-javascript-string-convert">
+   <a href="https://infra.spec.whatwg.org/#javascript-string-convert">https://infra.spec.whatwg.org/#javascript-string-convert</a><b>Referenced in:</b>
+   <ul>
+    <li><a href="#ref-for-javascript-string-convert">3.2.11. USVString</a>
+   </li></ul>
+  </aside>
   <aside class="dfn-panel" data-for="term-for-map-entry">
    <a href="https://infra.spec.whatwg.org/#map-entry">https://infra.spec.whatwg.org/#map-entry</a><b>Referenced in:</b>
    <ul>
@@ -15949,12 +15892,6 @@ language binding.</p>
     </li><li><a href="#ref-for-list-iterate①②">3.6.6. Attributes</a>
     </li><li><a href="#ref-for-list-iterate①③">3.6.7. Operations</a>
     </li><li><a href="#ref-for-list-iterate①④">3.7. Platform objects implementing interfaces</a> <a href="#ref-for-list-iterate①⑤">(2)</a> <a href="#ref-for-list-iterate①⑥">(3)</a> <a href="#ref-for-list-iterate①⑦">(4)</a> <a href="#ref-for-list-iterate①⑧">(5)</a> <a href="#ref-for-list-iterate①⑨">(6)</a>
-   </li></ul>
-  </aside>
-  <aside class="dfn-panel" data-for="term-for-javascript-string">
-   <a href="https://infra.spec.whatwg.org/#javascript-string">https://infra.spec.whatwg.org/#javascript-string</a><b>Referenced in:</b>
-   <ul>
-    <li><a href="#ref-for-javascript-string">4.3. DOMException</a>
    </li></ul>
   </aside>
   <aside class="dfn-panel" data-for="term-for-map-key">
@@ -16044,6 +15981,12 @@ language binding.</p>
    <a href="https://infra.spec.whatwg.org/#stack">https://infra.spec.whatwg.org/#stack</a><b>Referenced in:</b>
    <ul>
     <li><a href="#ref-for-stack">3.6.7.1.1. Default toJSON operation</a> <a href="#ref-for-stack①">(2)</a>
+   </li></ul>
+  </aside>
+  <aside class="dfn-panel" data-for="term-for-string">
+   <a href="https://infra.spec.whatwg.org/#string">https://infra.spec.whatwg.org/#string</a><b>Referenced in:</b>
+   <ul>
+    <li><a href="#ref-for-string">4.3. DOMException</a>
    </li></ul>
   </aside>
   <aside class="dfn-panel" data-for="term-for-struct">
@@ -16411,6 +16354,7 @@ language binding.</p>
      </li><li><span class="dfn-paneled" id="term-for-string-concatenate" style="color:initial">concatenation</span>
      </li><li><span class="dfn-paneled" id="term-for-list-contain" style="color:initial">contain</span>
      </li><li><span class="dfn-paneled" id="term-for-iteration-continue" style="color:initial">continue</span>
+     </li><li><span class="dfn-paneled" id="term-for-javascript-string-convert" style="color:initial">convert</span>
      </li><li><span class="dfn-paneled" id="term-for-map-entry" style="color:initial">entry</span>
      </li><li><span class="dfn-paneled" id="term-for-map-exists" style="color:initial">exist</span>
      </li><li><span class="dfn-paneled" id="term-for-map-iterate" style="color:initial">for each <small>(for map)</small></span>
@@ -16419,7 +16363,6 @@ language binding.</p>
      </li><li><span class="dfn-paneled" id="term-for-list-is-empty①" style="color:initial">is not empty</span>
      </li><li><span class="dfn-paneled" id="term-for-struct-item" style="color:initial">item <small>(for struct)</small></span>
      </li><li><span class="dfn-paneled" id="term-for-list-iterate" style="color:initial">iterate</span>
-     </li><li><span class="dfn-paneled" id="term-for-javascript-string" style="color:initial">javascript string</span>
      </li><li><span class="dfn-paneled" id="term-for-map-key" style="color:initial">key</span>
      </li><li><span class="dfn-paneled" id="term-for-list" style="color:initial">list</span>
      </li><li><span class="dfn-paneled" id="term-for-struct-name" style="color:initial">name</span>
@@ -16431,6 +16374,7 @@ language binding.</p>
      </li><li><span class="dfn-paneled" id="term-for-map-set" style="color:initial">set</span>
      </li><li><span class="dfn-paneled" id="term-for-list-size" style="color:initial">size</span>
      </li><li><span class="dfn-paneled" id="term-for-stack" style="color:initial">stack</span>
+     </li><li><span class="dfn-paneled" id="term-for-string" style="color:initial">string</span>
      </li><li><span class="dfn-paneled" id="term-for-struct" style="color:initial">struct</span>
      </li><li><span class="dfn-paneled" id="term-for-the-range" style="color:initial">the range</span>
      </li><li><span class="dfn-paneled" id="term-for-tuple" style="color:initial">tuple</span>
@@ -16565,9 +16509,9 @@ language binding.</p>
 [<a class="idl-code" data-link-type="extended-attribute" href="#Exposed" id="ref-for-Exposed③①①"><c- g="">Exposed</c-></a>=(<c- n="">Window</c->,<c- n="">Worker</c->),
  <a class="idl-code" data-link-type="extended-attribute" href="https://html.spec.whatwg.org/multipage/structured-data.html#serializable" id="ref-for-serializable①"><c- g="">Serializable</c-></a>]
 <c- b="">interface</c-> <a class="idl-code" data-link-type="interface" href="#idl-DOMException" id="ref-for-idl-DOMException③⑦①"><c- g="">DOMException</c-></a> { // but see below note about ECMAScript binding
-  <a class="idl-code" data-link-type="constructor" href="#dom-domexception-domexception" id="ref-for-dom-domexception-domexception①"><c- g="">constructor</c-></a>(<c- b="">optional</c-> <a class="idl-code" data-link-type="interface" href="#idl-DOMString" id="ref-for-idl-DOMString④⑥①"><c- b="">DOMString</c-></a> <a href="#dom-domexception-constructor-message-name-message"><code><c- g="">message</c-></code></a> = "", <c- b="">optional</c-> <a class="idl-code" data-link-type="interface" href="#idl-DOMString" id="ref-for-idl-DOMString④⑦①"><c- b="">DOMString</c-></a> <a href="#dom-domexception-constructor-message-name-name"><code><c- g="">name</c-></code></a> = "Error");
-  <c- b="">readonly</c-> <c- b="">attribute</c-> <a class="idl-code" data-link-type="interface" href="#idl-DOMString" id="ref-for-idl-DOMString④⑧①"><c- b="">DOMString</c-></a> <a class="idl-code" data-link-type="attribute" data-readonly="" data-type="DOMString" href="#dom-domexception-name" id="ref-for-dom-domexception-name①"><c- g="">name</c-></a>;
-  <c- b="">readonly</c-> <c- b="">attribute</c-> <a class="idl-code" data-link-type="interface" href="#idl-DOMString" id="ref-for-idl-DOMString④⑨①"><c- b="">DOMString</c-></a> <a class="idl-code" data-link-type="attribute" data-readonly="" data-type="DOMString" href="#dom-domexception-message" id="ref-for-dom-domexception-message①"><c- g="">message</c-></a>;
+  <a class="idl-code" data-link-type="constructor" href="#dom-domexception-domexception" id="ref-for-dom-domexception-domexception①"><c- g="">constructor</c-></a>(<c- b="">optional</c-> <a class="idl-code" data-link-type="interface" href="#idl-DOMString" id="ref-for-idl-DOMString④⑤①"><c- b="">DOMString</c-></a> <a href="#dom-domexception-domexception-message-name-message"><code><c- g="">message</c-></code></a> = "", <c- b="">optional</c-> <a class="idl-code" data-link-type="interface" href="#idl-DOMString" id="ref-for-idl-DOMString④⑥①"><c- b="">DOMString</c-></a> <a href="#dom-domexception-domexception-message-name-name"><code><c- g="">name</c-></code></a> = "Error");
+  <c- b="">readonly</c-> <c- b="">attribute</c-> <a class="idl-code" data-link-type="interface" href="#idl-DOMString" id="ref-for-idl-DOMString④⑦①"><c- b="">DOMString</c-></a> <a class="idl-code" data-link-type="attribute" data-readonly="" data-type="DOMString" href="#dom-domexception-name" id="ref-for-dom-domexception-name①"><c- g="">name</c-></a>;
+  <c- b="">readonly</c-> <c- b="">attribute</c-> <a class="idl-code" data-link-type="interface" href="#idl-DOMString" id="ref-for-idl-DOMString④⑧①"><c- b="">DOMString</c-></a> <a class="idl-code" data-link-type="attribute" data-readonly="" data-type="DOMString" href="#dom-domexception-message" id="ref-for-dom-domexception-message①"><c- g="">message</c-></a>;
   <c- b="">readonly</c-> <c- b="">attribute</c-> <a class="idl-code" data-link-type="interface" href="#idl-unsigned-short" id="ref-for-idl-unsigned-short⑨①"><c- b="">unsigned</c-> <c- b="">short</c-></a> <a class="idl-code" data-link-type="attribute" data-readonly="" data-type="unsigned short" href="#dom-domexception-code" id="ref-for-dom-domexception-code①"><c- g="">code</c-></a>;
 
   <c- b="">const</c-> <a class="idl-code" data-link-type="interface" href="#idl-unsigned-short" id="ref-for-idl-unsigned-short①⓪①"><c- b="">unsigned</c-> <c- b="">short</c-></a> <a class="idl-code" data-link-type="const" href="#dom-domexception-index_size_err" id="ref-for-dom-domexception-index_size_err①"><c- g="">INDEX_SIZE_ERR</c-></a> = 1;
@@ -17245,12 +17189,12 @@ language binding.</p>
   <aside class="dfn-panel" data-for="dfn-code-unit">
    <b><a href="#dfn-code-unit">#dfn-code-unit</a></b><b>Referenced in:</b>
    <ul>
-    <li><a href="#ref-for-dfn-code-unit">2.13.16. DOMString</a> <a href="#ref-for-dfn-code-unit①">(2)</a> <a href="#ref-for-dfn-code-unit②">(3)</a>
-    </li><li><a href="#ref-for-dfn-code-unit③">2.13.18. USVString</a>
-    </li><li><a href="#ref-for-dfn-code-unit④">2.13.24. Enumeration types</a>
-    </li><li><a href="#ref-for-dfn-code-unit⑤">3.2.9. DOMString</a>
-    </li><li><a href="#ref-for-dfn-code-unit⑥">3.2.11. USVString</a> <a href="#ref-for-dfn-code-unit⑦">(2)</a>
-    </li><li><a href="#ref-for-dfn-code-unit⑧">3.2.17. Enumeration types</a>
+    <li><a href="#ref-for-dfn-code-unit">2.13.16. DOMString</a> <a href="#ref-for-dfn-code-unit①">(2)</a>
+    </li><li><a href="#ref-for-dfn-code-unit②">2.13.18. USVString</a>
+    </li><li><a href="#ref-for-dfn-code-unit③">2.13.24. Enumeration types</a>
+    </li><li><a href="#ref-for-dfn-code-unit④">3.2.9. DOMString</a>
+    </li><li><a href="#ref-for-dfn-code-unit⑤">3.2.11. USVString</a> <a href="#ref-for-dfn-code-unit⑥">(2)</a>
+    </li><li><a href="#ref-for-dfn-code-unit⑦">3.2.17. Enumeration types</a>
    </li></ul>
   </aside>
   <aside class="dfn-panel" data-for="dfn-json-types">
@@ -18488,23 +18432,17 @@ language binding.</p>
     </li><li><a href="#ref-for-idl-DOMString①⑥">2.8. Exceptions</a>
     </li><li><a href="#ref-for-idl-DOMString①⑦">2.9. Enumerations</a>
     </li><li><a href="#ref-for-idl-DOMString①⑧">2.13. Types</a>
-    </li><li><a href="#ref-for-idl-DOMString①⑨">2.13.16. DOMString</a> <a href="#ref-for-idl-DOMString②⓪">(2)</a> <a href="#ref-for-idl-DOMString②①">(3)</a> <a href="#ref-for-idl-DOMString②②">(4)</a> <a href="#ref-for-idl-DOMString②③">(5)</a> <a href="#ref-for-idl-DOMString②④">(6)</a> <a href="#ref-for-idl-DOMString②⑤">(7)</a> <a href="#ref-for-idl-DOMString②⑥">(8)</a> <a href="#ref-for-idl-DOMString②⑦">(9)</a> <a href="#ref-for-idl-DOMString②⑧">(10)</a> <a href="#ref-for-idl-DOMString②⑨">(11)</a>
-    </li><li><a href="#ref-for-idl-DOMString③⓪">2.13.17. ByteString</a>
-    </li><li><a href="#ref-for-idl-DOMString③①">2.13.18. USVString</a> <a href="#ref-for-idl-DOMString③②">(2)</a>
-    </li><li><a href="#ref-for-idl-DOMString③③">2.13.24. Enumeration types</a> <a href="#ref-for-idl-DOMString③④">(2)</a>
-    </li><li><a href="#ref-for-idl-DOMString③⑤">2.13.26. Nullable types — T?</a>
-    </li><li><a href="#ref-for-idl-DOMString③⑥">2.13.28. Record types — record&lt;K, V&gt;</a>
-    </li><li><a href="#ref-for-idl-DOMString③⑦">3.2.1. any</a>
-    </li><li><a href="#ref-for-idl-DOMString③⑧">3.2.9. DOMString</a> <a href="#ref-for-idl-DOMString③⑨">(2)</a> <a href="#ref-for-idl-DOMString④⓪">(3)</a> <a href="#ref-for-idl-DOMString④①">(4)</a> <a href="#ref-for-idl-DOMString④②">(5)</a>
-    </li><li><a href="#ref-for-idl-DOMString④③">3.2.11. USVString</a>
-    </li><li><a href="#ref-for-idl-DOMString④④">3.3.21. [TreatNullAs]</a> <a href="#ref-for-idl-DOMString④⑤">(2)</a>
-    </li><li><a href="#ref-for-idl-DOMString④⑥">4.3. DOMException</a> <a href="#ref-for-idl-DOMString④⑦">(2)</a> <a href="#ref-for-idl-DOMString④⑧">(3)</a> <a href="#ref-for-idl-DOMString④⑨">(4)</a>
-   </li></ul>
-  </aside>
-  <aside class="dfn-panel" data-for="dfn-obtain-unicode">
-   <b><a href="#dfn-obtain-unicode">#dfn-obtain-unicode</a></b><b>Referenced in:</b>
-   <ul>
-    <li><a href="#ref-for-dfn-obtain-unicode">3.2.11. USVString</a>
+    </li><li><a href="#ref-for-idl-DOMString①⑨">2.13.16. DOMString</a> <a href="#ref-for-idl-DOMString②⓪">(2)</a> <a href="#ref-for-idl-DOMString②①">(3)</a> <a href="#ref-for-idl-DOMString②②">(4)</a> <a href="#ref-for-idl-DOMString②③">(5)</a> <a href="#ref-for-idl-DOMString②④">(6)</a> <a href="#ref-for-idl-DOMString②⑤">(7)</a> <a href="#ref-for-idl-DOMString②⑥">(8)</a> <a href="#ref-for-idl-DOMString②⑦">(9)</a> <a href="#ref-for-idl-DOMString②⑧">(10)</a>
+    </li><li><a href="#ref-for-idl-DOMString②⑨">2.13.17. ByteString</a>
+    </li><li><a href="#ref-for-idl-DOMString③⓪">2.13.18. USVString</a> <a href="#ref-for-idl-DOMString③①">(2)</a>
+    </li><li><a href="#ref-for-idl-DOMString③②">2.13.24. Enumeration types</a> <a href="#ref-for-idl-DOMString③③">(2)</a>
+    </li><li><a href="#ref-for-idl-DOMString③④">2.13.26. Nullable types — T?</a>
+    </li><li><a href="#ref-for-idl-DOMString③⑤">2.13.28. Record types — record&lt;K, V&gt;</a>
+    </li><li><a href="#ref-for-idl-DOMString③⑥">3.2.1. any</a>
+    </li><li><a href="#ref-for-idl-DOMString③⑦">3.2.9. DOMString</a> <a href="#ref-for-idl-DOMString③⑧">(2)</a> <a href="#ref-for-idl-DOMString③⑨">(3)</a> <a href="#ref-for-idl-DOMString④⓪">(4)</a> <a href="#ref-for-idl-DOMString④①">(5)</a>
+    </li><li><a href="#ref-for-idl-DOMString④②">3.2.11. USVString</a>
+    </li><li><a href="#ref-for-idl-DOMString④③">3.3.21. [TreatNullAs]</a> <a href="#ref-for-idl-DOMString④④">(2)</a>
+    </li><li><a href="#ref-for-idl-DOMString④⑤">4.3. DOMException</a> <a href="#ref-for-idl-DOMString④⑥">(2)</a> <a href="#ref-for-idl-DOMString④⑦">(3)</a> <a href="#ref-for-idl-DOMString④⑧">(4)</a>
    </li></ul>
   </aside>
   <aside class="dfn-panel" data-for="idl-ByteString">
