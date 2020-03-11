@@ -5,9 +5,9 @@ SOURCE_BRANCH="master"
 TARGET_BRANCH="gh-pages"
 
 function doCompile {
-  curl https://api.csswg.org/bikeshed/ -f -F file=@index.bs > out/index.html
-  node ./check-grammar.js ./out/index.html
-  npm run pp-webidl -- --input ./out/index.html
+  make
+  node ./check-grammar.js index.html
+  mv index.html ./out/index.html
 }
 
 # Pull requests and commits to other branches shouldn't try to deploy, just build to verify
