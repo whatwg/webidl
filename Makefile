@@ -1,6 +1,7 @@
 SHELL=/bin/bash
 
 bs_installed  := $(shell command -v bikeshed 2> /dev/null)
+node_installed := $(shell command -v node 2> /dev/null)
 npm_installed := $(shell command -v npm 2> /dev/null)
 pp_webidl_installed := $(shell npm ls webidl-grammar-post-processor --parseable --depth=0 2> /dev/null)
 
@@ -27,6 +28,11 @@ else
 		rm -f index.html; \
 		exit 22 \
 	);
+endif
+ifdef node_installed
+	node ./check-grammar.js index.html
+else
+	@echo You need node for grammer checking.
 endif
 ifdef pp_webidl_installed
 	npm run pp-webidl -- --input index.html

@@ -6,7 +6,6 @@ TARGET_BRANCH="gh-pages"
 
 function doCompile {
   make
-  node ./check-grammar.js index.html
   mv index.html ./out/index.html
 }
 
