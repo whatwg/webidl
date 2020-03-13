@@ -8,7 +8,7 @@ pp_webidl_installed := $(shell npm ls webidl-grammar-post-processor --parseable 
 all : index.html
 
 index.html : index.bs
-env
+	env
 ifdef bs_installed
 	bikeshed spec --die-on=warning index.bs
 else
