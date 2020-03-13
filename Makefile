@@ -8,11 +8,10 @@ pp_webidl_installed := $(shell npm ls webidl-grammar-post-processor --parseable 
 all : index.html
 
 index.html : index.bs
-	env
 ifdef bs_installed
 	bikeshed spec --die-on=warning index.bs
 else
-ifndef $(TRAVIS)
+ifndef TRAVIS
 	@echo Can\'t find a local version of Bikeshed. To install it, visit:
 	@echo
 	@echo https://github.com/tabatkins/bikeshed/blob/master/docs/install.md
@@ -35,7 +34,7 @@ endif
 endif
 ifdef node_installed
 	node ./check-grammar.js index.html
-else ifdef $(TRAVIS)
+else ifdef TRAVIS
 	exit 1
 else
 	@echo You need node for grammer checking.
@@ -45,7 +44,7 @@ ifdef pp_webidl_installed
 else ifdef npm_installed
 	npm install
 	npm run pp-webidl -- --input index.html
-else ifdef $(TRAVIS)
+else ifdef TRAVIS
 	exit 1
 else
 	@echo You need node.js and npm to apply post-processing. To install it, visit:
