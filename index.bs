@@ -85,6 +85,7 @@ urlPrefix: https://tc39.github.io/ecma262/; spec: ECMA-262
         text: Set; url: sec-set-objects
         text: SharedArrayBuffer; url: sec-sharedarraybuffer-objects
         text: %AsyncIteratorPrototype%; url: sec-asynciteratorprototype
+        text: %ArrayPrototype%; url: sec-properties-of-the-array-prototype-object
         text: %ErrorPrototype%; url: sec-properties-of-the-error-prototype-object
         text: %FunctionPrototype%; url: sec-properties-of-the-function-prototype-object
         text: %IteratorPrototype%; url: sec-%iteratorprototype%-object
@@ -121,6 +122,7 @@ urlPrefix: https://tc39.github.io/ecma262/; spec: ECMA-262
         text: CanonicalNumericIndexString; url: sec-canonicalnumericindexstring
         text: Completion; url: sec-completion
         text: Construct; url: sec-construct
+        text: CreateArrayFromList; url: sec-createarrayfromlist
         text: CreateArrayIterator; url: sec-createarrayiterator
         text: CreateBuiltinFunction; url: sec-createbuiltinfunction
         text: CreateDataProperty; url: sec-createdataproperty
@@ -134,11 +136,13 @@ urlPrefix: https://tc39.github.io/ecma262/; spec: ECMA-262
             text: SetMutableBinding
             text: CreateMutableBinding
             text: InitializeBinding
+        text: FromPropertyDescriptor; url: sec-frompropertydescriptor
         text: Get; url: sec-get-o-p
         text: GetFunctionRealm; url: sec-getfunctionrealm
         text: GetIterator; url: sec-getiterator
         text: GetMethod; url: sec-getmethod
         text: IfAbruptRejectPromise; url: sec-ifabruptrejectpromise
+        text: IsArray; url: sec-isarray
         text: IsAccessorDescriptor; url: sec-isaccessordescriptor
         text: IsCallable; url: sec-iscallable
         text: IsConstructor; url: sec-isconstructor
@@ -157,6 +161,7 @@ urlPrefix: https://tc39.github.io/ecma262/; spec: ECMA-262
         text: OrdinaryPreventExtensions; url: sec-ordinarypreventextensions
         text: OrdinarySetWithOwnDescriptor; url: sec-ordinarysetwithowndescriptor
         text: PerformPromiseThen; url: sec-performpromisethen
+        text: ProxyCreate; url: sec-proxycreate
         text: Set; url: sec-set-o-p-v-throw
         text: SetFunctionLength; url: sec-setfunctionlength
         text: SetFunctionName; url: sec-setfunctionname
@@ -166,6 +171,8 @@ urlPrefix: https://tc39.github.io/ecma262/; spec: ECMA-262
         text: ToInt32; url: sec-toint32
         text: ToNumber; url: sec-tonumber
         text: ToObject; url: sec-toobject
+        text: ToPropertyDescriptor; url: sec-topropertydescriptor
+        text: ToPropertyKey; url: sec-topropertykey
         text: ToString; url: sec-tostring
         text: ToUint16; url: sec-touint16
         text: ToUint32; url: sec-touint32
@@ -222,6 +229,7 @@ urlPrefix: https://tc39.github.io/ecma262/; spec: ECMA-262
         text: own property; url: sec-own-property
         text: PromiseCapability; url: sec-promisecapability-records
         text: Property Descriptor; url: sec-property-descriptor-specification-type
+        text: Proxy exotic object; url: sec-proxy-object-internal-methods-and-internal-slots
         text: Source Text Module Record; url: sourctextmodule-record
         text: realm; url: realm
         text: ResolvedBinding Record; url: resolvedbinding-record
@@ -5757,6 +5765,7 @@ type.
         "symbol" Null
         BufferRelatedType Null
         "FrozenArray" "&lt;" TypeWithExtendedAttributes "&gt;" Null
+        "ObservableArray" "&lt;" TypeWithExtendedAttributes "&gt;" Null
         RecordType Null
 </pre>
 
@@ -6742,6 +6751,131 @@ The [=type name=] of a frozen array
 type is the concatenation of the type name for |T| and the string
 "<code>Array</code>".
 
+<h4 id="idl-observable-array" interface lt="ObservableArrayT|ObservableArray&lt;T&gt;">Observable array types — ObservableArray&lt;|T|&gt;</h4>
+
+An <dfn id="dfn-observable-array-type" export>observable array type</dfn> is a parametrized type
+whose values are references to a combination of a mutable list of objects of type |T|, as well as
+behavior to perform when author code modifies the contents of the list.
+
+The parametrized type must not be a [=dictionary type=], [=sequence type=], or [=record type=].
+
+Similar to [=sequence types=] and [=frozen array types=], observable array types wrap around
+ECMAScript array types, imposing additional semantics on their usage.
+
+Observable array types must only be used as the type of [=regular attributes=].
+
+For an attribute whose type is an observable array type, specification authors can specify a series
+of algorithms:
+
+*   <dfn for="observable array attribute">set an indexed value</dfn>, which accepts an IDL value
+    that is about to be set in the observable array, and the index at which it is being set;
+*   <dfn for="observable array attribute">delete an indexed value</dfn>, which accepts an IDL value
+    that is about to be removed from the observable array, and the index from which it is being
+    removed.
+
+Both of these algorithms are optional, and if not provided, the default behavior will be to do
+nothing. Either algorithm may throw an exception, e.g. to reject invalid values.
+
+Note that when ECMAScript code sets an existing index to a new value, this will first call the
+[=observable array attribute/delete an indexed value=] algorithm to remove the existing value, and
+then the [=observable array attribute/set an indexed value=] algorithm with the new value.
+
+Every [=regular attribute=] whose type is an [=observable array type=] has a
+<dfn for="observable array attribute">backing list</dfn>, which is a [=list=], initially empty.
+Specification authors can modify the contents of the backing list, which will automatically be
+reflected in the contents of the observable array as observed by ECMAScript code. Similarly, any
+modifications by ECMAScript code to the contents of the observable array will be reflected back into
+the backing list, after passing through the [=observable array attribute/set an indexed value=] and
+[=observable array attribute/delete an indexed value=] algorithms.
+
+There is no way to represent a constant observable array value in IDL.
+
+The [=type name=] of an observable array type is the concatenation of the type name for |T| and the
+string "<code>ObservableArray</code>".
+
+<div class="example">
+    The following [=IDL fragment=] defines an [=interface=] with an observable array attribute:
+
+    <!-- TODO: use highlight="idl" after parser update. -->
+    <pre>
+        [Exposed=Window]
+        interface Building {
+          attribute ObservableArray&lt;Employee> employees;
+        };
+    </pre>
+
+    The behavior of the attribute could be defined like so:
+
+    <blockquote>
+        The [=observable array attribute/set an indexed value=] algorithm for
+        <code class="idl">Building</code>'s <code class="idl">employees</code> attribute, given
+        |employee| and |index|, is:
+
+        1.  If |employee| is not allowed to enter the building today, then throw a
+            "{{NotAllowedError}}" {{DOMException}}.
+        1.  If |index| is greater than 200, then throw a "{{QuotaExceededError}}" {{DOMException}}.
+        1.  Put |employee| to work!
+
+        The [=observable array attribute/delete an indexed value=] algorithm for
+        <code class="idl">Building</code>'s <code class="idl">employees</code> attribute, given
+        |employee| and <var ignore>index</var>, is:
+
+        1.  Alert security that |employee| has left the building.
+    </blockquote>
+
+    Then, ECMAScript code could manipulate the <code class="idl">employees</code> property in
+    various ways:
+
+    <pre highlight="js">
+        // Get an instance of Building.
+        const building = getBuilding();
+
+        building.employees.push(new Employee("A"));
+        building.employees.push(new Employee("B"));
+        building.employees.push(new Employee("C"));
+
+        building.employees.splice(1, 1);
+        const employeeB = building.employees.pop();
+
+        building.employees = [new Employee("D"), employeeB, new Employee("C")];
+
+        building.employees.length = 0;
+
+        // Will throw:
+        building.employees.push("not an Employee; a string instead");
+    </pre>
+
+    All of these manipulations would pass through the above-defined
+    [=observable array attribute/set an indexed value=] algorithm, potentially throwing if the
+    conditions described there were met. They would also perform the appropriate side effects listed
+    there and in the [=observable array attribute/delete an indexed value=] algorithm.
+
+    Another thing to note about the above code example is how all of the ECMAScript array methods
+    from {{%ArrayPrototype%}} work on the observable array. Indeed, it fully behaves like an
+    <code>Array</code> instance:
+
+    <pre highlight="js">
+        const normalArray = [];
+
+        // If building.employees were defined as an indexed property getter interface: normalArray
+        // would contains a single item, building.employees.
+        //
+        // For observable arrays (and frozen arrays): normalArray contains all of the items inside
+        // of building.employees.
+        normalArray.concat(building.employees);
+
+        // names is an ECMAScript Array.
+        const names = building.employees.map(employee => employee.name);
+
+        // Passes various brand checks:
+        console.assert(building.employees instanceof Array);
+        console.assert(Array.isArray(building.employees));
+        console.assert(building.employees.constructor === Array);
+
+        // Even is treated as an array by JSON.stringify!
+        console.assert(JSON.stringify(building.employees) === `["object Employee"]`);
+    </pre>
+</div>
 
 <h3 id="idl-extended-attributes">Extended attributes</h3>
 
@@ -6897,6 +7031,7 @@ five forms are allowed.
         "FrozenArray"
         "Infinity"
         "NaN"
+        "ObservableArray"
         "Promise"
         "USVString"
         "any"
@@ -8796,6 +8931,28 @@ to the same object that the IDL <a interface lt="FrozenArray">FrozenArray&lt;|T|
     1.  Let |values| be the result of [=creating a sequence from an iterable|creating a sequence=]
         of type <a lt="sequence type">sequence&lt;|T|&gt;</a> from |iterable| and |method|.
     1.  Return the result of [=create a frozen array|creating a frozen array=] from |values|.
+</div>
+
+<h4 id="es-observable-array">Observable arrays — ObservableArray&lt;|T|&gt;</h4>
+
+Values of observable array types are represented by [=observable array exotic objects=].
+
+Instead of the usual conversion algorithms, observable array types have special handling as part of
+the [=attribute getter=] and [=attribute setter=] algorithms.
+
+In the ECMAScript binding, ECMAScript objects that represent [=platform objects=] have a
+<dfn>backing observable array exotic object</dfn> for each [=regular attribute=] of an
+[=observable array type=]. These are created and managed as part of the [=define the attributes=]
+algorithm.
+
+<div algorithm="observable array backing list">
+    The [=observable array attribute/backing list=] for an observable array attribute in the
+    ECMAScript binding, given a [=platform object=] |obj| and an attribute |attribute|, is the
+    [=list=] returned by the following algorithm:
+
+    1.  Assert: |obj| [=implements=] an [=interface=] with the [=regular attribute=] |attribute|.
+    1.  Let |oa| be |obj|'s [=backing observable array exotic object=] for |attribute|.
+    1.  Return |oa|.\[[ProxyHandler]].\[[BackingList]].
 </div>
 
 
@@ -11552,6 +11709,10 @@ in which case they are exposed on every object that [=implements=] the interface
             \[[Enumerable]]: <emu-val>true</emu-val>, \[[Configurable]]: |configurable|}.
         1.  Let |id| be |attr|'s [=identifier=].
         1.  Perform [=!=] <a abstract-op>DefinePropertyOrThrow</a>(|target|, |id|, |desc|).
+        1.  If |attr|'s type is an [=observable array type=] with type argument |T|, then set
+            |target|'s [=backing observable array exotic object=] for |attr| to the result of
+            [=creating an observable array exotic object=] in |realm|, given |T|, |attr|'s
+            [=set an indexed value=] algorithm, and |attr|'s [=delete an indexed value=] algorithm.
 
 </div>
 
@@ -11577,6 +11738,8 @@ in which case they are exposed on every object that [=implements=] the interface
                     1.  If |attribute| was specified with the [{{LenientThis}}]
                         [=extended attribute=], then return <emu-val>undefined</emu-val>.
                     1.  Otherwise, [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
+                1.  If |attribute|'s type is an [=observable array type=], then return |esValue|'s
+                    [=backing observable array exotic object=] for |attribute|.
                 1.  Set |idlObject| to the IDL [=interface type=] value that represents a reference
                     to |esValue|.
             1.  Let |R| be the result of [=get the underlying value|getting the underlying value=]
@@ -11643,6 +11806,17 @@ in which case they are exposed on every object that [=implements=] the interface
                 1.  Return <emu-val>undefined</emu-val>.
             1.  Set |idlObject| to the IDL [=interface type=] value that represents a reference
                 to |esValue|.
+            1.  If |attribute|'s type is an [=observable array type=] with type argument |T|:
+                1.  Let |newValues| be the result of [=converted to an IDL value|converting=] |V| to
+                    an IDL value of type <a lt="sequence type">sequence&lt;|T|&gt;</a>.
+                1.  Let |oa| be |idlObject|'s |attribute|'s [=backing observable array exotic object=].
+                1.  [=observable array exotic object/Set the length=] of |oa|.\[[ProxyHandler]] to 0.
+                1.  Let |i| be 0.
+                1.  While |i| &lt; |newValues|'s [=list/size=]:
+                    1.  Perform the algorithm steps given by
+                        |oa|.\[[ProxyHandler]].\[[SetAlgorithm]], given |newValues|[|i|] and |i|.
+                    1.  [=list/Append=] |newValues|[|i|] to |oa|.\[[ProxyHandler]].\[[BackingList]].
+                1.  Return <emu-val>undefined</emu-val>.
         1.  Let |idlValue| be determined as follows:
 
             <dl class="switch">
@@ -13599,6 +13773,250 @@ internal method as follows.
             1.  Set |desc|.\[[Configurable]] to <emu-val>true</emu-val>.
             1.  Return |desc|.
     1.  Return <a abstract-op>OrdinaryGetOwnProperty</a>(|O|, |P|).
+</div>
+
+<h3 id="es-observable-arrays">Observable array exotic objects</h3>
+
+An <dfn>observable array exotic object</dfn> is a specific type of ECMAScript
+[=Proxy exotic object=] which is created using the proxy traps defined in this section. They are
+defined in this manner because the ECMAScript specification includes special treatment for
+[=Proxy exotic objects=] that have <code>Array</code> instances as their proxy target, and we want
+to ensure that [=observable array types=] are exposed to ECMAScript code with this special treatment
+intact.
+
+The proxy traps used by observable array exotic objects work to ensure a number of invariants beyond
+those of normal <code>Array</code> instances:
+
+*   The arrays have no holes, i.e. every property in the inclusive range 0 through
+    <code>observableArray.length</code> &minus; 1 will be filled with a value compatible with the
+    specified Web IDL type, and no [=array index=] properties will exist outside that range.
+*   The property descriptors for important properties cannot be changed from their default
+    configuration; indexed properties always remain as configurable, enumerable, and writable data
+    properties, while the <code>length</code> property remains as a non-configurable,
+    non-enumerable, and writable data property.
+*   Adding additional properties to the array cannot be prevented using, for example,
+    <code>Object.preventExtensions()</code>.
+
+<div algorithm>
+    To <dfn lt="creating an observable array exotic object">create an observable array exotic object</dfn>
+    in a [=Realm=] |realm|, given Web IDL type |T| and algorithms |setAlgorithm| and |deleteAlgorithm|:
+
+    1.  Let |innerArray| be [=!=] [$ArrayCreate$](0).
+    1.  Let |handler| be [$ObjectCreate$](<emu-val>null</emu-val>, « \[[Type]], \[[SetAlgorithm]], \[[DeleteAlgorithm]], \[[BackingList]] »).
+    1.  Set |handler|.\[[Type]] to |T|.
+    1.  Set |handler|.\[[SetAlgorithm]] to |setAlgorithm|.
+    1.  Set |handler|.\[[DeleteAlgorithm]] to |deleteAlgorithm|.
+    1.  Let |defineProperty| be [=!=] [$CreateBuiltinFunction$](the steps from [[#es-observable-array-defineProperty]], « », |realm|).
+    1.  Perform [=!=] [$CreateDataProperty$](|handler|, "<code>defineProperty</code>", |defineProperty|).
+    1.  Let |deleteProperty| be [=!=] [$CreateBuiltinFunction$](the steps from [[#es-observable-array-deleteProperty]], « », |realm|).
+    1.  Perform [=!=] [$CreateDataProperty$](|handler|, "<code>deleteProperty</code>", |deleteProperty|).
+    1.  Let |get| be [=!=] [$CreateBuiltinFunction$](the steps from [[#es-observable-array-get]], « », |realm|).
+    1.  Perform [=!=] [$CreateDataProperty$](|handler|, "<code>get</code>", |get|).
+    1.  Let |getOwnPropertyDescriptor| be [=!=] [$CreateBuiltinFunction$](the steps from [[#es-observable-array-getOwnPropertyDescriptor]], « », |realm|).
+    1.  Perform [=!=] [$CreateDataProperty$](|handler|, "<code>getOwnPropertyDescriptor</code>", |getOwnPropertyDescriptor|).
+    1.  Let |has| be [=!=] [$CreateBuiltinFunction$](the steps from [[#es-observable-array-has]], « », |realm|).
+    1.  Perform [=!=] [$CreateDataProperty$](|handler|, "<code>has</code>", |has|).
+    1.  Let |ownKeys| be [=!=] [$CreateBuiltinFunction$](the steps from [[#es-observable-array-ownKeys]], « », |realm|).
+    1.  Perform [=!=] [$CreateDataProperty$](|handler|, "<code>ownKeys</code>", |ownKeys|).
+    1.  Let |preventExtensions| be [=!=] [$CreateBuiltinFunction$](the steps from [[#es-observable-array-preventExtensions]], « », |realm|).
+    1.  Perform [=!=] [$CreateDataProperty$](|handler|, "<code>preventExtensions</code>", |preventExtensions|).
+    1.  Let |set| be [=!=] [$CreateBuiltinFunction$](the steps from [[#es-observable-array-set]], « », |realm|).
+    1.  Perform [=!=] [$CreateDataProperty$](|handler|, "<code>set</code>", |set|).
+    1.  Return [=!=] [$ProxyCreate$](|innerArray|, |handler|).
+</div>
+
+<h4 id="es-observable-array-defineProperty"><code>defineProperty</code></h4>
+
+<div algorithm="observable array exotic object defineProperty trap">
+    The steps for the <code>defineProperty</code> proxy trap for
+    [=observable array exotic objects=], given |O|, |P|, and |descriptorObj| are as follows:
+
+    1.  Let |handler| be the <emu-val>this</emu-val> value.
+    1.  Let |descriptor| be [=!=] [$ToPropertyDescriptor$](|descriptorObj|).
+    1.  If |P| is "length", then:
+        1.  If [=!=] [$IsAccessorDescriptor$](|descriptor|) is <emu-val>true</emu-val>, then return
+            <emu-val>false</emu-val>.
+        1.  If |descriptor|.\[[Configurable]] is present and has the value <emu-val>true</emu-val>,
+            then return <emu-val>false</emu-val>.
+        1.  If |descriptor|.\[[Enumerable]] is present and has the value <emu-val>true</emu-val>,
+            then return <emu-val>false</emu-val>.
+        1.  If |descriptor|.\[[Writable]] is present and has the value <emu-val>false</emu-val>,
+            then return <emu-val>false</emu-val>.
+        1.  If |descriptor|.\[[Value]] is present, then return the result of
+            [=observable array exotic object/setting the length=] given |handler| and
+            |descriptor|.\[[Value]].
+        1.  Return <emu-val>true</emu-val>.
+    1. If |P| [=is an array index=], then:
+        1.  If [=!=] [$IsAccessorDescriptor$](|descriptor|) is <emu-val>true</emu-val>, then return
+            <emu-val>false</emu-val>.
+        1.  If |descriptor|.\[[Configurable]] is present and has the value <emu-val>false</emu-val>,
+            then return <emu-val>false</emu-val>.
+        1.  If |descriptor|.\[[Enumerable]] is present and has the value <emu-val>false</emu-val>,
+            then return <emu-val>false</emu-val>.
+        1.  If |descriptor|.\[[Writable]] is present and has the value <emu-val>false</emu-val>,
+            then return <emu-val>false</emu-val>.
+        1.  If |descriptor|.\[[Value]] is present, then return the result of
+            [=observable array exotic object/setting the indexed value=] given |handler|, |P|, and
+            |descriptor|.\[[Value]].
+        1.  Return <emu-val>true</emu-val>.
+    1. Return [=?=] |O|.\[[DefineOwnProperty]](|P|, |descriptor|).
+</div>
+
+<h4 id="es-observable-array-deleteProperty"><code>deleteProperty</code></h4>
+
+<div algorithm="observable array exotic object deleteProperty trap">
+    The steps for the <code>deleteProperty</code> proxy trap for
+    [=observable array exotic objects=], given |O| and |P|, are as follows:
+
+    1.  Let |handler| be the <emu-val>this</emu-val> value.
+    1.  If |P| is "length", then return <emu-val>false</emu-val>.
+    1.  If |P| [=is an array index=], then:
+        1.  Let |oldLen| be |handler|.\[[BackingList]]'s [=list/size=].
+        1.  Let |index| be [=!=] [$ToUint32$](|P|).
+        1.  If |index| ≠ |oldLen| &minus; 1, then return
+            <emu-val>false</emu-val>.
+        1.  Perform the algorithm steps given by |handler|.\[[DeleteAlgorithm]], given
+            |handler|.\[[BackingList]][|index|] and |index|.
+        1.  [=list/Remove=] the last item from |handler|.\[[BackingList]].
+        1.  Return <emu-val>true</emu-val>.
+    1.  Return [=?=] |O|.\[[Delete]](|P|).
+</div>
+
+<h4 id="es-observable-array-get"><code>get</code></h4>
+
+<div algorithm="observable array exotic object get trap">
+    The steps for the <code>get</code> proxy trap for
+    [=observable array exotic objects=], given |O|, |P|, and |Receiver|, are as follows:
+
+    1.  Let |handler| be the <emu-val>this</emu-val> value.
+    1.  Let |length| be |handler|.\[[BackingList]]'s [=list/size=].
+    1.  If |P| is "length", then return |length|.
+    1.  If |P| [=is an array index=], then:
+        1.  Let |index| be [=!=] [$ToUint32$](|P|).
+        1.  If |index| ≥ |length|, then return <emu-val>undefined</emu-val>.
+        1.  Let |esValue| be the result of [=converted to an ECMAScript value|converting=]
+            |handler|.\[[BackingList]][|index|] to an ECMAScript value.
+        1.  Assert: the above step never throws an exception.
+        1.  Return |esValue|.
+    1.  Return [=?=] |O|.\[[Get]](|P|, |Receiver|).
+</div>
+
+<h4 id="es-observable-array-getOwnPropertyDescriptor"><code>getOwnPropertyDescriptor</code></h4>
+
+<div algorithm="observable array exotic object getOwnPropertyDescriptor trap">
+    The steps for the <code>getOwnPropertyDescriptor</code> proxy trap for
+    [=observable array exotic objects=], given |O| and |P|, are as follows:
+
+    1.  Let |handler| be the <emu-val>this</emu-val> value.
+    1.  Let |length| be |handler|.\[[BackingList]]'s [=list/size=].
+    1.  If |P| is "length", then return [=!=]
+        [$FromPropertyDescriptor$](PropertyDescriptor{\[[Configurable]]: <emu-val>false</emu-val>,
+        \[[Enumerable]]: <emu-val>false</emu-val>, \[[Writable]]: <emu-val>true</emu-val>,
+        \[[Value]]: |length| }).
+    1.  If |P| [=is an array index=], then
+        1.  Let |index| be [=!=] [$ToUint32$](|P|).
+        1.  If |index| ≥ |length|, then return <emu-val>undefined</emu-val>.
+        1.  Let |esValue| be the result of [=converted to an ECMAScript value|converting=]
+            |handler|.\[[BackingList]][|index|] to an ECMAScript value.
+        1.  Assert: the above step never throws an exception.
+        1.  Return [=!=] [$FromPropertyDescriptor$](PropertyDescriptor{\[[Configurable]]:
+            <emu-val>true</emu-val>, \[[Enumerable]]: <emu-val>true</emu-val>, \[[Writable]]:
+            <emu-val>true</emu-val>, \[[Value]]: |esValue| }).
+    1.  Return [=!=] [$FromPropertyDescriptor$]([=?=] |O|.\[[GetOwnProperty]](|P|)).
+</div>
+
+<h4 id="es-observable-array-has"><code>has</code></h4>
+
+<div algorithm="observable array exotic object has trap">
+    The steps for the <code>has</code> proxy trap for
+    [=observable array exotic objects=], given |O| and |P|, are as follows:
+
+    1.  Let |handler| be the <emu-val>this</emu-val> value.
+    1.  If |P| is "length", then return <emu-val>true</emu-val>.
+    1.  If |P| [=is an array index=], then:
+        1.  Let |index| be [=!=] [$ToUint32$](|P|).
+        1.  If |index| &lt; |handler|.\[[BackingList]]'s [=list/size=], then return
+            <emu-val>true</emu-val>.
+        1.  Return <emu-val>false</emu-val>.
+    1.  Return [=?=] |O|.\[[HasProperty]](|P|).
+</div>
+
+<h4 id="es-observable-array-ownKeys"><code>ownKeys</code></h4>
+
+<div algorithm="observable array exotic object ownKeys trap">
+    The steps for the <code>ownKeys</code> proxy trap for
+    [=observable array exotic objects=], given |O|, are as follows:
+
+    1.  Let |handler| be the <emu-val>this</emu-val> value.
+    1.  Let |length| be |handler|.\[[BackingList]]'s [=list/size=].
+    1.  Let |keys| be an empty [=list=].
+    1.  Let |i| be 0.
+    1.  [=While=] |i| &lt; |length|:
+        1.  [=list/Append=] [=!=] [$ToString$](|i|) to |keys|.
+        1.  Set |i| to |i| + 1.
+    1.  [=list/Extend=] |keys| with [=!=] |O|.\[[OwnPropertyKeys]]().
+    1.  Return [=!=] [$CreateArrayFromList$](|keys|).
+</div>
+
+<h4 id="es-observable-array-preventExtensions"><code>preventExtensions</code></h4>
+
+<div algorithm="observable array exotic object preventExtensions trap">
+    The steps for the <code>preventExtensions</code> proxy trap for
+    [=observable array exotic objects=] are as follows:
+
+    1.  Return <emu-val>false</emu-val>.
+</div>
+
+<h4 id="es-observable-array-set"><code>set</code></h4>
+
+<div algorithm="observable array exotic object set trap">
+    The steps for the <code>set</code> proxy trap for
+    [=observable array exotic objects=], given |O|, |P|, |V|, and |Receiver|, are as follows:
+
+    1.  Let |handler| be the <emu-val>this</emu-val> value.
+    1.  If |P| is "length", then return the result of
+        [=observable array exotic object/setting the length=] given |handler| and |V|.
+    1.  If |P| [=is an array index=], then return the result of
+        [=observable array exotic object/setting the indexed value=] given |handler|, |P|, and |V|.
+    1.  Return [=?=] |O|.\[[Set]](|P|, |V|, |Receiver|).
+</div>
+
+<h4 id="es-observable-array-abstract-operations">Abstract operations</h4>
+
+<div algorithm>
+    To <dfn for="observable array exotic object" lt="set the length|setting the length">set the length</dfn>
+    of an observable array exotic object given |handler| and |newLen|:
+
+    1.  Let |uint32Len| be [=?=] [$ToUint32$](|newLen|).
+    1.  Let |numberLen| be [=?=] [$ToNumber$](|newLen|).
+    1.  If |uint32Len| ≠ |numberLen|, then throw a {{RangeError}} exception.
+    1.  Let |oldLen| be |handler|.\[[BackingList]]'s [=list/size=].
+    1.  If |uint32Len| > |oldLen|, then return <emu-val>false</emu-val>.
+    1.  Let |indexToDelete| be |oldLen| &minus; 1.
+    1.  [=While=] |indexToDelete| ≥ |uint32Len|:
+        1.  Perform the algorithm steps given by |handler|.\[[DeleteAlgorithm]], given
+            |handler|.\[[BackingList]][|indexToDelete|] and |indexToDelete|.
+        1.  [=list/Remove=] the last item from |handler|.\[[BackingList]].
+        1.  Set |indexToDelete| to |indexToDelete| &minus; 1.
+</div>
+
+<div algorithm>
+    To <dfn for="observable array exotic object" lt="set the indexed value|setting the indexed value">set the indexed value</dfn>
+    of an observable array exotic object given |handler|, |P|, and |V|:
+
+    1.  Let |oldLen| be |handler|.\[[BackingList]]'s [=list/size=].
+    1.  Let |index| be [=!=] [$ToUint32$](|P|).
+    1.  If |index| > |oldLen|, return <emu-val>false</emu-val>.
+    1.  Let |idlValue| be the result of [=converted to an IDL value|converting=]
+        |V| to the type given by |handler|.\[[Type]].
+    1.  If |index| &lt; |oldLen|, then:
+        1.  Perform the algorithm steps given by |handler|.\[[DeleteAlgorithm]], given
+            |handler|.\[[BackingList]][|index|] and |index|.
+    1.  Perform the algorithm steps given by |handler|.\[[SetAlgorithm]], given |idlValue| and
+        |index|.
+    1.  If |index| = |oldLen|, then [=list/append=] |idlValue| to |handler|.\[[BackingList]].
+    1.  Otherwise, set |handler|.\[[BackingList]][|index|] to |idlValue|.
+    1.  Return <emu-val>true</emu-val>.
 </div>
 
 <h3 id="es-user-objects">Callback interfaces</h3>
