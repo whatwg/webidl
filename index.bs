@@ -2279,7 +2279,7 @@ corresponding argument omitted.
 If the type of an argument is a [=dictionary type=] or a [=union type=] that has
 a [=dictionary type=] as one
 of its [=flattened member types=], and that dictionary type and its ancestors have no
-[=required dictionary member|required members=], and the argument is either the final argument or is
+[=dictionary member/required=] [=dictionary member|members=], and the argument is either the final argument or is
 followed only by [=optional arguments=], then the argument must be specified as
 optional and have a default value provided.
 
@@ -3877,8 +3877,8 @@ defined with [=optional arguments=] and merged into one,
     };
 </pre>
 
-the [=overload resolution algorithm=] would treat the <var ignore>path</var> argument as [=not
-present=] given the same call <code>stroke(undefined)</code>, and not throw any exceptions.
+the [=overload resolution algorithm=] would treat the <var ignore>path</var> argument as missing
+given the same call <code>stroke(undefined)</code>, and not throw any exceptions.
 
 Note: For this particular example, the latter behavior is actually what Web developers would
 generally expect. If {{CanvasDrawPath}} were to be designed today, [=optional arguments=] would be
@@ -4062,8 +4062,7 @@ determine what Web IDL language feature to use:
     class="idl">foo(|arg|)</code> operation, with |arg| set to null, while <code>foo()</code> alone
     would go to the first overload. This can be a surprising behavior for many API users. Instead,
     specification authors are encouraged to use an [=optional argument=], which would categorize
-    both <code>foo()</code> and <code>foo(undefined)</code> as "|arg| is [=not
-    present=]".
+    both <code>foo()</code> and <code>foo(undefined)</code> as "|arg| is missing".
 
     <pre highlight="webidl">
         interface A {
@@ -4741,9 +4740,15 @@ where [=map/keys=] are strings and [=map/values=] are of a particular type speci
     };
 </pre>
 
-Dictionaries are always passed by value.  In language bindings where a dictionary is represented by an object of some kind, passing a
-dictionary to a [=platform object=] will not result in a reference to the dictionary being kept by that object.
-Similarly, any dictionary returned from a platform object will be a copy and modifications made to it will not be visible to the platform object.
+Dictionaries are always passed by value: the dictionary does not retain a reference to its
+language-specific representation (e.g., the corresponding ECMAScript object). So for example,
+returning a dictionary from an [=operation=] will result in a new ECMAScript object being created
+from the current values of the dictionary. And, an operation that accepts a dictionary as an
+argument will perform a one-time conversion from the given ECMAScript value into the dictionary,
+based on the current properties of the ECMAScript object. Modifications to the dictionary will not
+be reflected in the corresponding ECMAScript object, and vice-versa.
+
+Dictionaries must not be used as the type of an [=attribute=] or [=constant=].
 
 A dictionary can be defined to <dfn id="dfn-inherit-dictionary" for="dictionary" export>inherit</dfn> from another dictionary.
 If the identifier of the dictionary is followed by a colon and a [=identifier=],
@@ -4772,30 +4777,42 @@ from another dictionary, then the set is empty.  Otherwise, the set
 includes the dictionary |E| that |D| [=interface/inherits=]
 from and all of |E|’s [=inherited dictionaries=].
 
-A dictionary value of type |D| can have key–value pairs corresponding
-to the dictionary members defined on |D| and on any of |D|’s
-[=inherited dictionaries=].
-On a given dictionary value, the presence of each dictionary member
-is optional, unless that member is specified as required.
-A dictionary member is said to be
-<dfn id="dfn-present" export lt="present|not present" for="dictionary member">present</dfn>
-in a dictionary value if the value [=map/exists|contains an entry with the key=]
-given by the member's [=identifier=], otherwise it is [=not present=].
-Dictionary members can also optionally have a <dfn id="dfn-dictionary-member-default-value" for="dictionary member" export>default value</dfn>, which is
-the value to use for the dictionary member when passing a value to a
-[=platform object=] that does
-not have a specified value.  Dictionary members with default values are
-always considered to be present.
+[=Dictionary members=] can be specified as
+<dfn id="required-dictionary-member" export for="dictionary member">required</dfn>, meaning that
+converting a language-specific value to a dictionary requires providing a value for that member.
+They can also be specified as having a
+<dfn id="dfn-dictionary-member-default-value" for="dictionary member" export>default value</dfn>,
+which is the value used by default when author code or specification text does not provide a value
+for that member. Note that [=dictionary member/required=] dictionary members only have meaning for
+dictionaries used as operation arguments; members should be left optional if a dictionary is only
+used as a return value.
+
+A given dictionary value of type |D| can have [=map/entries=] for each of the dictionary members
+defined on |D| and on any of |D|’s [=inherited dictionaries=]. Dictionary members that are specified
+as [=dictionary member/required=], or that are specified as having a
+[=dictionary member/default value=], will always have such [=map/entries=]. Other members are
+optional, and their entries might or might not [=map/exist=] in the dictionary value.
 
 <p class="note">
-    In the ECMAScript binding, a value of <emu-val>undefined</emu-val> is treated as
-    [=not present=], or will trigger the [=dictionary member/default value=] where applicable.
+    In the ECMAScript binding, a value of <emu-val>undefined</emu-val> for the property
+    corresponding to a [=dictionary member=] is treated the same as omitting that property. Thus, it
+    will cause an error if the member is [=dictionary member/required=], or will trigger the
+    [=dictionary member/default value=] if one is present, or will result in no [=map/entry=]
+    existing in the dictionary value otherwise.
+</p>
+
+<p class="advisement">
+    As with [=optional argument/default value|operation argument default values=], it is strongly
+    suggested not to use <emu-val>true</emu-val> as the [=dictionary member/default value=] for
+    {{boolean}}-typed [=dictionary members=], as this can be confusing for authors who might
+    otherwise expect the default conversion of <emu-val>undefined</emu-val> to be used (i.e.,
+    <emu-val>false</emu-val>).
 </p>
 
 An [=ordered map=] with string [=map/keys=] can be implicitly treated as a dictionary value of a
 specific dictionary |D| if all of its [=map/entries=] correspond to [=dictionary members=], in the
-correct order and with the correct types, and with appropriate [=map/entries=] for any required
-dictionary members.
+correct order and with the correct types, and with appropriate [=map/entries=] for any required or
+defaulted dictionary members.
 
 <div class="example">
     <pre highlight="webidl">
@@ -4810,16 +4827,6 @@ dictionary members.
     1.  Let |identifiers| be « 1, 3, 7 ».
     1.  Return «[ "name" → "test", "serviceIdentifiers" → |identifiers| ]».
 </div>
-
-<p class="advisement">
-    As with [=optional argument/default value|operation argument default values=],
-    it is strongly suggested not to use <emu-val>true</emu-val> as the
-    [=dictionary member/default value=] for
-    {{boolean}}-typed
-    [=dictionary members=],
-    as this can be confusing for authors who might otherwise expect the default
-    conversion of <emu-val>undefined</emu-val> to be used (i.e., <emu-val>false</emu-val>).
-</p>
 
 Each [=dictionary member=] (matching
 <emu-nt><a href="#prod-DictionaryMember">DictionaryMember</a></emu-nt>) is specified
@@ -4876,9 +4883,8 @@ is an [=enumeration=], then its
 be one of the [=enumeration values|enumeration’s values=].
 
 If the type of the dictionary member is preceded by the
-<emu-t>required</emu-t> keyword, the member is considered a
-<dfn id="required-dictionary-member" export>required dictionary member</dfn>
-and must be present on the dictionary.
+<emu-t>required</emu-t> keyword, the member is considered a [=dictionary member/required=]
+[=dictionary member=].
 
 <pre highlight="webidl" class="syntax">
     dictionary identifier {
@@ -4999,10 +5005,6 @@ identifiers.
 The identifier of a dictionary member must not be
 the same as that of another dictionary member defined on the dictionary or
 on that dictionary’s [=inherited dictionaries=].
-
-Dictionaries must not be used as the type of an
-[=attribute=] or
-[=constant=].
 
 No [=extended attributes=] are applicable to dictionaries.
 
@@ -7756,9 +7758,7 @@ the object (or its prototype chain) correspond to [=dictionary members=].
     running the following algorithm (where |D| is the [=dictionary type=]):
 
     1.  If <a abstract-op>Type</a>(|esDict|) is not Undefined, Null or Object, then [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
-    1.  Let |idlDict| be an empty dictionary value of type |D|;
-        every [=dictionary member=]
-        is initially considered to be [=not present=].
+    1.  Let |idlDict| be an empty [=ordered map=].
     1.  Let |dictionaries| be a list consisting of |D| and all of |D|’s [=inherited dictionaries=],
         in order from least to most derived.
     1.  For each dictionary |dictionary| in |dictionaries|, in order:
@@ -7774,13 +7774,12 @@ the object (or its prototype chain) correspond to [=dictionary members=].
                 </dl>
             1.  If |esMemberValue| is not <emu-val>undefined</emu-val>, then:
                 1.  Let |idlMemberValue| be the result of [=converted to an IDL value|converting=] |esMemberValue| to an IDL value whose type is the type |member| is declared to be of.
-                1.  Set the dictionary member on |idlDict| with key name |key| to the value |idlMemberValue|.  This dictionary member is considered to be [=present=].
+                1.  [=map/Set=] |idlDict|[|key|] to |idlMemberValue|.
             1.  Otherwise, if |esMemberValue| is <emu-val>undefined</emu-val> but |member| has a [=dictionary member/default value=], then:
                 1.  Let |idlMemberValue| be |member|’s default value.
-                1.  Set the dictionary member on |idlDict| with key name |key| to the value |idlMemberValue|.  This dictionary member is considered to be [=present=].
-            1.  Otherwise, if |esMemberValue| is
-                <emu-val>undefined</emu-val> and |member| is a
-                [=required dictionary member=], then throw a {{ECMAScript/TypeError}}.
+                1.  [=map/Set=] |idlDict|[|key|] to |idlMemberValue|.
+            1.  Otherwise, if |esMemberValue| is <emu-val>undefined</emu-val> and |member| is
+                [=dictionary member/required=], then throw a {{ECMAScript/TypeError}}.
     1.  Return |idlDict|.
 </div>
 
@@ -7799,10 +7798,13 @@ up on the ECMAScript object are not necessarily the same as the object’s prope
     1.  For each dictionary |dictionary| in |dictionaries|, in order:
         1.  For each dictionary member |member| declared on |dictionary|, in lexicographical order:
             1.  Let |key| be the [=identifier=] of |member|.
-            1.  If the dictionary member named |key| is [=present=] in |V|, then:
-                1.  Let |idlValue| be the value of |member| on |V|.
+            1.  If |V|[|key|] [=map/exists=], then:
+                1.  Let |idlValue| be |V|[|key|].
                 1.  Let |value| be the result of [=converted to an ECMAScript value|converting=] |idlValue| to an ECMAScript value.
                 1.  Perform [=!=] <a abstract-op>CreateDataProperty</a>(|O|, |key|, |value|).
+
+                <p class="note">Recall that if |member| has a [=dictionary member/default value=],
+                then |key| will always [=map/exist=] in |V|.</p>
     1.  Return |O|.
 </div>
 
