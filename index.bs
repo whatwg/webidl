@@ -706,7 +706,6 @@ underscore.
         "static"
         "stringifier"
         "typedef"
-        "unrestricted"
 </pre>
 
 If an <emu-t class="regex"><a href="#prod-identifier">identifier</a></emu-t> token is used, then the
@@ -1696,12 +1695,12 @@ lie outside the valid range of values for its type, as given in
     1.  Let |result| be the Mathematical Value that would be obtained if
         |S| were parsed as an ECMAScript <emu-nt>[=NumericLiteral=]</emu-nt>.
     1.  If the <emu-t class="regex"><a href="#prod-decimal">decimal</a></emu-t> token is being
-        used as the value for a {{f32}} or {{unrestricted f32}}, then
-        the value of the <emu-t class="regex"><a href="#prod-decimal">decimal</a></emu-t> token
+        used as the value for a {{f32}}, then the value of the
+        <emu-t class="regex"><a href="#prod-decimal">decimal</a></emu-t> token
         is the IEEE 754 single-precision floating point number closest to |result|.
     1.  Otherwise, the <emu-t class="regex"><a href="#prod-decimal">decimal</a></emu-t> token is being
-        used as the value for a {{f64}} or {{unrestricted f64}}, and
-        the value of the <emu-t class="regex"><a href="#prod-decimal">decimal</a></emu-t> token
+        used as the value for a {{f64}}, then the value of the
+        <emu-t class="regex"><a href="#prod-decimal">decimal</a></emu-t> token
         is the IEEE 754 double-precision floating point number closest to |result|. [[!IEEE-754]]
 </div>
 
@@ -1713,17 +1712,17 @@ constant, dictionary member or optional argument is is being used as the
 value for:
 
 <dl class="switch">
-     :  Type {{unrestricted f32}}, constant value <emu-t>Infinity</emu-t>
+     :  Type {{f32}}, constant value <emu-t>Infinity</emu-t>
      :: The value is the IEEE 754 single-precision positive infinity value.
-     :  Type {{unrestricted f64}}, constant value <emu-t>Infinity</emu-t>
+     :  Type {{f64}}, constant value <emu-t>Infinity</emu-t>
      :: The value is the IEEE 754 double-precision positive infinity value.
-     :  Type {{unrestricted f32}}, constant value <emu-t>-Infinity</emu-t>
+     :  Type {{f32}}, constant value <emu-t>-Infinity</emu-t>
      :: The value is the IEEE 754 single-precision negative infinity value.
-     :  Type {{unrestricted f64}}, constant value <emu-t>-Infinity</emu-t>
+     :  Type {{f64}}, constant value <emu-t>-Infinity</emu-t>
      :: The value is the IEEE 754 double-precision negative infinity value.
-     :  Type {{unrestricted f32}}, constant value <emu-t>NaN</emu-t>
+     :  Type {{f32}}, constant value <emu-t>NaN</emu-t>
      :: The value is the IEEE 754 single-precision NaN value with the bit pattern 0x7fc00000.
-     :  Type {{unrestricted f64}}, constant value <emu-t>NaN</emu-t>
+     :  Type {{f64}}, constant value <emu-t>NaN</emu-t>
      :: The value is the IEEE 754 double-precision NaN value with the bit pattern 0x7ff8000000000000.
 </dl>
 
@@ -5657,12 +5656,13 @@ The following types are known as <dfn id="dfn-integer-type" export>integer types
 {{i64}} and
 {{u64}}.
 
+The following types are known as <dfn id="dfn-decimal-type" export>decimal types</dfn>:
+{{f32}} and
+{{f64}}.
+
 The following types are known as <dfn id="dfn-numeric-type" export>numeric types</dfn>:
-the [=integer types=],
-{{f32}},
-{{unrestricted f32}},
-{{f64}} and
-{{unrestricted f64}}.
+the [=integer types=], and
+the [=decimal types=].
 
 The <dfn id="dfn-primitive-type" export>primitive types</dfn> are
 {{boolean}} and the [=numeric types=].
@@ -5765,7 +5765,7 @@ type.
 <pre class="grammar" id="prod-PrimitiveType">
     PrimitiveType :
         UnsignedIntegerType
-        UnrestrictedFloatType
+        FloatType
         "boolean"
         "byte"
         "octet"
@@ -5779,13 +5779,7 @@ type.
         "i64"
 </pre>
 
-<pre class="grammar" id="prod-UnrestrictedFloatType">
-    UnrestrictedFloatType :
-        "unrestricted" FloatType
-        FloatType
-</pre>
-
-<pre class="grammar" id="prod-FloatType">
+<pre class="grammar" oldids="prod-UnrestrictedFloatType" id="prod-FloatType">
     FloatType :
         "float"
         "double"
@@ -6043,6 +6037,9 @@ The {{f32}} type is a floating point numeric
 type that corresponds to the set of finite single-precision 32 bit
 IEEE 754 floating point numbers. [[!IEEE-754]]
 
+When defined with the [{{UnrestrictedFloat}}] [=extended attribute=], the {{f32}} type
+additionally corresponds to IEEE 754 non-finite, and special "not a number" values (NaNs). [[!IEEE-754]]
+
 {{f32}} constant values in IDL are
 represented with <emu-t class="regex"><a href="#prod-decimal">decimal</a></emu-t>
 tokens.
@@ -6066,32 +6063,14 @@ as an alias for {{f32}}, similar to:
 </pre>
 
 
-<h4 oldids="dom-unrestrictedfloat idl-unrestricted-float" id="idl-unrestricted-f32" interface>unrestricted f32</h4>
-
-The {{unrestricted f32}} type is a floating point numeric
-type that corresponds to the set of all possible single-precision 32 bit
-IEEE 754 floating point numbers, finite, non-finite, and special "not a number" values (NaNs). [[!IEEE-754]]
-
-{{unrestricted f32}} constant values in IDL are
-represented with <emu-t class="regex"><a href="#prod-decimal">decimal</a></emu-t>
-tokens.
-
-The [=type name=] of the
-{{unrestricted f32}} type is "<code>UnrestrictedFloat</code>".
-
-For legacy compatibility, <code>unrestricted float</code> is to be treated
-as an alias for {{unrestricted f32}}, similar to:
-
-<pre no-highlight>
-    typedef (unrestricted f32) unrestricted float;
-</pre>
-
-
 <h4 oldids="dom-double idl-double" id="idl-f64" interface>f64</h4>
 
 The {{f64}} type is a floating point numeric
 type that corresponds to the set of finite double-precision 64 bit
 IEEE 754 floating point numbers. [[!IEEE-754]]
+
+When defined with the [{{UnrestrictedFloat}}] [=extended attribute=], the {{f64}} type
+additionally corresponds to IEEE 754 non-finite, and special "not a number" values (NaNs). [[!IEEE-754]]
 
 {{f64}} constant values in IDL are
 represented with <emu-t class="regex"><a href="#prod-decimal">decimal</a></emu-t>
@@ -6105,27 +6084,6 @@ as an alias for {{f64}}, similar to:
 
 <pre no-highlight>
     typedef (f64) double;
-</pre>
-
-
-<h4 oldids="dom-unrestricteddouble idl-unrestricted-double" id="idl-unrestricted-f64" interface>unrestricted f64</h4>
-
-The {{unrestricted f64}} type is a floating point numeric
-type that corresponds to the set of all possible double-precision 64 bit
-IEEE 754 floating point numbers, finite, non-finite, and special "not a number" values (NaNs). [[!IEEE-754]]
-
-{{unrestricted f64}} constant values in IDL are
-represented with <emu-t class="regex"><a href="#prod-decimal">decimal</a></emu-t>
-tokens.
-
-The [=type name=] of the
-{{unrestricted f64}} type is "<code>UnrestrictedDouble</code>".
-
-For legacy compatibility, <code>unrestricted double</code> is to be treated
-as an alias for {{unrestricted f64}}, similar to:
-
-<pre no-highlight>
-    typedef (unrestricted f64) unrestricted double;
 </pre>
 
 
@@ -6623,8 +6581,9 @@ annotate are called <dfn export for="annotated types" lt="inner type">inner type
 The following extended attributes are <dfn for="extended attributes">applicable to types</dfn>:
 [{{AllowShared}}],
 [{{Clamp}}],
-[{{EnforceRange}}], and
-[{{TreatNullAs}}].
+[{{EnforceRange}}],
+[{{TreatNullAs}}], and
+[{{UnrestrictedFloat}}].
 
 <div algorithm>
     The <dfn for="IDL type" lt="extended attribute associated with|extended attributes associated with">extended attributes associated with</dfn>
@@ -7253,8 +7212,9 @@ ECMAScript value type.
     1.  If <a abstract-op>Type</a>(|V|) is Boolean, then
         return the {{boolean}} value that represents the same truth value.
     1.  If <a abstract-op>Type</a>(|V|) is Number, then
-        return the result of <a href="#es-to-unrestricted-f64">converting</a> |V|
-        to an {{unrestricted f64}}.
+        return the result of <a href="#es-to-f64">converting</a> |V|
+        to an {{f64}} [=extended attribute associated with|associated with=]
+        the [{{UnrestrictedFloat}}] [=extended attribute=].
     1.  If <a abstract-op>Type</a>(|V|) is String, then
         return the result of <a href="#es-DOMString">converting</a> |V|
         to a {{DOMString}}.
@@ -7556,15 +7516,22 @@ In effect, where <var ignore>x</var> is a Number value,
 </div>
 
 
-<h4 oldids="es-float" id="es-f32">f32</h4>
+<h4 id="es-decimal-types">Decimal types</h4>
 
-<div oldids="es-to-float" id="es-to-f32" algorithm="convert an ECMAScript value to f32">
+<h5 oldids="es-float es-unrestricted-float" id="es-f32">f32</h5>
+
+<div oldids="es-to-float es-to-unrestricted-float" id="es-to-f32" algorithm="convert an ECMAScript value to f32">
 
     An ECMAScript value |V| is [=converted to an IDL value|converted=]
     to an IDL {{f32}} value by running the following algorithm:
 
     1.  Let |x| be [=?=] <a abstract-op>ToNumber</a>(|V|).
-    1.  If |x| is <emu-val>NaN</emu-val>, +∞, or −∞,
+    1.  If the conversion is to an IDL type [=extended attribute associated with|associated with=]
+        the [{{UnrestrictedFloat}}] [=extended attribute=], then:
+        1.  If |x| is <emu-val>NaN</emu-val>, then
+            return the IDL {{f32}} value that represents
+            the IEEE 754 NaN value with the bit pattern 0x7fc00000 [[!IEEE-754]].
+    1.  Else, if |x| is <emu-val>NaN</emu-val>, +∞, or −∞,
         then [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
     1.  Let |S| be the set of finite IEEE 754 single-precision floating
         point values except −0, but with two special values added: 2<sup>128</sup> and
@@ -7574,38 +7541,11 @@ In effect, where <var ignore>x</var> is a Number value,
         <em>even significand</em> if there are two [=equally close values=].
         (The two special values 2<sup>128</sup> and −2<sup>128</sup>
         are considered to have even significands for this purpose.)
-    1.  If |y| is 2<sup>128</sup> or −2<sup>128</sup>, then [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
-    1.  If |y| is +0 and |x| is negative, return −0.
-    1.  Return |y|.
-</div>
-
-<p oldids="float-to-es" id="f32-to-es">
-    The result of [=converted to an ECMAScript value|converting=]
-    an IDL {{f32}} value to an ECMAScript
-    value is the Number value that represents the same numeric value as the IDL
-    {{f32}} value.
-</p>
-
-
-<h4 oldids="es-unrestricted-float" id="es-unrestricted-f32">unrestricted f32</h4>
-
-<div oldids="es-to-unrestricted-float" id="es-to-unrestricted-f32" algorithm="convert an ECMAScript value to unrestricted f32">
-
-    An ECMAScript value |V| is [=converted to an IDL value|converted=]
-    to an IDL {{unrestricted f32}} value by running the following algorithm:
-
-    1.  Let |x| be [=?=] <a abstract-op>ToNumber</a>(|V|).
-    1.  If |x| is <emu-val>NaN</emu-val>, then return the IDL {{unrestricted f32}} value that represents the IEEE 754 NaN value with the bit pattern 0x7fc00000 [[!IEEE-754]].
-    1.  Let |S| be the set of finite IEEE 754 single-precision floating
-        point values except −0, but with two special values added: 2<sup>128</sup> and
-        −2<sup>128</sup>.
-    1.  Let |y| be the number in |S| that is closest
-        to |x|, selecting the number with an
-        <em>even significand</em> if there are two [=equally close values=].
-        (The two special values 2<sup>128</sup> and −2<sup>128</sup>
-        are considered to have even significands for this purpose.)
-    1.  If |y| is 2<sup>128</sup>, return +∞.
-    1.  If |y| is −2<sup>128</sup>, return −∞.
+    1.  If the conversion is to an IDL type [=extended attribute associated with|associated with=]
+        the [{{UnrestrictedFloat}}] [=extended attribute=], then:
+        1.  If |y| is 2<sup>128</sup>, return +∞.
+        1.  If |y| is −2<sup>128</sup>, return −∞.
+    1.  Else, if |y| is 2<sup>128</sup> or −2<sup>128</sup>, then [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
     1.  If |y| is +0 and |x| is negative, return −0.
     1.  Return |y|.
 </div>
@@ -7615,54 +7555,35 @@ it must be canonicalized to a particular single precision IEEE 754 NaN value.  T
 mentioned above is chosen simply because it is the quiet NaN with the lowest
 value when its bit pattern is interpreted as an unsigned 32 bit integer.
 
-<div oldids="unrestricted-float-to-es" id="unrestricted-f32-to-es" algorithm="convert an unrestricted f32 to an ECMAScript value">
-
+<div oldids="float-to-es unrestricted-float-to-es" id="f32-to-es">
     The result of [=converted to an ECMAScript value|converting=]
-    an IDL {{unrestricted f32}} value to an ECMAScript
+    an IDL {{f32}} value to an ECMAScript
     value is a Number:
 
-    1.  If the IDL {{unrestricted f32}} value is a NaN,
+    1.  If the IDL {{f32}} value is a NaN,
         then the Number value is <emu-val>NaN</emu-val>.
     1.  Otherwise, the Number value is
         the one that represents the same numeric value as the IDL
-        {{unrestricted f32}} value.
+        {{f32}} value.
 </div>
 
 
-<h4 oldids="es-double" id="es-f64">f64</h4>
+<h5 oldids="es-double es-unrestricted-double" id="es-f32">f64</h5>
 
-<div oldids="es-to-double" id="es-to-f64" algorithm="convert an ECMAScript value to f64">
+<div oldids="es-to-double es-to-unrestricted-double" id="es-to-f64" algorithm="convert an ECMAScript value to f64">
 
     An ECMAScript value |V| is [=converted to an IDL value|converted=]
     to an IDL {{f64}} value by running the following algorithm:
 
     1.  Let |x| be [=?=] <a abstract-op>ToNumber</a>(|V|).
-    1.  If |x| is <emu-val>NaN</emu-val>, +∞, or −∞,
+    1.  If the conversion is to an IDL type [=extended attribute associated with|associated with=]
+        the [{{UnrestrictedFloat}}] [=extended attribute=], then:
+        1.  If |x| is <emu-val>NaN</emu-val>, then
+            return the IDL {{f64}} value that represents
+            the IEEE 754 NaN value with the bit pattern 0x7ff8000000000000 [[!IEEE-754]].
+    1.  Else, if |x| is <emu-val>NaN</emu-val>, +∞, or −∞,
         then [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
     1.  Return the IDL {{f64}} value
-        that represents the same numeric value as |x|.
-</div>
-
-<p oldids="double-to-es" id="f64-to-es">
-    The result of [=converted to an ECMAScript value|converting=]
-    an IDL {{f64}} value to an ECMAScript
-    value is the Number value that represents the
-    same numeric value as the IDL {{f64}} value.
-</p>
-
-
-<h4 oldids="es-unrestricted-double" id="es-unrestricted-f64">unrestricted f64</h4>
-
-<div oldids="es-to-unrestricted-double" id="es-to-unrestricted-f64" algorithm="convert an ECMAScript value to unrestricted f64">
-
-    An ECMAScript value |V| is [=converted to an IDL value|converted=]
-    to an IDL {{unrestricted f64}} value by running the following algorithm:
-
-    1.  Let |x| be [=?=] <a abstract-op>ToNumber</a>(|V|).
-    1.  If |x| is <emu-val>NaN</emu-val>, then
-        return the IDL {{unrestricted f64}} value that represents
-        the IEEE 754 NaN value with the bit pattern 0x7ff8000000000000 [[!IEEE-754]].
-    1.  Return the IDL {{unrestricted f64}} value
         that represents the same numeric value as |x|.
 </div>
 
@@ -7671,17 +7592,16 @@ it must be canonicalized to a particular double precision IEEE 754 NaN value.  T
 mentioned above is chosen simply because it is the quiet NaN with the lowest
 value when its bit pattern is interpreted as an unsigned 64 bit integer.
 
-<div oldids="unrestricted-double-to-es" id="unrestricted-f64-to-es" algorithm="convert an unrestricted f64 to an ECMAScript value">
-
+<div oldids="double-to-es unrestricted-double-to-es" id="f64-to-es">
     The result of [=converted to an ECMAScript value|converting=]
-    an IDL {{unrestricted f64}} value to an ECMAScript
+    an IDL {{f64}} value to an ECMAScript
     value is a Number:
 
-    1.  If the IDL {{unrestricted f64}} value is a NaN,
+    1.  If the IDL {{f64}} value is a NaN,
         then the Number value is <emu-val>NaN</emu-val>.
     1.  Otherwise, the Number value is
         the one that represents the same numeric value as the IDL
-        {{unrestricted f64}} value.
+        {{f64}} value.
 </div>
 
 
@@ -8455,7 +8375,7 @@ JavaScript code.
 
     <pre highlight="webidl">
         interface I {
-          Promise&lt;void> delay(unrestricted double ms);
+          Promise&lt;void> delay([UnrestrictedFloat] f64 ms);
         };
     </pre>
 
@@ -8482,7 +8402,7 @@ JavaScript code.
 
     <pre highlight="webidl">
         interface I {
-          Promise&lt;void> validatedDelay(unrestricted double ms);
+          Promise&lt;void> validatedDelay([UnrestrictedFloat] f64 ms);
         };
     </pre>
 
@@ -8508,7 +8428,7 @@ JavaScript code.
 
     <pre highlight="webidl">
         interface I {
-          Promise&lt;any> addDelay(Promise&lt;any> promise, unrestricted double ms);
+          Promise&lt;any> addDelay(Promise&lt;any> promise, [UnrestrictedFloat] f64 ms);
         };
     </pre>
 
@@ -10824,6 +10744,64 @@ for the specific requirements that the use of
 </div>
 
 
+<h4 oldids="dom-unrestricteddouble dom-unrestrictedfloat idl-unrestricted-double idl-unrestricted-float"
+	id="UnrestrictedFloat" extended-attribute lt="UnrestrictedFloat">[UnrestrictedFloat]</h4>
+
+If the [{{UnrestrictedFloat}}] [=extended attribute=] appears on one of the [=decimal types=],
+it creates a new IDL type such that that when an ECMAScript Number is converted to the IDL type,
+IEEE 754 non-finite, and special "not a number" values (NaNs) are allowed. [[!IEEE-754]]
+
+The [{{UnrestrictedFloat}}]
+extended attribute must
+[=takes no arguments|take no arguments=].
+
+A type annotated with the [{{UnrestrictedFloat}}] extended attribute must not appear
+in a [=read only=] attribute. A type that is not a [=decimal type=] must not
+be [=extended attributes associated with|associated with=] the [{{UnrestrictedFloat}}] extended attribute.
+
+See the rules for converting ECMAScript values to the various IDL decimal
+types in [[#es-decimal-types]]
+for the specific requirements that the use of
+[{{UnrestrictedFloat}}] entails.
+
+<div class="example">
+
+    In the following [=IDL fragment=],
+    two [=operations=] are declared that
+    take three {{f64}} arguments; one uses
+    the [{{UnrestrictedFloat}}] [=extended attribute=]
+    on all three arguments, while the other does not:
+
+    <pre highlight="webidl">
+        [Exposed=Window]
+        interface GraphicsContext {
+          void setColorFloat(f64 red, f64 green, f64 blue);
+          void setColorUnrestrictedFloat([UnrestrictedFloat] f64 red, [UnrestrictedFloat] f64 green, [UnrestrictedFloat] f64 blue);
+        };
+    </pre>
+
+    In an ECMAScript implementation of the IDL, a call to setColor3f with
+    Number values that are out of range for a
+    {{f64}} will result in an exception being
+    thrown.
+
+    <pre highlight="js">
+        // Get an instance of GraphicsContext.
+        var context = getGraphicsContext();
+
+        // Calling the [UnrestrictedFloat] version uses allows NaN and non-finite numbers values:
+        context.setColorUnrestrictedFloat(NaN, +Infinity, -Infinity);
+
+        // When setColorFloat is called, floating point values are allowed:
+        context.setColorFloat(-0.9, 1, 1.1);
+
+        // The following will cause a TypeError to be thrown, since NaN and non-finite
+        // number values are not allowed when [UnrestrictedFloat] is not specified:
+        context.setColorUnrestrictedFloat(NaN, +Infinity, -Infinity);
+    </pre>
+</div>
+
+
 <h4 id="Unscopable" extended-attribute lt="Unscopable">[Unscopable]</h4>
 
 If the [{{Unscopable}}]
@@ -11907,7 +11885,7 @@ Only [=regular operations=] which have a <dfn>corresponding default operation</d
 may be declared with a [{{Default}}] [=extended attribute=].
 
 
-<h6 id="es-default-tojson">Default toJSON operation</h5>
+<h6 id="es-default-tojson">Default toJSON operation</h6>
 
 The [=corresponding default operation=] of the <code>toJSON</code> operation is the [=default toJSON operation=].
 
@@ -14312,7 +14290,7 @@ The {{BufferSource}} typedef is used to represent objects
 that are either themselves an {{ArrayBuffer}} or which
 provide a view on to an {{ArrayBuffer}}.
 
-<h3 id="idl-DOMException" interface oldids="dfn-DOMException">DOMException</h4>
+<h3 id="idl-DOMException" interface oldids="dfn-DOMException">DOMException</h3>
 
 The {{DOMException}} type is an [=interface type=] defined by the following IDL
 fragment:
