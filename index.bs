@@ -4740,13 +4740,13 @@ where [=map/keys=] are strings and [=map/values=] are of a particular type speci
     };
 </pre>
 
-Dictionaries are always passed by value: the dictionary does not retain a reference to its
-language-specific representation (e.g., the corresponding ECMAScript object). So for example,
-returning a dictionary from an [=operation=] will result in a new ECMAScript object being created
-from the current values of the dictionary. And, an operation that accepts a dictionary as an
-argument will perform a one-time conversion from the given ECMAScript value into the dictionary,
-based on the current properties of the ECMAScript object. Modifications to the dictionary will not
-be reflected in the corresponding ECMAScript object, and vice-versa.
+Dictionary instances do not retain a reference to their language-specific representations (e.g.,
+the corresponding ECMAScript object). So for example, returning a dictionary from an [=operation=]
+will result in a new ECMAScript object being created from the current values of the dictionary. And,
+an operation that accepts a dictionary as an argument will perform a one-time conversion from the
+given ECMAScript value into the dictionary, based on the current properties of the ECMAScript
+object. Modifications to the dictionary will not be reflected in the corresponding ECMAScript
+object, and vice-versa.
 
 Dictionaries must not be used as the type of an [=attribute=] or [=constant=].
 
@@ -4779,19 +4779,26 @@ from and all of |E|’s [=inherited dictionaries=].
 
 [=Dictionary members=] can be specified as
 <dfn id="required-dictionary-member" export for="dictionary member">required</dfn>, meaning that
-converting a language-specific value to a dictionary requires providing a value for that member.
-They can also be specified as having a
+converting a language-specific value to a dictionary requires providing a value for that member. Any
+dictionary member that is not [=dictionary member/required=] is
+<dfn export for="dictionary member">optional</dfn>.
+
+Note that specifying [=dictionary members=] as [=dictionary member/required=] only has
+an observable effect when converting other representations of dictionaries (like an ECMAScript value
+supplied as an argument to an [=operation=]) to an IDL dictionary. Specification authors should
+leave the members [=dictionary member/optional=] in all other cases, including when a dictionary
+type is used soley as the [=return type=] of [=operations=].
+
+[=dictionary member/Optional=] [=dictionary members=] can also be specified as having a
 <dfn id="dfn-dictionary-member-default-value" for="dictionary member" export>default value</dfn>,
 which is the value used by default when author code or specification text does not provide a value
-for that member. Note that [=dictionary member/required=] dictionary members only have meaning for
-dictionaries used as operation arguments; members should be left optional if a dictionary is only
-used as a return value.
+for that member.
 
 A given dictionary value of type |D| can have [=map/entries=] for each of the dictionary members
 defined on |D| and on any of |D|’s [=inherited dictionaries=]. Dictionary members that are specified
 as [=dictionary member/required=], or that are specified as having a
-[=dictionary member/default value=], will always have such [=map/entries=]. Other members are
-optional, and their entries might or might not [=map/exist=] in the dictionary value.
+[=dictionary member/default value=], will always have such corresponding [=map/entries=]. Other
+members' entries might or might not [=map/exist=] in the dictionary value.
 
 <p class="note">
     In the ECMAScript binding, a value of <emu-val>undefined</emu-val> for the property
@@ -4810,9 +4817,9 @@ optional, and their entries might or might not [=map/exist=] in the dictionary v
 </p>
 
 An [=ordered map=] with string [=map/keys=] can be implicitly treated as a dictionary value of a
-specific dictionary |D| if all of its [=map/entries=] correspond to [=dictionary members=], in the
-correct order and with the correct types, and with appropriate [=map/entries=] for any required or
-defaulted dictionary members.
+specific dictionary |D| if all of its [=map/entries=] correspond to [=dictionary members=], as long
+as those entries have the correct types, and there are [=map/entries=] present for any
+[=dictionary member/required=] or [=dictionary member/default value|defaulted=] dictionary members.
 
 <div class="example">
     <pre highlight="webidl">
@@ -7758,7 +7765,7 @@ the object (or its prototype chain) correspond to [=dictionary members=].
     running the following algorithm (where |D| is the [=dictionary type=]):
 
     1.  If <a abstract-op>Type</a>(|esDict|) is not Undefined, Null or Object, then [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
-    1.  Let |idlDict| be an empty [=ordered map=].
+    1.  Let |idlDict| be an empty [=ordered map=], representing a dictionary of type |D|.
     1.  Let |dictionaries| be a list consisting of |D| and all of |D|’s [=inherited dictionaries=],
         in order from least to most derived.
     1.  For each dictionary |dictionary| in |dictionaries|, in order:
