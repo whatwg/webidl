@@ -11467,6 +11467,8 @@ with the [{{NoInterfaceObject}}] [=extended attribute=].
         1.  [=Define the regular attributes=] of |interface| on |interfaceProtoObj| given |realm|.
         1.  [=Define the regular operations=] of |interface| on |interfaceProtoObj| given |realm|.
         1.  [=Define the iteration methods=] of |interface| on |interfaceProtoObj| given |realm|.
+        1.  [=Define the asynchronous iteration methods=] of |interface| on |interfaceProtoObj|
+            given |realm|.
     1.  [=Define the constants=] of |interface| on |interfaceProtoObj| given |realm|.
     1.  If the [{{NoInterfaceObject}}] [=extended attribute=] was not specified on |interface|, then:
         1.  Let |constructor| be the [=interface object=] of |interface| in |realm|.
@@ -12319,7 +12321,9 @@ property is the String value "<code>forEach</code>".
                 1.  If |esValue| does not [=implement=] |definition|, then [=ECMAScript/throw=] a
                     {{ECMAScript/TypeError}}.
                 1.  Return a newly created [=default iterator object=] for |definition|, with
-                    |esValue| as its target and "<code>key+value</code>" as its kind.
+                    |esValue| as its [=default iterator object/target=], "<code>key+value</code>"
+                    as its [=default iterator object/kind=], and [=default iterator object/index=]
+                    set to 0.
             1.  Let |F| be [=!=] [$CreateBuiltinFunction$](|steps|, « », |realm|).
             1.  Perform [=!=] [$SetFunctionName$](|F|, "<code>entries</code>").
             1.  Perform [=!=] [$SetFunctionLength$](|F|, 0).
@@ -12333,7 +12337,8 @@ property is the String value "<code>forEach</code>".
                 1.  If |esValue| does not [=implement=] |definition|, then [=ECMAScript/throw=] a
                     {{ECMAScript/TypeError}}.
                 1.  Return a newly created [=default iterator object=] for |definition|, with
-                    |esValue| as its target and "<code>key</code>" as its kind.
+                    |esValue| as its [=default iterator object/target=], "<code>key</code>" as its
+                    [=default iterator object/kind=], and [=default iterator object/index=] set to 0.
             1.  Let |F| be [=!=] [$CreateBuiltinFunction$](|steps|, « », |realm|).
             1.  Perform [=!=] [$SetFunctionName$](|F|, "<code>keys</code>").
             1.  Perform [=!=] [$SetFunctionLength$](|F|, 0).
@@ -12346,7 +12351,8 @@ property is the String value "<code>forEach</code>".
                 1.  If |esValue| does not [=implement=] |definition|, then [=ECMAScript/throw=] a
                     {{ECMAScript/TypeError}}.
                 1.  Return a newly created [=default iterator object=] for |definition|, with
-                    |esValue| as its target and "<code>value</code>" as its kind.
+                    |esValue| as its [=default iterator object/target=], "<code>value</code>" as its
+                    [=default iterator object/kind=], and [=default iterator object/index=] set to 0.
             1.  Let |F| be [=!=] [$CreateBuiltinFunction$](|steps|, « », |realm|).
             1.  Perform [=!=] [$SetFunctionName$](|F|, "<code>values</code>").
             1.  Perform [=!=] [$SetFunctionLength$](|F|, 0).
@@ -12377,71 +12383,6 @@ property is the String value "<code>forEach</code>".
             1.  Perform [=!=] [$SetFunctionName$](|F|, "<code>forEach</code>").
             1.  Perform [=!=] [$SetFunctionLength$](|F|, 1).
             1.  Perform [=!=] [$CreateDataProperty$](|target|, "<code>forEach</code>", |F|).
-    1.  Otherwise, if |definition| has an [=asynchronously iterable declaration=], then:
-        1.  Define the {{@@asyncIterator}} and <code>entries</code> methods:
-            1.  Let |steps| be the following series of steps:
-                1.  Let |esValue| be [=?=] [$ToObject$](<emu-val>this</emu-val> value).
-                1.  If |esValue| [=is a platform object=], then [=perform a security check=],
-                    passing |esValue|, "<code>@@asyncIterator</code>", and "<code>method</code>".
-                1.  If |esValue| does not [=implement=] |definition|, then [=ECMAScript/throw=] a
-                    {{ECMAScript/TypeError}}.
-                1.  Let |idlObject| be the IDL [=interface type=] value that represents a reference
-                    to |esValue|.
-                1.  Let |iterator| be a newly created [=default asynchronous iterator object=] for
-                    |definition| with |idlObject| as its
-                    [=default asynchronous iterator object/target=], "<code>key+value</code>" as its
-                    [=default asynchronous iterator object/kind=], and
-                    [=default asynchronous iterator object/is finished=] set to false.
-                1.  Run the [=asynchronous iterator initialization steps=] for |definition| with
-                    |idlObject| and |iterator|, if any such steps exist.
-                1.  Return |iterator|.
-            1.  Let |F| be [=!=] [$CreateBuiltinFunction$](|steps|, « », |realm|).
-            1.  Perform [=!=] [$SetFunctionName$](|F|, "<code>entries</code>").
-            1.  Perform [=!=] [$SetFunctionLength$](|F|, 0).
-            1.  Perform [=!=] [$CreateMethodProperty$](|target|, {{@@asyncIterator}}, |F|).
-            1.  Perform [=!=] [$CreateDataProperty$](|target|, "<code>entries</code>", |F|).
-        1.  Define the <code>keys</code> method:
-            1.  Let |steps| be the following series of steps:
-                1.  Let |esValue| be [=?=] [$ToObject$](<emu-val>this</emu-val> value).
-                1.  If |esValue| [=is a platform object=], then [=perform a security check=],
-                    passing |esValue|, "<code>keys</code>", and "<code>method</code>".
-                1.  If |esValue| does not [=implement=] |definition|, then [=ECMAScript/throw=] a
-                    {{ECMAScript/TypeError}}.
-                1.  Let |idlObject| be the IDL [=interface type=] value that represents a reference
-                    to |esValue|.
-                1.  Let |iterator| be a newly created [=default asynchronous iterator object=] for
-                    |definition| with |idlObject| as its
-                    [=default asynchronous iterator object/target=], "<code>key</code>" as its
-                    [=default asynchronous iterator object/kind=], and
-                    [=default asynchronous iterator object/is finished=] set to false.
-                1.  Run the [=asynchronous iterator initialization steps=] for |definition| with
-                    |idlObject| and |iterator|, if any such steps exist.
-                1.  Return |iterator|.
-            1.  Let |F| be [=!=] [$CreateBuiltinFunction$](|steps|, « », |realm|).
-            1.  Perform [=!=] [$SetFunctionName$](|F|, "<code>keys</code>").
-            1.  Perform [=!=] [$SetFunctionLength$](|F|, 0).
-            1.  Perform [=!=] [$CreateDataProperty$](|target|, "<code>keys</code>", |F|).
-        1.  Define the <code>values</code> method:
-            1.  Let |steps| be the following series of steps:
-                1.  Let |esValue| be [=?=] [$ToObject$](<emu-val>this</emu-val> value).
-                1.  If |esValue| [=is a platform object=], then [=perform a security check=],
-                    passing |esValue|, "<code>values</code>", and "<code>method</code>".
-                1.  If |esValue| does not [=implement=] |definition|, then [=ECMAScript/throw=] a
-                    {{ECMAScript/TypeError}}.
-                1.  Let |idlObject| be the IDL [=interface type=] value that represents a reference
-                    to |esValue|.
-                1.  Let |iterator| be a newly created [=default asynchronous iterator object=] for
-                    |definition| with |idlObject| as its
-                    [=default asynchronous iterator object/target=], "<code>value</code>" as its
-                    [=default asynchronous iterator object/kind=], and
-                    [=default asynchronous iterator object/is finished=] set to false.
-                1.  Run the [=asynchronous iterator initialization steps=] for |definition| with
-                    |idlObject| and |iterator|, if any such steps exist.
-                1.  Return |iterator|.
-            1.  Let |F| be [=!=] [$CreateBuiltinFunction$](|steps|, « », |realm|).
-            1.  Perform [=!=] [$SetFunctionName$](|F|, "<code>values</code>").
-            1.  Perform [=!=] [$SetFunctionLength$](|F|, 0).
-            1.  Perform [=!=] [$CreateDataProperty$](|target|, "<code>values</code>", |F|).
 </div>
 
 
@@ -12456,18 +12397,17 @@ for the [=interface=].
 A [=default iterator object=]
 has three internal values:
 
-1.  its <em>target</em>, which is an object whose values are to be iterated,
-1.  its <em>kind</em>, which is the iteration kind,
-1.  its <em>index</em>, which is the current index into the values value to be iterated.
+*   its <dfn for="default iterator object">target</dfn>, which is an object whose values are to be
+    iterated,
+*   its <dfn for="default iterator object">kind</dfn>, which is the iteration kind,
+*   its <dfn for="default iterator object">index</dfn>, which is the current index into the values
+    to be iterated.
 
 Note: Default iterator objects are only used for [=pair iterators=];
 [=value iterators=], as they are currently
 restricted to iterating over an object’s
 [=support indexed properties|supported indexed properties=],
 use standard ECMAScript Array iterator objects.
-
-When a [=default iterator object=] is first created,
-its index is set to 0.
 
 [=Default iterator objects=] do not have [=class strings=]; when <code
 class="idl">Object.prototype.toString()</code> is called on a [=default
@@ -12530,9 +12470,9 @@ must be {{%IteratorPrototype%}}.
         *   the type "<code>method</code>".
     1.  If |object| is not a [=default iterator object=] for |interface|,
         then [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
-    1.  Let |index| be |object|’s index.
-    1.  Let |kind| be |object|’s kind.
-    1.  Let |values| be the list of [=value pairs to iterate over=].
+    1.  Let |index| be |object|’s [=default iterator object/index=].
+    1.  Let |kind| be |object|’s [=default iterator object/kind=].
+    1.  Let |values| be |object|'s [=default iterator object/target=]'s [=value pairs to iterate over=].
     1.  Let |len| be the length of |values|.
     1.  If |index| is greater than or equal to |len|, then
         return <a abstract-op>CreateIterResultObject</a>(<emu-val>undefined</emu-val>, <emu-val>true</emu-val>).
@@ -12544,6 +12484,81 @@ must be {{%IteratorPrototype%}}.
 The [=class string=] of an [=iterator prototype object=] for a given [=interface=]
 is the result of concatenating the [=identifier=] of the [=interface=]
 and the string "<code> Iterator</code>".
+
+<h4 id="es-asynchronous-iterable">Asynchronous iterable declarations</h4>
+
+<div algorithm>
+    To <dfn>define the asynchronous iteration methods</dfn> of [=interface=] |definition| on
+    |target|, given [=Realm=] |realm|, run the following steps:
+
+    1.  If |definition| does not have an an [=asynchronously iterable declaration=], then return.
+    1.  Assert: |definition| does not have an [=indexed property getter=] or an
+        [=iterable declaration=].
+    1.  Define the {{@@asyncIterator}} and <code>entries</code> methods:
+        1.  Let |steps| be the following series of steps:
+            1.  Let |esValue| be [=?=] [$ToObject$](<emu-val>this</emu-val> value).
+            1.  If |esValue| [=is a platform object=], then [=perform a security check=], passing
+                |esValue|, "<code>@@asyncIterator</code>", and "<code>method</code>".
+            1.  If |esValue| does not [=implement=] |definition|, then [=ECMAScript/throw=] a
+                {{ECMAScript/TypeError}}.
+            1.  Let |idlObject| be the IDL [=interface type=] value that represents a reference to
+                |esValue|.
+            1.  Let |iterator| be a newly created [=default asynchronous iterator object=] for
+                |definition| with |idlObject| as its
+                [=default asynchronous iterator object/target=], "<code>key+value</code>" as its
+                [=default asynchronous iterator object/kind=], and
+                [=default asynchronous iterator object/is finished=] set to false.
+            1.  Run the [=asynchronous iterator initialization steps=] for |definition| with
+                |idlObject| and |iterator|, if any such steps exist.
+            1.  Return |iterator|.
+        1.  Let |F| be [=!=] [$CreateBuiltinFunction$](|steps|, « », |realm|).
+        1.  Perform [=!=] [$SetFunctionName$](|F|, "<code>entries</code>").
+        1.  Perform [=!=] [$SetFunctionLength$](|F|, 0).
+        1.  Perform [=!=] [$CreateMethodProperty$](|target|, {{@@asyncIterator}}, |F|).
+        1.  Perform [=!=] [$CreateDataProperty$](|target|, "<code>entries</code>", |F|).
+    1.  Define the <code>keys</code> method:
+        1.  Let |steps| be the following series of steps:
+            1.  Let |esValue| be [=?=] [$ToObject$](<emu-val>this</emu-val> value).
+            1.  If |esValue| [=is a platform object=], then [=perform a security check=], passing
+                |esValue|, "<code>keys</code>", and "<code>method</code>".
+            1.  If |esValue| does not [=implement=] |definition|, then [=ECMAScript/throw=] a
+                {{ECMAScript/TypeError}}.
+            1.  Let |idlObject| be the IDL [=interface type=] value that represents a reference to
+                |esValue|.
+            1.  Let |iterator| be a newly created [=default asynchronous iterator object=] for
+                |definition| with |idlObject| as its
+                [=default asynchronous iterator object/target=], "<code>key</code>" as its
+                [=default asynchronous iterator object/kind=], and
+                [=default asynchronous iterator object/is finished=] set to false.
+            1.  Run the [=asynchronous iterator initialization steps=] for |definition| with
+                |idlObject| and |iterator|, if any such steps exist.
+            1.  Return |iterator|.
+        1.  Let |F| be [=!=] [$CreateBuiltinFunction$](|steps|, « », |realm|).
+        1.  Perform [=!=] [$SetFunctionName$](|F|, "<code>keys</code>").
+        1.  Perform [=!=] [$SetFunctionLength$](|F|, 0).
+        1.  Perform [=!=] [$CreateDataProperty$](|target|, "<code>keys</code>", |F|).
+    1.  Define the <code>values</code> method:
+        1.  Let |steps| be the following series of steps:
+            1.  Let |esValue| be [=?=] [$ToObject$](<emu-val>this</emu-val> value).
+            1.  If |esValue| [=is a platform object=], then [=perform a security check=], passing
+                |esValue|, "<code>values</code>", and "<code>method</code>".
+            1.  If |esValue| does not [=implement=] |definition|, then [=ECMAScript/throw=] a
+                {{ECMAScript/TypeError}}.
+            1.  Let |idlObject| be the IDL [=interface type=] value that represents a reference to
+                |esValue|.
+            1.  Let |iterator| be a newly created [=default asynchronous iterator object=] for
+                |definition| with |idlObject| as its
+                [=default asynchronous iterator object/target=], "<code>value</code>" as its
+                [=default asynchronous iterator object/kind=], and
+                [=default asynchronous iterator object/is finished=] set to false.
+            1.  Run the [=asynchronous iterator initialization steps=] for |definition| with
+                |idlObject| and |iterator|, if any such steps exist.
+            1.  Return |iterator|.
+        1.  Let |F| be [=!=] [$CreateBuiltinFunction$](|steps|, « », |realm|).
+        1.  Perform [=!=] [$SetFunctionName$](|F|, "<code>values</code>").
+        1.  Perform [=!=] [$SetFunctionLength$](|F|, 0).
+        1.  Perform [=!=] [$CreateDataProperty$](|target|, "<code>values</code>", |F|).
+</div>
 
 
 <h5 id="es-default-asynchronous-iterator-object">Default asynchronous iterator objects</h5>
@@ -13189,6 +13204,7 @@ the Realm given as an argument.
         1.  [=Define the regular operations=] of |interface| on |instance|, given |realm|.
         1.  [=Define the regular attributes=] of |interface| on |instance|, given |realm|.
         1.  [=Define the iteration methods=] of |interface| on |instance| given |realm|.
+        1.  [=Define the asynchronous iteration methods=] of |interface| on |instance| given |realm|.
         1.  [=Define the global property references=] on |instance|, given |realm|.
         1.  Set |instance|.\[[SetPrototypeOf]] as defined in [[#platform-object-setprototypeof]].
     1.  Otherwise, if |interfaces| contains an [=interface=] which
