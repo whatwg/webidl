@@ -4295,7 +4295,7 @@ An [=interface=] can be declared to be asynchronously iterable by using an
 (matching <emu-nt><a href="#prod-AsyncIterable">AsyncIterable</a></emu-nt>) in the body of the
 [=interface=].
 
-<!-- TODO: add highlight="idl" after idlparser gets updated -->
+<!-- TODO: add highlight="webidl" after idlparser gets updated -->
 <pre class="syntax">
     interface interface_identifier {
       async iterable&lt;value_type&gt;;
@@ -4313,11 +4313,24 @@ specified type. If two type parameters are given, then the interface has a
 <dfn export>pair asynchronously iterable declaration</dfn> and asynchronously provides
 [=value pairs=] with the given types.
 
-Note: In the ECMAScript language binding, an interface that is asynchronously iterable will have
-{{@@asyncIterator}} and <code class="idl">values</code> properties on its
-[=interface prototype object=]. If the interface has a [=pair asynchronously iterable declaration=],
-it will additionally have <code class="idl">entries</code> and <code class="idl">keys</code>
-properties.
+If given, an [=asynchronously iterable declaration=]'s arguments (matching
+<emu-nt><a href="#prod-ArgumentList">ArgumentList</a></emu-nt>) must all be [=optional arguments=].
+
+<div class="note">
+    In the ECMAScript language binding, an interface that is asynchronously iterable will have
+    {{@@asyncIterator}} and <code class="idl">values</code> properties on its
+    [=interface prototype object=]. If the interface has a
+    [=pair asynchronously iterable declaration=], it will additionally have
+    <code class="idl">entries</code> and <code class="idl">keys</code> properties. All of these
+    methods can be passed optional arguments, which correspond to the argument list in the
+    [=asynchronously iterable declaration=], and are processed by the
+    [=asynchronous iterator initialization steps=], if any exist.
+
+    With this in mind, the requirement that all arguments be optional ensures that, in the
+    ECMAScript binding, <code>for</code>-<code>await</code>-<code>of</code> can work directly on
+    instances of the interface, since <code>for</code>-<code>await</code>-<code>of</code> calls the
+    {{@@asyncIterator}} method with no arguments.
+</div>
 
 Prose accompanying an [=interface=] with an [=asynchronously iterable declaration=] must define a
 <dfn id="dfn-get-the-next-iteration-result" export>get the next iteration result</dfn> algorithm.
@@ -4354,13 +4367,6 @@ receive the instance of the [=interface=] being iterated, the newly-created iter
 [=Interfaces=] with an [=asynchronously iterable declaration=] must not have any
 [=interface members=] named "<code>entries</code>", "<code>keys</code>", or "<code>values</code>",
 or have any [=inherited interfaces=] that have [=interface members=] with these names.
-
-If given, an [=asynchronously iterable declaration=]'s arguments (matching
-<emu-nt><a href="#prod-ArgumentList">ArgumentList</a></emu-nt>) must all be [=optional arguments=].
-
-<p class="note">This ensures that, in the ECMAScript binding,
-<code>for</code>-<code>await</code>-<code>of</code> can work directly on instances of the
-interface.
 
 <div class="example">
 
