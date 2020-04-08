@@ -238,9 +238,6 @@ urlPrefix: https://tc39.github.io/ecma262/; spec: ECMA-262
 
 <pre class=biblio>
 {
-    "GEOMETRY": {
-        "aliasOf": "GEOMETRY-1"
-    },
     "JSSTDLIB": {
         "href": "https://github.com/tc39/proposal-javascript-standard-library/",
         "title": "Standard Library Proposal"
@@ -8965,11 +8962,11 @@ algorithm.
 </div>
 
 
-<h3 id="es-extended-attributes">ECMAScript-specific extended attributes</h3>
+<h3 id="es-extended-attributes">Extended attributes</h3>
 
 This section defines a number of
 [=extended attributes=]
-whose presence affects only the ECMAScript binding.
+whose presence affects the ECMAScript binding.
 
 
 <h4 id="AllowShared" extended-attribute lt="AllowShared">[AllowShared]</h4>
@@ -9565,446 +9562,6 @@ corresponding to [=interface members=].
 </div>
 
 
-<h4 id="LegacyNamespace" extended-attribute lt="LegacyNamespace">[LegacyNamespace]</h4>
-
-<p class="advisement">
-    The [{{LegacyNamespace}}] [=extended attribute=] is an undesirable feature.
-    It exists only so that legacy Web platform features can be specified.
-    It should not be used in specifications
-    unless required to specify the behavior of legacy APIs,
-    or for consistency with these APIs.
-    Instead, interface names
-    can be formed with a naming convention of starting with a particular prefix for
-    a set of interfaces, as part of the identifier, rather than using a namespace.
-    Editors who wish to use this feature are strongly advised to discuss this
-    by <a href="https://github.com/heycam/webidl/issues/new?title=Intent%20to%20use%20[LegacyNamespace]">filing an issue</a>
-    before proceeding.
-</p>
-
-If the [{{LegacyNamespace}}] [=extended attribute=] appears on an [=interface=], it indicates that
-the [=interface object=] for this interface will not be created as a property of the global
-object, but rather as a property of the [=namespace=] identified by the argument to the extended
-attribute.
-
-The [{{LegacyNamespace}}] extended attribute [=takes an identifier|take an identifier=].
-This identifier must be the identifier of a namespace.
-
-The [{{LegacyNamespace}}] and [{{LegacyNoInterfaceObject}}]
-extended attributes must not be specified on the same interface.
-
-See [[#namespace-object]] for details on how an interface is exposed on a namespace.
-
-<div class="example">
-    The following [=IDL fragment=] defines a [=namespace=] and an [=interface=] which
-    uses [{{LegacyNamespace}}] to be defined inside of it.
-
-    <pre highlight="webidl">
-        namespace Foo { };
-
-        [LegacyNamespace=Foo]
-        interface Bar {
-          constructor();
-        };
-    </pre>
-
-    In an ECMAScript implementation of the above namespace and interface, the
-    constructor Bar can be accessed as follows:
-
-    <pre highlight="js">
-        var instance = new Foo.Bar();
-    </pre>
-</div>
-
-
-<h4 id="LegacyUnenumerableNamedProperties" extended-attribute lt="LegacyUnenumerableNamedProperties">[LegacyUnenumerableNamedProperties]</h4>
-
-<div class="advisement">
-
-    The [{{LegacyUnenumerableNamedProperties}}] [=extended attribute=] is an undesirable feature.
-    It exists only so that legacy Web platform features can be specified.
-    It should not be used in specifications
-    unless required to specify the behavior of legacy APIs,
-    or for consistency with these APIs.
-    Editors who wish to use this feature are strongly advised to discuss this
-    by <a href="https://github.com/heycam/webidl/issues/new?title=Intent%20to%20use%20[LegacyUnenumerableNamedProperties]">filing an issue</a>
-    before proceeding.
-
-    <small class="non-normative">
-        The [{{LegacyUnenumerableNamedProperties}}] [=extended attribute=] appears on
-        the following [=interfaces=]:
-        {{HTMLCollection}},
-        {{NamedNodeMap}},
-        {{HTMLAllCollection}},
-        {{HTMLFormElement}},
-        {{PluginArray}},
-        {{MimeTypeArray}},
-        {{Plugin}}, and
-        {{Window}}. [[DOM]] [[HTML]]
-    </small>
-
-</div>
-
-If the [{{LegacyUnenumerableNamedProperties}}]
-[=extended attribute=]
-appears on a [=interface=]
-that [=support named properties|supports named properties=],
-it indicates that all the interface's named properties are unenumerable.
-
-The [{{LegacyUnenumerableNamedProperties}}]
-extended attribute must
-[=takes no arguments|take no arguments=]
-and must not appear on an interface
-that does not define a [=named property getter=].
-
-If the [{{LegacyUnenumerableNamedProperties}}]
-extended attribute is specified on an interface, then it applies to all its derived interfaces and
-must not be specified on any of them.
-
-See [[#legacy-platform-object-getownproperty]]
-for the specific requirements that the use of
-[{{LegacyUnenumerableNamedProperties}}]
-entails.
-
-
-<h4 id="LegacyWindowAlias" extended-attribute lt="LegacyWindowAlias">[LegacyWindowAlias]</h4>
-
-<div class="advisement">
-
-    The [{{LegacyWindowAlias}}] [=extended attribute=] is an undesirable feature.
-    It exists only so that legacy Web platform features can be specified.
-    It should not be used in specifications
-    unless required to specify the behavior of legacy APIs,
-    or for consistency with these APIs.
-    Editors who wish to use this feature are strongly advised to discuss this
-    by <a href="https://github.com/heycam/webidl/issues/new?title=Intent%20to%20use%20[LegacyWindowAlias]">filing an issue</a>
-    before proceeding.
-
-    <small class="non-normative">
-        The [{{LegacyWindowAlias}}] [=extended attribute=] appears on the following [=interfaces=]:
-        {{DOMPoint}},
-        {{DOMRect}},
-        {{DOMMatrix}}, and
-        {{URL}}. [[GEOMETRY]] [[URL]]
-    </small>
-
-</div>
-
-If the [{{LegacyWindowAlias}}] [=extended attribute=] appears on an [=interface=],
-it indicates that the {{Window}} [=interface=] will have a property
-for each [=identifier=] mentioned in the extended attribute,
-whose value is the [=interface object=] for the interface.
-
-The [{{LegacyWindowAlias}}] extended attribute must either
-[=takes an identifier|take an identifier=] or
-[=takes an identifier list|take an identifier list=].
-The <emu-t class="regex"><a href="#prod-identifier">identifier</a></emu-t>s that occur after the
-“<emu-t>=</emu-t>” are the [{{LegacyWindowAlias}}]'s <dfn lt="LegacyWindowAlias identifier">identifiers</dfn>.
-
-Each of the [=LegacyWindowAlias identifier|identifiers=] of [{{LegacyWindowAlias}}]
-must not be the same as one used by a [{{LegacyWindowAlias}}]
-extended attribute on this interface or another interface,
-must not be the same as the [=LegacyFactoryFunction identifier|identifier=] used by a [{{LegacyFactoryFunction}}]
-extended attribute on this interface or another interface,
-must not be the same as an [=identifier=] of an interface that has an [=interface object=],
-and must not be one of the [=reserved identifiers=].
-
-The [{{LegacyWindowAlias}}] and [{{LegacyNoInterfaceObject}}]
-extended attributes must not be specified on the same interface.
-
-The [{{LegacyWindowAlias}}] and [{{LegacyNamespace}}]
-extended attributes must not be specified on the same interface.
-
-The [{{LegacyWindowAlias}}] extended attribute must not be specified
-on an interface that does not include the {{Window}} [=interface=]
-in its [=exposure set=].
-
-An interface must not have more than one [{{LegacyWindowAlias}}] extended attributes specified.
-
-See [[#es-interfaces]] for details on how legacy window aliases
-are to be implemented.
-
-<div class="example">
-
-    The following IDL defines an interface that uses the
-    [{{LegacyWindowAlias}}] extended attribute.
-
-    <pre highlight="webidl">
-        [Exposed=Window,
-         LegacyWindowAlias=WebKitCSSMatrix]
-        interface DOMMatrix : DOMMatrixReadOnly {
-          // ...
-        };
-    </pre>
-
-    An ECMAScript implementation that supports this interface will
-    expose two properties on the {{Window}} object with the same value
-    and the same characteristics;
-    one for exposing the [=interface object=] normally,
-    and one for exposing it with a legacy name.
-
-    <pre highlight="js">
-        WebKitCSSMatrix === DOMMatrix;     // Evaluates to true.
-
-        var m = new WebKitCSSMatrix();     // Creates a new object that
-                                           // implements DOMMatrix.
-
-        m.constructor === DOMMatrix;       // Evaluates to true.
-        m.constructor === WebKitCSSMatrix; // Evaluates to true.
-        {}.toString.call(m);               // Evaluates to '[object DOMMatrix]'.
-    </pre>
-</div>
-
-
-<h4 id="LegacyLenientSetter" extended-attribute lt="LegacyLenientSetter" oldids="LenientSetter">[LegacyLenientSetter]</h4>
-
-<div class="advisement">
-
-    Specifications should not use [{{LegacyLenientSetter}}]
-    unless required for compatibility reasons.  Pages have been observed
-    where authors have attempted to polyfill an IDL attribute by assigning
-    to the property, but have accidentally done so even if the property
-    exists.  In strict mode, this would cause an exception to be thrown,
-    potentially breaking page.  Without [{{LegacyLenientSetter}}],
-    this could prevent a browser from shipping the feature.
-    Editors who wish to use this feature are strongly advised to discuss this
-    by <a href="https://github.com/heycam/webidl/issues/new?title=Intent%20to%20use%20[LegacyLenientSetter]">filing an issue</a>
-    before proceeding.
-
-    <small class="non-normative">
-        The [{{LegacyLenientSetter}}] [=extended attribute=] appears on
-        the {{Document/fullscreenEnabled}} and {{Document/fullscreenEnabled}} [=attributes=]
-        of the {{Document}} interface, and on
-        the {{DocumentOrShadowRoot/fullscreenElement}} [=attribute=]
-        of the {{DocumentOrShadowRoot}} [=interface mixin=]. [[FULLSCREEN]]
-    </small>
-
-</div>
-
-If the [{{LegacyLenientSetter}}]
-[=extended attribute=]
-appears on a [=read only=]
-[=regular attribute=],
-it indicates that a no-op setter will be generated for the attribute’s
-accessor property.  This results in erroneous assignments to the property
-in strict mode to be ignored rather than causing an exception to be thrown.
-
-The [{{LegacyLenientSetter}}] extended attribute
-must [=takes no arguments|take no arguments=].
-It must not be used on anything other than
-a [=read only=] [=regular attribute=].
-
-An attribute with the [{{LegacyLenientSetter}}]
-extended attribute must not also be declared
-with the [{{PutForwards}}]
-or [{{Replaceable}}] extended attributes.
-
-The [{{LegacyLenientSetter}}] extended attribute must not be used on an attribute declared on a
-[=namespace=].
-
-See the <a href="#es-attributes">Attributes</a> section for how
-[{{LegacyLenientSetter}}] is to be implemented.
-
-<div class="example">
-
-    The following IDL fragment defines an interface that uses the
-    [{{LegacyLenientSetter}}] extended
-    attribute.
-
-    <pre highlight="webidl">
-        [Exposed=Window]
-        interface Example {
-          [LegacyLenientSetter] readonly attribute DOMString x;
-          readonly attribute DOMString y;
-        };
-    </pre>
-
-    An ECMAScript implementation that supports this interface will
-    have a setter on the accessor property that correspond to x,
-    which allows any assignment to be ignored in strict mode.
-
-    <pre highlight="js">
-        "use strict";
-
-        var example = getExample();  // Get an instance of Example.
-
-        // Fine; while we are in strict mode, there is a setter that is a no-op.
-        example.x = 1;
-
-        // Throws a TypeError, since we are in strict mode and there is no setter.
-        example.y = 1;
-    </pre>
-</div>
-
-
-<h4 id="LegacyLenientThis" extended-attribute lt="LegacyLenientThis" oldids="LenientThis">[LegacyLenientThis]</h4>
-
-<div class="advisement">
-
-    Specifications should not use [{{LegacyLenientThis}}]
-    unless required for compatibility reasons.
-    Editors who wish to use this feature are strongly advised to discuss this
-    by <a href="https://github.com/heycam/webidl/issues/new?title=Intent%20to%20use%20[LegacyLenientThis]">filing an issue</a>
-    before proceeding.
-
-    <small class="non-normative">
-        The [{{LegacyLenientThis}}] [=extended attribute=] appears on
-        the {{Document/onreadystatechange}},
-        {{Document/onmouseenter}}, and
-        {{Document/onmouseleave}} [=attributes=]
-        of the {{Document}} interface. [[HTML]]
-    </small>
-
-</div>
-
-If the [{{LegacyLenientThis}}]
-[=extended attribute=]
-appears on a [=regular attribute=],
-it indicates that invocations of the attribute’s getter or setter
-with a <emu-val>this</emu-val> value that is not an
-object that [=implements=] the [=interface=]
-on which the attribute appears will be ignored.
-
-The [{{LegacyLenientThis}}] extended attribute
-must
-[=takes no arguments|take no arguments=].
-It must not be used on a
-[=static attribute=].
-
-The [{{LegacyLenientThis}}] extended attribute must not be used on an attribute declared on a
-[=namespace=].
-
-See the <a href="#es-attributes">Attributes</a> section for how
-[{{LegacyLenientThis}}]
-is to be implemented.
-
-<div class="example">
-
-    The following IDL fragment defines an interface that uses the
-    [{{LegacyLenientThis}}] extended
-    attribute.
-
-    <pre highlight="webidl">
-        [Exposed=Window]
-        interface Example {
-          [LegacyLenientThis] attribute DOMString x;
-          attribute DOMString y;
-        };
-    </pre>
-
-    An ECMAScript implementation that supports this interface will
-    allow the getter and setter of the accessor property that corresponds
-    to x to be invoked with something other than an <code class="idl">Example</code>
-    object.
-
-    <pre highlight="js">
-        var example = getExample();  // Get an instance of Example.
-        var obj = { };
-
-        // Fine.
-        example.x;
-
-        // Ignored, since the this value is not an Example object and [LegacyLenientThis] is used.
-        Object.getOwnPropertyDescriptor(Example.prototype, "x").get.call(obj);
-
-        // Also ignored, since Example.prototype is not an Example object and [LegacyLenientThis] is used.
-        Example.prototype.x;
-
-        // Throws a TypeError, since Example.prototype is not an Example object.
-        Example.prototype.y;
-    </pre>
-</div>
-
-
-<h4 id="LegacyFactoryFunction" extended-attribute lt="LegacyFactoryFunction">[LegacyFactoryFunction]</h4>
-
-<div class="advisement">
-
-    [{{LegacyFactoryFunction}}] [=extended attribute=] is an undesirable feature.
-    It exists only so that legacy Web platform features can be specified.
-    It should not be used in specifications
-    unless required to specify the behavior of legacy APIs,
-    or for consistency with these APIs.
-    Editors who wish to use this feature are strongly advised to discuss this
-    by <a href="https://github.com/heycam/webidl/issues/new?title=Intent%20to%20use%20[LegacyFactoryFunction]">filing an issue</a>
-    before proceeding.
-
-    <small class="non-normative">
-        The [{{LegacyFactoryFunction}}] [=extended attribute=] appears on the following [=interfaces=]:
-        {{HTMLAudioElement}},
-        {{HTMLOptionElement}}, and
-        {{HTMLImageElement}}. [[HTML]]
-    </small>
-
-</div>
-
-If the [{{LegacyFactoryFunction}}]
-[=extended attribute=]
-appears on an [=interface=],
-it indicates that the ECMAScript global object will have a property with the
-specified name whose value is a function that can
-create objects that implement the interface.
-Multiple [{{LegacyFactoryFunction}}] extended
-attributes may appear on a given interface.
-
-The [{{LegacyFactoryFunction}}] extended attribute must
-[=takes a named argument list|take a named argument list=].
-The <emu-t class="regex"><a href="#prod-identifier">identifier</a></emu-t> that occurs directly after the
-“<emu-t>=</emu-t>” is the [{{LegacyFactoryFunction}}]'s <dfn lt="LegacyFactoryFunction identifier">identifier</dfn>.
-For each [{{LegacyFactoryFunction}}] extended attribute on the interface,
-there will be a way to construct an object that
-[=implements=] the interface by passing the specified arguments to the [=constructor=]
-that is the value of the aforementioned property.
-
-The [=LegacyFactoryFunction identifier|identifier=] used for the legacy factory function must not
-be the same as that used by a [{{LegacyFactoryFunction}}]
-extended attribute on another interface, must not
-be the same as an [=LegacyWindowAlias identifier|identifier=] used by a [{{LegacyWindowAlias}}]
-extended attribute on this interface or another interface,
-must not be the same as an [=identifier=] of an interface
-that has an [=interface object=],
-and must not be one of the
-[=reserved identifiers=].
-
-The [{{LegacyFactoryFunction}}] and [{{Global}}] [=extended attributes=] must not be specified on the
-same [=interface=].
-
-See [[#legacy-factory-functions]] for details on how legacy factory functions
-are to be implemented.
-
-<div class="example">
-
-    The following IDL defines an interface that uses the
-    [{{LegacyFactoryFunction}}] extended
-    attribute.
-
-    <pre highlight="webidl">
-        [Exposed=Window,
-         LegacyFactoryFunction=Audio(DOMString src)]
-        interface HTMLAudioElement : HTMLMediaElement {
-          // ...
-        };
-    </pre>
-
-    An ECMAScript implementation that supports this interface will
-    allow the construction of <code class="idl">HTMLAudioElement</code>
-    objects using the <code class="idl">Audio</code> function.
-
-    <pre highlight="js">
-        typeof Audio;                   // Evaluates to 'function'.
-
-        var a2 = new Audio('a.flac');   // Creates an HTMLAudioElement using the
-                                        // one-argument constructor.
-    </pre>
-
-    As an additional legacy quirk, these factory functions will have a <code>prototype</code>
-    property equal to the <code>prototype</code> of the original interface:
-
-    <pre highlight="js">
-        console.assert(Audio.prototype === HTMLAudioElement.prototype);
-    </pre>
-</div>
-
-
 <h4 id="NewObject" extended-attribute lt="NewObject">[NewObject]</h4>
 
 If the [{{NewObject}}]
@@ -10042,214 +9599,6 @@ a [=promise type=].
           [NewObject] Element createElement(DOMString localName);
           // ...
         };
-    </pre>
-</div>
-
-
-<h4 id="LegacyNoInterfaceObject" extended-attribute lt="LegacyNoInterfaceObject" oldids="NoInterfaceObject">[LegacyNoInterfaceObject]</h4>
-
-<div class="advisement">
-
-    The [{{LegacyNoInterfaceObject}}] [=extended attribute=] is an undesirable feature.
-    It exists only so that legacy Web platform features can be specified.
-    It should not be used in specifications
-    unless required to specify the behavior of legacy APIs,
-    or for consistency with these APIs.
-    Editors who wish to use this feature are strongly advised to discuss this
-    by <a href="https://github.com/heycam/webidl/issues/new?title=Intent%20to%20use%20[LegacyNoInterfaceObject]">filing an issue</a>
-    before proceeding.
-
-    <small class="non-normative">
-        The [{{LegacyNoInterfaceObject}}] [=extended attribute=] appears on the following [=interfaces=]:
-
-        {{WEBGL_compressed_texture_astc}},
-        {{WEBGL_compressed_texture_s3tc_srgb}},
-        {{WEBGL_draw_buffers}},
-        {{WEBGL_lose_context}},
-        {{ANGLE_instanced_arrays}},
-        {{EXT_blend_minmax}},
-        {{EXT_color_buffer_float}},
-        {{EXT_disjoint_timer_query}},
-        {{OES_standard_derivatives}}, and
-        {{OES_vertex_array_object}}.
-        (various [[WEBGL]] extension specifications)
-    </small>
-
-</div>
-
-If the [{{LegacyNoInterfaceObject}}] [=extended attribute=] appears on an [=interface=],
-it indicates that an [=interface object=]
-will not exist for the interface in the ECMAScript binding.
-
-The [{{LegacyNoInterfaceObject}}] extended attribute
-must [=takes no arguments|take no arguments=].
-
-The [{{LegacyNoInterfaceObject}}] extended attribute
-must not be specified on an interface that has any
-[=constructors=] or [=static operations=] defined on it.
-
-Note: Combining the [{{LegacyNoInterfaceObject}}] and [{{LegacyFactoryFunction}}] extended attribute is not
-forbidden, however.
-
-An interface that does not have the [{{LegacyNoInterfaceObject}}] extended
-attribute specified must not inherit
-from an interface that has the [{{LegacyNoInterfaceObject}}] extended
-attribute specified.
-
-See [[#es-interfaces]]
-for the specific requirements that the use of
-[{{LegacyNoInterfaceObject}}] entails.
-
-<div class="example">
-
-    The following [=IDL fragment=] defines two interfaces, one whose interface object
-    is exposed on the ECMAScript global object, and one whose isn’t:
-
-    <pre highlight="webidl">
-        [Exposed=Window]
-        interface Storage {
-          void addEntry(unsigned long key, any value);
-        };
-
-        [Exposed=Window,
-         LegacyNoInterfaceObject]
-        interface Query {
-          any lookupEntry(unsigned long key);
-        };
-    </pre>
-
-    An ECMAScript implementation of the above IDL would allow
-    manipulation of <code class="idl">Storage</code>’s
-    prototype, but not <code class="idl">Query</code>’s.
-
-    <pre highlight="js">
-        typeof Storage;                        // evaluates to "object"
-
-        // Add some tracing alert() call to Storage.addEntry.
-        var fn = Storage.prototype.addEntry;
-        Storage.prototype.addEntry = function(key, value) {
-          alert('Calling addEntry()');
-          return fn.call(this, key, value);
-        };
-
-        typeof Query;                          // evaluates to "undefined"
-        var fn = Query.prototype.lookupEntry;  // exception, Query isn’t defined
-    </pre>
-</div>
-
-
-<h4 id="LegacyOverrideBuiltIns" extended-attribute lt="LegacyOverrideBuiltIns" oldids="OverrideBuiltins">[LegacyOverrideBuiltIns]</h4>
-
-<div class="advisement">
-
-    The [{{LegacyOverrideBuiltIns}}] [=extended attribute=] is an undesirable feature.
-    It exists only so that legacy Web platform features can be specified.
-    It should not be used in specifications
-    unless required to specify the behavior of legacy APIs,
-    or for consistency with these APIs.
-    Editors who wish to use this feature are strongly advised to discuss this
-    by <a href="https://github.com/heycam/webidl/issues/new?title=Intent%20to%20use%20[LegacyOverrideBuiltIns]">filing an issue</a>
-    before proceeding.
-
-    <small class="non-normative">
-        The [{{LegacyOverrideBuiltIns}}] [=extended attribute=] appears on the
-        {{DOMStringMap}},
-        {{Document}}, and
-        {{HTMLFormElement}} [=interfaces=]. [[HTML]]
-    </small>
-
-</div>
-
-If the [{{LegacyOverrideBuiltIns}}]
-[=extended attribute=]
-appears on an [=interface=],
-it indicates that for a [=legacy platform object=] implementing the interface,
-properties corresponding to all of
-the object’s [=supported property names=]
-will appear to be on the object,
-regardless of what other properties exist on the object or its
-prototype chain.  This means that named properties will always shadow
-any properties that would otherwise appear on the object.
-This is in contrast to the usual behavior, which is for named properties
-to be exposed only if there is no property with the
-same name on the object itself or somewhere on its prototype chain.
-
-The [{{LegacyOverrideBuiltIns}}]
-extended attribute must
-[=takes no arguments|take no arguments=]
-and must not appear on an interface
-that does not define a [=named property getter=]
-or that also is declared with the [{{Global}}] [=extended attribute=].
-If the extended attribute is specified on
-a [=partial interface=]
-definition, then that partial interface definition must
-be the part of the interface definition that defines
-the [=named property getter=].
-
-If the [{{LegacyOverrideBuiltIns}}] extended attribute is specified on a
-[=partial interface=] definition, it is considered to appear on the
-[=interface=] itself.
-
-See [[#es-legacy-platform-objects]]
-and [[#legacy-platform-object-defineownproperty]]
-for the specific requirements that the use of
-[{{LegacyOverrideBuiltIns}}] entails.
-
-<div class="example">
-
-    The following [=IDL fragment=]
-    defines two [=interfaces=],
-    one that has a [=named property getter=]
-    and one that does not.
-
-    <pre highlight="webidl">
-        [Exposed=Window]
-        interface StringMap {
-          readonly attribute unsigned long length;
-          getter DOMString lookup(DOMString key);
-        };
-
-        [Exposed=Window,
-         LegacyOverrideBuiltIns]
-        interface StringMap2 {
-          readonly attribute unsigned long length;
-          getter DOMString lookup(DOMString key);
-        };
-    </pre>
-
-    In an ECMAScript implementation of these two interfaces,
-    getting certain properties on objects implementing
-    the interfaces will result in different values:
-
-    <pre highlight="js">
-        // Obtain an instance of StringMap.  Assume that it has "abc", "length" and
-        // "toString" as supported property names.
-        var map1 = getStringMap();
-
-        // This invokes the named property getter.
-        map1.abc;
-
-        // This fetches the "length" property on the object that corresponds to the
-        // length attribute.
-        map1.length;
-
-        // This fetches the "toString" property from the object's prototype chain.
-        map1.toString;
-
-        // Obtain an instance of StringMap2.  Assume that it also has "abc", "length"
-        // and "toString" as supported property names.
-        var map2 = getStringMap2();
-
-        // This invokes the named property getter.
-        map2.abc;
-
-        // This also invokes the named property getter, despite the fact that the "length"
-        // property on the object corresponds to the length attribute.
-        map2.length;
-
-        // This too invokes the named property getter, despite the fact that "toString" is
-        // a property in map2's prototype chain.
-        map2.toString;
     </pre>
 </div>
 
@@ -10609,29 +9958,519 @@ that does specify [{{SecureContext}}].
 </div>
 
 
-<h4 id="LegacyTreatNonObjectAsNull" extended-attribute lt="LegacyTreatNonObjectAsNull" oldids="TreatNonObjectAsNull">[LegacyTreatNonObjectAsNull]</h4>
+<h4 id="Unscopable" extended-attribute lt="Unscopable">[Unscopable]</h4>
 
-<div class="advisement">
+If the [{{Unscopable}}]
+[=extended attribute=]
+appears on a [=regular attribute=]
+or [=regular operation=], it
+indicates that an object that [=implements=] an interface with the given
+interface member will not include its property name in any object
+environment record with it as its base object.  The result of this is
+that bare identifiers matching the property name will not resolve to
+the property in a <code>with</code> statement.  This is achieved by
+including the property name on the
+[=interface prototype object=]’s
+{{@@unscopables}} property’s value.
 
-    The [{{LegacyTreatNonObjectAsNull}}] [=extended attribute=] is an undesirable feature.
-    It exists only so that legacy Web platform features can be specified.
-    It should not be used in specifications
-    unless required to specify the behavior of legacy APIs,
-    or for consistency with these APIs.
-    Editors who wish to use this feature are strongly advised to discuss this
-    by <a href="https://github.com/heycam/webidl/issues/new?title=Intent%20to%20use%20[LegacyTreatNonObjectAsNull]">filing an issue</a>
-    before proceeding.
+The [{{Unscopable}}]
+extended attribute must
+[=takes no arguments|take no arguments=].
 
-    <small class="non-normative">
-        The [{{LegacyTreatNonObjectAsNull}}] [=extended attribute=] appears on
-        the [=callback functions=] {{EventHandlerNonNull}},
-        {{OnBeforeUnloadEventHandlerNonNull}}, and
-        {{OnErrorEventHandlerNonNull}}
-        used as the type of [=event handler IDL attributes=]
-        such as <code>onclick</code> and <code>onerror</code>. [[HTML]]
-    </small>
+The [{{Unscopable}}]
+extended attribute must not appear on
+anything other than a [=regular attribute=]
+or [=regular operation=].
 
+The [{{Unscopable}}] extended attribute must not be used on an attribute declared on a
+[=namespace=].
+
+See [[#interface-prototype-object]]
+for the specific requirements that the use of
+[{{Unscopable}}] entails.
+
+<div class="note">
+
+    For example, with the following IDL:
+
+    <pre highlight="webidl">
+        [Exposed=Window]
+        interface Thing {
+          void f();
+          [Unscopable] g();
+        };
+    </pre>
+
+    the <code class="idl">f</code> property can be referenced with a bare identifier
+    in a <code>with</code> statement but the <code class="idl">g</code> property cannot:
+
+    <pre highlight="js">
+        var thing = getThing();  // An instance of Thing
+        with (thing) {
+          f;                     // Evaluates to a Function object.
+          g;                     // Throws a ReferenceError.
+        }
+    </pre>
 </div>
+
+
+<h3 id="es-legacy-extended-attributes">Legacy extended attributes</h3>
+
+This section defines a number of [=extended attributes=] whose presence affects the ECMAScript
+binding. Unlike those in [[#es-extended-attributes]], these exist only so that legacy Web platform
+features can be specified. They should not be used in specifications, unless required to specify the
+behavior of legacy APIs.
+
+Editors who believe they have a good reason for using these extended attributes are strongly advised
+to discuss this by
+<a href="https://github.com/heycam/webidl/issues/new?title=Intent%20to%20use%20a%20legacy%20extended%20attribute">filing an issue</a>
+before proceeding.
+
+
+<h4 id="LegacyFactoryFunction" extended-attribute lt="LegacyFactoryFunction">[LegacyFactoryFunction]</h4>
+
+<p class="advisement">Instead of using this feature, give your interface a [=constructor operation=].</p>
+
+If the [{{LegacyFactoryFunction}}]
+[=extended attribute=]
+appears on an [=interface=],
+it indicates that the ECMAScript global object will have a property with the
+specified name whose value is a function that can
+create objects that implement the interface.
+Multiple [{{LegacyFactoryFunction}}] extended
+attributes may appear on a given interface.
+
+The [{{LegacyFactoryFunction}}] extended attribute must
+[=takes a named argument list|take a named argument list=].
+The <emu-t class="regex"><a href="#prod-identifier">identifier</a></emu-t> that occurs directly after the
+“<emu-t>=</emu-t>” is the [{{LegacyFactoryFunction}}]'s <dfn lt="LegacyFactoryFunction identifier">identifier</dfn>.
+For each [{{LegacyFactoryFunction}}] extended attribute on the interface,
+there will be a way to construct an object that
+[=implements=] the interface by passing the specified arguments to the [=constructor=]
+that is the value of the aforementioned property.
+
+The [=LegacyFactoryFunction identifier|identifier=] used for the legacy factory function must not
+be the same as that used by a [{{LegacyFactoryFunction}}]
+extended attribute on another interface, must not
+be the same as an [=LegacyWindowAlias identifier|identifier=] used by a [{{LegacyWindowAlias}}]
+extended attribute on this interface or another interface,
+must not be the same as an [=identifier=] of an interface
+that has an [=interface object=],
+and must not be one of the
+[=reserved identifiers=].
+
+The [{{LegacyFactoryFunction}}] and [{{Global}}] [=extended attributes=] must not be specified on the
+same [=interface=].
+
+See [[#legacy-factory-functions]] for details on how legacy factory functions
+are to be implemented.
+
+<div class="example">
+
+    The following IDL defines an interface that uses the
+    [{{LegacyFactoryFunction}}] extended
+    attribute.
+
+    <pre highlight="webidl">
+        [Exposed=Window,
+         LegacyFactoryFunction=Audio(DOMString src)]
+        interface HTMLAudioElement : HTMLMediaElement {
+          // ...
+        };
+    </pre>
+
+    An ECMAScript implementation that supports this interface will
+    allow the construction of <code class="idl">HTMLAudioElement</code>
+    objects using the <code class="idl">Audio</code> function.
+
+    <pre highlight="js">
+        typeof Audio;                   // Evaluates to 'function'.
+
+        var a2 = new Audio('a.flac');   // Creates an HTMLAudioElement using the
+                                        // one-argument constructor.
+    </pre>
+
+    As an additional legacy quirk, these factory functions will have a <code>prototype</code>
+    property equal to the <code>prototype</code> of the original interface:
+
+    <pre highlight="js">
+        console.assert(Audio.prototype === HTMLAudioElement.prototype);
+    </pre>
+</div>
+
+
+<h4 id="LegacyLenientSetter" extended-attribute lt="LegacyLenientSetter" oldids="LenientSetter">[LegacyLenientSetter]</h4>
+
+If the [{{LegacyLenientSetter}}]
+[=extended attribute=]
+appears on a [=read only=]
+[=regular attribute=],
+it indicates that a no-op setter will be generated for the attribute’s
+accessor property.  This results in erroneous assignments to the property
+in strict mode to be ignored rather than causing an exception to be thrown.
+
+<p class="note">Pages have been observed where authors have attempted to polyfill an IDL attribute
+by assigning to the property, but have accidentally done so even if the property exists. In strict
+mode, this would cause an exception to be thrown, potentially breaking page. Without
+[{{LegacyLenientSetter}}], this could prevent a browser from shipping the feature.</p>
+
+The [{{LegacyLenientSetter}}] extended attribute
+must [=takes no arguments|take no arguments=].
+It must not be used on anything other than
+a [=read only=] [=regular attribute=].
+
+An attribute with the [{{LegacyLenientSetter}}]
+extended attribute must not also be declared
+with the [{{PutForwards}}]
+or [{{Replaceable}}] extended attributes.
+
+The [{{LegacyLenientSetter}}] extended attribute must not be used on an attribute declared on a
+[=namespace=].
+
+See the <a href="#es-attributes">Attributes</a> section for how
+[{{LegacyLenientSetter}}] is to be implemented.
+
+<div class="example">
+
+    The following IDL fragment defines an interface that uses the
+    [{{LegacyLenientSetter}}] extended
+    attribute.
+
+    <pre highlight="webidl">
+        [Exposed=Window]
+        interface Example {
+          [LegacyLenientSetter] readonly attribute DOMString x;
+          readonly attribute DOMString y;
+        };
+    </pre>
+
+    An ECMAScript implementation that supports this interface will
+    have a setter on the accessor property that correspond to x,
+    which allows any assignment to be ignored in strict mode.
+
+    <pre highlight="js">
+        "use strict";
+
+        var example = getExample();  // Get an instance of Example.
+
+        // Fine; while we are in strict mode, there is a setter that is a no-op.
+        example.x = 1;
+
+        // Throws a TypeError, since we are in strict mode and there is no setter.
+        example.y = 1;
+    </pre>
+</div>
+
+
+<h4 id="LegacyLenientThis" extended-attribute lt="LegacyLenientThis" oldids="LenientThis">[LegacyLenientThis]</h4>
+
+If the [{{LegacyLenientThis}}]
+[=extended attribute=]
+appears on a [=regular attribute=],
+it indicates that invocations of the attribute’s getter or setter
+with a <emu-val>this</emu-val> value that is not an
+object that [=implements=] the [=interface=]
+on which the attribute appears will be ignored.
+
+The [{{LegacyLenientThis}}] extended attribute
+must
+[=takes no arguments|take no arguments=].
+It must not be used on a
+[=static attribute=].
+
+The [{{LegacyLenientThis}}] extended attribute must not be used on an attribute declared on a
+[=namespace=].
+
+See the <a href="#es-attributes">Attributes</a> section for how
+[{{LegacyLenientThis}}]
+is to be implemented.
+
+<div class="example">
+
+    The following IDL fragment defines an interface that uses the
+    [{{LegacyLenientThis}}] extended
+    attribute.
+
+    <pre highlight="webidl">
+        [Exposed=Window]
+        interface Example {
+          [LegacyLenientThis] attribute DOMString x;
+          attribute DOMString y;
+        };
+    </pre>
+
+    An ECMAScript implementation that supports this interface will
+    allow the getter and setter of the accessor property that corresponds
+    to x to be invoked with something other than an <code class="idl">Example</code>
+    object.
+
+    <pre highlight="js">
+        var example = getExample();  // Get an instance of Example.
+        var obj = { };
+
+        // Fine.
+        example.x;
+
+        // Ignored, since the this value is not an Example object and [LegacyLenientThis] is used.
+        Object.getOwnPropertyDescriptor(Example.prototype, "x").get.call(obj);
+
+        // Also ignored, since Example.prototype is not an Example object and [LegacyLenientThis] is used.
+        Example.prototype.x;
+
+        // Throws a TypeError, since Example.prototype is not an Example object.
+        Example.prototype.y;
+    </pre>
+</div>
+
+
+<h4 id="LegacyNamespace" extended-attribute lt="LegacyNamespace">[LegacyNamespace]</h4>
+
+<p class="advisement">Instead of using this feature, interface names can be formed with a naming
+convention of starting with a particular prefix for a set of interfaces, as part of the identifier,
+without the intervening dot.</p>
+
+If the [{{LegacyNamespace}}] [=extended attribute=] appears on an [=interface=], it indicates that
+the [=interface object=] for this interface will not be created as a property of the global
+object, but rather as a property of the [=namespace=] identified by the argument to the extended
+attribute.
+
+The [{{LegacyNamespace}}] extended attribute [=takes an identifier|take an identifier=].
+This identifier must be the identifier of a namespace.
+
+The [{{LegacyNamespace}}] and [{{LegacyNoInterfaceObject}}]
+extended attributes must not be specified on the same interface.
+
+See [[#namespace-object]] for details on how an interface is exposed on a namespace.
+
+<div class="example">
+    The following [=IDL fragment=] defines a [=namespace=] and an [=interface=] which
+    uses [{{LegacyNamespace}}] to be defined inside of it.
+
+    <pre highlight="webidl">
+        namespace Foo { };
+
+        [LegacyNamespace=Foo]
+        interface Bar {
+          constructor();
+        };
+    </pre>
+
+    In an ECMAScript implementation of the above namespace and interface, the
+    constructor Bar can be accessed as follows:
+
+    <pre highlight="js">
+        var instance = new Foo.Bar();
+    </pre>
+</div>
+
+
+<h4 id="LegacyNoInterfaceObject" extended-attribute lt="LegacyNoInterfaceObject" oldids="NoInterfaceObject">[LegacyNoInterfaceObject]</h4>
+
+If the [{{LegacyNoInterfaceObject}}] [=extended attribute=] appears on an [=interface=],
+it indicates that an [=interface object=]
+will not exist for the interface in the ECMAScript binding.
+
+The [{{LegacyNoInterfaceObject}}] extended attribute
+must [=takes no arguments|take no arguments=].
+
+The [{{LegacyNoInterfaceObject}}] extended attribute
+must not be specified on an interface that has any
+[=constructors=] or [=static operations=] defined on it.
+
+An interface that does not have the [{{LegacyNoInterfaceObject}}] extended
+attribute specified must not inherit
+from an interface that has the [{{LegacyNoInterfaceObject}}] extended
+attribute specified.
+
+See [[#es-interfaces]]
+for the specific requirements that the use of
+[{{LegacyNoInterfaceObject}}] entails.
+
+<div class="example">
+
+    The following [=IDL fragment=] defines two interfaces, one whose interface object
+    is exposed on the ECMAScript global object, and one whose isn’t:
+
+    <pre highlight="webidl">
+        [Exposed=Window]
+        interface Storage {
+          void addEntry(unsigned long key, any value);
+        };
+
+        [Exposed=Window,
+         LegacyNoInterfaceObject]
+        interface Query {
+          any lookupEntry(unsigned long key);
+        };
+    </pre>
+
+    An ECMAScript implementation of the above IDL would allow
+    manipulation of <code class="idl">Storage</code>’s
+    prototype, but not <code class="idl">Query</code>’s.
+
+    <pre highlight="js">
+        typeof Storage;                        // evaluates to "object"
+
+        // Add some tracing alert() call to Storage.addEntry.
+        var fn = Storage.prototype.addEntry;
+        Storage.prototype.addEntry = function(key, value) {
+          alert('Calling addEntry()');
+          return fn.call(this, key, value);
+        };
+
+        typeof Query;                          // evaluates to "undefined"
+        var fn = Query.prototype.lookupEntry;  // exception, Query isn’t defined
+    </pre>
+</div>
+
+
+<h4 id="LegacyNullToEmptyString" extended-attribute lt="LegacyNullToEmptyString" oldids="TreatNullAs">[LegacyNullToEmptyString]</h4>
+
+If the [{{LegacyNullToEmptyString}}] [=extended attribute=] appears on the {{DOMString}} type, it creates a new
+IDL type such that that when an ECMAScript <emu-val>null</emu-val> is converted to the IDL type, it
+will be handled differently from its default handling. Instead of being stringified to
+"<code>null</code>", which is the default, it will be converted to the empty string.
+
+The [{{LegacyNullToEmptyString}}] extended attribute must not be
+[=extended attribute associated with|associated with=] a type that is not {{DOMString}}.
+
+Note: This means that even <code class="idl">DOMString?</code> must not use [{{LegacyNullToEmptyString}}], since
+<emu-val>null</emu-val> is a valid value of that type.
+
+See [[#es-DOMString]] for the specific requirements that the use of [{{LegacyNullToEmptyString}}] entails.
+
+<div class="example">
+    The following [=IDL fragment=] defines an interface that has one attribute whose type has the
+    extended attribute, and one operation whose argument's type has the extended attribute:
+
+    <pre highlight="webidl">
+        [Exposed=Window]
+        interface Dog {
+          attribute DOMString name;
+          attribute [LegacyNullToEmptyString] DOMString owner;
+
+          boolean isMemberOfBreed([LegacyNullToEmptyString] DOMString breedName);
+        };
+    </pre>
+
+    An ECMAScript implementation implementing the <code class="idl">Dog</code>
+    interface would convert a <emu-val>null</emu-val> value
+    assigned to the <code>owner</code> property or passed as the
+    argument to the <code>isMemberOfBreed</code> function
+    to the empty string rather than "<code>null</code>":
+
+    <pre highlight="js">
+        var d = getDog();         // Assume d is a platform object implementing the Dog
+                                  // interface.
+
+        d.name = null;            // This assigns the string "null" to the .name
+                                  // property.
+
+        d.owner = null;           // This assigns the string "" to the .owner property.
+
+        d.isMemberOfBreed(null);  // This passes the string "" to the isMemberOfBreed
+                                  // function.
+    </pre>
+</div>
+
+
+<h4 id="LegacyOverrideBuiltIns" extended-attribute lt="LegacyOverrideBuiltIns" oldids="OverrideBuiltins">[LegacyOverrideBuiltIns]</h4>
+
+If the [{{LegacyOverrideBuiltIns}}]
+[=extended attribute=]
+appears on an [=interface=],
+it indicates that for a [=legacy platform object=] implementing the interface,
+properties corresponding to all of
+the object’s [=supported property names=]
+will appear to be on the object,
+regardless of what other properties exist on the object or its
+prototype chain.  This means that named properties will always shadow
+any properties that would otherwise appear on the object.
+This is in contrast to the usual behavior, which is for named properties
+to be exposed only if there is no property with the
+same name on the object itself or somewhere on its prototype chain.
+
+The [{{LegacyOverrideBuiltIns}}]
+extended attribute must
+[=takes no arguments|take no arguments=]
+and must not appear on an interface
+that does not define a [=named property getter=]
+or that also is declared with the [{{Global}}] [=extended attribute=].
+If the extended attribute is specified on
+a [=partial interface=]
+definition, then that partial interface definition must
+be the part of the interface definition that defines
+the [=named property getter=].
+
+If the [{{LegacyOverrideBuiltIns}}] extended attribute is specified on a
+[=partial interface=] definition, it is considered to appear on the
+[=interface=] itself.
+
+See [[#es-legacy-platform-objects]]
+and [[#legacy-platform-object-defineownproperty]]
+for the specific requirements that the use of
+[{{LegacyOverrideBuiltIns}}] entails.
+
+<div class="example">
+
+    The following [=IDL fragment=]
+    defines two [=interfaces=],
+    one that has a [=named property getter=]
+    and one that does not.
+
+    <pre highlight="webidl">
+        [Exposed=Window]
+        interface StringMap {
+          readonly attribute unsigned long length;
+          getter DOMString lookup(DOMString key);
+        };
+
+        [Exposed=Window,
+         LegacyOverrideBuiltIns]
+        interface StringMap2 {
+          readonly attribute unsigned long length;
+          getter DOMString lookup(DOMString key);
+        };
+    </pre>
+
+    In an ECMAScript implementation of these two interfaces,
+    getting certain properties on objects implementing
+    the interfaces will result in different values:
+
+    <pre highlight="js">
+        // Obtain an instance of StringMap.  Assume that it has "abc", "length" and
+        // "toString" as supported property names.
+        var map1 = getStringMap();
+
+        // This invokes the named property getter.
+        map1.abc;
+
+        // This fetches the "length" property on the object that corresponds to the
+        // length attribute.
+        map1.length;
+
+        // This fetches the "toString" property from the object's prototype chain.
+        map1.toString;
+
+        // Obtain an instance of StringMap2.  Assume that it also has "abc", "length"
+        // and "toString" as supported property names.
+        var map2 = getStringMap2();
+
+        // This invokes the named property getter.
+        map2.abc;
+
+        // This also invokes the named property getter, despite the fact that the "length"
+        // property on the object corresponds to the length attribute.
+        map2.length;
+
+        // This too invokes the named property getter, despite the fact that "toString" is
+        // a property in map2's prototype chain.
+        map2.toString;
+    </pre>
+</div>
+
+
+<h4 id="LegacyTreatNonObjectAsNull" extended-attribute lt="LegacyTreatNonObjectAsNull" oldids="TreatNonObjectAsNull">[LegacyTreatNonObjectAsNull]</h4>
 
 If the [{{LegacyTreatNonObjectAsNull}}] [=extended attribute=] appears on a [=callback function=], then
 it indicates that any value assigned to an [=attribute=] whose type is a [=nullable type|nullable=]
@@ -10696,65 +10535,28 @@ for the specific requirements that the use of
 </div>
 
 
-<h4 id="LegacyNullToEmptyString" extended-attribute lt="LegacyNullToEmptyString" oldids="TreatNullAs">[LegacyNullToEmptyString]</h4>
+<h4 id="LegacyUnenumerableNamedProperties" extended-attribute lt="LegacyUnenumerableNamedProperties">[LegacyUnenumerableNamedProperties]</h4>
 
-<p class="advisement">
-    The [{{LegacyNullToEmptyString}}] [=extended attribute=] is an undesirable feature.
-    It exists only so that legacy Web platform features can be specified.
-    It should not be used in specifications
-    unless required to specify the behavior of legacy APIs,
-    or for consistency with these APIs.
-    Editors who wish to use this feature are strongly advised to discuss this
-    by <a href="https://github.com/heycam/webidl/issues/new?title=Intent%20to%20use%20[LegacyNullToEmptyString]">filing an issue</a>
-    before proceeding.
-</div>
+If the [{{LegacyUnenumerableNamedProperties}}]
+[=extended attribute=]
+appears on a [=interface=]
+that [=support named properties|supports named properties=],
+it indicates that all the interface's named properties are unenumerable.
 
-If the [{{LegacyNullToEmptyString}}] [=extended attribute=] appears on the {{DOMString}} type, it creates a new
-IDL type such that that when an ECMAScript <emu-val>null</emu-val> is converted to the IDL type, it
-will be handled differently from its default handling. Instead of being stringified to
-"<code>null</code>", which is the default, it will be converted to the empty string.
+The [{{LegacyUnenumerableNamedProperties}}]
+extended attribute must
+[=takes no arguments|take no arguments=]
+and must not appear on an interface
+that does not define a [=named property getter=].
 
-The [{{LegacyNullToEmptyString}}] extended attribute must not be
-[=extended attribute associated with|associated with=] a type that is not {{DOMString}}.
+If the [{{LegacyUnenumerableNamedProperties}}]
+extended attribute is specified on an interface, then it applies to all its derived interfaces and
+must not be specified on any of them.
 
-Note: This means that even <code class="idl">DOMString?</code> must not use [{{LegacyNullToEmptyString}}], since
-<emu-val>null</emu-val> is a valid value of that type.
-
-See [[#es-DOMString]] for the specific requirements that the use of [{{LegacyNullToEmptyString}}] entails.
-
-<div class="example">
-    The following [=IDL fragment=] defines an interface that has one attribute whose type has the
-    extended attribute, and one operation whose argument's type has the extended attribute:
-
-    <pre highlight="webidl">
-        [Exposed=Window]
-        interface Dog {
-          attribute DOMString name;
-          attribute [LegacyNullToEmptyString] DOMString owner;
-
-          boolean isMemberOfBreed([LegacyNullToEmptyString] DOMString breedName);
-        };
-    </pre>
-
-    An ECMAScript implementation implementing the <code class="idl">Dog</code>
-    interface would convert a <emu-val>null</emu-val> value
-    assigned to the <code>owner</code> property or passed as the
-    argument to the <code>isMemberOfBreed</code> function
-    to the empty string rather than "<code>null</code>":
-
-    <pre highlight="js">
-        var d = getDog();         // Assume d is a platform object implementing the Dog
-                                  // interface.
-
-        d.name = null;            // This assigns the string "null" to the .name
-                                  // property.
-
-        d.owner = null;           // This assigns the string "" to the .owner property.
-
-        d.isMemberOfBreed(null);  // This passes the string "" to the isMemberOfBreed
-                                  // function.
-    </pre>
-</div>
+See [[#legacy-platform-object-getownproperty]]
+for the specific requirements that the use of
+[{{LegacyUnenumerableNamedProperties}}]
+entails.
 
 
 <h4 id="LegacyUnforgeable" extended-attribute lt="LegacyUnforgeable" oldids="Unforgeable">[LegacyUnforgeable]</h4>
@@ -10864,58 +10666,70 @@ for the specific requirements that the use of
 </div>
 
 
-<h4 id="Unscopable" extended-attribute lt="Unscopable">[Unscopable]</h4>
+<h4 id="LegacyWindowAlias" extended-attribute lt="LegacyWindowAlias">[LegacyWindowAlias]</h4>
 
-If the [{{Unscopable}}]
-[=extended attribute=]
-appears on a [=regular attribute=]
-or [=regular operation=], it
-indicates that an object that [=implements=] an interface with the given
-interface member will not include its property name in any object
-environment record with it as its base object.  The result of this is
-that bare identifiers matching the property name will not resolve to
-the property in a <code>with</code> statement.  This is achieved by
-including the property name on the
-[=interface prototype object=]’s
-{{@@unscopables}} property’s value.
+If the [{{LegacyWindowAlias}}] [=extended attribute=] appears on an [=interface=],
+it indicates that the {{Window}} [=interface=] will have a property
+for each [=identifier=] mentioned in the extended attribute,
+whose value is the [=interface object=] for the interface.
 
-The [{{Unscopable}}]
-extended attribute must
-[=takes no arguments|take no arguments=].
+The [{{LegacyWindowAlias}}] extended attribute must either
+[=takes an identifier|take an identifier=] or
+[=takes an identifier list|take an identifier list=].
+The <emu-t class="regex"><a href="#prod-identifier">identifier</a></emu-t>s that occur after the
+“<emu-t>=</emu-t>” are the [{{LegacyWindowAlias}}]'s <dfn lt="LegacyWindowAlias identifier">identifiers</dfn>.
 
-The [{{Unscopable}}]
-extended attribute must not appear on
-anything other than a [=regular attribute=]
-or [=regular operation=].
+Each of the [=LegacyWindowAlias identifier|identifiers=] of [{{LegacyWindowAlias}}]
+must not be the same as one used by a [{{LegacyWindowAlias}}]
+extended attribute on this interface or another interface,
+must not be the same as the [=LegacyFactoryFunction identifier|identifier=] used by a [{{LegacyFactoryFunction}}]
+extended attribute on this interface or another interface,
+must not be the same as an [=identifier=] of an interface that has an [=interface object=],
+and must not be one of the [=reserved identifiers=].
 
-The [{{Unscopable}}] extended attribute must not be used on an attribute declared on a
-[=namespace=].
+The [{{LegacyWindowAlias}}] and [{{LegacyNoInterfaceObject}}]
+extended attributes must not be specified on the same interface.
 
-See [[#interface-prototype-object]]
-for the specific requirements that the use of
-[{{Unscopable}}] entails.
+The [{{LegacyWindowAlias}}] and [{{LegacyNamespace}}]
+extended attributes must not be specified on the same interface.
 
-<div class="note">
+The [{{LegacyWindowAlias}}] extended attribute must not be specified
+on an interface that does not include the {{Window}} [=interface=]
+in its [=exposure set=].
 
-    For example, with the following IDL:
+An interface must not have more than one [{{LegacyWindowAlias}}] extended attributes specified.
+
+See [[#es-interfaces]] for details on how legacy window aliases
+are to be implemented.
+
+<div class="example">
+
+    The following IDL defines an interface that uses the
+    [{{LegacyWindowAlias}}] extended attribute.
 
     <pre highlight="webidl">
-        [Exposed=Window]
-        interface Thing {
-          void f();
-          [Unscopable] g();
+        [Exposed=Window,
+         LegacyWindowAlias=WebKitCSSMatrix]
+        interface DOMMatrix : DOMMatrixReadOnly {
+          // ...
         };
     </pre>
 
-    the <code class="idl">f</code> property can be referenced with a bare identifier
-    in a <code>with</code> statement but the <code class="idl">g</code> property cannot:
+    An ECMAScript implementation that supports this interface will
+    expose two properties on the {{Window}} object with the same value
+    and the same characteristics;
+    one for exposing the [=interface object=] normally,
+    and one for exposing it with a legacy name.
 
     <pre highlight="js">
-        var thing = getThing();  // An instance of Thing
-        with (thing) {
-          f;                     // Evaluates to a Function object.
-          g;                     // Throws a ReferenceError.
-        }
+        WebKitCSSMatrix === DOMMatrix;     // Evaluates to true.
+
+        var m = new WebKitCSSMatrix();     // Creates a new object that
+                                           // implements DOMMatrix.
+
+        m.constructor === DOMMatrix;       // Evaluates to true.
+        m.constructor === WebKitCSSMatrix; // Evaluates to true.
+        {}.toString.call(m);               // Evaluates to '[object DOMMatrix]'.
     </pre>
 </div>
 
