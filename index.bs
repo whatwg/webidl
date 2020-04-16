@@ -152,10 +152,11 @@ urlPrefix: https://tc39.github.io/ecma262/; spec: ECMA-262
         text: IsSharedArrayBuffer; url: sec-issharedarraybuffer
         text: IteratorStep; url: sec-iteratorstep
         text: IteratorValue; url: sec-iteratorvalue
+        text: MakeBasicObject; url: sec-makebasicobject
         text: NewModuleEnvironment; url: sec-newmoduleenvironment
         text: NewPromiseCapability; url: sec-newpromisecapability
         text: NormalCompletion; url: sec-normalcompletion
-        text: ObjectCreate; url: sec-objectcreate
+        text: OrdinaryObjectCreate; url: sec-ordinaryobjectcreate
         text: OrdinaryDefineOwnProperty; url: sec-ordinarydefineownproperty
         text: OrdinaryGetOwnProperty; url: sec-ordinarygetownproperty
         text: OrdinaryPreventExtensions; url: sec-ordinarypreventextensions
@@ -7933,7 +7934,7 @@ up on the ECMAScript object are not necessarily the same as the object’s prope
     to an ECMAScript Object value by
     running the following algorithm (where |D| is the [=dictionary=]):
 
-    1.  Let |O| be [=!=] <a abstract-op>ObjectCreate</a>({{%ObjectPrototype%}}).
+    1.  Let |O| be [=!=] [$OrdinaryObjectCreate$]({{%ObjectPrototype%}}).
     1.  Let |dictionaries| be a list consisting of |D| and all of |D|’s [=inherited dictionaries=],
         in order from least to most derived.
     1.  For each dictionary |dictionary| in |dictionaries|, in order:
@@ -8227,7 +8228,7 @@ ECMAScript Object values.
     [=converted to an ECMAScript value|converted=]
     to an ECMAScript value as follows:
 
-    1.  Let |result| be [=!=] <a abstract-op>ObjectCreate</a>({{%ObjectPrototype%}}).
+    1.  Let |result| be [=!=] [$OrdinaryObjectCreate$]({{%ObjectPrototype%}}).
     1.  [=map/For each=] |key| → |value| of |D|:
         1.  Let |esKey| be |key| [=converted to an ECMAScript value=].
         1.  Let |esValue| be |value| [=converted to an ECMAScript value=].
@@ -11347,7 +11348,7 @@ default interfaces do not have such steps.
         then set |constructorProto| to the [=interface object=] of |P| in |realm|.
     1.  Let |F| be [=!=] <a abstract-op>CreateBuiltinFunction</a>(|steps|, « \[[Unforgeables]] »,
         |realm|, |constructorProto|).
-    1.  Let |unforgeables| be [$ObjectCreate$](<emu-val>null</emu-val>).
+    1.  Let |unforgeables| be [=!=] [$OrdinaryObjectCreate$](<emu-val>null</emu-val>).
     1.  [=Define the unforgeable regular operations=] of |I| on |unforgeables|, given |realm|.
     1.  [=Define the unforgeable regular attributes=] of |I| on |unforgeables|, given |realm|.
     1.  Set |F|.\[[Unforgeables]] to |unforgeables|.
@@ -11447,15 +11448,14 @@ with the [{{NoInterfaceObject}}] [=extended attribute=].
         then set |proto| to |realm|.\[[Intrinsics]].[[{{%ErrorPrototype%}}]].
     1.  Otherwise, set |proto| to |realm|.\[[Intrinsics]].[[{{%ObjectPrototype%}}]].
     1.  Assert: <a abstract-op>Type</a>(|proto|) is Object.
-    1.  Let |interfaceProtoObj| be [=!=] <a abstract-op>ObjectCreate</a>(|proto|).
+    1.  Let |interfaceProtoObj| be [=!=] [$OrdinaryObjectCreate$](|proto|).
     1.  If |interface| has any [=member=] declared with the [{{Unscopable}}] [=extended attribute=],
         then:
 
         Issue: Should an {{@@unscopables}} property also be defined if |interface| is
         declared with the [{{Global}}] [=extended attribute=]?
         This is discussed in <a href="https://github.com/heycam/webidl/issues/544">issue #544</a>.
-        1.  Let |unscopableObject| be the result of performing [=!=]
-            <a abstract-op>ObjectCreate</a>(<emu-val>null</emu-val>).
+        1.  Let |unscopableObject| be [=!=] [$OrdinaryObjectCreate$](<emu-val>null</emu-val>).
         1.  [=list/For each=] [=exposed=] [=member=] |member| of |interface|
             that is declared with the [{{Unscopable}}] [=extended attribute=]:
             1.  Let |id| be |member|'s [=identifier=].
@@ -11547,13 +11547,13 @@ for that interface on which named properties are exposed.
     1.  If |interface| is declared to inherit from another interface,
         then set |proto| to the [=interface prototype object=] in |realm| for the [=inherited interface=].
     1.  Otherwise, set |proto| to |realm|.\[[Intrinsics]].[[{{%ObjectPrototype%}}]].
-    1.  Let |obj| be a newly created object.
-    1.  Set |obj|'s internal methods to the definitions specified in
-        [=ECMA-262 Ordinary object internal methods and internal slots=],
-        unless they are specified in the the rest of [[#named-properties-object]].
-    1.  Set |obj|'s remaining internal methods to the definitions specified below.
+    1.  Let |obj| be [=!=] [$MakeBasicObject$](« \[[Prototype]], \[[Extensible]] »).
+    1.  Set |obj|.\[[GetOwnProperty]] as specified in [[#named-properties-object-getownproperty]].
+    1.  Set |obj|.\[[DefineOwnProperty]] as specified in [[#named-properties-object-defineownproperty]].
+    1.  Set |obj|.\[[Delete]] as specified in [[#named-properties-object-delete]].
+    1.  Set |obj|.\[[SetPrototypeOf]] as specified in [[#named-properties-object-setprototypeof]].
+    1.  Set |obj|.\[[PreventExtensions]] as specified in [[#named-properties-object-preventextensions]].
     1.  Set |obj|.\[[Prototype]] to |proto|.
-    1.  Set |obj|.\[[Extensible]] to <emu-val>true</emu-val>.
     1.  Return |obj|.
 </div>
 
@@ -12006,7 +12006,7 @@ The [=return type=] of the [=default toJSON operation=] must be {{object}}.
         for [=interface=] |I|.
     1.  Invoke [=collect attribute values of an inheritance stack=] on <b>this</b>,
         passing it |stack| and |map| as arguments.
-    1.  Let |result| be [=!=] <a abstract-op>ObjectCreate</a>({{%ObjectPrototype%}}).
+    1.  Let |result| be [=!=] [$OrdinaryObjectCreate$]({{%ObjectPrototype%}}).
     1.  [=map/For each=] |key| → |value| of |map|,
         1.  Let |k| be |key| [=converted to an ECMAScript value=].
         1.  Let |v| be |value| [=converted to an ECMAScript value=].
@@ -13193,14 +13193,11 @@ the Realm given as an argument.
             1.  Let |targetRealm| be [$GetFunctionRealm$](|newTarget|).
             1.  Set |prototype| to the [=interface prototype object=] for |interface| in
                 |targetRealm|.
-    1.  Let |slots| be « \[[Realm]], \[[PrimaryInterface]] ».
-    1.  Let |instance| be a newly created [=ECMAScript/object=] in |realm|
-        with an internal slot for each name in |slots|.
+    1.  Let |instance| be [=!=] [$MakeBasicObject$](
+        « \[[Prototype]], \[[Extensible]], \[[Realm]], \[[PrimaryInterface]] »).
     1.  Set |instance|.\[[Realm]] to |realm|.
     1.  Set |instance|.\[[PrimaryInterface]] to |interface|.
     1.  Set |instance|.\[[Prototype]] to |prototype|.
-    1.  Set |instance|'s essential internal methods to the definitions specified in
-        [=ECMA-262 Ordinary object internal methods and internal slots=].
     1.  Let |interfaces| be the [=inclusive inherited interfaces=] of |interface|.
     1.  [=list/iterate|For every=] [=interface=] |ancestor interface| in |interfaces|:
         1.  Let |unforgeables| be the value of the \[[Unforgeables]] slot of the [=interface
@@ -13716,7 +13713,8 @@ those of normal <code>Array</code> instances:
     in a [=Realm=] |realm|, given Web IDL type |T| and algorithms |setAlgorithm| and |deleteAlgorithm|:
 
     1.  Let |innerArray| be [=!=] [$ArrayCreate$](0).
-    1.  Let |handler| be [$ObjectCreate$](<emu-val>null</emu-val>, « \[[Type]], \[[SetAlgorithm]], \[[DeleteAlgorithm]], \[[BackingList]] »).
+    1.  Let |handler| be [=!=] [$OrdinaryObjectCreate$](<emu-val>null</emu-val>,
+        « \[[Type]], \[[SetAlgorithm]], \[[DeleteAlgorithm]], \[[BackingList]] »).
     1.  Set |handler|.\[[Type]] to |T|.
     1.  Set |handler|.\[[SetAlgorithm]] to |setAlgorithm|.
     1.  Set |handler|.\[[DeleteAlgorithm]] to |deleteAlgorithm|.
@@ -14171,8 +14169,7 @@ The characteristics of a namespace object are described in [[#namespace-object]]
     The namespace object for a given [=namespace=] |namespace| and [=Realm=] |realm|
     is <dfn lt="create a namespace object">created</dfn> as follows:
 
-    1.  Let |namespaceObject| be
-        [=!=] <a abstract-op>ObjectCreate</a>(|realm|.\[[Intrinsics]].[[{{%ObjectPrototype%}}]]).
+    1.  Let |namespaceObject| be [=!=] [$OrdinaryObjectCreate$](|realm|.\[[Intrinsics]].[[{{%ObjectPrototype%}}]]).
     1.  [=Define the regular attributes=] of |namespace| on |namespaceObject| given |realm|.
     1.  [=Define the regular operations=] of |namespace| on |namespaceObject| given |realm|.
     1.  For each [=exposed=] [=interface=] |interface| which has the [{{LegacyNamespace}}] extended
