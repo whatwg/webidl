@@ -1516,12 +1516,12 @@ that are exposed as a convenience to users of objects in the system.
 
 </div>
 
-The algorithm steps for every [=regular operation=], [=regular attribute=] getter, and
-[=regular attribute=] setter's defined on an [=interface=] or [=interface mixin=] have access to a
+The [=constructor steps=], [=getter steps=], [=setter steps=], and [=method steps=] for the various
+[=members=] defined on an [=interface=] or [=interface mixin=] have access to a
 <dfn export>this</dfn> value, which is an IDL value of the [=interface=] type that the member is
 declared on or that [=includes=] the [=interface mixin=] the member is declared on.
 
-[=Attribute=] setter's algorithm steps also have access to <dfn export>the given value</dfn>,
+[=Setter steps=] also have access to <dfn export>the given value</dfn>,
 which is an IDL value of the type the [=attribute=] is declared as.
 
 [=Interfaces=], [=interface mixins=], [=callback interfaces=] and [=namespaces=] each support a
@@ -1869,13 +1869,13 @@ If an attribute has no <emu-t>static</emu-t> keyword, then it declares a
 it declares a [=static attribute=]. Note that in addition to being [=interface members=],
 [=read only=] [=regular attributes=] can be [=namespace members=] as well.
 
-The <dfn>getter steps</dfn> of an attribute _attr_ should be introduced using text of the form “The
-<code><var>attr</var></code> getter steps are:” followed by a list or “The
-<code><var>attr</var></code> getter steps are to” followed by an inline description.
+The <dfn>getter steps</dfn> of an attribute |attr| should be introduced using text of the form “The
+<code>|attr|</code> getter steps are:” followed by a list, or “The <code>|attr|</code> getter steps
+are to” followed by an inline description.
 
-The <dfn>setter steps</dfn> of an attribute _attr_ should be introduced using text of the form “The
-<code><var>attr</var></code> setter steps are:” followed by a list or “The
-<code><var>attr</var></code> setter steps are to” followed by an inline description.
+The <dfn>setter steps</dfn> of an attribute |attr| should be introduced using text of the form “The
+<code>|attr|</code> setter steps are:” followed by a list, or “The <code>|attr|</code> setter steps
+are to” followed by an inline description.
 
 The [=identifier=] of an
 [=attribute=]
@@ -2422,9 +2422,10 @@ The following extended attributes are applicable to operations:
 [{{SecureContext}}],
 [{{LegacyUnforgeable}}].
 
-The <dfn>method steps</dfn> of an operation _operation_ should be introduced using text of the form
-“The method <code><var>operation</var>()</code> steps are:” followed by a list or “The
-<code><var>operation</var>()</code> steps are to” followed by an inline description.
+The <dfn>method steps</dfn> of an operation |operation| should be introduced using text of the form
+“The <code>|operation|(<var ignore>arg1</var>, <var ignore>arg2</var>, ...)</code> method
+steps are:” followed by a list, or “The <code>|operation|(<var ignore>arg1</var>,
+<var ignore>arg2</var>, ...)</code> method steps are to” followed by an inline description.
 
 <pre class="grammar" id="prod-DefaultValue">
     DefaultValue :
@@ -2597,9 +2598,8 @@ in which case the [=default toJSON operation=] is exposed instead.
 
         1.  Let |json| be a new [=map=].
         1.  [=list/For each=] attribute [=identifier=] |attr| in « "from", "to", "amount", "description" »:
-            1.  Let |value| be the result of running the [=getter steps=]
-                of the [=attribute=] identified by |attr|
-                on <b>this</b>.
+            1.  Let |value| be the result of running the [=getter steps=] of the [=attribute=]
+                identified by |attr| on [=this=].
             1.  Set |json|[|attr|] to |value|.
         1.  Return |json|.
     </div>
@@ -2638,7 +2638,7 @@ For each [=constructor operation=] on the [=interface=], there will be a way to 
 construct an instance by passing the specified arguments.
 
 The constructor description of a [=constructor operation=] must either initialize the value passed
-as <b>[=this=]</b>, or throw an exception.
+as [=this=], or throw an exception.
 
 The <dfn>constructor steps</dfn> of a constructor _constructor_ should be introduced using text of
 the form “The <code>new <var>constructor</var>()</code> constructor steps are:” followed by a list
@@ -2646,7 +2646,7 @@ or “The <code>new <var>constructor</var>()</code> constructor steps are to” 
 description.
 
 <p class=example id=example-constructor-description>If the constructor does not initialize
-<b>[=this=]</b>, one can write “The <code>new Example(<var ignore>init</var>)</code> constructor
+[=this=], one can write “The <code>new Example(<var ignore>init</var>)</code> constructor
 steps are to do nothing.”
 
 See [[#interface-object]] for details on how a [=constructor operation=] is to be implemented.
@@ -8553,7 +8553,7 @@ JavaScript code.
 
     The <code>delay(|ms|)</code> method steps are:
 
-    1.  Let |realm| be <b>this</b>'s [=relevant Realm=].
+    1.  Let |realm| be [=this=]'s [=relevant Realm=].
     1.  If |ms| is NaN, let |ms| be +0; otherwise let |ms| be the maximum of |ms| and +0.
     1.  Let |p| be [=a new promise=] in |realm|.
     1.  Run the following steps [=in parallel=]:
@@ -8580,7 +8580,7 @@ JavaScript code.
 
     The <code>validatedDelay(|ms|)</code> method steps are:
 
-    1.  Let |realm| be <b>this</b>'s [=relevant Realm=].
+    1.  Let |realm| be [=this=]'s [=relevant Realm=].
     1.  If |ms| is NaN, return [=a promise rejected with=] a {{TypeError}} in |realm|.
     1.  If |ms| &lt; 0, return [=a promise rejected with=] a {{RangeError}} in |realm|.
     1.  Let |p| be [=a new promise=] in |realm|.
@@ -8606,7 +8606,7 @@ JavaScript code.
 
     The <code>addDelay(|ms|, |promise|)</code> method steps are:
 
-    1.  Let |realm| be <b>this</b>'s [=relevant Realm=].
+    1.  Let |realm| be [=this=]'s [=relevant Realm=].
     1.  Let |taskSource| be some appropriate [=task source=].
     1.  If |ms| is NaN, let |ms| be +0; otherwise let |ms| be the maximum of |ms| and +0.
     1.  Let |p| be [=a new promise=] in |realm|.
@@ -8644,7 +8644,7 @@ JavaScript code.
 
     The <code>ready</code> attribute getter steps are:
 
-    1. Return <b>this</b>'s [=Environment/ready promise=].
+    1. Return [=this=]'s [=Environment/ready promise=].
 </div>
 
 <div algorithm="Environment-create">
@@ -9111,16 +9111,14 @@ for the specific requirements that the use of
 
 <h4 id="Default" extended-attribute lt="Default">[Default]</h4>
 
-If the [{{Default}}] [=extended attribute=] appears on a [=regular operation=],
-then it indicates that steps described in the [=corresponding default operation=]
-must be carried out when the operation is invoked.
+If the [{{Default}}] [=extended attribute=] appears on a [=regular operation=], then it indicates
+that the appropriate [=default method steps=] must be carried out when the operation is invoked.
 
 The [{{Default}}] extended attribute must
 [=takes no arguments|take no arguments=].
 
-The [{{Default}}] extended attribute must not
-be used on anything other than a [=regular operation=]
-for which a [=corresponding default operation=] has been defined.
+The [{{Default}}] extended attribute must not be used on anything other than a [=regular operation=]
+that [=has default method steps=] defined.
 
 <div class="example" id="example-tojson-default">
 
@@ -11183,7 +11181,7 @@ default interfaces do not have such steps.
             {{NewTarget}}.
         1.  Perform the [=constructor steps=] of |constructor|
             with |values| as the argument values
-            and |object| as <b>[=this=]</b>.
+            and |object| as [=this=].
         1.  Let |O| be |object|, [=converted to an ECMAScript value=].
         1.  Assert: |O| is an object that [=implements=] |I|.
         1.  Assert: |O|.\[[Realm]] is |realm|.
@@ -11250,8 +11248,7 @@ implement the interface on which the
             interface|internally creating a new object implementing=] |I|, with |realm| and
             {{NewTarget}}.
         1.  Perform the [=constructor steps=] of |constructor|
-            with |values| as the argument values
-            and |object| as <b>[=this=]</b>.
+            with |object| as [=this=] and |values| as the argument values.
         1.  Let |O| be |object|, [=converted to an ECMAScript value=].
         1.  Assert: |O| is an object that [=implements=] |I|.
         1.  Assert: |O|.\[[Realm]] is |realm|.
@@ -11691,8 +11688,7 @@ in which case they are exposed on every object that [=implements=] the interface
             </dl>
 
         1.  Perform the [=setter steps=] of |attribute|,
-            with |idlValue| as <b>[=the given value=]</b> and
-            |idlObject| as <b>[=this=]</b> if it is not null.
+            with |idlObject| as [=this=] and |idlValue| as [=the given value=].
         1.  Return <emu-val>undefined</emu-val>
     1.  Let |F| be [=!=] <a abstract-op>CreateBuiltinFunction</a>(|steps|, « », |realm|).
     1.  Let |name| be the string "<code>set </code>" prepended to |id|.
@@ -11702,7 +11698,7 @@ in which case they are exposed on every object that [=implements=] the interface
 </div>
 
 Note: Although there is only a single property for an IDL attribute, since
-accessor property getters and setters are passed a <b>[=this=]</b>
+accessor property getters and setters are passed a [=this=]
 value for the object on which property corresponding to the IDL attribute is
 accessed, they are able to expose instance-specific data.
 
@@ -11796,17 +11792,12 @@ in which case they are exposed on every object that [=implements=] the interface
             1.  Let &lt;|operation|, |values|&gt; be the result of passing
                 |S| and |args| to the [=overload resolution algorithm=].
             1.  Let |R| be <emu-val>null</emu-val>.
-            1.  If |operation| is declared with a [{{Default}}] [=extended attribute=],
-                then:
-                1.  Set |R| be the result of running the [=method steps=] of
-                    |operation|'s [=corresponding default operation=],
-                    with |values| as the argument values
-                    and |idlObject| as <b>[=this=]</b> if it is not null.
-            1.  Otherwise:
-                1.  Set |R| be the result of running the
-                    [=method steps=] of |operation|,
-                    with |values| as the argument values
-                    and |idlObject| as <b>[=this=]</b> if it is not null.
+            1.  If |operation| is declared with a [{{Default}}] [=extended attribute=], then:
+                1.  Assert: |operation| [=has default method steps=].
+                1.  Set |R| to the result of running the [=default method steps=] for |operation|,
+                    with |idlObject| as [=this=] and |values| as the argument values.
+            1.  Otherwise, set |R| to the result of running the [=method steps=] of |operation|,
+                with |idlObject| as [=this=] and |values| as the argument values.
             1.  Return |R|, [=converted to an ECMAScript value=].
 
                 Issue(heycam/webidl#674): |R| is assumed to be an IDL value of the type |op| is declared to return.
@@ -11830,60 +11821,69 @@ in which case they are exposed on every object that [=implements=] the interface
 
 <h5 id="es-default-operations">Default operations</h5>
 
-Only [=regular operations=] which have a <dfn>corresponding default operation</dfn> defined below
-may be declared with a [{{Default}}] [=extended attribute=].
+A [=regular operation=]
+<dfn lt="has default method steps|have default method steps">has default method steps</dfn>
+if its [=identifier=] appears in the first column of the following table. In that case, its
+<dfn>default method steps</dfn> are those given by the algorithm linked from the second column of
+the table, and the operation must have the return type given in the third column of the table.
+
+<table id="table-default-method-steps" class="data">
+<thead>
+    <th>[=Identifier=]
+    <th>[=Default method steps=]
+    <th>[=Return type=]</th>
+<tbody>
+    <tr>
+        <td>"<code>toJSON</code>"
+        <td>The [=default toJSON steps=]
+        <td>{{object}}</td>
+</table>
+
+A [=regular operation=] that does not [=have default method steps=] must not be declared with a
+[{{Default}}] [=extended attribute=].
 
 
 <h6 id="es-default-tojson">Default toJSON operation</h5>
 
-The [=corresponding default operation=] of the <code>toJSON</code> operation is the [=default toJSON operation=].
-
-The [=return type=] of the [=default toJSON operation=] must be {{object}}.
-
 <div algorithm>
 
-    To invoke the <dfn export>default toJSON operation</dfn> of [=interface=] |I|,
-    run the the following steps:
+    The <dfn export>default toJSON steps</dfn> for an [=interface=] |I| are:
 
     1.  Let |map| be a new [=ordered map=].
     1.  Let |stack| be the result of [=create an inheritance stack|creating an inheritance stack=]
         for [=interface=] |I|.
-    1.  Invoke [=collect attribute values of an inheritance stack=] on <b>this</b>,
-        passing it |stack| and |map| as arguments.
+    1.  Invoke [=collect attribute values of an inheritance stack=] given [=this=], |stack|, and
+        |map|.
     1.  Let |result| be [=!=] [$OrdinaryObjectCreate$]({{%ObjectPrototype%}}).
     1.  [=map/For each=] |key| → |value| of |map|,
         1.  Let |k| be |key| [=converted to an ECMAScript value=].
         1.  Let |v| be |value| [=converted to an ECMAScript value=].
-        1.  Perform [=!=] <a abstract-op>CreateDataProperty</a>(|result|, |k|, |v|).
+        1.  Perform [=!=] [$CreateDataProperty$](|result|, |k|, |v|).
     1.  Return |result|.
 </div>
 
 <div algorithm>
 
-    To invoke the <dfn>collect attribute values of an inheritance stack</dfn> abstract operation
-    with [=stack=] |stack| and [=ordered map=] |map| as arguments,
-    run the the following steps:
+    To <dfn>collect attribute values of an inheritance stack</dfn> given a [=platform object=]
+    |object|, a [=stack=] |stack|, and an [=ordered map=] |map|:
 
     1.  Let |I| be the result of [=stack/pop|popping=] from |stack|.
-    1.  Invoke [=collect attribute values=] on <b>this</b>,
-        passing it |I| and |map| as arguments.
-    1.  If |stack| [=stack/is not empty=],
-        then invoke [=collect attribute values of an inheritance stack=] on <b>this</b>,
-        passing it |stack| and |map| as arguments.
+    1.  Invoke [=collect attribute values=] given |object|, |I|, and |map|.
+    1.  If |stack| [=stack/is not empty=], then invoke
+        [=collect attribute values of an inheritance stack=] given |object|, |stack|, and |map|.
 </div>
 
 <div algorithm>
 
-    To invoke the <dfn>collect attribute values</dfn> abstract operation
-    with [=interface=] |I| and [=ordered map=] |map| as arguments,
-    run the the following steps:
+    To <dfn>collect attribute values</dfn> given a [=platform object=] |object|, an [=interface=]
+    |I|, and an [=ordered map=] |map|:
 
-    1.  If a <code>toJSON</code> operation with a [{{Default}}] [=extended attribute=] is declared on |I|, then
-        [=list|for each=] [=exposed=] [=regular attribute=] |attr|
-        that is an [=interface member=] of |I|, in order:
+    1.  If a <code>toJSON</code> operation with a [{{Default}}] [=extended attribute=] is declared
+        on |I|, then [=list/for each=] [=exposed=] [=regular attribute=] |attr| that is an
+        [=interface member=] of |I|, in order:
         1.  Let |id| be the [=identifier=] of |attr|.
-        1.  Let |value| be the result of running the [=getter steps=] of
-            of |attr| on <b>this</b>.
+        1.  Let |value| be the result of running the [=getter steps=] of |attr| with |object| as
+            [=this=].
         1.  If |value| is a [=JSON type=], then [=map/set=] |map|[|id|] to |value|.
 
 </div>
@@ -12018,11 +12018,10 @@ then there must exist a property with the following characteristics:
                  :: Set |V| to the result of running the [=getter steps=] of the attribute
                     (or those listed in the [=getter steps=] of the inherited attribute, if this attribute is declared to
                     [=inherit its getter=]),
-                    with |O| as the object.
+                    with |O| as [=this=].
                  :  on an [=operation=] with an identifier
                  :: Set |V| to the result of running the [=method steps=]
-                    of the operation, using |O| as the <emu-val>this</emu-val> value
-                    and passing no arguments.
+                    of the operation, with |O| as [=this=] and an empty list as the argument values.
                  :  on an [=operation=] with no identifier
                  :: Set |V| to the result of performing the [=stringification behavior=]
                     of the interface.
@@ -14474,18 +14473,18 @@ The
 <dfn constructor for="DOMException" lt="DOMException(message, name)"><code>new DOMException(|message|, |name|)</code></dfn>
 constructor steps are:
 
-1. Set <b>this</b>'s [=DOMException/name=] to |name|.
-1. Set <b>this</b>'s [=DOMException/message=] to |message|.
+1. Set [=this=]'s [=DOMException/name=] to |name|.
+1. Set [=this=]'s [=DOMException/message=] to |message|.
 
-The <dfn attribute for="DOMException"><code>name</code></dfn> attribute's getter must return this
-{{DOMException}} object's [=DOMException/name=].
+The <dfn attribute for="DOMException"><code>name</code></dfn> getter steps are to return
+[=this=]'s [=DOMException/name=].
 
-The <dfn attribute for="DOMException"><code>message</code></dfn> attribute's getter must return this
-{{DOMException}} object's [=DOMException/message=].
+The <dfn attribute for="DOMException"><code>message</code></dfn> getter steps are to
+return [=this=]'s [=DOMException/message=].
 
-The <dfn attribute for="DOMException"><code>code</code></dfn> attribute's getter must return the
-legacy code indicated in the [=error names table=] for this {{DOMException}} object's
-[=DOMException/name=], or 0 if no such entry exists in the table.
+The <dfn attribute for="DOMException"><code>code</code></dfn> getter steps are to return the legacy
+code indicated in the [=error names table=] for [=this=]'s [=DOMException/name=], or 0 if no such
+entry exists in the table.
 
 {{DOMException}} objects are [=serializable objects=].
 
