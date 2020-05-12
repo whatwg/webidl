@@ -1003,20 +1003,20 @@ The relevant language binding determines how interfaces correspond to constructs
 in the language.
 
 The following extended attributes are applicable to interfaces:
+[{{CrossOriginIsolated}}],
 [{{Exposed}}],
 [{{Global}}],
-[{{LegacyWindowAlias}}],
 [{{LegacyFactoryFunction}}],
 [{{LegacyNoInterfaceObject}}],
 [{{LegacyOverrideBuiltIns}}],
-[{{SecureContext}}], and
-[{{CrossOriginIsolated}}].
+[{{LegacyWindowAlias}}], and
+[{{SecureContext}}].
 
 The following extended attributes are applicable to [=partial interfaces=]:
+[{{CrossOriginIsolated}}],
 [{{Exposed}}],
-[{{LegacyOverrideBuiltIns}}],
-[{{SecureContext}}], and
-[{{CrossOriginIsolated}}].
+[{{LegacyOverrideBuiltIns}}], and
+[{{SecureContext}}].
 
 [=Interfaces=] which are not annotated
 with a [{{LegacyNoInterfaceObject}}] [=extended attribute=]
@@ -1258,7 +1258,7 @@ in the <a href="#es-namespaces">ECMAScript binding</a>.
 Note that unlike [=interfaces=] or [=dictionaries=], [=interface mixins=] do not create types.
 
 Of the extended attributes defined in this specification,
-only the [{{Exposed}}], [{{SecureContext}}], and [{{CrossOriginIsolated}}] extended attributes
+only the [{{CrossOriginIsolated}}], [{{Exposed}}], and [{{SecureContext}}] extended attributes
 are applicable to [=interface mixins=].
 
 An <dfn>includes statement</dfn> is a definition
@@ -1783,9 +1783,9 @@ on which they appear.  It is language binding specific whether
 </div>
 
 The following extended attributes are applicable to constants:
-[{{Exposed}}],
-[{{SecureContext}}], and
-[{{CrossOriginIsolated}}].
+[{{CrossOriginIsolated}}],
+[{{Exposed}}], and
+[{{SecureContext}}].
 
 <pre class="grammar" id="prod-Const">
     Const :
@@ -1965,10 +1965,10 @@ interface will be stringified to the value of the attribute.  See
 
 The following [=extended attributes=]
 are applicable to regular and static attributes:
+[{{CrossOriginIsolated}}],
 [{{Exposed}}],
-[{{SameObject}}],
-[{{SecureContext}}], and
-[{{CrossOriginIsolated}}].
+[{{SameObject}}], and
+[{{SecureContext}}].
 
 The following [=extended attributes=]
 are applicable only to regular attributes:
@@ -2418,12 +2418,12 @@ type=] that has a [=dictionary type=] in its [=flattened member types=].
 </div>
 
 The following extended attributes are applicable to operations:
+[{{CrossOriginIsolated}}],
 [{{Default}}],
 [{{Exposed}}],
-[{{NewObject}}],
-[{{SecureContext}}],
-[{{CrossOriginIsolated}}], and
-[{{LegacyUnforgeable}}].
+[{{LegacyUnforgeable}}],
+[{{NewObject}}], and
+[{{SecureContext}}].
 
 The <dfn>method steps</dfn> of an operation |operation| should be introduced using text of the form
 “The <code>|operation|(<var ignore>arg1</var>, <var ignore>arg2</var>, ...)</code> method
@@ -4282,9 +4282,9 @@ must not have a
 [=asynchronously iterable declaration=].
 
 The following extended attributes are applicable to [=iterable declarations=]:
-[{{Exposed}}],
-[{{SecureContext}}], and
-[{{CrossOriginIsolated}}].
+[{{CrossOriginIsolated}}],
+[{{Exposed}}], and
+[{{SecureContext}}].
 
 <pre class="grammar" id="prod-Iterable">
     Iterable :
@@ -4473,9 +4473,9 @@ An [=interface=] with an [=asynchronously iterable declaration=] and its [=inher
 must not have a [=maplike declaration=], [=setlike declaration=], or [=iterable declaration=].
 
 The following extended attributes are applicable to [=asynchronously iterable declarations=]:
-[{{Exposed}}],
-[{{SecureContext}}], and
-[{{CrossOriginIsolated}}].
+[{{CrossOriginIsolated}}],
+[{{Exposed}}], and
+[{{SecureContext}}].
 
 Issue: these [=extended attributes=] are not currently taken into account.
 When they are, the effect will be as you would expect.
@@ -4725,7 +4725,7 @@ The order that members appear in has significance for property enumeration in th
 
 Note that unlike interfaces or dictionaries, namespaces do not create types.
 
-Of the extended attributes defined in this specification, only the [{{Exposed}}], [{{SecureContext}}], and [{{CrossOriginIsolated}}] extended attributes are applicable to namespaces.
+Of the extended attributes defined in this specification, only the [{{CrossOriginIsolated}}], [{{Exposed}}], and [{{SecureContext}}] extended attributes are applicable to namespaces.
 
 [=Namespaces=] must be annotated with the [{{Exposed}}] [=extended attribute=].
 
@@ -9114,6 +9114,96 @@ for the specific requirements that the use of
 </div>
 
 
+<h4 id="CrossOriginIsolated" extended-attribute lt="CrossOriginIsolated">[CrossOriginIsolated]</h4>
+
+If the [{{CrossOriginIsolated}}] [=extended attribute=] appears on an
+[=interface=],
+[=partial interface=],
+[=interface mixin=],
+[=partial interface mixin=],
+[=callback interface=],
+[=namespace=],
+[=partial namespace=],
+[=interface member=],
+[=interface mixin member=], or
+[=namespace member=],
+it indicates that the construct is [=exposed=]
+only within a cross-origin isolated context.
+The [{{CrossOriginIsolated}}] extended attribute must not be used
+on any other construct.
+
+ISSUE(whatwg/html#5435): "cross-origin isolated context" ought to be defined in HTML.
+
+The [{{CrossOriginIsolated}}] extended attribute must [=takes no arguments|take no arguments=].
+
+If [{{CrossOriginIsolated}}] appears on an [=overloaded=] [=operation=],
+then it must appear on all overloads.
+
+The [{{CrossOriginIsolated}}] [=extended attribute=] must not be specified both on
+
+* an [=interface member=] and its [=interface=] or [=partial interface=];
+* an [=interface mixin member=] and its [=interface mixin=] or [=partial interface mixin=];
+* a [=namespace member=] and its [=namespace=] or [=partial namespace=].
+
+Note: This is because adding the [{{CrossOriginIsolated}}] [=extended attribute=] on a [=member=]
+when its containing definition is also annotated with the [{{CrossOriginIsolated}}]
+[=extended attribute=] does not further restrict the exposure of the [=member=].
+
+An [=interface=] without the [{{CrossOriginIsolated}}] [=extended attribute=]
+must not [=interface/inherit=] from another interface
+that does specify [{{CrossOriginIsolated}}].
+
+<div class="example">
+
+    The following [=IDL fragment=] defines an interface with one [=operation=] that is executable
+    from all contexts, and two which are executable only from cross-origin isolated contexts.
+
+    <pre highlight="webidl">
+        [Exposed=Window]
+        interface PowerfulFeature {
+          // This call will succeed in all contexts.
+          Promise &lt;Result&gt; calculateNotSoSecretResult();
+
+          // This operation will not be exposed to a non-isolated context. In such a context,
+          // there will be no "calculateSecretResult" property on PowerfulFeature.prototype.
+          [CrossOriginIsolated] Promise&lt;Result&gt; calculateSecretResult();
+
+          // The same applies here: the attribute will not be exposed to a non-isolated context,
+          // and in a non-secure context there will be no "secretBoolean" property on
+          // PowerfulFeature.prototype.
+          [CrossOriginIsolated] readonly attribute boolean secretBoolean;
+        };
+
+        // HighResolutionTimer will not be exposed in a non-isolated context, nor will its members.
+        // In such a context, there will be no "HighResolutionTimer" property on Window.
+        [CrossOriginIsolated]
+        interface HighResolutionTimer {
+          DOMHighResTimeStamp getHighResolutionTime();
+        };
+
+        // The interface mixin members defined below will never be exposed in a non-isolated context,
+        // regardless of whether the interface that includes them is.
+        // In a non-isolated context, there will be no "snap" property on
+        // PowerfulFeature.prototype.
+        [CrossOriginIsolated]
+        interface mixin Snapshotable {
+          Promise&lt;boolean&gt; snap();
+        };
+        PowerfulFeature includes Snapshotable;
+
+        // On the other hand, the following interface mixin members will be exposed
+        // to a non-isolated context when included by a host interface
+        // that doesn't have the [CrossOriginIsolated] extended attribute.
+        // In a non-secure context, there will be a "log" property on
+        // PowerfulFeatures.prototype.
+        interface mixin Loggable {
+          Promise&lt;boolean&gt; log();
+        };
+        PowerfulFeatures includes Loggable;
+    </pre>
+</div>
+
+
 <h4 id="Default" extended-attribute lt="Default">[Default]</h4>
 
 If the [{{Default}}] [=extended attribute=] appears on a [=regular operation=], then it indicates
@@ -9357,21 +9447,50 @@ Otherwise, it is the [=host interface=]'s [=exposure set=].
     1.  If |realm|.\[[GlobalObject]] does not implement an [=interface=]
         that is in |construct|'s [=exposure set=], then return false.
     1.  If the [=relevant settings object=] of |realm|.\[[GlobalObject]] is not a
-        [=secure context=], and |construct| is [=available only in secure contexts=],
+        [=secure context=], and |construct| is [=conditionally exposed=] on [{{SecureContext}}],
         then return false.
     1.  If the [=relevant settings object=] of |realm|.\[[GlobalObject]] is not
-        cross-origin isolated, and |construct| is
-        [=available only in cross-origin isolated contexts=], then return false.
+        cross-origin isolated, and |construct| is [=conditionally exposed=] on
+        [{{CrossOriginIsolated}}], then return false.
     1.  Otherwise, return true.
+</div>
+
+<div algorithm>
+    An [=interface=], [=callback interface=], [=namespace=], or [=member=] |construct| is
+    <dfn id="dfn-exposed" export>conditionally exposed</dfn> on a given [=extended attribute=]
+    |exposure condition| if the following steps return true:
+
+    1.  Assert: |C| is an [=interface=], [=callback interface=], [=namespace=],
+        [=interface member=], [=interface mixin member=], or [=namespace member=].
+    1.  Let |H| be |C|'s [=host interface=] if |C| is an [=interface mixin member=], or null otherwise.
+    1.  If |C| is an [=interface member=], [=interface mixin member=], or [=namespace member=], then:
+        1.  If the |exposure condition| [=extended attribute=] is specified on |C|,
+            then return true.
+        1.  Otherwise, set |C| to be the
+            [=interface=], [=partial interface=],
+            [=interface mixin=], [=partial interface mixin=],
+            [=namespace=], or [=partial namespace=]
+            |C| is declared on.
+    1.  If |C| is a [=partial interface=], [=partial interface mixin=], or [=partial namespace=], then:
+        1.  If the |exposure condition| [=extended attribute=] is specified on |C|,
+            then return true.
+        1.  Otherwise, set |C| to be the original [=interface=], [=interface mixin=], or [=namespace=]
+            definition of |C|.
+    1.  If |C| is an [=interface mixin=], then:
+        1.  If the |exposure condition| [=extended attribute=] is specified on |C|,
+            then return true.
+        1.  Otherwise, set |C| to |H|.
+    1.  Assert: |C| is an [=interface=], [=callback interface=] or [=namespace=].
+    1.  If the |exposure condition| [=extended attribute=] is specified on |C|,
+        then return true.
+    1.  Otherwise, return false.
 </div>
 
 Note: Since it is not possible for the [=relevant settings object=]
 for an ECMAScript global object to change whether it is a
-[=secure context=] or not over time, an implementation's
+[=secure context=] or cross-origin isolated over time, an implementation's
 decision to create properties for an interface or interface member
-can be made once, at the time the
-[=initial objects=]
-are created.
+can be made once, at the time the [=initial objects=] are created.
 
 See
 [[#es-interfaces]],
@@ -9455,6 +9574,8 @@ for the specific requirements that the use of
         };
     </pre>
 </div>
+
+
 
 
 <h4 oldids="PrimaryGlobal" id="Global" extended-attribute lt="Global">[Global]</h4>
@@ -9910,41 +10031,6 @@ on any other construct.
 
 The [{{SecureContext}}] extended attribute must [=takes no arguments|take no arguments=].
 
-<div algorithm>
-
-    To check if a construct |C| is
-    <dfn id="dfn-available-only-in-secure-contexts" export>available only in secure contexts</dfn>,
-    run the following steps:
-
-    1.  Assert: |C| is an [=interface=], [=callback interface=], [=namespace=],
-        [=interface member=], [=interface mixin member=], or [=namespace member=].
-    1.  Let |H| be |C|'s [=host interface=] if |C| is an [=interface mixin member=], or null otherwise.
-    1.  If |C| is an [=interface member=], [=interface mixin member=], or [=namespace member=], then:
-        1.  If the [{{SecureContext}}] [=extended attribute=] is specified on |C|,
-            then return true.
-        1.  Otherwise, set |C| to be the
-            [=interface=], [=partial interface=],
-            [=interface mixin=], [=partial interface mixin=],
-            [=namespace=], or [=partial namespace=]
-            |C| is declared on.
-    1.  If |C| is a [=partial interface=], [=partial interface mixin=], or [=partial namespace=], then:
-        1.  If the [{{SecureContext}}] [=extended attribute=] is specified on |C|,
-            then return true.
-        1.  Otherwise, set |C| to be the original [=interface=], [=interface mixin=], or [=namespace=]
-            definition of |C|.
-    1.  If |C| is an [=interface mixin=], then:
-        1.  If the [{{SecureContext}}] [=extended attribute=] is specified on |C|,
-            then return true.
-        1.  Otherwise, set |C| to |H|.
-    1.  Assert: |C| is an [=interface=], [=callback interface=] or [=namespace=].
-    1.  If the [{{SecureContext}}] [=extended attribute=] is specified on |C|,
-        then return true.
-    1.  Otherwise, return false.
-</div>
-
-Note: Whether a construct is [=available only in secure contexts=]
-influences whether it is [=exposed=] in a given [=Realm=].
-
 If [{{SecureContext}}] appears on an [=overloaded=] [=operation=],
 then it must appear on all overloads.
 
@@ -10004,131 +10090,6 @@ that does specify [{{SecureContext}}].
         // On the other hand, the following interface mixin members will be exposed
         // to a non-secure context when included by a host interface
         // that doesn't have the [SecureContext] extended attribute.
-        // In a non-secure context, there will be a "log" property on
-        // PowerfulFeatures.prototype.
-        interface mixin Loggable {
-          Promise&lt;boolean&gt; log();
-        };
-        PowerfulFeatures includes Loggable;
-    </pre>
-</div>
-
-
-<h4 id="CrossOriginIsolated" extended-attribute lt="CrossOriginIsolated">[CrossOriginIsolated]</h4>
-
-If the [{{CrossOriginIsolated}}] [=extended attribute=] appears on an
-[=interface=],
-[=partial interface=],
-[=interface mixin=],
-[=partial interface mixin=],
-[=callback interface=],
-[=namespace=],
-[=partial namespace=],
-[=interface member=],
-[=interface mixin member=], or
-[=namespace member=],
-it indicates that the construct is [=exposed=]
-only within a cross-origin isolated context.
-The [{{CrossOriginIsolated}}] extended attribute must not be used
-on any other construct.
-
-ISSUE(whatwg/html#5435): "cross-origin isolated context" ought to be defined in HTML.
-
-The [{{CrossOriginIsolated}}] extended attribute must [=takes no arguments|take no arguments=].
-
-<div algorithm>
-
-    To check if a construct |C| is
-    <dfn id="dfn-available-only-in-cross-origin-isolated-contexts" export>available only in cross-origin isolated contexts</dfn>,
-    run the following steps:
-
-    1.  Assert: |C| is an [=interface=], [=callback interface=], [=namespace=],
-        [=interface member=], [=interface mixin member=], or [=namespace member=].
-    1.  Let |H| be |C|'s [=host interface=] if |C| is an [=interface mixin member=], or null otherwise.
-    1.  If |C| is an [=interface member=], [=interface mixin member=], or [=namespace member=], then:
-        1.  If the [{{SecureContext}}] [=extended attribute=] is specified on |C|,
-            then return true.
-        1.  Otherwise, set |C| to be the
-            [=interface=], [=partial interface=],
-            [=interface mixin=], [=partial interface mixin=],
-            [=namespace=], or [=partial namespace=]
-            |C| is declared on.
-    1.  If |C| is a [=partial interface=], [=partial interface mixin=], or [=partial namespace=], then:
-        1.  If the [{{CrossOriginIsolated}}] [=extended attribute=] is specified on |C|,
-            then return true.
-        1.  Otherwise, set |C| to be the original [=interface=], [=interface mixin=], or [=namespace=]
-            definition of |C|.
-    1.  If |C| is an [=interface mixin=], then:
-        1.  If the [{{CrossOriginIsolated}}] [=extended attribute=] is specified on |C|,
-            then return true.
-        1.  Otherwise, set |C| to |H|.
-    1.  Assert: |C| is an [=interface=], [=callback interface=] or [=namespace=].
-    1.  If the [{{CrossOriginIsolated}}] [=extended attribute=] is specified on |C|,
-        then return true.
-    1.  Otherwise, return false.
-</div>
-
-Note: Whether a construct is [=available only in cross-origin isolated contexts=]
-influences whether it is [=exposed=] in a given [=Realm=].
-
-If [{{CrossOriginIsolated}}] appears on an [=overloaded=] [=operation=],
-then it must appear on all overloads.
-
-The [{{CrossOriginIsolated}}] [=extended attribute=] must not be specified both on
-
-* an [=interface member=] and its [=interface=] or [=partial interface=];
-* an [=interface mixin member=] and its [=interface mixin=] or [=partial interface mixin=];
-* a [=namespace member=] and its [=namespace=] or [=partial namespace=].
-
-Note: This is because adding the [{{CrossOriginIsolated}}] [=extended attribute=] on a [=member=]
-when its containing definition is also annotated with the [{{CrossOriginIsolated}}]
-[=extended attribute=] does not further restrict the exposure of the [=member=].
-
-An [=interface=] without the [{{CrossOriginIsolated}}] [=extended attribute=]
-must not [=interface/inherit=] from another interface
-that does specify [{{CrossOriginIsolated}}].
-
-<div class="example">
-
-    The following [=IDL fragment=] defines an interface with one [=operation=] that is executable
-    from all contexts, and two which are executable only from cross-origin isolated contexts.
-
-    <pre highlight="webidl">
-        [Exposed=Window]
-        interface PowerfulFeature {
-          // This call will succeed in all contexts.
-          Promise &lt;Result&gt; calculateNotSoSecretResult();
-
-          // This operation will not be exposed to a non-isolated context. In such a context,
-          // there will be no "calculateSecretResult" property on PowerfulFeature.prototype.
-          [CrossOriginIsolated] Promise&lt;Result&gt; calculateSecretResult();
-
-          // The same applies here: the attribute will not be exposed to a non-isolated context,
-          // and in a non-secure context there will be no "secretBoolean" property on
-          // PowerfulFeature.prototype.
-          [CrossOriginIsolated] readonly attribute boolean secretBoolean;
-        };
-
-        // HighResolutionTimer will not be exposed in a non-isolated context, nor will its members.
-        // In such a context, there will be no "HighResolutionTimer" property on Window.
-        [CrossOriginIsolated]
-        interface HighResolutionTimer {
-          DOMHighResTimeStamp getHighResolutionTime();
-        };
-
-        // The interface mixin members defined below will never be exposed in a non-isolated context,
-        // regardless of whether the interface that includes them is.
-        // In a non-isolated context, there will be no "snap" property on
-        // PowerfulFeature.prototype.
-        [CrossOriginIsolated]
-        interface mixin Snapshotable {
-          Promise&lt;boolean&gt; snap();
-        };
-        PowerfulFeature includes Snapshotable;
-
-        // On the other hand, the following interface mixin members will be exposed
-        // to a non-isolated context when included by a host interface
-        // that doesn't have the [CrossOriginIsolated] extended attribute.
         // In a non-secure context, there will be a "log" property on
         // PowerfulFeatures.prototype.
         interface mixin Loggable {
