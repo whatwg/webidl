@@ -4004,7 +4004,7 @@ determine what Web IDL language feature to use:
     Another consideration is that the [=method steps=] for [=overloaded=] operations can be
     specified in separate blocks, which can aid in both reading and writing specifications. This is
     not the case for [=optional arguments=]. This means that in the first case the specification
-    author can write the [=method steps=]] of the operations as:
+    author can write the [=method steps=] of the operations as:
 
     <div algorithm="execute supports() with overloads">
 
@@ -13279,11 +13279,11 @@ Additionally, [=legacy platform objects=] have internal methods as defined in:
     1.  If |O| and |Receiver| are the same object, then:
         1.  If |O| [=implements=] an interface with an [=indexed property setter=]
             and |P| [=is an array index=], then:
-            1.  [=Invoke the indexed property setter=] with |P| and |V|.
+            1.  [=Invoke the indexed property setter=] on |O| with |P| and |V|.
             1.  Return <emu-val>true</emu-val>.
         1.  If |O| [=implements=] an interface with a [=named property setter=]
             and <a abstract-op>Type</a>(|P|) is String, then:
-            1.  [=Invoke the named property setter=] with |P| and |V|.
+            1.  [=Invoke the named property setter=] on |O| with |P| and |V|.
             1.  Return <emu-val>true</emu-val>.
     1.  Let |ownDesc| be <a abstract-op>LegacyPlatformObjectGetOwnProperty</a>(|O|, |P|, <emu-val>true</emu-val>).
     1.  Perform [=?=] <a abstract-op>OrdinarySetWithOwnDescriptor</a>(|O|, |P|, |V|, |Receiver|, |ownDesc|).
@@ -13305,7 +13305,7 @@ Additionally, [=legacy platform objects=] have internal methods as defined in:
             <emu-val>false</emu-val>.
         1.  If |O| does not implement an interface with an
             [=indexed property setter=], then return <emu-val>false</emu-val>.
-        1.  [=Invoke the indexed property setter=] with |P| and |Desc|.\[[Value]].
+        1.  [=Invoke the indexed property setter=] on |O| with |P| and |Desc|.\[[Value]].
         1.  Return <emu-val>true</emu-val>.
     1.  If |O| [=support named properties|supports named properties=],
         |O| does not implement an [=interface=] with the [{{Global}}] [=extended attribute=],
@@ -13323,7 +13323,7 @@ Additionally, [=legacy platform objects=] have internal methods as defined in:
                 1.  If the result of calling <a abstract-op>IsDataDescriptor</a>(|Desc|) is
                     <emu-val>false</emu-val>, then return
                     <emu-val>false</emu-val>.
-                1.  [=Invoke the named property setter=] with |P| and |Desc|.\[[Value]].
+                1.  [=Invoke the named property setter=] on |O| with |P| and |Desc|.\[[Value]].
                 1.  Return <emu-val>true</emu-val>.
     1.  If |O| does not implement an [=interface=] with the [{{Global}}] [=extended attribute=],
         then set |Desc|.\[[Configurable]] to <emu-val>true</emu-val>.
@@ -13355,7 +13355,8 @@ Additionally, [=legacy platform objects=] have internal methods as defined in:
                 with |P| as the name.
             1.  If the steps indicated that the deletion failed, then return <emu-val>false</emu-val>.
         1.  Otherwise, |operation| was defined with an identifier:
-            1.  Perform [=method steps=] of |operation| with |P| as the only argument value.
+            1.  Perform [=method steps=] of |operation| with |O| as [=this=] and « |P| » as the
+                argument values.
             1.  If |operation| was declared with a [=return type=] of {{boolean}}
                 and the steps returned <emu-val>false</emu-val>, then return <emu-val>false</emu-val>.
         1.  Return <emu-val>true</emu-val>.
@@ -13473,7 +13474,7 @@ internal method as follows.
 <div algorithm>
 
     To <dfn id="invoke-indexed-setter" oldids="invoking-indexed-setter" export lt="invoke the indexed property setter">invoke an indexed property setter</dfn>
-    with property name |P| and ECMAScript value |V|, the following steps must be performed:
+    on a [=platform object=] |O| with property name |P| and ECMAScript value |V|, the following steps must be performed:
 
     1.  Let |index| be the result of calling <a abstract-op>ToUint32</a>(|P|).
     1.  Let |creating| be true if |index| is not a [=supported property indices|supported property index=],
@@ -13489,13 +13490,13 @@ internal method as follows.
             [=set the value of an existing indexed property=]
             with |index| as the index and |value| as the value.
     1.  Otherwise, |operation| was defined with an identifier.  Perform the [=method steps=] of
-        |operation| with |index| and |value| as the two argument values.
+        |operation| with |O| as [=this=] and « |index|, |value| » as the argument values.
 </div>
 
 <div algorithm>
 
     To <dfn id="invoke-named-setter" oldids="invoking-named-setter" export lt="invoke the named property setter">invoke a named property setter</dfn>
-    with property name |P| and ECMAScript value |V|, the following steps must be performed:
+    on a [=platform object=] |O| with property name |P| and ECMAScript value |V|, the following steps must be performed:
 
     1.  Let |creating| be true if |P| is not a [=supported property name=], and false otherwise.
     1.  Let |operation| be the operation used to declare the named property setter.
@@ -13509,7 +13510,7 @@ internal method as follows.
             [=set the value of an existing named property=]
             with |P| as the name and |value| as the value.
     1.  Otherwise, |operation| was defined with an identifier.  Perform the [=method steps=] of
-        |operation| with |P| and |value| as the two argument values.
+        |operation| with |O| as [=this=] and « |P|, |value| » as the argument values.
 </div>
 
 <div algorithm>
@@ -13529,7 +13530,8 @@ internal method as follows.
                 [=determine the value of an indexed property=]
                 with |index| as the index.
             1.  Otherwise, |operation| was defined with an identifier.  Set |value| to the result
-                of performing the [=method steps=] of |operation| with |index| as the only argument value.
+                of performing the [=method steps=] of |operation| with |O| as [=this=] and «
+                |index| » as the argument values.
             1.  Let |desc| be a newly created [=Property Descriptor=] with no fields.
             1.  Set |desc|.\[[Value]] to the result of [=converted to an ECMAScript value|converting=]
                 |value| to an ECMAScript value.
@@ -13550,7 +13552,8 @@ internal method as follows.
                 [=determine the value of a named property=]
                 with |P| as the name.
             1.  Otherwise, |operation| was defined with an identifier.  Set |value| to the result
-                of performing the [=method steps=] of |operation| with |P| as the only argument value.
+                of performing the [=method steps=] of |operation| with |O| as [=this=] and « |P| »
+                as the argument values.
             1.  Let |desc| be a newly created [=Property Descriptor=] with no fields.
             1.  Set |desc|.\[[Value]] to the result of [=converted to an ECMAScript value|converting=]
                 |value| to an ECMAScript value.
