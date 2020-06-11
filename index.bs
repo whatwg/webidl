@@ -12543,23 +12543,29 @@ The \[[Prototype]] [=internal slot=] of an [=asynchronous iterator prototype obj
                 1.  Let |value| be |next|, [=converted to an ECMAScript value=].
                 1.  Return [=!=] [$CreateIterResultObject$](|value|, <emu-val>false</emu-val>).
         1.  Let |onFulfilled| be [=!=] [$CreateBuiltinFunction$](|fulfillSteps|, « »).
-        1.  Perform [=!=] [$PerformPromiseThen$](|nextPromise|, |onFulfilled|,
-            <emu-val>undefined</emu-val>, |nextPromiseCapability|).
+        1.  Let |rejectSteps| be the following steps, given |reason|:
+            1.  Set |object|'s [=default asynchronous iterator object/ongoing promise=] to
+                null.
+            1.  Set |object|'s [=default asynchronous iterator object/is finished=] to true.
+            1.  [=ECMAScript/Throw=] |reason|.
+        1.  Let |onRejected| be [=!=] [$CreateBuiltinFunction$](|rejectSteps|, « »).
+        1.  Perform [=!=] [$PerformPromiseThen$](|nextPromise|, |onFulfilled|, |onRejected|,
+            |nextPromiseCapability|).
         1.  Return |nextPromiseCapability|.\[[Promise]].
 
-    1.  Let |promise| be |object|'s [=default asynchronous iterator object/ongoing promise=].
+    1.  Let |ongoingPromise| be |object|'s [=default asynchronous iterator object/ongoing promise=].
 
-    1.  If |promise| is not null, then:
+    1.  If |ongoingPromise| is not null, then:
         1.  Let |afterOngoingPromiseCapability| be [=!=] [$NewPromiseCapability$]({{%Promise%}}).
-        1.  Let |onFulfilled| be [=!=] [$CreateBuiltinFunction$](|nextSteps|, « »).
-        1.  Perform [=!=] [$PerformPromiseThen$](|promise|, |onFulfilled|,
-            <emu-val>undefined</emu-val>, |afterOngoingPromiseCapability|).
+        1.  Let |onSettled| be [=!=] [$CreateBuiltinFunction$](|nextSteps|, « »).
+        1.  Perform [=!=] [$PerformPromiseThen$](|ongoingPromise|, |onSettled|, |onSettled|,
+            |afterOngoingPromiseCapability|).
         1.  Set |object|'s [=default asynchronous iterator object/ongoing promise=] to
             |afterOngoingPromiseCapability|.\[[Promise]].
 
     1.  Otherwise:
-        1.  Run |nextSteps| and set |object|'s
-            [=default asynchronous iterator object/ongoing promise=] to the result.
+        1.  Set |object|'s [=default asynchronous iterator object/ongoing promise=] to the result of
+            running |nextSteps|.
 
     1.  Return |object|'s [=default asynchronous iterator object/ongoing promise=].
 </div>
@@ -12599,31 +12605,38 @@ The \[[Prototype]] [=internal slot=] of an [=asynchronous iterator prototype obj
             <emu-val>undefined</emu-val>, « |error| »).
         1.  Return |returnPromiseCapability|.\[[Promise]].
 
-    1.  If |object|'s [=default asynchronous iterator object/ongoing promise=] is not null, then:
-        1.  Let |error| be a new {{ECMAScript/TypeError}}.
-        1.  Perform [=!=] [$Call$](|returnPromiseCapability|.\[[Reject]],
-            <emu-val>undefined</emu-val>, « |error| »).
-        1.  Return |returnPromiseCapability|.\[[Promise]].
+    1.  Let |returnSteps| be the following steps:
+        1.  Let |returnPromiseCapability| be [=!=] [$NewPromiseCapability$]({{%Promise%}}).
+        1.  If |object|'s [=default asynchronous iterator object/is finished=] is true, then:
+            1.  Let |result| be [$CreateIterResultObject$](|value|, <emu-val>true</emu-val>).
+            1.  Perform [=!=] [$Call$](|returnPromiseCapability|.\[[Resolve]],
+                <emu-val>undefined</emu-val>, « |result| »).
+            1.  Return |returnPromiseCapability|.\[[Promise]].
+        1.  Set |object|'s [=default asynchronous iterator object/is finished=] to true.
+        1.  Return the result of running the [=asynchronous iterator return=] algorithm for
+            |interface|, given |object|'s [=default asynchronous iterator object/target=], |object|,
+            and |value|.
 
-    1.  If |object|'s [=default asynchronous iterator object/is finished=] is true, then:
-        1.  Let |result| be [=!=] [$CreateIterResultObject$](|value|,
-            <emu-val>true</emu-val>).
-        1.  Perform [=!=] [$Call$](|returnPromiseCapability|.\[[Resolve]],
-            <emu-val>undefined</emu-val>, « |result| »).
-        1.  Return |returnPromiseCapability|.\[[Promise]].
+    1.  Let |returnStepsPromise| be null.
 
-    1.  Set |object|'s [=default asynchronous iterator object/is finished=] to true.
+    1.  Let |ongoingPromise| be |object|'s [=default asynchronous iterator object/ongoing promise=].
 
-    1.  Let |returnPromise| be the result of running the [=asynchronous iterator return=] algorithm
-        for |interface|, given |object|'s [=default asynchronous iterator object/target=],
-        |object|, and |value|.
+    1.  If |ongoingPromise| is not null, then:
+        1.  Let |afterOngoingPromiseCapability| be [=!=] [$NewPromiseCapability$]({{%Promise%}}).
+        1.  Let |onSettled| be [=!=] [$CreateBuiltinFunction$](|returnSteps|, « »).
+        1.  Perform [=!=] [$PerformPromiseThen$](|ongoingPromise|, |onSettled|, |onSettled|,
+            |afterOngoingPromiseCapability|).
+        1.  Set |returnStepsPromise| to |afterOngoingPromiseCapability|.\[[Promise]].
+
+    1.  Otherwise:
+        1.  Set |returnStepsPromise| to the result of running |returnSteps|.
 
     1.  Let |fulfillSteps| be the following steps:
         1.  Return [=!=] [$CreateIterResultObject$](|value|, <emu-val>true</emu-val>).
 
     1.  Let |onFulfilled| be [=!=] [$CreateBuiltinFunction$](|fulfillSteps|, « »).
 
-    1.  Perform [=!=] [$PerformPromiseThen$](|returnPromise|, |onFulfilled|,
+    1.  Perform [=!=] [$PerformPromiseThen$](|returnStepsPromise|, |onFulfilled|,
         <emu-val>undefined</emu-val>, |returnPromiseCapability|).
 
     1.  Return |returnPromiseCapability|.\[[Promise]].
