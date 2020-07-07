@@ -11288,7 +11288,17 @@ with the [{{LegacyNoInterfaceObject}}] [=extended attribute=].
         then set |proto| to |realm|.\[[Intrinsics]].[[{{%Error.prototype%}}]].
     1.  Otherwise, set |proto| to |realm|.\[[Intrinsics]].[[{{%Object.prototype%}}]].
     1.  Assert: <a abstract-op>Type</a>(|proto|) is Object.
-    1.  Let |interfaceProtoObj| be [=!=] [$OrdinaryObjectCreate$](|proto|).
+    1.  Let |interfaceProtoObj| be null.
+    1.  If |interface| is declared with the [{{Global}}] [=extended attribute=], or
+        |interface| is in the set of [=inherited interfaces=] of an interface
+        that is declared with the [{{Global}}] [=extended attribute=], then:
+        1.  Set |interfaceProtoObj| to [=!=] [$MakeBasicObject$](« \[[Prototype]], \[[Extensible]] »).
+        1.  Set |interfaceProtoObj|.\[[Prototype]] to |proto|.
+        1.  Set the internal methods of |interfaceProtoObj|
+            which are specific to [=immutable prototype exotic objects=]
+            to the definitions specified in
+            [=ECMA-262 Immutable prototype exotic objects=].
+    1.  Otherwise, set |interfaceProtoObj| to [=!=] [$OrdinaryObjectCreate$](|proto|).
     1.  If |interface| has any [=member=] declared with the [{{Unscopable}}] [=extended attribute=],
         then:
 
@@ -11305,13 +11315,6 @@ with the [{{LegacyNoInterfaceObject}}] [=extended attribute=].
             \[[Writable]]: <emu-val>false</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>,
             \[[Configurable]]: <emu-val>true</emu-val>}.
         1.  Perform [=!=] <a abstract-op>DefinePropertyOrThrow</a>(|interfaceProtoObj|, {{@@unscopables}}, |desc|).
-    1.  If |interface| is declared with the [{{Global}}] [=extended attribute=], or
-        |interface| is in the set of [=inherited interfaces=] of an interface
-        that is declared with the [{{Global}}] [=extended attribute=], then:
-        1.  Set the internal methods of |interfaceProtoObj|
-            which are specific to [=immutable prototype exotic objects=]
-            to the definitions specified in
-            [=ECMA-262 Immutable prototype exotic objects=].
     1.  If |interface| is not declared with the [{{Global}}] [=extended attribute=], then:
         1.  [=Define the regular attributes=] of |interface| on |interfaceProtoObj| given |realm|.
         1.  [=Define the regular operations=] of |interface| on |interfaceProtoObj| given |realm|.
