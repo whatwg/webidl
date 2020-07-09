@@ -40,39 +40,7 @@ spec: ecma-262; type: dfn; for: /; text:realm
 </pre>
 
 <pre class="anchors">
-urlPrefix: https://www.khronos.org/registry/webgl/extensions/WEBGL_compressed_texture_astc/; spec: WEBGL_compressed_texture_astc
-    type: interface; text: WEBGL_compressed_texture_astc
-urlPrefix: https://www.khronos.org/registry/webgl/extensions/WEBGL_compressed_texture_s3tc_srgb/; spec: WEBGL_compressed_texture_s3tc_srgb
-    type: interface; text: WEBGL_compressed_texture_s3tc_srgb
-urlPrefix: https://www.khronos.org/registry/webgl/extensions/WEBGL_draw_buffers/; spec: WEBGL_draw_buffers
-    type: interface; text: WEBGL_draw_buffers
-urlPrefix: https://www.khronos.org/registry/webgl/extensions/WEBGL_lose_context/; spec: WEBGL_lose_context
-    type: interface; text: WEBGL_lose_context
-urlPrefix: https://www.khronos.org/registry/webgl/extensions/ANGLE_instanced_arrays/; spec: ANGLE_instanced_arrays
-    type: interface; text: ANGLE_instanced_arrays
-urlPrefix: https://www.khronos.org/registry/webgl/extensions/EXT_blend_minmax/; spec: EXT_blend_minmax
-    type: interface; text: EXT_blend_minmax
-urlPrefix: https://www.khronos.org/registry/webgl/extensions/EXT_color_buffer_float/; spec: EXT_color_buffer_float
-    type: interface; text: EXT_color_buffer_float
-urlPrefix: https://www.khronos.org/registry/webgl/extensions/EXT_disjoint_timer_query/; spec: EXT_disjoint_timer_query
-    type: interface; text: EXT_disjoint_timer_query
-urlPrefix: https://www.khronos.org/registry/webgl/extensions/OES_standard_derivatives/; spec: OES_standard_derivatives
-    type: interface; text: OES_standard_derivatives
-urlPrefix: https://www.khronos.org/registry/webgl/extensions/OES_vertex_array_object/; spec: OES_vertex_array_object
-    type: interface; text: OES_vertex_array_object
-urlPrefix: https://www.w3.org/TR/geolocation-API/; spec: GEOLOCATION-API
-    type: interface
-        text: Geolocation; url: geolocation;
-        text: Coordinates; url: coordinates;
-        text: Position; url: position;
-        text: PositionError; url: position-error;
-urlPrefix: https://w3c.github.io/deviceorientation/spec-source-orientation.html; spec: ORIENTATION-EVENT
-    type: interface
-        text: DeviceRotationRate; url: device_rotation_rate;
-        text: DeviceAcceleration; url: device_acceleration;
-urlPrefix: https://w3c.github.io/mediacapture-main/; spec: MEDIACAPTURE-STREAMS
-    type: interface
-        text: ConstrainablePattern; url: dom-constrainablepattern;
+url: https://html.spec.whatwg.org/multipage/webappapis.html#active-script; spec: HTML; type: dfn; text: active script
 urlPrefix: http://www.unicode.org/glossary/; spec: UNICODE
     type: dfn
         text: Unicode scalar value; url: unicode_scalar_value
@@ -6253,8 +6221,8 @@ about the execution context at the time the language binding specific object ref
 converted to an IDL value.
 
 Note: For ECMAScript objects, the [=callback context=] is used to hold a reference to the
-[=incumbent settings object=] at the time the Object value is converted to an IDL callback
-interface type value. See [[#es-callback-interface]].
+[=incumbent settings object=] and [=active script=] at the time the Object value is converted to an
+IDL callback interface type value. See [[#es-callback-interface]].
 
 There is no way to represent a constant object reference value for a particular
 [=callback interface type=] in IDL.
@@ -6314,7 +6282,7 @@ An IDL value of the callback function type is represented by a tuple of an objec
 reference and a [=callback context=].
 
 Note: As with [=callback interface types=], the [=callback context=] is used to hold a
-reference to the [=incumbent settings object=] at
+reference to the [=incumbent settings object=] and [=active script=] at
 the time an ECMAScript Object value is converted to an IDL
 callback function type value.  See [[#es-callback-function]].
 
@@ -7922,7 +7890,8 @@ values are represented by ECMAScript Object values (including [=function objects
 
     1.  If <a abstract-op>Type</a>(|V|) is not Object, then [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
     1.  Return the IDL [=callback interface type=] value that represents a reference to |V|, with
-        the [=incumbent settings object=] as the [=callback context=].
+        the [=tuple=] (the [=incumbent settings object=], the [=active script=]) as the
+        [=callback context=].
 </div>
 
 <p id="callback-interface-to-es">
@@ -8043,8 +8012,8 @@ IDL [=callback function types=] are represented by ECMAScript [=function objects
         that is annotated with [{{LegacyTreatNonObjectAsNull}}],
         then [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
     1.  Return the IDL [=callback function type=] value
-        that represents a reference to the same object that |V| represents, with the
-        [=incumbent settings object=] as the [=callback context=].
+        that represents a reference to the same object that |V| represents, with the tuple
+        (the [=incumbent settings object=], the [=active script=]) as the [=callback context=].
 </div>
 
 <p id="callback-function-to-es">
@@ -13888,9 +13857,16 @@ the special value “missing”, which represents a missing optional argument.
     1.  Let |O| be the ECMAScript object corresponding to |value|.
     1.  Let |realm| be |O|'s [=associated Realm=].
     1.  Let |relevant settings| be |realm|'s [=Realm/settings object=].
-    1.  Let |stored settings| be |value|'s [=callback context=].
+    1.  Let (|stored settings|, |active script|) be |value|'s [=callback context=].
     1.  [=Prepare to run script=] with |relevant settings|.
     1.  [=Prepare to run a callback=] with |stored settings|.
+    1.  Set |script execution context| to null.
+    1.  If |active script| is not null:
+        1.  Set |script execution context| to a new [=ECMAScript code execution context=], whose
+            [=Execution context/Function=] is <emu-val>null</emu-val>, [=Execution context/Realm=]
+            is |active script|'s [=script/settings object=]'s [=environment settings object/Realm=],
+            and [=Execution context/ScriptOrModule=] is |active script|'s [=script/record=].
+        1.  Push |script execution context| onto the [=execution context stack=].
     1.  Let |X| be |O|.
     1.  If [=!=] <a abstract-op>IsCallable</a>(|O|) is false, then:
         1.  Let |getResult| be <a abstract-op>Get</a>(|O|, |opName|).
@@ -13914,6 +13890,8 @@ the special value “missing”, which represents a missing optional argument.
         return type.
     1.  <i id="call-user-object-operation-return">Return:</i> at this
         point |completion| will be set to an ECMAScript completion value.
+        1.  If |script execution context| is not null, then pop |script execution context| from
+            the [=execution context stack=].
         1.  [=Clean up after running a callback=] with |stored settings|.
         1.  [=Clean up after running script=] with |relevant settings|.
         1.  If |completion| is a normal completion, return |completion|.
@@ -13988,9 +13966,16 @@ described in the previous section).
             <emu-val>undefined</emu-val> to the callback function's return type.
     1.  Let |realm| be |F|'s [=associated Realm=].
     1.  Let |relevant settings| be |realm|'s [=Realm/settings object=].
-    1.  Let |stored settings| be |callable|'s [=callback context=].
+    1.  Let (|stored settings|, |active script|) be |callable|'s [=callback context=].
     1.  [=Prepare to run script=] with |relevant settings|.
     1.  [=Prepare to run a callback=] with |stored settings|.
+    1.  Set |script execution context| to null.
+    1.  If |active script| is not null:
+        1.  Set |script execution context| to a new [=ECMAScript code execution context=], whose
+            [=Execution context/Function=] is <emu-val>null</emu-val>, [=Execution context/Realm=]
+            is |active script|'s [=script/settings object=]'s [=environment settings object/Realm=],
+            and [=Execution context/ScriptOrModule=] is |active script|'s [=script/record=].
+        1.  Push |script execution context| onto the [=execution context stack=].
     1.  Let |esArgs| be the result of [=Web IDL arguments list/converting=] |args| to an ECMAScript
         arguments list. If this throws an exception, set |completion| to the completion value
         representing the thrown exception and jump to the step labeled
@@ -14003,6 +13988,8 @@ described in the previous section).
         return type.
     1.  <i id="invoke-return">Return:</i> at this
         point |completion| will be set to an ECMAScript completion value.
+        1.  If |script execution context| is not null, then pop |script execution context| from
+            the [=execution context stack=].
         1.  [=Clean up after running a callback=] with |stored settings|.
         1.  [=Clean up after running script=] with |relevant settings|.
         1.  If |completion| is a normal completion, return |completion|.
@@ -14030,9 +14017,16 @@ a return type that is a [=promise type=].
         {{ECMAScript/TypeError}} exception.
     1.  Let |realm| be |F|'s [=associated Realm=].
     1.  Let |relevant settings| be |realm|'s [=Realm/settings object=].
-    1.  Let |stored settings| be |callable|'s [=callback context=].
+    1.  Let (|stored settings|, |active script|) be |callable|'s [=callback context=].
     1.  [=Prepare to run script=] with |relevant settings|.
     1.  [=Prepare to run a callback=] with |stored settings|.
+    1.  Set |script execution context| to null.
+    1.  If |active script| is not null:
+        1.  Set |script execution context| to a new [=ECMAScript code execution context=], whose
+            [=Execution context/Function=] is <emu-val>null</emu-val>, [=Execution context/Realm=]
+            is |active script|'s [=script/settings object=]'s [=environment settings object/Realm=],
+            and [=Execution context/ScriptOrModule=] is |active script|'s [=script/record=].
+        1.  Push |script execution context| onto the [=execution context stack=].
     1.  Let |esArgs| be the result of [=Web IDL arguments list/converting=] |args| to an ECMAScript
         arguments list. If this throws an exception, set |completion| to the completion value
         representing the thrown exception and jump to the step labeled
@@ -14045,6 +14039,8 @@ a return type that is a [=promise type=].
         return type.
     1.  <i id="construct-return">Return:</i> at this
         point |completion| will be set to an ECMAScript completion value.
+        1.  If |script execution context| is not null, then pop |script execution context| from
+            the [=execution context stack=].
         1.  [=Clean up after running a callback=] with |stored settings|.
         1.  [=Clean up after running script=] with |relevant settings|.
         1.  Return |completion|.
