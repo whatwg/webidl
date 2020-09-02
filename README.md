@@ -26,5 +26,5 @@ The specification is written in [Bikeshed](https://github.com/tabatkins/bikeshed
 ### Syntax changes should be filed against the following parsers:
 
 *   [widlparser](https://github.com/plinss/widlparser/issues/new) (used by Bikeshed)
-*   [WebIDL parser](https://github.com/w3c/webidl2.js/issues/new) (used by idlharness.js)
+*   [WebIDL parser](https://github.com/w3c/webidl2.js/issues/new/choose) (used by idlharness.js)
 *   [TypeScript and JavaScript lib generator](https://github.com/Microsoft/TSJS-lib-generator/)
