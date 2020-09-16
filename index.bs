@@ -9127,12 +9127,9 @@ If the [{{CrossOriginIsolated}}] [=extended attribute=] appears on an
 [=interface member=],
 [=interface mixin member=], or
 [=namespace member=],
-it indicates that the construct is [=exposed=]
-only within a cross-origin isolated context.
-The [{{CrossOriginIsolated}}] extended attribute must not be used
-on any other construct.
-
-ISSUE(whatwg/html#5435): "cross-origin isolated context" ought to be defined in HTML.
+it indicates that the construct is [=exposed=] only within an environment whose
+[=environment settings object/cross-origin isolated capability=] is true. The
+[{{CrossOriginIsolated}}] extended attribute must not be used on any other construct.
 
 The [{{CrossOriginIsolated}}] extended attribute must [=takes no arguments|take no arguments=].
 
@@ -9446,13 +9443,12 @@ Otherwise, it is the [=host interface=]'s [=exposure set=].
 
     1.  If |realm|.\[[GlobalObject]] does not implement an [=interface=]
         that is in |construct|'s [=exposure set=], then return false.
-    1.  If the [=relevant settings object=] of |realm|.\[[GlobalObject]] is not a
-        [=secure context=], and |construct| is [=conditionally exposed=] on [{{SecureContext}}],
-        then return false.
-    1.  If the [=relevant settings object=] of |realm|.\[[GlobalObject]] is not
-        cross-origin isolated, and |construct| is [=conditionally exposed=] on
-        [{{CrossOriginIsolated}}], then return false.
-    1.  Otherwise, return true.
+    1.  If |realm|'s [=Realm/settings object=] is not a [=secure context=], and |construct| is
+        [=conditionally exposed=] on [{{SecureContext}}], then return false.
+    1.  If |realm|'s [=Realm/settings object=]'s
+        [=environment settings object/cross-origin isolated capability=] is false, and |construct|
+        is [=conditionally exposed=] on [{{CrossOriginIsolated}}], then return false.
+    1.  Return true.
 </div>
 
 <div algorithm>
@@ -9491,9 +9487,9 @@ Otherwise, it is the [=host interface=]'s [=exposure set=].
 
 Note: Since it is not possible for the [=relevant settings object=]
 for an ECMAScript global object to change whether it is a
-[=secure context=] or cross-origin isolated over time, an implementation's
-decision to create properties for an interface or interface member
-can be made once, at the time the [=initial objects=] are created.
+[=secure context=] or [=environment settings object/cross-origin isolated capability=] over time, an
+implementation's decision to create properties for an interface or interface member can be made
+once, at the time the [=initial objects=] are created.
 
 See
 [[#es-interfaces]],
@@ -10050,6 +10046,11 @@ does not further restrict the exposure of the [=member=].
 An [=interface=] without the [{{SecureContext}}] [=extended attribute=]
 must not [=interface/inherit=] from another interface
 that does specify [{{SecureContext}}].
+
+[{{SecureContext}}] must not be specified on a construct is that is [=conditionally exposed=] on
+[{{CrossOriginIsolated}}]. (Doing so would be redundant, since every environment which is
+[=environment settings object/cross-origin isolated capability|cross-origin isolated=] is also a
+[=secure context=].)
 
 <div class="example">
 
