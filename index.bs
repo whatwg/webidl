@@ -167,9 +167,11 @@ urlPrefix: https://tc39.github.io/ecma262/; spec: ECMA-262
         text: SetFunctionName; url: sec-setfunctionname
         text: SetImmutablePrototype; url: sec-set-immutable-prototype
         text: SetIntegrityLevel; url: sec-setintegritylevel
+        text: ToBigInt; url: #sec-tobigint
         text: ToBoolean; url: sec-toboolean
         text: ToInt32; url: sec-toint32
         text: ToNumber; url: sec-tonumber
+        text: ToNumeric; url: sec-tonumeric
         text: ToObject; url: sec-toobject
         text: ToPropertyDescriptor; url: sec-topropertydescriptor
         text: ToPropertyKey; url: sec-topropertykey
@@ -195,6 +197,7 @@ urlPrefix: https://tc39.github.io/ecma262/; spec: ECMA-262
         text: array index; url: array-index
         text: array iterator object; url: sec-array-iterator-objects
         text: built-in function object; url: sec-built-in-function-objects
+        text: BigInt; url: #sec-ecmascript-language-types-bigint-type
         text: callable; for: ECMAScript; url: sec-iscallable
         text: Completion Record; url: sec-completion-record-specification-type
         text: constructor; url: constructor
@@ -3611,6 +3614,9 @@ the following algorithm returns <i>true</i>.
                     <span>numeric types</span>
             </div></th>
                 <th><div>
+                    <span>bigint</span>
+            </div></th>
+                <th><div>
                     <span>string types</span>
             </div></th>
                 <th><div>
@@ -3643,11 +3649,26 @@ the following algorithm returns <i>true</i>.
             <td>●</td>
             <td>●</td>
             <td>●</td>
+            <td>●</td>
         </tr>
         <tr>
             <th>numeric types</th>
             <td class="belowdiagonal"></td>
             <td></td>
+            <td></td>
+            <td>●</td>
+            <td>●</td>
+            <td>●</td>
+            <td>●</td>
+            <td>●</td>
+            <td>●</td>
+            <td>●</td>
+        </tr>
+        <tr>
+            <th>bigint</th>
+            <td class="belowdiagonal"></td>
+            <td class="belowdiagonal"></td>
+            <td>(b)</td>
             <td>●</td>
             <td>●</td>
             <td>●</td>
@@ -3660,6 +3681,7 @@ the following algorithm returns <i>true</i>.
             <th>string types</th>
             <td class="belowdiagonal"></td>
             <td class="belowdiagonal"></td>
+            <td class="belowdiagonal"></td>
             <td></td>
             <td>●</td>
             <td>●</td>
@@ -3670,6 +3692,7 @@ the following algorithm returns <i>true</i>.
         </tr>
         <tr>
             <th>object</th>
+            <td class="belowdiagonal"></td>
             <td class="belowdiagonal"></td>
             <td class="belowdiagonal"></td>
             <td class="belowdiagonal"></td>
@@ -3686,6 +3709,7 @@ the following algorithm returns <i>true</i>.
             <td class="belowdiagonal"></td>
             <td class="belowdiagonal"></td>
             <td class="belowdiagonal"></td>
+            <td class="belowdiagonal"></td>
             <td></td>
             <td>●</td>
             <td>●</td>
@@ -3694,6 +3718,7 @@ the following algorithm returns <i>true</i>.
         </tr>
         <tr>
             <th>interface-like</th>
+            <td class="belowdiagonal"></td>
             <td class="belowdiagonal"></td>
             <td class="belowdiagonal"></td>
             <td class="belowdiagonal"></td>
@@ -3712,12 +3737,14 @@ the following algorithm returns <i>true</i>.
             <td class="belowdiagonal"></td>
             <td class="belowdiagonal"></td>
             <td class="belowdiagonal"></td>
+            <td class="belowdiagonal"></td>
             <td></td>
             <td></td>
             <td>●</td>
         </tr>
         <tr>
             <th>dictionary-like</th>
+            <td class="belowdiagonal"></td>
             <td class="belowdiagonal"></td>
             <td class="belowdiagonal"></td>
             <td class="belowdiagonal"></td>
@@ -3738,6 +3765,7 @@ the following algorithm returns <i>true</i>.
             <td class="belowdiagonal"></td>
             <td class="belowdiagonal"></td>
             <td class="belowdiagonal"></td>
+            <td class="belowdiagonal"></td>
             <td></td>
         </tr>
     </table>
@@ -3746,6 +3774,10 @@ the following algorithm returns <i>true</i>.
         1.  The two identified interface-like types are
             not the same, and no single [=platform object=] implements both
             interface-like types.
+        1.  The types are distinguishable, but there is
+            <a href="#limit-bigint-numeric-overloading">a separate restriction on their use in
+            overloading</a> below. Please also note <a href="#limit-bigint-numeric-unions">the
+            advice about using unions of these types</a>.
     </ol>
 
     <div class="example" id="example-distinguishability-diff-types">
@@ -3795,6 +3827,11 @@ then for those items there must be an index |i| such that
 for each pair of items the types at index |i| are [=distinguishable=].
 The lowest such index is termed the <dfn id="dfn-distinguishing-argument-index" export>distinguishing argument index</dfn>
 for the items of the [=effective overload set=] with the given type list size.
+
+<p id="limit-bigint-numeric-overloading">An [=effective overload set=] must not contain more than
+one [=list/item=] with the same [=type list=] [=list/size=], where one [=list/item=] has a
+{{bigint}} argument at the [=distinguishing argument index=] and another has a [=numeric type=]
+argument at the [=distinguishing argument index=].
 
 <div class="example">
 
@@ -5714,7 +5751,7 @@ the [=integer types=],
 {{unrestricted double}}.
 
 The <dfn id="dfn-primitive-type" export>primitive types</dfn> are
-{{boolean}} and the [=numeric types=].
+{{bigint}}, {{boolean}} and the [=numeric types=].
 
 The <dfn id="dfn-string-type" export>string types</dfn> are
 {{DOMString}}, all [=enumeration types=],
@@ -5820,6 +5857,7 @@ type.
         "boolean"
         "byte"
         "octet"
+        "bigint"
 </pre>
 
 <pre class="grammar" id="prod-UnrestrictedFloatType">
@@ -6094,6 +6132,16 @@ tokens.
 
 The [=type name=] of the
 {{unrestricted double}} type is "<code>UnrestrictedDouble</code>".
+
+
+<h4 id="idl-bigint" interface>bigint</h4>
+
+The {{bigint}} type is an arbitrary integer type, unrestricted in range.
+
+{{bigint}} constant values in IDL are represented with
+<emu-t class="regex"><a href="#prod-integer">integer</a></emu-t> tokens.
+
+The [=type name=] of the {{bigint}} type is “<code>BigInt</code>”.
 
 
 <h4 oldids="dom-DOMString" id="idl-DOMString" interface>DOMString</h4>
@@ -6556,6 +6604,19 @@ A type <dfn id="dfn-includes-a-nullable-type" export>includes a nullable type</d
 Each pair of [=flattened member types=]
 in a [=union type=], <var ignore>T</var> and <var ignore>U</var>,
 must be [=distinguishable=].
+
+<p class="advisement" id="limit-bigint-numeric-unions">
+It is possible to create a union of {{bigint}} and a [=numeric type=].
+However, this is generally only supposed to be used for interfaces such as
+[[ECMA-402#numberformat-objects|NumberFormat]], which formats the values rather than using them in
+calculations.
+It would not be appropriate to accept such a union, only to then convert values of the
+[=numeric type=] to a {{bigint}} for further processing, as this runs the risk of introducing
+precision errors.
+Please
+<a href="https://github.com/heycam/webidl/issues/new?title=Intent%20to%20use%20bigint/numeric union">file an issue</a>
+before using this feature.
+</p>
 
 [=Union type=] constant values
 in IDL are represented in the same way that constant values of their
@@ -7086,6 +7147,7 @@ five forms are allowed.
         "Promise"
         "USVString"
         "any"
+        "bigint"
         "boolean"
         "byte"
         "double"
@@ -7339,6 +7401,9 @@ ECMAScript value type.
     1.  If <a abstract-op>Type</a>(|V|) is Number, then
         return the result of <a href="#es-to-unrestricted-double">converting</a> |V|
         to an {{unrestricted double}}.
+    1.  If <a abstract-op>Type</a>(|V|) is BigInt, then
+        return the result of <a href="#es-to-bigint">converting</a> |V|
+        to a {{bigint}}.
     1.  If <a abstract-op>Type</a>(|V|) is String, then
         return the result of <a href="#es-DOMString">converting</a> |V|
         to a {{DOMString}}.
@@ -7766,6 +7831,38 @@ value when its bit pattern is interpreted as an unsigned 64 bit integer.
     1.  Otherwise, the Number value is
         the one that represents the same numeric value as the IDL
         {{unrestricted double}} value.
+</div>
+
+<h4 id="es-bigint">bigint</h4>
+
+<div id="es-to-bigint" algorithm="convert an ECMAScript value to a bigint">
+
+    An ECMAScript value |V| is [=converted to an IDL value|converted=]
+    to an IDL {{bigint}} value by running the following algorithm:
+
+    1.  Let |x| be [=?=] [$ToBigInt$](|V|).
+    1.  Return the IDL {{bigint}} value that represents the same numeric value as |x|.
+</div>
+
+<div id="bigint-to-es" algorithm="convert a bigint to an ECMAScript value">
+
+    The result of [=converted to an ECMAScript value|converting=]
+    an IDL {{bigint}} value to an ECMAScript value is a BigInt:
+
+    1.  Return the [=BigInt=] value that represents the same numeric value as the IDL {{bigint}}
+        value.
+</div>
+
+<div id="es-to-bigint-or-numeric" algorithm="convert an ECMAScript value to a numeric type or a bigint">
+
+    An ECMAScript value |V| is <dfn lt="converted to a numeric type or bigint">converted</dfn>
+    to an IDL [=numeric type=] |T| or {{bigint}} value by running the following algorithm:
+
+    1.  Let |x| be [=?=] [$ToNumeric$](|V|).
+    1.  If [$Type$](|x|) is BigInt, then
+        1.  Return the IDL {{bigint}} value that represents the same numeric value as |x|.
+    1.  Assert: [$Type$](|x|) is Number.
+    1.  Return the result of [=converted to an ECMAScript value|converting=] |x| to |T|.
 </div>
 
 
@@ -8795,23 +8892,33 @@ that correspond to the union’s [=member types=].
         1.  If |types| includes {{object}}, then return the IDL value
             that is a reference to the object |V|.
     1.  If <a abstract-op>Type</a>(|V|) is Boolean, then:
-        1.  If |types| includes a {{boolean}},
+        1.  If |types| includes {{boolean}},
             then return the result of [=converted to an IDL value|converting=]
             |V| to {{boolean}}.
     1.  If <a abstract-op>Type</a>(|V|) is Number, then:
         1.  If |types| includes a [=numeric type=],
             then return the result of [=converted to an IDL value|converting=]
             |V| to that [=numeric type=].
+    1.  If <a abstract-op>Type</a>(|V|) is BigInt, then:
+        1.  If |types| includes {{bigint}},
+            then return the result of [=converted to an IDL value|converting=]
+            |V| to {{bigint}}
     1.  If |types| includes a [=string type=],
         then return the result of
         [=converted to an IDL value|converting=]
         |V| to that type.
+    1.  If |types| includes a [=numeric type=] and {{bigint}},
+        then return the result of [=converted to a numeric type or bigint|converting=]
+        |V| to either that [=numeric type=] or {{bigint}}.
     1.  If |types| includes a [=numeric type=],
         then return the result of [=converted to an IDL value|converting=]
         |V| to that [=numeric type=].
-    1.  If |types| includes a {{boolean}},
+    1.  If |types| includes {{boolean}},
         then return the result of [=converted to an IDL value|converting=]
         |V| to {{boolean}}.
+    1.  If |types| includes {{bigint}},
+        then return the result of [=converted to an IDL value|converting=]
+        |V| to {{bigint}}.
     1.  [=ECMAScript/Throw=] a {{ECMAScript/TypeError}}.
 </div>
 
@@ -11045,6 +11152,16 @@ Note: The HTML Standard defines how a security check is performed. [[!HTML]]
 
             then remove from |S| all other entries.
 
+        1.  Otherwise: if <a abstract-op>Type</a>(|V|) is BigInt
+            and there is an entry in |S| that has one of the following types at position |i| of its type list,
+            *   {{bigint}}
+            *   a [=nullable type|nullable=] {{bigint}}
+            *   an [=annotated type=] whose [=annotated types/inner type=] is one of the above types
+            *   a [=union type=], [=nullable type|nullable=] union type, or [=annotated type|annotated=] union type
+                that has one of the above types in its [=flattened member types=]
+
+            then remove from |S| all other entries.
+
         1.  Otherwise: if there is an entry in |S| that has one of the following types at position |i| of its type list,
             *   a [=string type=]
             *   a [=nullable type|nullable=] version of any of the above types
@@ -11066,6 +11183,15 @@ Note: The HTML Standard defines how a security check is performed. [[!HTML]]
         1.  Otherwise: if there is an entry in |S| that has one of the following types at position |i| of its type list,
             *   {{boolean}}
             *   a [=nullable type|nullable=] {{boolean}}
+            *   an [=annotated type=] whose [=annotated types/inner type=] is one of the above types
+            *   a [=union type=], [=nullable type|nullable=] union type, or [=annotated type|annotated=] union type
+                that has one of the above types in its [=flattened member types=]
+
+            then remove from |S| all other entries.
+
+        1.  Otherwise: if there is an entry in |S| that has one of the following types at position |i| of its type list,
+            *   {{bigint}}
+            *   a [=nullable type|nullable=] {{bigint}}
             *   an [=annotated type=] whose [=annotated types/inner type=] is one of the above types
             *   a [=union type=], [=nullable type|nullable=] union type, or [=annotated type|annotated=] union type
                 that has one of the above types in its [=flattened member types=]
