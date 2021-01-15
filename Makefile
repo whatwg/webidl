@@ -14,7 +14,7 @@ else
 ifndef TRAVIS
 	@echo Can\'t find a local version of Bikeshed. To install it, visit:
 	@echo
-	@echo https://github.com/tabatkins/bikeshed/blob/master/docs/install.md
+	@echo https://tabatkins.github.io/bikeshed/#installing
 	@echo
 	@echo Trying to build the spec using the online API at: https://api.csswg.org/bikeshed/
 	@echo This will fail if you are not connected to the network.
