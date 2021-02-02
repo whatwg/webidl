@@ -8632,7 +8632,7 @@ JavaScript code.
     1.  Let |p| be [=a new promise=] in |realm|.
     1.  Run the following steps [=in parallel=]:
         1.  Wait |ms| milliseconds.
-        1.  [=Resolve=] |p|.
+        1.  [=Queue a task=] on |taskSource| to [=resolve=] |p|.
     1.  Return |p|.
 </div>
 </div>
@@ -8660,7 +8660,7 @@ JavaScript code.
     1.  Let |p| be [=a new promise=] in |realm|.
     1.  Run the following steps [=in parallel=]:
         1.  Wait |ms| milliseconds.
-        1.  [=Resolve=] |p|.
+        1.  [=Queue a task=] on |taskSource| to [=resolve=] |p|.
     1.  Return |p|.
 </div>
 </div>
@@ -8688,13 +8688,11 @@ JavaScript code.
         *   If |promise| was fulfilled with value |v|, then:
             1.  Run the following steps [=in parallel=]:
                 1.  Wait |ms| milliseconds.
-                1.  [=Queue a task=] to run the following steps on |taskSource|:
-                    1.  [=Resolve=] |p| with |v|.
+                1.  [=Queue a task=] on |taskSource| to [=resolve=] |p| with |v|.
         *   If |promise| was rejected with reason |r|, then:
             1.  Run the following steps [=in parallel=]:
                 1.  Wait |ms| milliseconds.
-                1.  [=Queue a task=] to run the following steps on |taskSource|:
-                    1.  [=Reject=] |p| with |r|.
+                1.  [=Queue a task=] on |taskSource| to [=reject=] |p| with |r|.
     1.  Return |p|.
 </div>
 </div>
@@ -8730,10 +8728,11 @@ JavaScript code.
     1.  Set |environment|'s [=Environment/ready promise=] to [=a new promise=] in |realm|.
     1.  Run the following steps [=in parallel=]:
         1.  Do some asynchronous work.
-        1.  If |environment| becomes ready successfully, [=resolve=] |environment|'s
-            [=Environment/ready promise=].
-        1.  If |environment| fails to become ready, [=reject=] |environment|'s
-            [=Environment/ready promise=] with a "{{NetworkError!!exception}}" {{DOMException}}.
+        1.  If |environment| becomes ready successfully, then [=queue a task=] on |taskSource| to
+            [=resolve=] |environment|'s [=Environment/ready promise=].
+        1.  If |environment| fails to become ready, then [=queue a task=] on |taskSource| to
+            [=reject=] |environment|'s [=Environment/ready promise=] with a
+            "{{NetworkError!!exception}}" {{DOMException}}.
     1.  Return |environment|.
 </div>
 </div>
@@ -8766,9 +8765,9 @@ JavaScript code.
         1.  Using |info|, and in a manner that is user-agent specific, allow the end user to make a
             choice as to whether they want to add the bookmark.
             1.  If the end-user aborts the request to add the bookmark (e.g., they hit escape, or
-                press a "cancel" button), [=reject=] |promise| with an "{{AbortError}}"
-                {{DOMException}}.
-            1.  Otherwise, [=resolve=] |promise|.
+                press a "cancel" button), then [=queue a task=] on |taskSource| to [=reject=]
+                |promise| with an "{{AbortError}}" {{DOMException}}.
+            1.  Otherwise, [=queue a task=] on |taskSource| to [=resolve=] |promise|.
     1. Return |promise|.
 </div>
 </div>
