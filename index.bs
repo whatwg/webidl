@@ -8628,11 +8628,12 @@ JavaScript code.
     The <code>delay(|ms|)</code> method steps are:
 
     1.  Let |realm| be [=this=]'s [=relevant Realm=].
+    1.  Let |taskSource| be some appropriate [=task source=].
     1.  If |ms| is NaN, let |ms| be +0; otherwise let |ms| be the maximum of |ms| and +0.
     1.  Let |p| be [=a new promise=] in |realm|.
     1.  Run the following steps [=in parallel=]:
         1.  Wait |ms| milliseconds.
-        1.  [=Resolve=] |p|.
+        1.  [=Queue a task=] on |taskSource| to [=resolve=] |p|.
     1.  Return |p|.
 </div>
 </div>
@@ -8655,12 +8656,13 @@ JavaScript code.
     The <code>validatedDelay(|ms|)</code> method steps are:
 
     1.  Let |realm| be [=this=]'s [=relevant Realm=].
+    1.  Let |taskSource| be some appropriate [=task source=].
     1.  If |ms| is NaN, return [=a promise rejected with=] a {{TypeError}} in |realm|.
     1.  If |ms| &lt; 0, return [=a promise rejected with=] a {{RangeError}} in |realm|.
     1.  Let |p| be [=a new promise=] in |realm|.
     1.  Run the following steps [=in parallel=]:
         1.  Wait |ms| milliseconds.
-        1.  [=Resolve=] |p|.
+        1.  [=Queue a task=] on |taskSource| to [=resolve=] |p|.
     1.  Return |p|.
 </div>
 </div>
@@ -8688,13 +8690,11 @@ JavaScript code.
         *   If |promise| was fulfilled with value |v|, then:
             1.  Run the following steps [=in parallel=]:
                 1.  Wait |ms| milliseconds.
-                1.  [=Queue a task=] to run the following steps on |taskSource|:
-                    1.  [=Resolve=] |p| with |v|.
+                1.  [=Queue a task=] on |taskSource| to [=resolve=] |p| with |v|.
         *   If |promise| was rejected with reason |r|, then:
             1.  Run the following steps [=in parallel=]:
                 1.  Wait |ms| milliseconds.
-                1.  [=Queue a task=] to run the following steps on |taskSource|:
-                    1.  [=Reject=] |p| with |r|.
+                1.  [=Queue a task=] on |taskSource| to [=reject=] |p| with |r|.
     1.  Return |p|.
 </div>
 </div>
@@ -8726,14 +8726,16 @@ JavaScript code.
     To create an <code>Environment</code> object in a [=Realm=] |realm|, perform the following
     steps:
 
+    1.  Let |taskSource| be some appropriate [=task source=].
     1.  Let |environment| be [=new=] <code>Environment</code> object in |realm|.
     1.  Set |environment|'s [=Environment/ready promise=] to [=a new promise=] in |realm|.
     1.  Run the following steps [=in parallel=]:
         1.  Do some asynchronous work.
-        1.  If |environment| becomes ready successfully, [=resolve=] |environment|'s
-            [=Environment/ready promise=].
-        1.  If |environment| fails to become ready, [=reject=] |environment|'s
-            [=Environment/ready promise=] with a "{{NetworkError!!exception}}" {{DOMException}}.
+        1.  If |environment| becomes ready successfully, then [=queue a task=] on |taskSource| to
+            [=resolve=] |environment|'s [=Environment/ready promise=].
+        1.  If |environment| fails to become ready, then [=queue a task=] on |taskSource| to
+            [=reject=] |environment|'s [=Environment/ready promise=] with a
+            "{{NetworkError!!exception}}" {{DOMException}}.
     1.  Return |environment|.
 </div>
 </div>
@@ -8756,6 +8758,7 @@ JavaScript code.
 
     The <code>addBookmark()</code> method steps are:
 
+    1.  Let |taskSource| be some appropriate [=task source=].
     1.  If this method was not invoked as a result of explicit user action, return
         [=a promise rejected with=] a "{{SecurityError}}" {{DOMException}}.
     1.  If the document's mode of operation is standalone, return [=a promise rejected with=] a
@@ -8766,9 +8769,9 @@ JavaScript code.
         1.  Using |info|, and in a manner that is user-agent specific, allow the end user to make a
             choice as to whether they want to add the bookmark.
             1.  If the end-user aborts the request to add the bookmark (e.g., they hit escape, or
-                press a "cancel" button), [=reject=] |promise| with an "{{AbortError}}"
-                {{DOMException}}.
-            1.  Otherwise, [=resolve=] |promise|.
+                press a "cancel" button), then [=queue a task=] on |taskSource| to [=reject=]
+                |promise| with an "{{AbortError}}" {{DOMException}}.
+            1.  Otherwise, [=queue a task=] on |taskSource| to [=resolve=] |promise|.
     1. Return |promise|.
 </div>
 </div>
@@ -14718,6 +14721,7 @@ Anne van Kesteren,
 Olav Junker Kjær,
 Takayoshi Kochi,
 Magnus Kristiansen,
+Raphael Kubo da Costa,
 Takeshi Kurosawa,
 Yves Lafon,
 Travis Leithead,
