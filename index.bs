@@ -6598,6 +6598,13 @@ Please
 before using this feature.
 </p>
 
+A type <dfn id="dfn-includes-undefined" export>includes undefined</dfn> if:
+
+*   the type is {{undefined}}, or
+*   the type is a [=nullable type=] and its [=nullable types/inner type=] [=contains undefined=], or
+*   the type is an [=annotated type=] and its [=annotated types/inner type=] [=contains undefined=], or
+*   the type is a [=union type=] and one of its [=member types=] [=contains undefined=].
+
 [=Union type=] constant values
 in IDL are represented in the same way that constant values of their
 [=member types=] would be
@@ -8142,6 +8149,9 @@ the ECMAScript <emu-val>null</emu-val> value.
         then return the IDL
         [=nullable type=] <code class="idl">|T|?</code>
         value <emu-val>null</emu-val>.
+    1.  Otherwise, if |V| is <emu-val>undefined</emu-val>,
+        and |T| [=includes undefined=],
+        return the unique {{undefined}} value.
     1.  Otherwise, if |V| is <emu-val>null</emu-val> or <emu-val>undefined</emu-val>, then return the IDL
         [=nullable type=] <code class="idl">|T|?</code>
         value <emu-val>null</emu-val>.
@@ -8803,18 +8813,15 @@ that correspond to the union’s [=member types=].
     To [=converted to an IDL value|convert an ECMAScript value=] |V| to an IDL [=union type=]
     value is done as follows:
 
-    1.  If the [=union type=]
-        [=includes a nullable type=] and
+    1.  If the [=union type=] [=includes undefined=]
+        and |V| is <emu-val>undefined</emu-val>,
+        then return the unique {{undefined}} value.
+    1.  If the [=union type=] [=includes a nullable type=] and
         |V| is <emu-val>null</emu-val> or <emu-val>undefined</emu-val>,
         then return the IDL value <emu-val>null</emu-val>.
     1.  Let |types| be the [=flattened member types=]
         of the [=union type=].
-    1.  If |V| is <emu-val>undefined</emu-val>, then:
-        1.  If |types| includes {{undefined}}, then return the
-            unique {{undefined}} value.
-        1.  If |types| includes a [=dictionary type=], then return the
-            result of [=converted to an IDL value|converting=] |V| to that dictionary type.
-    1.  If |V| is <emu-val>null</emu-val>, then:
+    1.  If |V| is <emu-val>null</emu-val> or <emu-val>undefined</emu-val>, then:
         1.  If |types| includes a [=dictionary type=], then return the
             result of [=converted to an IDL value|converting=] |V| to that dictionary type.
     1.  If |V| [=is a platform object=], then:
