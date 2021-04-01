@@ -10,7 +10,7 @@ IDL generally follows the [WHATWG Contributor Guidelines](https://github.com/wha
 
 ## Markup
 
-The specification is written in [Bikeshed](https://github.com/tabatkins/bikeshed), plus the [Ecmarkup tags](https://bterlson.github.io/ecmarkup/) `<emu-val>`, `<emu-t>`, and `<emu-nt>`.
+The specification is written in [Bikeshed](https://github.com/tabatkins/bikeshed), plus the [Ecmarkup tags](https://tc39.es/ecmarkup/) `<emu-val>`, `<emu-t>`, and `<emu-nt>`.
 
 ## Filing issues elsewhere
 
