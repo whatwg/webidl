@@ -12090,84 +12090,73 @@ A [=regular operation=] that does not [=have default method steps=] must not be 
 
 <div class=example id=example-tojson-default-inheritance-and-mixins>
 
-    The following [=IDL fragment=] defines a number of [=interfaces=],
-    which are [=inherited interfaces=] of <code class="idl">A</code>,
-    and [=interface mixins=], which are [=included=] by <code class="idl">A</code> or
-    by <code class="idl">A</code>'s [=inherited interfaces=],
-    as show in the below inheritance tree.
-
-    <pre>
-             C* - M4
-             |
-             B - M3
-             |
-        M1 - A - M2*
-    </pre>
-
-    [=Interfaces=] and [=interface mixins=] marked with an asterisk ("*")
-    declare a <code>toJSON</code> [=operation=]
-    with a [{{Default}}] [=extended attribute=].
+    Only [=regular attributes=] of [=interfaces=] that declare a <code>toJSON</code> operation with
+    a [{{Default}}] [=extended attribute=] are included, even if an [=inherited interface=] declares
+    such a <code>toJSON</code> operation. For example, consider the following [=IDL fragment=]:
 
     <pre class=webidl>
         [Exposed=Window]
-        interface A : B {
+        interface A {
+          [Default] object toJSON();
           attribute DOMString a;
         };
 
         [Exposed=Window]
-        interface B : C {
+        interface B : A {
           attribute DOMString b;
         };
 
         [Exposed=Window]
-        interface C {
+        interface C : B {
           [Default] object toJSON();
           attribute DOMString c;
         };
-
-        interface mixin M1 {
-          attribute DOMString m1;
-        };
-
-        interface mixin M2 {
-          [Default] object toJSON();
-          attribute DOMString m2;
-        };
-
-        interface mixin M3 {
-          attribute DOMString m3;
-        };
-
-        interface mixin M4 {
-          attribute DOMString m4;
-        };
-
-        A includes M1;
-        A includes M2;
-        B includes M3;
-        C includes M4;
     </pre>
 
-    Calling the <code>toJSON()</code> method of an object
-    implementing interface <code class="idl">A</code> defined above
-    would return the following JSON object:
+    Calling the <code>toJSON()</code> method of an object implementing interface
+    <code class="idl">C</code> defined above would return the following JSON object:
 
     <pre highlight=json>
     {
         "a": "...",
-        "m1": "...",
-        "m2": "...",
-        "c": "...",
-        "m4": "..."
+        "c": "..."
     }
     </pre>
 
-    An object implementing interface <code class="idl">B</code> would return:
+    Calling the <code>toJSON()</code> method of an object implementing interface
+    <code class="idl">A</code> (or <code class="idl">B</code>) defined above would return:
 
     <pre highlight=json>
     {
-        "c": "...",
-        "m4": "..."
+        "a": "..."
+    }
+    </pre>
+
+    A <code>toJSON</code> operation can also be declared on an [=interface mixin=] (or
+    [=partial interface=]) and is equivalent to declaring it on the original [=interface=]. For
+    example, consider the following [=IDL fragment=]:
+
+    <pre class=webidl>
+        [Exposed=Window]
+        interface D {
+          attribute DOMString d;
+        };
+
+        interface mixin M {
+          [Default] object toJSON();
+          attribute DOMString m;
+        };
+
+        D includes M;
+    </pre>
+
+    Calling the <code>toJSON()</code> method of an object implementing interface
+    <code class="idl">D</code> defined above would return:
+
+    <pre highlight=json>
+    {
+        "d": "...",
+        "m": "..."
     }
     </pre>
 </div>
