@@ -723,7 +723,7 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
   <div class="head">
    <p data-fill-with="logo"><a class="logo" href="https://www.w3.org/"> <img alt="W3C" height="48" src="https://www.w3.org/StyleSheets/TR/2016/logos/W3C" width="72"> </a> </p>
    <h1 class="p-name no-ref" id="title">Web IDL</h1>
-   <h2 class="no-num no-toc no-ref heading settled" id="profile-and-date"><span class="content">Editor’s Draft, <time class="dt-updated" datetime="2021-04-22">22 April 2021</time></span></h2>
+   <h2 class="no-num no-toc no-ref heading settled" id="profile-and-date"><span class="content">Editor’s Draft, <time class="dt-updated" datetime="2021-04-26">26 April 2021</time></span></h2>
    <div data-fill-with="spec-metadata">
     <dl>
      <dt>This version:
@@ -10680,72 +10680,55 @@ on <var>I</var>, then <a data-link-type="dfn" href="https://infra.spec.whatwg.or
    </div>
    <div class="example" id="example-tojson-default-inheritance-and-mixins">
     <a class="self-link" href="#example-tojson-default-inheritance-and-mixins"></a> 
-    <p>The following <a data-link-type="dfn" href="#dfn-idl-fragment" id="ref-for-dfn-idl-fragment④⑦">IDL fragment</a> defines a number of <a data-link-type="dfn" href="#dfn-interface" id="ref-for-dfn-interface①⑨⑤">interfaces</a>,
-    which are <a data-link-type="dfn" href="#dfn-inherited-interfaces" id="ref-for-dfn-inherited-interfaces②①">inherited interfaces</a> of <code class="idl">A</code>,
-    and <a data-link-type="dfn" href="#interface-mixin" id="ref-for-interface-mixin④⑨">interface mixins</a>, which are <a data-link-type="dfn" href="#include" id="ref-for-include①②">included</a> by <code class="idl">A</code> or
-    by <code class="idl">A</code>’s <a data-link-type="dfn" href="#dfn-inherited-interfaces" id="ref-for-dfn-inherited-interfaces②②">inherited interfaces</a>,
-    as show in the below inheritance tree.</p>
-<pre>     C* - M4
-     |
-     B - M3
-     |
-M1 - A - M2*
-</pre>
-    <p><a data-link-type="dfn" href="#dfn-interface" id="ref-for-dfn-interface①⑨⑥">Interfaces</a> and <a data-link-type="dfn" href="#interface-mixin" id="ref-for-interface-mixin⑤⓪">interface mixins</a> marked with an asterisk ("*")
-    declare a <code>toJSON</code> <a data-link-type="dfn" href="#dfn-operation" id="ref-for-dfn-operation⑥③">operation</a> with a [<code class="idl"><a data-link-type="idl" href="#Default" id="ref-for-Default⑨">Default</a></code>] <a data-link-type="dfn" href="#dfn-extended-attribute" id="ref-for-dfn-extended-attribute①②⑤">extended attribute</a>.</p>
+    <p>Only <a data-link-type="dfn" href="#dfn-regular-attribute" id="ref-for-dfn-regular-attribute②⑨">regular attributes</a> of <a data-link-type="dfn" href="#dfn-interface" id="ref-for-dfn-interface①⑨⑤">interfaces</a> that declare a <code>toJSON</code> operation with
+    a [<code class="idl"><a data-link-type="idl" href="#Default" id="ref-for-Default⑨">Default</a></code>] <a data-link-type="dfn" href="#dfn-extended-attribute" id="ref-for-dfn-extended-attribute①②⑤">extended attribute</a> are included, even if an <a data-link-type="dfn" href="#dfn-inherited-interfaces" id="ref-for-dfn-inherited-interfaces②①">inherited interface</a> declares
+    such a <code>toJSON</code> operation. For example, consider the following <a data-link-type="dfn" href="#dfn-idl-fragment" id="ref-for-dfn-idl-fragment④⑦">IDL fragment</a>:</p>
 <pre class="webidl">[Exposed=Window]
-interface A : B {
+interface A {
+  [Default] object toJSON();
   attribute DOMString a;
 };
 
 [Exposed=Window]
-interface B : C {
+interface B : A {
   attribute DOMString b;
 };
 
 [Exposed=Window]
-interface C {
+interface C : B {
   [Default] object toJSON();
   attribute DOMString c;
 };
-
-interface mixin M1 {
-  attribute DOMString m1;
-};
-
-interface mixin M2 {
-  [Default] object toJSON();
-  attribute DOMString m2;
-};
-
-interface mixin M3 {
-  attribute DOMString m3;
-};
-
-interface mixin M4 {
-  attribute DOMString m4;
-};
-
-A includes M1;
-A includes M2;
-B includes M3;
-C includes M4;
 </pre>
-    <p>Calling the <code>toJSON()</code> method of an object
-    implementing interface <code class="idl">A</code> defined above
-    would return the following JSON object:</p>
+    <p>Calling the <code>toJSON()</code> method of an object implementing interface <code class="idl">C</code> defined above would return the following JSON object:</p>
 <pre class="highlight"><c- p="">{</c->
     <c- f="">"a"</c-><c- p="">:</c-> <c- u="">"..."</c-><c- p="">,</c->
-    <c- f="">"m1"</c-><c- p="">:</c-> <c- u="">"..."</c-><c- p="">,</c->
-    <c- f="">"m2"</c-><c- p="">:</c-> <c- u="">"..."</c-><c- p="">,</c->
-    <c- f="">"c"</c-><c- p="">:</c-> <c- u="">"..."</c-><c- p="">,</c->
-    <c- f="">"m4"</c-><c- p="">:</c-> <c- u="">"..."</c->
+    <c- f="">"c"</c-><c- p="">:</c-> <c- u="">"..."</c->
 <c- p="">}</c->
 </pre>
-    <p>An object implementing interface <code class="idl">B</code> would return:</p>
+    <p>Calling the <code>toJSON()</code> method of an object implementing interface <code class="idl">A</code> (or <code class="idl">B</code>) defined above would return:</p>
 <pre class="highlight"><c- p="">{</c->
-    <c- f="">"c"</c-><c- p="">:</c-> <c- u="">"..."</c-><c- p="">,</c->
-    <c- f="">"m4"</c-><c- p="">:</c-> <c- u="">"..."</c->
+    <c- f="">"a"</c-><c- p="">:</c-> <c- u="">"..."</c->
+<c- p="">}</c->
+</pre>
+    <p>A <code>toJSON</code> operation can also be declared on an <a data-link-type="dfn" href="#interface-mixin" id="ref-for-interface-mixin④⑨">interface mixin</a> (or <a data-link-type="dfn" href="#dfn-partial-interface" id="ref-for-dfn-partial-interface②④">partial interface</a>) and is equivalent to declaring it on the original <a data-link-type="dfn" href="#dfn-interface" id="ref-for-dfn-interface①⑨⑥">interface</a>. For
+    example, consider the following <a data-link-type="dfn" href="#dfn-idl-fragment" id="ref-for-dfn-idl-fragment④⑧">IDL fragment</a>:</p>
+<pre class="webidl">[Exposed=Window]
+interface D {
+  attribute DOMString d;
+};
+
+interface mixin M {
+  [Default] object toJSON();
+  attribute DOMString m;
+};
+
+D includes M;
+</pre>
+    <p>Calling the <code>toJSON()</code> method of an object implementing interface <code class="idl">D</code> defined above would return:</p>
+<pre class="highlight"><c- p="">{</c->
+    <c- f="">"d"</c-><c- p="">:</c-> <c- u="">"..."</c-><c- p="">,</c->
+    <c- f="">"m"</c-><c- p="">:</c-> <c- u="">"..."</c->
 <c- p="">}</c->
 </pre>
    </div>
@@ -10794,10 +10777,10 @@ then <a data-link-type="dfn" href="#dfn-perform-a-security-check" id="ref-for-df
           <p>Set <var>V</var> to the result of running the <a data-link-type="dfn" href="#getter-steps" id="ref-for-getter-steps④">getter steps</a> of the attribute
 (or those listed in the <a data-link-type="dfn" href="#getter-steps" id="ref-for-getter-steps⑤">getter steps</a> of the inherited attribute, if this attribute is declared to <a data-link-type="dfn" href="#dfn-inherit-getter" id="ref-for-dfn-inherit-getter①">inherit its getter</a>),
 with <var>O</var> as <a data-link-type="dfn" href="#this" id="ref-for-this②⓪">this</a>.</p>
-         </dd><dt data-md="">on an <a data-link-type="dfn" href="#dfn-operation" id="ref-for-dfn-operation⑥④">operation</a> with an identifier
+         </dd><dt data-md="">on an <a data-link-type="dfn" href="#dfn-operation" id="ref-for-dfn-operation⑥③">operation</a> with an identifier
          </dt><dd data-md="">
           <p>Set <var>V</var> to the result of running the <a data-link-type="dfn" href="#method-steps" id="ref-for-method-steps⑥">method steps</a> of the operation, with <var>O</var> as <a data-link-type="dfn" href="#this" id="ref-for-this②①">this</a> and an empty list as the argument values.</p>
-         </dd><dt data-md="">on an <a data-link-type="dfn" href="#dfn-operation" id="ref-for-dfn-operation⑥⑤">operation</a> with no identifier
+         </dd><dt data-md="">on an <a data-link-type="dfn" href="#dfn-operation" id="ref-for-dfn-operation⑥④">operation</a> with no identifier
          </dt><dd data-md="">
           <p>Set <var>V</var> to the result of performing the <a data-link-type="dfn" href="#dfn-stringification-behavior" id="ref-for-dfn-stringification-behavior①">stringification behavior</a> of the interface.</p>
         </dd></dl>
@@ -12271,8 +12254,8 @@ then:</p>
   slots. For example, a page may contain a same-origin iframe, with the iframe’s
   method being called on the main page’s element of the same kind, with no exception
   thrown.</p>
-    <p><a data-link-type="dfn" href="#interface-mixin" id="ref-for-interface-mixin⑤①">Interface mixins</a> do not participate directly in the evaluation of the <a data-link-type="dfn" href="#implements" id="ref-for-implements④⑦">implements</a> algorithm. Instead, each <a data-link-type="dfn" href="#dfn-interface" id="ref-for-dfn-interface②③④">interface</a> that the <a data-link-type="dfn" href="#interface-mixin" id="ref-for-interface-mixin⑤②">interface mixin</a> is <a data-link-type="dfn" href="#include" id="ref-for-include①③">included</a> in
-  has its own "copy" of each <a data-link-type="dfn" href="#dfn-member" id="ref-for-dfn-member③⑧">member</a> of the <a data-link-type="dfn" href="#interface-mixin" id="ref-for-interface-mixin⑤③">interface mixin</a>, and the corresponding <a data-link-type="dfn" href="#dfn-create-operation-function" id="ref-for-dfn-create-operation-function②">operation function</a> checks that the receiver <a data-link-type="dfn" href="#implements" id="ref-for-implements④⑧">implements</a> the particular <a data-link-type="dfn" href="#dfn-interface" id="ref-for-dfn-interface②③⑤">interface</a> which <a data-link-type="dfn" href="#include" id="ref-for-include①④">includes</a> the <a data-link-type="dfn" href="#interface-mixin" id="ref-for-interface-mixin⑤④">interface mixin</a>.</p>
+    <p><a data-link-type="dfn" href="#interface-mixin" id="ref-for-interface-mixin⑤⓪">Interface mixins</a> do not participate directly in the evaluation of the <a data-link-type="dfn" href="#implements" id="ref-for-implements④⑦">implements</a> algorithm. Instead, each <a data-link-type="dfn" href="#dfn-interface" id="ref-for-dfn-interface②③④">interface</a> that the <a data-link-type="dfn" href="#interface-mixin" id="ref-for-interface-mixin⑤①">interface mixin</a> is <a data-link-type="dfn" href="#include" id="ref-for-include①②">included</a> in
+  has its own "copy" of each <a data-link-type="dfn" href="#dfn-member" id="ref-for-dfn-member③⑧">member</a> of the <a data-link-type="dfn" href="#interface-mixin" id="ref-for-interface-mixin⑤②">interface mixin</a>, and the corresponding <a data-link-type="dfn" href="#dfn-create-operation-function" id="ref-for-dfn-create-operation-function②">operation function</a> checks that the receiver <a data-link-type="dfn" href="#implements" id="ref-for-implements④⑧">implements</a> the particular <a data-link-type="dfn" href="#dfn-interface" id="ref-for-dfn-interface②③⑤">interface</a> which <a data-link-type="dfn" href="#include" id="ref-for-include①③">includes</a> the <a data-link-type="dfn" href="#interface-mixin" id="ref-for-interface-mixin⑤③">interface mixin</a>.</p>
    </div>
    <div class="algorithm" data-algorithm="primary interface"> The <dfn class="dfn-paneled" data-dfn-type="dfn" data-export="" id="dfn-primary-interface">primary interface</dfn> of a <a data-link-type="dfn" href="#dfn-platform-object" id="ref-for-dfn-platform-object②④">platform object</a> is
   the value of the object’s [[PrimaryInterface]] internal slot, which is is the most-derived <a data-link-type="dfn" href="#dfn-interface" id="ref-for-dfn-interface②③⑥">interface</a> that it <a data-link-type="dfn" href="#implements" id="ref-for-implements④⑨">implements</a>. </div>
@@ -13052,7 +13035,7 @@ then return <emu-val>false</emu-val>.</p>
    <h3 class="heading settled" data-level="3.11" id="es-user-objects"><span class="secno">3.11. </span><span class="content">Callback interfaces</span><a class="self-link" href="#es-user-objects"></a></h3>
    <p>As described in <a href="#idl-objects">§ 2.12 Objects implementing interfaces</a>, <a data-link-type="dfn" href="#dfn-callback-interface" id="ref-for-dfn-callback-interface③⑨">callback interfaces</a> can be
 implemented in script by any ECMAScript object.
-The following cases explain how a <a data-link-type="dfn" href="#dfn-callback-interface" id="ref-for-dfn-callback-interface④⓪">callback interface</a>'s <a data-link-type="dfn" href="#dfn-operation" id="ref-for-dfn-operation⑥⑥">operation</a> is invoked on a given
+The following cases explain how a <a data-link-type="dfn" href="#dfn-callback-interface" id="ref-for-dfn-callback-interface④⓪">callback interface</a>'s <a data-link-type="dfn" href="#dfn-operation" id="ref-for-dfn-operation⑥⑤">operation</a> is invoked on a given
 object:</p>
    <ul>
     <li data-md="">
@@ -13211,7 +13194,7 @@ when applied to a <a data-link-type="dfn" href="#dfn-legacy-callback-interface-o
    <h3 class="heading settled" data-level="3.12" id="es-invoking-callback-functions"><span class="secno">3.12. </span><span class="content">Invoking callback functions</span><a class="self-link" href="#es-invoking-callback-functions"></a></h3>
    <p>An ECMAScript <a data-link-type="dfn" href="https://tc39.github.io/ecma262/#sec-iscallable" id="ref-for-sec-iscallable①①">callable</a> object that is being
 used as a <a data-link-type="dfn" href="#dfn-callback-function" id="ref-for-dfn-callback-function②⑨">callback function</a> value is
-called in a manner similar to how <a data-link-type="dfn" href="#dfn-operation" id="ref-for-dfn-operation⑥⑦">operations</a> on <a data-link-type="dfn" href="#dfn-callback-interface" id="ref-for-dfn-callback-interface④⑥">callback interface</a> values are called (as
+called in a manner similar to how <a data-link-type="dfn" href="#dfn-operation" id="ref-for-dfn-operation⑥⑥">operations</a> on <a data-link-type="dfn" href="#dfn-callback-interface" id="ref-for-dfn-callback-interface④⑥">callback interface</a> values are called (as
 described in the previous section).</p>
    <div class="algorithm" data-algorithm="invoke">
     <p>To <dfn class="dfn-paneled" data-dfn-type="dfn" data-export="" id="invoke-a-callback-function">invoke</dfn> a <a data-link-type="dfn" href="#idl-callback-function" id="ref-for-idl-callback-function⑤">callback function type</a> value <var>callable</var> with a <a data-link-type="dfn" href="#web-idl-arguments-list" id="ref-for-web-idl-arguments-list②">Web IDL arguments list</a> <var>args</var> and an optional <a data-link-type="dfn" href="#dfn-callback-this-value" id="ref-for-dfn-callback-this-value①">callback this value</a> <var>thisArg</var>,
@@ -13444,7 +13427,7 @@ not caught there, to its caller, and so on.</p>
 the exact steps to take if <dfn class="dfn-paneled" data-dfn-type="dfn" data-noexport="" id="an-exception-was-thrown">an exception was thrown</dfn>, or by explicitly handling <a data-link-type="dfn" href="https://tc39.github.io/ecma262/#sec-completion-record-specification-type" id="ref-for-sec-completion-record-specification-type⑥">abrupt completions</a>.</p>
    <div class="example" id="example-17059fd2">
     <a class="self-link" href="#example-17059fd2"></a> 
-    <p>The following <a data-link-type="dfn" href="#dfn-idl-fragment" id="ref-for-dfn-idl-fragment④⑧">IDL fragment</a> defines two <a data-link-type="dfn" href="#dfn-interface" id="ref-for-dfn-interface②④⑤">interfaces</a> and an <a data-link-type="dfn" href="#dfn-exception" id="ref-for-dfn-exception">exception</a>.
+    <p>The following <a data-link-type="dfn" href="#dfn-idl-fragment" id="ref-for-dfn-idl-fragment④⑨">IDL fragment</a> defines two <a data-link-type="dfn" href="#dfn-interface" id="ref-for-dfn-interface②④⑤">interfaces</a> and an <a data-link-type="dfn" href="#dfn-exception" id="ref-for-dfn-exception">exception</a>.
     The <code>valueOf</code> attribute on <code class="idl">ExceptionThrower</code> is defined to throw an exception whenever an attempt is made
     to get its value.</p>
 <pre class="highlight">[<c- g="">Exposed</c->=<c- n="">Window</c->]
@@ -13594,7 +13577,7 @@ return any value.</p>
    <p><i>This section is informative.</i></p>
    <p>Extensions to language binding requirements can be specified
 using <a data-link-type="dfn" href="#dfn-extended-attribute" id="ref-for-dfn-extended-attribute①④②">extended attributes</a> that do not conflict with those defined in this document.  Extensions for
-private, project-specific use should not be included in <a data-link-type="dfn" href="#dfn-idl-fragment" id="ref-for-dfn-idl-fragment④⑨">IDL fragments</a> appearing in other specifications.  It is recommended that extensions
+private, project-specific use should not be included in <a data-link-type="dfn" href="#dfn-idl-fragment" id="ref-for-dfn-idl-fragment⑤⓪">IDL fragments</a> appearing in other specifications.  It is recommended that extensions
 that are required for use in other specifications be coordinated
 with the group responsible for work on <cite>Web IDL</cite>, which
 at the time of writing is the <a href="http://www.w3.org/WebPlatform/WG/">W3C Web Platform Working Group</a>,
@@ -13621,7 +13604,7 @@ or can be modified to rely on non-legacy WebIDL constructs instead.</p>
    <h2 class="heading settled" data-level="7" id="referencing"><span class="secno">7. </span><span class="content">Referencing this specification</span><a class="self-link" href="#referencing"></a></h2>
    <p><i>This section is informative.</i></p>
    <p>It is expected that other specifications that define Web platform interfaces
-using one or more <a data-link-type="dfn" href="#dfn-idl-fragment" id="ref-for-dfn-idl-fragment⑤⓪">IDL fragments</a> will reference this specification.  It is suggested
+using one or more <a data-link-type="dfn" href="#dfn-idl-fragment" id="ref-for-dfn-idl-fragment⑤①">IDL fragments</a> will reference this specification.  It is suggested
 that those specifications include a sentence such as the following,
 to indicate that the IDL is to be interpreted as described in this
 specification:</p>
@@ -13733,7 +13716,7 @@ Collin Xu.</p>
 while the editor was unavailable to do so.</p>
    <h2 class="no-num heading settled" id="idl-grammar"><span class="content">IDL grammar</span><a class="self-link" href="#idl-grammar"></a></h2>
    <p>This section defines an LL(1) grammar whose start symbol, <emu-nt><a href="#prod-Definitions">Definitions</a></emu-nt>, matches an
-entire <a data-link-type="dfn" href="#dfn-idl-fragment" id="ref-for-dfn-idl-fragment⑤①">IDL fragment</a>.</p>
+entire <a data-link-type="dfn" href="#dfn-idl-fragment" id="ref-for-dfn-idl-fragment⑤②">IDL fragment</a>.</p>
    <p>Each production in the grammar has on its right hand side either a
 non-zero sequence of terminal and non-terminal symbols, or an
 epsilon (ε) which indicates no symbols.
@@ -13791,7 +13774,7 @@ extended attribute.</p>
    <p>Implicitly, any number of <emu-t class="regex"><a href="#prod-whitespace">whitespace</a></emu-t> and <emu-t class="regex"><a href="#prod-comment">comment</a></emu-t> terminals are allowed between every other terminal
 in the input text being parsed.  Such <emu-t class="regex"><a href="#prod-whitespace">whitespace</a></emu-t> and <emu-t class="regex"><a href="#prod-comment">comment</a></emu-t> terminals are ignored while parsing.</p>
    <p>The following LL(1) grammar, starting with <emu-nt><a href="#prod-Definitions">Definitions</a></emu-nt>,
-matches an <a data-link-type="dfn" href="#dfn-idl-fragment" id="ref-for-dfn-idl-fragment⑤②">IDL fragment</a>:</p>
+matches an <a data-link-type="dfn" href="#dfn-idl-fragment" id="ref-for-dfn-idl-fragment⑤③">IDL fragment</a>:</p>
    <div data-fill-with="grammar-index"><pre class="grammar"><emu-nt id="index-prod-Definitions"><a href="#index-prod-Definitions">Definitions</a></emu-nt> ::
     <emu-nt><a href="#index-prod-ExtendedAttributeList">ExtendedAttributeList</a></emu-nt> <emu-nt><a href="#index-prod-Definition">Definition</a></emu-nt> <emu-nt><a href="#index-prod-Definitions">Definitions</a></emu-nt>
     ε
@@ -14403,7 +14386,7 @@ examples, notes and sections marked as being informative.</p>
    <dl>
     <dt data-md=""><dfn class="dfn-paneled" data-dfn-type="dfn" data-export="" id="dfn-conforming-set-of-idl-fragments">conforming set of IDL fragments</dfn>
     </dt><dd data-md="">
-     <p>A set of <a data-link-type="dfn" href="#dfn-idl-fragment" id="ref-for-dfn-idl-fragment⑤③">IDL fragments</a> is considered
+     <p>A set of <a data-link-type="dfn" href="#dfn-idl-fragment" id="ref-for-dfn-idl-fragment⑤④">IDL fragments</a> is considered
 to be a <a data-link-type="dfn" href="#dfn-conforming-set-of-idl-fragments" id="ref-for-dfn-conforming-set-of-idl-fragments">conforming set of IDL fragments</a> if, taken together, they satisfy all of the
 must-,
 required- and shall-level
@@ -17169,12 +17152,12 @@ language binding.</p>
     </li><li><a href="#ref-for-dfn-idl-fragment④④">3.4.7. [LegacyOverrideBuiltIns]</a>
     </li><li><a href="#ref-for-dfn-idl-fragment④⑤">3.4.8. [LegacyTreatNonObjectAsNull]</a>
     </li><li><a href="#ref-for-dfn-idl-fragment④⑥">3.4.10. [LegacyUnforgeable]</a>
-    </li><li><a href="#ref-for-dfn-idl-fragment④⑦">3.7.7.1.1. Default toJSON operation</a>
-    </li><li><a href="#ref-for-dfn-idl-fragment④⑧">3.14.4. Handling exceptions</a>
-    </li><li><a href="#ref-for-dfn-idl-fragment④⑨">5. Extensibility</a>
-    </li><li><a href="#ref-for-dfn-idl-fragment⑤⓪">7. Referencing this specification</a>
-    </li><li><a href="#ref-for-dfn-idl-fragment⑤①">IDL grammar</a> <a href="#ref-for-dfn-idl-fragment⑤②">(2)</a>
-    </li><li><a href="#ref-for-dfn-idl-fragment⑤③">Conformance</a>
+    </li><li><a href="#ref-for-dfn-idl-fragment④⑦">3.7.7.1.1. Default toJSON operation</a> <a href="#ref-for-dfn-idl-fragment④⑧">(2)</a>
+    </li><li><a href="#ref-for-dfn-idl-fragment④⑨">3.14.4. Handling exceptions</a>
+    </li><li><a href="#ref-for-dfn-idl-fragment⑤⓪">5. Extensibility</a>
+    </li><li><a href="#ref-for-dfn-idl-fragment⑤①">7. Referencing this specification</a>
+    </li><li><a href="#ref-for-dfn-idl-fragment⑤②">IDL grammar</a> <a href="#ref-for-dfn-idl-fragment⑤③">(2)</a>
+    </li><li><a href="#ref-for-dfn-idl-fragment⑤④">Conformance</a>
    </li></ul>
   </aside>
   <aside class="dfn-panel" data-for="dfn-definition">
@@ -17384,7 +17367,7 @@ language binding.</p>
     </li><li><a href="#ref-for-dfn-inherited-interfaces①⑦">3.4.10. [LegacyUnforgeable]</a>
     </li><li><a href="#ref-for-dfn-inherited-interfaces①⑧">3.7.3. Interface prototype object</a> <a href="#ref-for-dfn-inherited-interfaces①⑨">(2)</a>
     </li><li><a href="#ref-for-dfn-inherited-interfaces②⓪">3.7.4. Named properties object</a>
-    </li><li><a href="#ref-for-dfn-inherited-interfaces②①">3.7.7.1.1. Default toJSON operation</a> <a href="#ref-for-dfn-inherited-interfaces②②">(2)</a>
+    </li><li><a href="#ref-for-dfn-inherited-interfaces②①">3.7.7.1.1. Default toJSON operation</a>
    </li></ul>
   </aside>
   <aside class="dfn-panel" data-for="interface-inclusive-inherited-interfaces">
@@ -17407,6 +17390,7 @@ language binding.</p>
     </li><li><a href="#ref-for-dfn-partial-interface①⑨">3.3.7. [Global]</a>
     </li><li><a href="#ref-for-dfn-partial-interface②⓪">3.3.12. [SecureContext]</a> <a href="#ref-for-dfn-partial-interface②①">(2)</a>
     </li><li><a href="#ref-for-dfn-partial-interface②②">3.4.7. [LegacyOverrideBuiltIns]</a> <a href="#ref-for-dfn-partial-interface②③">(2)</a>
+    </li><li><a href="#ref-for-dfn-partial-interface②④">3.7.7.1.1. Default toJSON operation</a>
    </li></ul>
   </aside>
   <aside class="dfn-panel" data-for="qualified-name">
@@ -17427,8 +17411,8 @@ language binding.</p>
     </li><li><a href="#ref-for-interface-mixin③②">3.3.3. [CrossOriginIsolated]</a> <a href="#ref-for-interface-mixin③③">(2)</a>
     </li><li><a href="#ref-for-interface-mixin③④">3.3.6. [Exposed]</a> <a href="#ref-for-interface-mixin③⑤">(2)</a> <a href="#ref-for-interface-mixin③⑥">(3)</a> <a href="#ref-for-interface-mixin③⑦">(4)</a> <a href="#ref-for-interface-mixin③⑧">(5)</a> <a href="#ref-for-interface-mixin③⑨">(6)</a> <a href="#ref-for-interface-mixin④⓪">(7)</a> <a href="#ref-for-interface-mixin④①">(8)</a> <a href="#ref-for-interface-mixin④②">(9)</a> <a href="#ref-for-interface-mixin④③">(10)</a> <a href="#ref-for-interface-mixin④④">(11)</a> <a href="#ref-for-interface-mixin④⑤">(12)</a> <a href="#ref-for-interface-mixin④⑥">(13)</a>
     </li><li><a href="#ref-for-interface-mixin④⑦">3.3.12. [SecureContext]</a> <a href="#ref-for-interface-mixin④⑧">(2)</a>
-    </li><li><a href="#ref-for-interface-mixin④⑨">3.7.7.1.1. Default toJSON operation</a> <a href="#ref-for-interface-mixin⑤⓪">(2)</a>
-    </li><li><a href="#ref-for-interface-mixin⑤①">3.8. Platform objects implementing interfaces</a> <a href="#ref-for-interface-mixin⑤②">(2)</a> <a href="#ref-for-interface-mixin⑤③">(3)</a> <a href="#ref-for-interface-mixin⑤④">(4)</a>
+    </li><li><a href="#ref-for-interface-mixin④⑨">3.7.7.1.1. Default toJSON operation</a>
+    </li><li><a href="#ref-for-interface-mixin⑤⓪">3.8. Platform objects implementing interfaces</a> <a href="#ref-for-interface-mixin⑤①">(2)</a> <a href="#ref-for-interface-mixin⑤②">(3)</a> <a href="#ref-for-interface-mixin⑤③">(4)</a>
    </li></ul>
   </aside>
   <aside class="dfn-panel" data-for="interface-mixin-member">
@@ -17469,8 +17453,7 @@ language binding.</p>
     </li><li><a href="#ref-for-include①">2.3. Interface mixins</a> <a href="#ref-for-include②">(2)</a> <a href="#ref-for-include③">(3)</a> <a href="#ref-for-include④">(4)</a> <a href="#ref-for-include⑤">(5)</a> <a href="#ref-for-include⑥">(6)</a> <a href="#ref-for-include⑦">(7)</a>
     </li><li><a href="#ref-for-include⑧">2.5. Members</a> <a href="#ref-for-include⑨">(2)</a>
     </li><li><a href="#ref-for-include①⓪">3.3.6. [Exposed]</a> <a href="#ref-for-include①①">(2)</a>
-    </li><li><a href="#ref-for-include①②">3.7.7.1.1. Default toJSON operation</a>
-    </li><li><a href="#ref-for-include①③">3.8. Platform objects implementing interfaces</a> <a href="#ref-for-include①④">(2)</a>
+    </li><li><a href="#ref-for-include①②">3.8. Platform objects implementing interfaces</a> <a href="#ref-for-include①③">(2)</a>
    </li></ul>
   </aside>
   <aside class="dfn-panel" data-for="host-interfaces">
@@ -17639,7 +17622,7 @@ language binding.</p>
     </li><li><a href="#ref-for-dfn-regular-attribute①⑨">3.4.10. [LegacyUnforgeable]</a> <a href="#ref-for-dfn-regular-attribute②⓪">(2)</a> <a href="#ref-for-dfn-regular-attribute②①">(3)</a>
     </li><li><a href="#ref-for-dfn-regular-attribute②②">3.7.1. Interface object</a>
     </li><li><a href="#ref-for-dfn-regular-attribute②③">3.7.6. Attributes</a> <a href="#ref-for-dfn-regular-attribute②④">(2)</a> <a href="#ref-for-dfn-regular-attribute②⑤">(3)</a> <a href="#ref-for-dfn-regular-attribute②⑥">(4)</a> <a href="#ref-for-dfn-regular-attribute②⑦">(5)</a>
-    </li><li><a href="#ref-for-dfn-regular-attribute②⑧">3.7.7.1.1. Default toJSON operation</a>
+    </li><li><a href="#ref-for-dfn-regular-attribute②⑧">3.7.7.1.1. Default toJSON operation</a> <a href="#ref-for-dfn-regular-attribute②⑨">(2)</a>
    </li></ul>
   </aside>
   <aside class="dfn-panel" data-for="getter-steps">
@@ -17715,10 +17698,9 @@ language binding.</p>
     </li><li><a href="#ref-for-dfn-operation⑤⑥">3.5. Security</a>
     </li><li><a href="#ref-for-dfn-operation⑤⑦">3.6. Overload resolution algorithm</a> <a href="#ref-for-dfn-operation⑤⑧">(2)</a>
     </li><li><a href="#ref-for-dfn-operation⑤⑨">3.7.7. Operations</a> <a href="#ref-for-dfn-operation⑥⓪">(2)</a> <a href="#ref-for-dfn-operation⑥①">(3)</a> <a href="#ref-for-dfn-operation⑥②">(4)</a>
-    </li><li><a href="#ref-for-dfn-operation⑥③">3.7.7.1.1. Default toJSON operation</a>
-    </li><li><a href="#ref-for-dfn-operation⑥④">3.7.7.2. Stringifiers</a> <a href="#ref-for-dfn-operation⑥⑤">(2)</a>
-    </li><li><a href="#ref-for-dfn-operation⑥⑥">3.11. Callback interfaces</a>
-    </li><li><a href="#ref-for-dfn-operation⑥⑦">3.12. Invoking callback functions</a>
+    </li><li><a href="#ref-for-dfn-operation⑥③">3.7.7.2. Stringifiers</a> <a href="#ref-for-dfn-operation⑥④">(2)</a>
+    </li><li><a href="#ref-for-dfn-operation⑥⑤">3.11. Callback interfaces</a>
+    </li><li><a href="#ref-for-dfn-operation⑥⑥">3.12. Invoking callback functions</a>
    </li></ul>
   </aside>
   <aside class="dfn-panel" data-for="dfn-regular-operation">
