@@ -8970,7 +8970,7 @@ are represented by objects of the corresponding ECMAScript class, with the follo
         a {{ECMAScript/TypeError}}.
     1.  If the conversion is not to an IDL type
         [=extended attributes associated with|associated with=] the [{{AllowResizable}}]
-        [=extended attribute=], and <a abstract-op>IsResizableArrayBuffer</a>(|V|) is false,
+        [=extended attribute=], and <a abstract-op>IsResizableArrayBuffer</a>(|V|) is true,
         then [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
     1.  Return the IDL {{ArrayBuffer}} value that is a reference
         to the same object as |V|.
@@ -8990,7 +8990,7 @@ are represented by objects of the corresponding ECMAScript class, with the follo
         then [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
     1.  If the conversion is not to an IDL type
         [=extended attributes associated with|associated with=] the [{{AllowResizable}}]
-        [=extended attribute=], and <a abstract-op>IsResizableArrayBuffer</a>(|V|.\[[ViewedArrayBuffer]]) is false,
+        [=extended attribute=], and <a abstract-op>IsResizableArrayBuffer</a>(|V|.\[[ViewedArrayBuffer]]) is true,
         then [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
     1.  Return the IDL {{DataView}} value that is a reference
         to the same object as |V|.
@@ -9024,7 +9024,7 @@ are represented by objects of the corresponding ECMAScript class, with the follo
         then [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
     1.  If the conversion is not to an IDL type
         [=extended attributes associated with|associated with=] the [{{AllowResizable}}]
-        [=extended attribute=], and <a abstract-op>IsResizableArrayBuffer</a>(|V|.\[[ViewedArrayBuffer]]) is false,
+        [=extended attribute=], and <a abstract-op>IsResizableArrayBuffer</a>(|V|.\[[ViewedArrayBuffer]]) is true,
         then [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
     1.  Return the IDL value of type |T| that is a reference to the same object as |V|.
 </div>
@@ -9163,7 +9163,24 @@ A type that is not a [=buffer source type=] must not be
 See the rules for converting ECMAScript values to IDL [=buffer source types=] in
 [[#es-buffer-source-types]] for the specific requirements that the use of [{{AllowResizable}}] entails.
 
-<div class="example">
+See the <a href="#example-allowresizable-allowshared">example</a> in [[#AllowShared]] for example usage of both [{{AllowResizable}}] and [{{AllowShared}}].
+
+
+<h4 id="AllowShared" extended-attribute lt="AllowShared">[AllowShared]</h4>
+
+If the [{{AllowShared}}] [=extended attribute=] appears on one of the [=buffer source types=], it
+creates a new IDL type that allows the buffer source type to be backed by an ECMAScript
+{{ECMAScript/SharedArrayBuffer}}, instead of only by a non-shared {{ECMAScript/ArrayBuffer}}.
+
+The [{{AllowShared}}] extended attribute must [=takes no arguments|take no arguments=].
+
+A type that is not a [=buffer source type=] must not be
+[=extended attributes associated with|associated with=] the [{{AllowShared}}] extended attribute.
+
+See the rules for converting ECMAScript values to IDL [=buffer source types=] in
+[[#es-buffer-source-types]] for the specific requirements that the use of [{{AllowShared}}] entails.
+
+<div class="example" id="example-allowresizable-allowshared">
     In the following [=IDL fragment=], one operation's argument uses the [{{AllowResizable}}] extended
     attribute, while the other does not:
 
@@ -9200,39 +9217,6 @@ See the rules for converting ECMAScript values to IDL [=buffer source types=] in
             typed array or {{ECMAScript/DataView}} backed by either.
         </li>
     </ul>
-</div>
-
-
-<h4 id="AllowShared" extended-attribute lt="AllowShared">[AllowShared]</h4>
-
-If the [{{AllowShared}}] [=extended attribute=] appears on one of the [=buffer source types=], it
-creates a new IDL type that allows the buffer source type to be backed by an ECMAScript
-{{ECMAScript/SharedArrayBuffer}}, instead of only by a non-shared {{ECMAScript/ArrayBuffer}}.
-
-The [{{AllowShared}}] extended attribute must [=takes no arguments|take no arguments=].
-
-A type that is not a [=buffer source type=] must not be
-[=extended attributes associated with|associated with=] the [{{AllowShared}}] extended attribute.
-
-See the rules for converting ECMAScript values to IDL [=buffer source types=] in
-[[#es-buffer-source-types]] for the specific requirements that the use of [{{AllowShared}}] entails.
-
-<div class="example">
-    In the following [=IDL fragment=], one operation's argument uses the [{{AllowShared}}] extended
-    attribute, while the other does not:
-
-    <pre highlight="webidl">
-        [Exposed=Window]
-        interface RenderingContext {
-          undefined readPixels(long width, long height, BufferSource pixels);
-          undefined readPixelsShared(long width, long height, [AllowShared] BufferSource pixels);
-        };
-    </pre>
-
-    With this definition, a call to <code>readPixels</code> with an {{ECMAScript/SharedArrayBuffer}}
-    instance, or any typed array or {{ECMAScript/DataView}} backed by one, will throw a
-    {{ECMAScript/TypeError}} exception. In contrast, a call to <code>readPixelsShared</code> will allow such
-    objects as input.
 </div>
 
 
