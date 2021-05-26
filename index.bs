@@ -1802,11 +1802,7 @@ it declares a [=static attribute=]. Note that in addition to being [=interface m
     To <dfn export>get the underlying value</dfn> of an attribute |attr| given a value |target|,
     return the result of performing the actions listed in the description of |attr| that occur on getting,
     or those listed in the description of the inherited attribute,
-<<<<<<< HEAD
-    if |attr| is declared to inherit its getter, with |target| as <b>this</b> if it is not null.
-=======
     if |attr| is declared to inherit its getter, with |target| as <b>[=this=]</b> if it is not null.
->>>>>>> origin/lpo-set-overridebuiltins
 </div>
 
 The [=identifier=] of an
@@ -2426,8 +2422,8 @@ The <dfn id="dfn-json-types" export lt="JSON type">JSON types</dfn> are:
 *   [=dictionary types=] where the types of all [=dictionary members|members=] declared on the dictionary and all its [=inherited dictionaries=] are [=JSON types=],
 *   [=records=] where all of their [=map/values=] are [=JSON types=],
 *   {{object}},
-*   [=interface types=] that have a <code>toJSON</code> operation declared on one of their
-    [=inclusive inherited interfaces=].
+*   [=interface types=] that have a <code>toJSON</code> operation declared on themselves or
+    one of their [=inherited interfaces=].
 
 How the <code>toJSON</code> [=regular operation=]
 is made available on an object in a language binding,
@@ -2481,11 +2477,7 @@ in which case the [=default toJSON operation=] is exposed instead.
         1.  [=list/For each=] attribute [=identifier=] |attr| in « "from", "to", "amount", "description" »:
             1.  Let |value| be result of [=get the underlying value|getting the underlying value=]
                 of the [=attribute=] identified by |attr|,
-<<<<<<< HEAD
-                given <b>this</b>.
-=======
                 given **this**.
->>>>>>> origin/lpo-set-overridebuiltins
             1.  Set |json|[|attr|] to |value|.
         1.  Return |json|.
     </div>
@@ -3989,8 +3981,12 @@ the iterator objects returned by <code class="idl">entries</code>,
 <code class="idl">keys</code>, <code class="idl">values</code>, and {{@@iterator}} are
 actual [=array iterator objects=].
 
-Interfaces with iterable declarations must not have any [=inclusive inherited interfaces=] that
-have [=members=] named "<code>entries</code>", "<code>forEach</code>", "<code>keys</code>", or
+Interfaces with iterable declarations, their [=inherited interfaces=], and any [=interfaces=] that
+[=interface/inherit=] from them must not have any [=regular operations=], [=regular attributes=] or
+[=constants=] named
+"<code>entries</code>",
+"<code>forEach</code>",
+"<code>keys</code>", or
 "<code>values</code>".
 
 <div class="example">
@@ -4074,7 +4070,8 @@ of an interface with an
 [=iterable declaration=]
 must not also have an
 [=iterable declaration=].
-The [=inclusive inherited interfaces=] of an interface with an [=iterable declaration=]
+An interface with an [=iterable declaration=]
+and its [=inherited interfaces=]
 must not have a
 [=maplike declaration=] or
 [=setlike declaration=].
@@ -4136,20 +4133,25 @@ keyword is used, this includes <code class="idl">entries</code>,
 For read–write maplikes, it also includes <code class="idl">clear</code>,
 <code class="idl">delete</code>, and <code class="idl">set</code> methods.
 
-The [=inclusive inherited interfaces=] of a maplike interface must not
-have any [=interface members=]
-named "<code>entries</code>", "<code>forEach</code>",
-"<code>get</code>", "<code>has</code>",
-"<code>keys</code>", "<code>size</code>", or
+Maplike interfaces, their [=inherited interfaces=], and any [=interfaces=] that
+[=interface/inherit=] from them must not have any [=regular operations=], [=regular attributes=] or
+[=constants=] named
+"<code>entries</code>",
+"<code>forEach</code>",
+"<code>get</code>",
+"<code>has</code>",
+"<code>keys</code>",
+"<code>size</code>", or
 "<code>values</code>".
-The [=inclusive inherited interfaces=] of a read–write maplike interface must not
-have any [=attributes=]
-or [=constants=] named
-"<code>clear</code>", "<code>delete</code>",
-or "<code>set</code>".
 
-Note: Operations named "<code>clear</code>", "<code>delete</code>",
-or "<code>set</code>" are allowed on read–write maplike
+Read–write maplike interfaces must not have any [=regular attributes=] or [=constants=] named
+"<code>clear</code>",
+"<code>delete</code>", or
+"<code>set</code>",
+or have any [=inherited interfaces=] that have [=regular operations=], [=regular attributes=] or
+[=constants=] with these names.
+
+Note: Operations with these names are allowed on read–write maplike
 interfaces and will prevent the default implementation of these methods being
 added to the interface prototype object in the ECMAScript language binding.
 This allows the default behavior of these operations to be overridden.
@@ -4159,7 +4161,7 @@ An interface must not have more than one
 The [=inherited interfaces=]
 of a maplike interface must not
 also have a [=maplike declaration=].
-The [=inclusive inherited interfaces=] of a maplike interface
+A maplike interface and its [=inherited interfaces=]
 must not have an
 [=iterable declaration=],
 a [=setlike declaration=], or
@@ -4227,19 +4229,24 @@ keyword is used, this includes <code class="idl">entries</code>,
 For read–write setlikes, it also includes <code class="idl">add</code>,
 <code class="idl">clear</code>, and <code class="idl">delete</code> methods.
 
-The [=inclusive inherited interfaces=] of a setlike interface must not
-have any [=interface members=]
-named "<code>entries</code>", "<code>forEach</code>",
-"<code>has</code>", "<code>keys</code>",
-"<code>size</code>", or "<code>values</code>".
-The [=inclusive inherited interfaces=] of a read–write setlike interface must not
-have any [=attributes=]
-or [=constants=] named
-"<code>add</code>", "<code>clear</code>",
-or "<code>delete</code>".
+Setlike interfaces, their [=inherited interfaces=], and any [=interfaces=] that
+[=interface/inherit=] from them must not have any [=regular operations=], [=regular attributes=] or
+[=constants=] named
+"<code>entries</code>",
+"<code>forEach</code>",
+"<code>has</code>",
+"<code>keys</code>",
+"<code>size</code>", or
+"<code>values</code>".
 
-Note: Operations named "<code>add</code>", "<code>clear</code>",
-or "<code>delete</code>" are allowed on read–write setlike
+Read–write setlike interfaces must not have any [=regular attributes=] or [=constants=] named
+"<code>add</code>",
+"<code>clear</code>", or
+"<code>delete</code>",
+or have any [=inherited interfaces=] that have [=regular operations=], [=regular attributes=] or
+[=constants=] with these names.
+
+Note: Operations with these names are allowed on read–write setlike
 interfaces and will prevent the default implementation of these methods being
 added to the interface prototype object in the ECMAScript language binding.
 This allows the default behavior of these operations to be overridden.
@@ -4249,7 +4256,7 @@ An interface must not have more than one
 The [=inherited interfaces=]
 of a setlike interface must not
 also have a [=setlike declaration=].
-The [=inclusive inherited interfaces=] of a setlike interface
+A setlike interface and its [=inherited interfaces=]
 must not have an
 [=iterable declaration=],
 a [=maplike declaration=], or
@@ -10659,14 +10666,8 @@ the <code>typeof</code> operator will return "function" when applied to an inter
             {{NewTarget}}.
         1.  Perform the actions listed in the description of |constructor|
             with |values| as the argument values
-<<<<<<< HEAD
-            and |object| as <b>this</b>.
-        1.  Let |O| be the result of [=converted to an ECMAScript value|converting=] |object|
-            to an ECMAScript [=interface type=] value |I|.
-=======
             and |object| as <b>[=this=]</b>.
         1.  Let |O| be |object|, [=converted to an ECMAScript value=].
->>>>>>> origin/lpo-set-overridebuiltins
         1.  Assert: |O| is an object that [=implements=] |I|.
         1.  Assert: |O|.\[[Realm]] is |realm|.
         1.  Return |O|.
@@ -10735,14 +10736,8 @@ implement the interface on which the
             {{NewTarget}}.
         1.  Perform the actions listed in the description of |constructor|
             with |values| as the argument values
-<<<<<<< HEAD
-            and |object| as <b>this</b>.
-        1.  Let |O| be the result of [=converted to an ECMAScript value|converting=] |object|
-            to an ECMAScript [=interface type=] value |I|.
-=======
             and |object| as <b>[=this=]</b>.
         1.  Let |O| be |object|, [=converted to an ECMAScript value=].
->>>>>>> origin/lpo-set-overridebuiltins
         1.  Assert: |O| is an object that [=implements=] |I|.
         1.  Assert: |O|.\[[Realm]] is |realm|.
         1.  Return |O|.
@@ -10802,7 +10797,8 @@ with the [{{NoInterfaceObject}}] [=extended attribute=].
             \[[Writable]]: <emu-val>false</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>,
             \[[Configurable]]: <emu-val>true</emu-val>}.
         1.  Perform [=!=] <a abstract-op>DefinePropertyOrThrow</a>(|interfaceProtoObj|, {{@@unscopables}}, |desc|).
-    1.  If |interface| is in the [=inclusive inherited interfaces=] of an interface
+    1.  If |interface| is declared with the [{{Global}}] [=extended attribute=], or
+        |interface| is in the set of [=inherited interfaces=] of an interface
         that is declared with the [{{Global}}] [=extended attribute=], then:
         1.  Set the internal methods of |interfaceProtoObj|
             which are specific to [=immutable prototype exotic objects=]
@@ -11063,35 +11059,15 @@ in which case they are exposed on every object that [=implements=] the interface
 
     1.  Let |steps| be the following series of steps:
         1.  Try running the following steps:
-<<<<<<< HEAD
-            1.  Let |object| be null.
-            1.  If |target| is an [=interface=], and |attribute| is a [=regular attribute=]:
-                1.  If the <emu-val>this</emu-val> value is <emu-val>null</emu-val> or
-                    <emu-val>undefined</emu-val>, let |O| be |realm|'s [=Realm/global object=].
-=======
             1.  Let |idlObject| be null.
             1.  If |target| is an [=interface=], and |attribute| is a [=regular attribute=]:
                 1.  Let |esValue| be the <emu-val>this</emu-val> value, if it is not
                     <emu-val>null</emu-val> or <emu-val>undefined</emu-val>, or |realm|'s
                     [=Realm/global object=] otherwise.
->>>>>>> origin/lpo-set-overridebuiltins
                     (This will subsequently cause a {{ECMAScript/TypeError}} in a few steps, if
                     the global object does not implement |target| and [{{LenientThis}}] is not
                     specified.)
                     <!-- https://www.w3.org/Bugs/Public/show_bug.cgi?id=18547#c9 -->
-<<<<<<< HEAD
-                1.  Otherwise, let |O| be the <emu-val>this</emu-val> value.
-                1.  If |O| [=is a platform object=], then [=perform a security check=], passing |O|,
-                    |attribute|'s [=identifier=], and "getter".
-                1.  If |O| does not [=implement=] the interface |target|, then:
-                    1.  If |attribute| was specified with the [{{LenientThis}}]
-                        [=extended attribute=], then return <emu-val>undefined</emu-val>.
-                    1. Otherwise, [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
-                1.  Set |object| to the IDL [=interface type=] value that represents a reference
-                    to |O|.
-            1.  Let |R| be the result of [=get the underlying value|getting the underlying value=]
-                of |attribute| given |object|.
-=======
                 1.  If |esValue| [=is a platform object=], then [=perform a security check=],
                     passing |esValue|, |attribute|'s [=identifier=], and "getter".
                 1.  If |esValue| does not [=implement=] |target|, then:
@@ -11102,7 +11078,6 @@ in which case they are exposed on every object that [=implements=] the interface
                     to |esValue|.
             1.  Let |R| be the result of [=get the underlying value|getting the underlying value=]
                 of |attribute| given |idlObject|.
->>>>>>> origin/lpo-set-overridebuiltins
             1.  Return the result of [=converted to an ECMAScript value|converting=] |R| to an
                 ECMAScript value of the type |attribute| is declared as.
 
@@ -11135,33 +11110,18 @@ in which case they are exposed on every object that [=implements=] the interface
         1.  If no arguments were passed, then [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
         1.  Let |V| be the value of the first argument passed.
         1.  Let |id| be |attribute|'s [=identifier=].
-<<<<<<< HEAD
-        1.  Let |object| be null.
-        1.  If |attribute| is a [=regular attribute=]:
-            1.  If the <emu-val>this</emu-val> value is <emu-val>null</emu-val> or
-                <emu-val>undefined</emu-val>, let |O| be |realm|'s [=Realm/global object=].
-=======
         1.  Let |idlObject| be null.
         1.  If |attribute| is a [=regular attribute=]:
             1.  Let |esValue| be the <emu-val>this</emu-val> value, if it is not
                 <emu-val>null</emu-val> or <emu-val>undefined</emu-val>, or |realm|'s
                 [=Realm/global object=] otherwise.
->>>>>>> origin/lpo-set-overridebuiltins
                 (This will subsequently cause a {{ECMAScript/TypeError}} in a few steps, if
                 the global object does not implement |target| and [{{LenientThis}}] is not
                 specified.)
                 <!-- https://www.w3.org/Bugs/Public/show_bug.cgi?id=18547#c9 -->
-<<<<<<< HEAD
-            1.  Otherwise, let |O| be the <emu-val>this</emu-val> value.
-            1.  If |O| [=is a platform object=], then [=perform a security check=], passing |O|,
-                |id|, and "setter".
-            1.  Let |validThis| be true if |O| [=implements=] the
-                interface |target|, or false otherwise.
-=======
             1.  If |esValue| [=is a platform object=], then [=perform a security check=], passing
                 |esValue|, |id|, and "setter".
             1.  Let |validThis| be true if |esValue| [=implements=] |target|, or false otherwise.
->>>>>>> origin/lpo-set-overridebuiltins
             1.  If |validThis| is false and |attribute| was not specified with the [{{LenientThis}}]
                 [=extended attribute=], then [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
             1.  If |attribute| is declared with the [{{Replaceable}}] extended attribute, then:
@@ -11178,13 +11138,8 @@ in which case they are exposed on every object that [=implements=] the interface
                     attribute.
                 1.  Perform [=?=] <a abstract-op>Set</a>(|Q|, |forwardId|, |V|, <emu-val>true</emu-val>).
                 1.  Return <emu-val>undefined</emu-val>.
-<<<<<<< HEAD
-                1.  Set |object| to the IDL [=interface type=] value that represents a reference
-                    to |O|.
-=======
             1.  Set |idlObject| to the IDL [=interface type=] value that represents a reference
                 to |esValue|.
->>>>>>> origin/lpo-set-overridebuiltins
         1.  Let |idlValue| be determined as follows:
 
             <dl class="switch">
@@ -11204,13 +11159,8 @@ in which case they are exposed on every object that [=implements=] the interface
             </dl>
 
         1.  Perform the actions listed in the description of |attribute| that occur on setting,
-<<<<<<< HEAD
-            with |idlValue| as <b>given value</b> and
-            |object| as <b>this</b> if it is not null.
-=======
             with |idlValue| as <b>[=the given value=]</b> and
             |idlObject| as <b>[=this=]</b> if it is not null.
->>>>>>> origin/lpo-set-overridebuiltins
         1.  Return <emu-val>undefined</emu-val>
     1.  Let |F| be [=!=] <a abstract-op>CreateBuiltinFunction</a>(|steps|, « », |realm|).
     1.  Let |name| be the string "<code>set </code>" prepended to |id|.
@@ -11291,22 +11241,6 @@ in which case they are exposed on every object that [=implements=] the interface
     1.  Let |steps| be the following series of steps, given function argument
         values |args|:
         1.  Try running the following steps:
-<<<<<<< HEAD
-            1.  Let |object| be null.
-            1.  If |target| is an [=interface=], and |op| is not a [=static operation=]:
-                1.  If the <emu-val>this</emu-val> value is <emu-val>null</emu-val> or
-                    <emu-val>undefined</emu-val>, let |O| be |realm|'s [=Realm/global object=]. (This
-                    will subsequently cause a {{ECMAScript/TypeError}} in a few steps, if the global
-                    object does not implement |target|.)
-                    <!-- https://www.w3.org/Bugs/Public/show_bug.cgi?id=18547#c9 -->
-                1.  Otherwise, let |O| be the <emu-val>this</emu-val> value.
-                1.  If |O| [=is a platform object=], then [=perform a security check=], passing |O|,
-                    |id|, and "method".
-                1.  If |O| does not [=implement=] the interface |target|,
-                    [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
-                1.  Set |object| to the IDL [=interface type=] value that represents a reference
-                    to |O|.
-=======
             1.  Let |idlObject| be null.
             1.  If |target| is an [=interface=], and |op| is not a [=static operation=]:
                 1.  Let |esValue| be the <emu-val>this</emu-val> value, if it is not
@@ -11322,7 +11256,6 @@ in which case they are exposed on every object that [=implements=] the interface
                     [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
                 1.  Set |idlObject| to the IDL [=interface type=] value that represents a reference
                     to |esValue|.
->>>>>>> origin/lpo-set-overridebuiltins
             1.  Let |n| be the [=list/size=] of |args|.
             1.  Let |S| be the [=effective overload set=] for [=regular operations=] (if |op| is a
                 regular operation) or for [=static operations=] (if |op| is a static operation) with
@@ -11335,25 +11268,15 @@ in which case they are exposed on every object that [=implements=] the interface
                 1.  Set |R| be the result of performing the actions listed in
                     |operation|'s [=corresponding default operation=],
                     with |values| as the argument values
-<<<<<<< HEAD
-                    and |object| as <b>this</b> if it is not null.
-=======
                     and |idlObject| as <b>[=this=]</b> if it is not null.
->>>>>>> origin/lpo-set-overridebuiltins
             1.  Otherwise:
                 1.  Set |R| be the result of performing the actions listed in the
                     description of |operation|,
                     with |values| as the argument values
-<<<<<<< HEAD
-                    and |object| as <b>this</b> if it is not null.
-                1.  Return the result of [=converted to an ECMAScript value|converting=] |R| to
-                    an ECMAScript value of the type |op| is declared to return.
-=======
                     and |idlObject| as <b>[=this=]</b> if it is not null.
             1.  Return |R|, [=converted to an ECMAScript value=].
 
                 Issue(heycam/webidl#674): |R| is assumed to be an IDL value of the type |op| is declared to return.
->>>>>>> origin/lpo-set-overridebuiltins
 
         And then, if <a lt="an exception was thrown">an exception |E| was thrown</a>:
 
@@ -11392,11 +11315,7 @@ The [=return type=] of the [=default toJSON operation=] must be {{object}}.
     1.  Let |map| be a new [=ordered map=].
     1.  Let |stack| be the result of [=create an inheritance stack|creating an inheritance stack=]
         for [=interface=] |I|.
-<<<<<<< HEAD
-    1.  Invoke [=collect attribute values of an inheritance stack=] on <b>this</b>,
-=======
     1.  Invoke [=collect attribute values of an inheritance stack=] on **this**,
->>>>>>> origin/lpo-set-overridebuiltins
         passing it |stack| and |map| as arguments.
     1.  Let |result| be [=!=] <a abstract-op>ObjectCreate</a>({{%ObjectPrototype%}}).
     1.  [=map/For each=] |key| → |value| of |map|,
@@ -11413,17 +11332,10 @@ The [=return type=] of the [=default toJSON operation=] must be {{object}}.
     run the the following steps:
 
     1.  Let |I| be the result of [=stack/pop|popping=] from |stack|.
-<<<<<<< HEAD
-    1.  Invoke [=collect attribute values=] on <b>this</b>,
-        passing it |I| and |map| as arguments.
-    1.  If |stack| [=stack/is not empty=],
-        then invoke [=collect attribute values of an inheritance stack=] on <b>this</b>,
-=======
     1.  Invoke [=collect attribute values=] on **this**,
         passing it |I| and |map| as arguments.
     1.  If |stack| [=stack/is not empty=],
         then invoke [=collect attribute values of an inheritance stack=] on **this**,
->>>>>>> origin/lpo-set-overridebuiltins
         passing it |stack| and |map| as arguments.
 </div>
 
@@ -11438,11 +11350,7 @@ The [=return type=] of the [=default toJSON operation=] must be {{object}}.
         that is an [=interface member=] of |I|, in order:
         1.  Let |id| be the [=identifier=] of |attr|.
         1.  Let |value| be the result of [=get the underlying value|getting the underlying value=]
-<<<<<<< HEAD
-            of |attr| given <b>this</b>.
-=======
             of |attr| given **this**.
->>>>>>> origin/lpo-set-overridebuiltins
         1.  If |value| is a [=JSON type=], then [=map/set=] |map|[|id|] to |value|.
 
 </div>
@@ -12104,7 +12012,7 @@ The value of the [=function object=]’s <code class="idl">name</code> property 
 
 <h5 id="es-map-clear">clear</h5>
 
-If |A| does not declare a [=member=]
+If |A| does not declare a [=regular operation=]
 with identifier "<code>clear</code>", and
 |A| was declared with a read–write maplike declaration,
 then a <code class="idl">clear</code> data property with the following characteristics
@@ -12121,7 +12029,7 @@ The value of the [=function object=]’s <code class="idl">name</code> property 
 
 <h5 id="es-map-delete">delete</h5>
 
-If |A| does not declare a [=member=]
+If |A| does not declare a [=regular operation=]
 with identifier "<code>delete</code>", and
 |A| was declared with a read–write maplike declaration,
 then a <code class="idl">delete</code> data property with the following characteristics
@@ -12156,7 +12064,7 @@ The value of the [=function object=]’s <code class="idl">name</code> property 
 
 <h5 id="es-map-set">set</h5>
 
-If |A| does not declare a [=member=] with identifier "<code>set</code>",
+If |A| does not declare a [=regular operation=] with identifier "<code>set</code>",
 and |A| was declared with a read–write maplike declaration,
 then a <code class="idl">set</code> data property with the following characteristics
 must exist on |A|’s [=interface prototype object=]:
@@ -12631,7 +12539,6 @@ Additionally, [=legacy platform objects=] have internal methods as defined in:
             1.  [=Invoke the indexed property setter=] with |P| and |V|.
             1.  Return <emu-val>true</emu-val>.
         1.  If |O| [=implements=] an interface with a [=named property setter=]
-            and the [{{OverrideBuiltins}}] [=extended attribute=],
             and <a abstract-op>Type</a>(|P|) is String, then:
             1.  [=Invoke the named property setter=] with |P| and |V|.
             1.  Return <emu-val>true</emu-val>.
@@ -13421,13 +13328,8 @@ Each {{DOMException}} object has an associated <dfn for="DOMException">name</dfn
 The <dfn constructor for="DOMException"><code>DOMException(|message|, |name|)</code></dfn>
 constructor, when invoked, must run these steps:
 
-<<<<<<< HEAD
-1. Set <b>this</b>'s [=DOMException/name=] to |name|.
-1. Set <b>this</b>'s [=DOMException/message=] to |message|.
-=======
 1. Set **this**'s [=DOMException/name=] to |name|.
 1. Set **this**'s [=DOMException/message=] to |message|.
->>>>>>> origin/lpo-set-overridebuiltins
 
 The <dfn attribute for="DOMException"><code>name</code></dfn> attribute's getter must return this
 {{DOMException}} object's [=DOMException/name=].
