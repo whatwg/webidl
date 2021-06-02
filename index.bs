@@ -86,6 +86,7 @@ urlPrefix: https://tc39.github.io/ecma262/; spec: ECMA-262
         text: Set; url: sec-set-objects
         text: SharedArrayBuffer; url: sec-sharedarraybuffer-objects
         text: %AsyncIteratorPrototype%; url: sec-asynciteratorprototype
+        text: %ArrayBuffer%; url: sec-arraybuffer-constructor
         text: %Array.prototype%; url: sec-properties-of-the-array-prototype-object
         text: %Error.prototype%; url: sec-properties-of-the-error-prototype-object
         text: %Function.prototype%; url: sec-properties-of-the-function-prototype-object
@@ -116,6 +117,7 @@ urlPrefix: https://tc39.github.io/ecma262/; spec: ECMA-262
     type: argument
         text: NewTarget; url: sec-built-in-function-objects
     type: abstract-op
+        text: AllocateArrayBuffer; url: sec-allocatearraybuffer
         text: ArrayCreate; url: sec-arraycreate
         text: Call; url: sec-call
         text: CanonicalNumericIndexString; url: sec-canonicalnumericindexstring
@@ -167,6 +169,7 @@ urlPrefix: https://tc39.github.io/ecma262/; spec: ECMA-262
         text: SetFunctionName; url: sec-setfunctionname
         text: SetImmutablePrototype; url: sec-set-immutable-prototype
         text: SetIntegrityLevel; url: sec-setintegritylevel
+        text: SetValueInBuffer; url: sec-setvalueinbuffer
         text: ToBigInt; url: #sec-tobigint
         text: ToBoolean; url: sec-toboolean
         text: ToInt32; url: sec-toint32
@@ -179,6 +182,7 @@ urlPrefix: https://tc39.github.io/ecma262/; spec: ECMA-262
         text: ToUint16; url: sec-touint16
         text: ToUint32; url: sec-touint32
         text: Type; url: sec-ecmascript-data-types-and-values
+        text: TypedArrayCreate; url: typedarray-create
         text: abs; url: eqn-abs
         text: floor; url: eqn-floor
         text: max; url: eqn-max
@@ -9019,10 +9023,40 @@ a reference to the same object that the IDL value represents.
 
 <div algorithm>
 
-    To <dfn id="dfn-detach" for="ArrayBuffer" export>detach</dfn> an {{ArrayBuffer}}, these steps must be followed:
+    To <dfn id="dfn-detach" for="ArrayBuffer" export>detach</dfn> an {{ArrayBuffer}} |ab|:
 
-    1.  Let |O| be the ECMAScript object that is the {{ArrayBuffer}}.
-    1.  Perform [=!=] <a abstract-op>DetachArrayBuffer</a>(|O|).
+    1.  Perform [=!=] <a abstract-op>DetachArrayBuffer</a>(|ab|).
+</div>
+
+<div algorithm="ArrayBuffer/write">
+    To <dfn export for="ArrayBuffer">write</dfn> a [=byte sequence=] |bytes| into an {{ArrayBuffer}}
+    |ab|, optionally given a <dfn export for="ArrayBuffer/write">|startingOffset|</dfn> (default 0):
+
+    1.  Assert: |ab|.\[[ByteLength]] ≥ |startingOffset| + |bytes|'s [=byte sequence/length=].
+    1.  For |i| in [=the range=] |startingOffset| to |startingOffset| + |bytes|'s [=byte
+        sequence/length=] &minus; 1, inclusive, perform [=!=] [$SetValueInBuffer$](|ab|, |i|, Uint8,
+        |bytes|[|i|], false, Unordered).
+</div>
+
+<div algorithm>
+    To <dfn export for="ArrayBuffer">create</dfn> an {{ArrayBuffer}} from a [=byte sequence=]
+    |bytes| in a [=Realm=] |realm|:
+
+    1.  Let |ab| be [=?=] [$AllocateArrayBuffer$](|realm|.\[[Intrinsics]].[[{{%ArrayBuffer%}}]],
+        |bytes|'s [=byte sequence/length=]).
+    1. [=ArrayBuffer/Write=] |bytes| into |ab|.
+    1. Return |ab|.
+</div>
+
+<div algorithm>
+    To <dfn export for="ArrayBufferView">create</dfn> one of the {{ArrayBufferView}} types from a
+    [=byte sequence=] |bytes| in a [=Realm=] |realm|:
+
+    1.  Let |ab| be the result of [=ArrayBuffer/creating=] an {{ArrayBuffer}} from |bytes| in
+        |realm|.
+    1.  Let |constructor| be the appropriate constructor from |realm|.\[[Intrinsics]] for the type
+        of {{ArrayBufferView}} being created.
+    1.  Return [=!=] [$TypedArrayCreate$](|constructor|, « |ab| »).
 </div>
 
 
@@ -14285,7 +14319,7 @@ A {{DOMException}} is represented by a
 
 <div algorithm="to create a simple exception or DOMException">
 
-    To [=create=] a [=simple exception=] or {{DOMException}} |E|, with a string giving the
+    To create a [=simple exception=] or {{DOMException}} |E|, with a string giving the
     [=error name=] |N| for the {{DOMException}} case and optionally a string giving a user
     agent-defined message |M|:
 
