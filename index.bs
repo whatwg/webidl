@@ -241,6 +241,7 @@ urlPrefix: https://tc39.github.io/ecma262/; spec: ECMA-262
         text: realm; url: realm
         text: ResolvedBinding Record; url: resolvedbinding-record
         text: running execution context; url: running-execution-context
+        text: element size; url: table-the-typedarray-constructors
 </pre>
 
 <style>
@@ -9032,10 +9033,11 @@ a reference to the same object that the IDL value represents.
     To <dfn export for="ArrayBuffer">write</dfn> a [=byte sequence=] |bytes| into an {{ArrayBuffer}}
     |ab|, optionally given a <dfn export for="ArrayBuffer/write">|startingOffset|</dfn> (default 0):
 
-    1.  Assert: |ab|.\[[ByteLength]] ≥ |startingOffset| + |bytes|'s [=byte sequence/length=].
+    1.  Assert: |ab|.\[[ArrayBufferByteLength]] ≥ |startingOffset| + |bytes|'s
+        [=byte sequence/length=].
     1.  For |i| in [=the range=] |startingOffset| to |startingOffset| + |bytes|'s [=byte
         sequence/length=] &minus; 1, inclusive, perform [=!=] [$SetValueInBuffer$](|ab|, |i|, Uint8,
-        |bytes|[|i|], false, Unordered).
+        |bytes|[|i| - |startingOffset|], false, Unordered).
 </div>
 
 <div algorithm>
@@ -9052,6 +9054,8 @@ a reference to the same object that the IDL value represents.
     To <dfn export for="ArrayBufferView">create</dfn> one of the {{ArrayBufferView}} types from a
     [=byte sequence=] |bytes| in a [=Realm=] |realm|:
 
+    1.  Assert: if the type is not {{DataView}}, then |bytes|'s [=byte sequence/length=] [=modulo=]
+        the [=element size=] of that type is 0.
     1.  Let |ab| be the result of [=ArrayBuffer/creating=] an {{ArrayBuffer}} from |bytes| in
         |realm|.
     1.  Let |constructor| be the appropriate constructor from |realm|.\[[Intrinsics]] for the type
