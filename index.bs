@@ -76,6 +76,11 @@ urlPrefix: https://w3c.github.io/mediacapture-main/; spec: MEDIACAPTURE-STREAMS
 urlPrefix: http://www.unicode.org/glossary/; spec: UNICODE
     type: dfn
         text: Unicode scalar value; url: unicode_scalar_value
+urlPrefix: https://webassembly.github.io/spec/js-api/; spec: WASM-JS-API-1
+    type: interface
+        text: Memory; url: #memory
+    type: attribute
+        text: buffer; for: Memory; url: #dom-memory-buffer
 urlPrefix: https://tc39.github.io/ecma262/; spec: ECMA-262
     type: interface; for: ECMAScript
         text: Array; url: sec-array-objects
@@ -142,6 +147,7 @@ urlPrefix: https://tc39.github.io/ecma262/; spec: ECMA-262
         text: GetFunctionRealm; url: sec-getfunctionrealm
         text: GetIterator; url: sec-getiterator
         text: GetMethod; url: sec-getmethod
+        text: GetValueFromBuffer; url: sec-getvaluefrombuffer
         text: IfAbruptRejectPromise; url: sec-ifabruptrejectpromise
         text: IsArray; url: sec-isarray
         text: IsAccessorDescriptor; url: sec-isaccessordescriptor
@@ -157,9 +163,10 @@ urlPrefix: https://tc39.github.io/ecma262/; spec: ECMA-262
         text: NewModuleEnvironment; url: sec-newmoduleenvironment
         text: NewPromiseCapability; url: sec-newpromisecapability
         text: NormalCompletion; url: sec-normalcompletion
-        text: OrdinaryObjectCreate; url: sec-ordinaryobjectcreate
+        text: OrdinaryCreateFromConstructor; sec: sec-ordinarycreatefromconstructor
         text: OrdinaryDefineOwnProperty; url: sec-ordinarydefineownproperty
         text: OrdinaryGetOwnProperty; url: sec-ordinarygetownproperty
+        text: OrdinaryObjectCreate; url: sec-ordinaryobjectcreate
         text: OrdinaryPreventExtensions; url: sec-ordinarypreventextensions
         text: OrdinarySetWithOwnDescriptor; url: sec-ordinarysetwithowndescriptor
         text: PerformPromiseThen; url: sec-performpromisethen
@@ -6779,51 +6786,9 @@ There is no way to represent a constant value of any of these types in IDL.
 The [=type name=] of all
 of these types is the name of the type itself.
 
-At the specification prose level, IDL [=buffer source types=]
-are simply references to objects.  To inspect or manipulate the bytes inside the buffer,
-specification prose must first either
-<dfn id="dfn-get-buffer-source-reference" export lt="get a reference to the buffer source">get a reference to the bytes held by the buffer source</dfn>
-or <dfn id="dfn-get-buffer-source-copy" export lt="get a copy of the buffer source">get a copy of the bytes held by the buffer source</dfn>.
-With a reference to the buffer source’s bytes, specification prose can get or set individual
-byte values using that reference.
-
-<div class="advisement">
-
-    Extreme care must be taken when writing specification text that gets a reference
-    to the bytes held by a buffer source, as the underlying data can easily be changed
-    by the script author or other APIs at unpredictable times.  If you are using a buffer source type
-    as an operation argument to obtain a chunk of binary data that will not be modified,
-    it is strongly recommended to get a copy of the buffer source’s bytes at the beginning
-    of the prose defining the operation.
-
-    Requiring prose to explicitly get a reference to or copy of the bytes is intended to
-    help specification reviewers look for problematic uses of these buffer source types.
-
-</div>
-
-<div class="note">
-
-    When designing APIs that take a buffer, it is recommended to use the
-    {{BufferSource}} typedef rather than {{ArrayBuffer}}
-    or any of the view types.
-
-    When designing APIs that create and return a buffer, it is recommended
-    to use the {{ArrayBuffer}} type rather than
-    {{Uint8Array}}.
-
-</div>
-
-Attempting to [=get a reference to the buffer source|get a reference to=] or
-[=get a copy of the buffer source|get a copy of the bytes held by a buffer source=]
-when the {{ArrayBuffer}} has been [=ArrayBuffer/detached=]
-will fail in a language binding-specific manner.
-
-Note: See [[#es-buffer-source-types]] below for
-how interacting with buffer source types works in the ECMAScript language binding.
-
-<p class="issue">
-    We should include an example of specification text that uses these types and terms.
-</p>
+At the specification prose level, IDL [=buffer source types=] are simply references to objects. To
+inspect or manipulate the bytes inside the buffer, specification prose needs to use the algorithms
+in [[#es-buffer-source-types]].
 
 <pre class="grammar" id="prod-BufferRelatedType">
     BufferRelatedType :
@@ -8999,55 +8964,17 @@ an IDL value of any [=buffer source type=]
 to an ECMAScript value is the Object value that represents
 a reference to the same object that the IDL value represents.
 
-<div algorithm="get a reference to a buffer source">
-
-    When [=get a reference to the buffer source|getting a reference to=]
-    or [=get a copy of the buffer source|getting a copy of the bytes held by a buffer source=]
-    that is an ECMAScript {{ECMAScript/ArrayBuffer}}, {{ECMAScript/DataView}}
-    or typed array object, these steps must be followed:
-
-    1.  Let |O| be the ECMAScript object that is the buffer source.
-    1.  Initialize |arrayBuffer| to |O|.
-    1.  Initialize |offset| to 0.
-    1.  Initialize |length| to 0.
-    1.  If |O| has a \[[ViewedArrayBuffer]] [=internal slot=], then:
-        1.  Set |arrayBuffer| to the value of |O|’s \[[ViewedArrayBuffer]] [=internal slot=].
-        1.  Set |offset| to the value of |O|’s \[[ByteOffset]] [=internal slot=].
-        1.  Set |length| to the value of |O|’s \[[ByteLength]] [=internal slot=].
-    1.  Otherwise, set |length| to the value of |O|’s \[[ArrayBufferByteLength]] [=internal slot=].
-    1.  If <a abstract-op>IsDetachedBuffer</a>(|arrayBuffer|) is <emu-val>true</emu-val>, then
-        return the empty byte sequence.
-    1.  Let |data| be the value of |O|’s \[[ArrayBufferData]] [=internal slot=].
-    1.  Return a reference to or copy of (as required) the |length| bytes in |data|
-        starting at byte offset |offset|.
-</div>
-
-<div algorithm>
-
-    To <dfn id="dfn-detach" for="ArrayBuffer" export>detach</dfn> an {{ArrayBuffer}} |ab|:
-
-    1.  Perform [=!=] <a abstract-op>DetachArrayBuffer</a>(|ab|).
-</div>
-
-<div algorithm="ArrayBuffer/write">
-    To <dfn export for="ArrayBuffer">write</dfn> a [=byte sequence=] |bytes| into an {{ArrayBuffer}}
-    |ab|, optionally given a <dfn export for="ArrayBuffer/write">|startingOffset|</dfn> (default 0):
-
-    1.  Assert: |ab|.\[[ArrayBufferByteLength]] ≥ |startingOffset| + |bytes|'s
-        [=byte sequence/length=].
-    1.  For |i| in [=the range=] |startingOffset| to |startingOffset| + |bytes|'s [=byte
-        sequence/length=] &minus; 1, inclusive, perform [=!=] [$SetValueInBuffer$](|ab|, |i|, Uint8,
-        |bytes|[|i| - |startingOffset|], false, Unordered).
-</div>
+<hr>
 
 <div algorithm>
     To <dfn export for="ArrayBuffer">create</dfn> an {{ArrayBuffer}} from a [=byte sequence=]
     |bytes| in a [=Realm=] |realm|:
 
-    1.  Let |ab| be [=?=] [$AllocateArrayBuffer$](|realm|.\[[Intrinsics]].[[{{%ArrayBuffer%}}]],
-        |bytes|'s [=byte sequence/length=]).
-    1. [=ArrayBuffer/Write=] |bytes| into |ab|.
-    1. Return |ab|.
+    1.  Let |arrayBuffer| be [=?=]
+        [$AllocateArrayBuffer$](|realm|.\[[Intrinsics]].[[{{%ArrayBuffer%}}]], |bytes|'s
+        [=byte sequence/length=]).
+    1. [=ArrayBuffer/Write=] |bytes| into |arrayBuffer|.
+    1. Return |arrayBuffer|.
 </div>
 
 <div algorithm>
@@ -9056,13 +8983,99 @@ a reference to the same object that the IDL value represents.
 
     1.  Assert: if the type is not {{DataView}}, then |bytes|'s [=byte sequence/length=] [=modulo=]
         the [=element size=] of that type is 0.
-    1.  Let |ab| be the result of [=ArrayBuffer/creating=] an {{ArrayBuffer}} from |bytes| in
-        |realm|.
+    1.  Let |arrayBuffer| be the result of [=ArrayBuffer/creating=] an {{ArrayBuffer}} from |bytes|
+        in |realm|.
     1.  Let |constructor| be the appropriate constructor from |realm|.\[[Intrinsics]] for the type
         of {{ArrayBufferView}} being created.
-    1.  Return [=!=] [$TypedArrayCreate$](|constructor|, « |ab| »).
+    1.  Return [=!=] [$TypedArrayCreate$](|constructor|, « |arrayBuffer| »).
 </div>
 
+<div algorithm>
+    To <dfn id="dfn-get-buffer-source-copy" export lt="get a copy of the buffer source">get a copy of the bytes held by the buffer source</dfn>
+    given a {{BufferSource}} |bufferSource|:
+
+    1.  Let |arrayBuffer| be |bufferSource|.
+    1.  Let |offset| be 0.
+    1.  Let |length| be 0.
+    1.  If |bufferSource| has a \[[ViewedArrayBuffer]] [=internal slot=], then:
+        1.  Set |arrayBuffer| to |bufferSource|.\[[ViewedArrayBuffer]].
+        1.  Set |offset| to |bufferSource|.\[[ByteOffset]].
+        1.  Set |length| to |bufferSource|.\[[ByteLength]].
+    1.  Otherwise, set |length| to |bufferSource|.\[[ArrayBufferByteLength]].
+    1.  If [=!=] [$IsDetachedBuffer$](|arrayBuffer|) is true, then return the empty
+        [=byte sequence=].
+    1.  Let |bytes| be a new [=byte sequence=] of [=byte sequence/length=] equal to |length|.
+    1.  For |i| in [=the range=] |offset| to |offset| + |length| &minus; 1, inclusive, set
+        |bytes|[|i| &minus; |offset|] to [=!=] [$GetValueFromBuffer$](|arrayBuffer|, |i|, Uint8,
+        false, Unordered).
+</div>
+
+<div algorithm="ArrayBuffer/write">
+    To <dfn export for="ArrayBuffer">write</dfn> a [=byte sequence=] |bytes| into an {{ArrayBuffer}}
+    |arrayBuffer|, optionally given a <dfn export for="ArrayBuffer/write">|startingOffset|</dfn>
+    (default 0):
+
+    1.  Assert: |bytes|'s [=byte sequence/length=] ≤ |arrayBuffer|.\[[ArrayBufferByteLength]]
+        &minus; |startingOffset|.
+    1.  For |i| in [=the range=] |startingOffset| to |startingOffset| + |bytes|'s [=byte
+        sequence/length=] &minus; 1, inclusive, perform [=!=] [$SetValueInBuffer$](|arrayBuffer|,
+        |i|, Uint8, |bytes|[|i| - |startingOffset|], false, Unordered).
+</div>
+
+<div algorithm="ArrayBufferView/write">
+    To <dfn export for="ArrayBufferView">write</dfn> a [=byte sequence=] |bytes| into an
+    {{ArrayBufferView}} |view|, optionally given a
+    <dfn export for="ArrayBufferView/write">|startingOffset|</dfn> (default 0):
+
+    1.  Assert: |bytes|'s [=byte sequence/length=] ≤ |view|.\[[ByteLength]] &minus;
+        |startingOffset|.
+    1.  Assert: if |view| is not a {{DataView}}, then |bytes|'s [=byte sequence/length=] [=modulo=]
+        the [=element size=] of |view|'s type is 0.
+    1.  [=ArrayBuffer/Write=] |bytes| into |view|.\[[ViewedArrayBuffer]] with
+        <i>[=ArrayBuffer/write/startingOffset=]</i> set to |view|.\[[ByteOffset]] +
+        |startingOffset|.
+</div>
+
+<p class="advisement">Extreme care must be taken when writing specification text that
+[=ArrayBuffer/writes=] into an {{ArrayBuffer}} or {{ArrayBufferView}}, as the underlying data can
+easily be changed by the script author or other APIs at unpredictable times. This is especially true
+if the [{{AllowShared}}] [=extended attribute=] is involved. For the non-shared cases, it is
+recommended to [=ArrayBuffer/transfer=] the {{ArrayBuffer}} first if possible, to ensure the writes
+cannot overlap with other modifications, and then give the new {{ArrayBuffer}} instance to author
+code as necessary.
+
+<div algorithm>
+    To <dfn id="dfn-detach" for="ArrayBuffer" export>detach</dfn> an {{ArrayBuffer}} |arrayBuffer|:
+
+    1.  Asssert: [=!=] [$IsSharedArrayBuffer$](|arrayBuffer|) is false.
+    1.  Perform [=?=] [$DetachArrayBuffer$](|arrayBuffer|).
+
+    <p class="note">This will throw an exception if |arrayBuffer| has an \[[ArrayBufferDetachKey]]
+    that is not undefined, such as a {{Memory|WebAssembly.Memory}}'s {{Memory/buffer}}.
+    [[WASM-JS-API-1]]
+</div>
+
+<div algorithm>
+    To <dfn for="ArrayBuffer" export>transfer</dfn> an {{ArrayBuffer}} |arrayBuffer|, optionally
+    given a [=Realm=] |realm|:
+
+    1.  Asssert: [=!=] [$IsSharedArrayBuffer$](|arrayBuffer|) is false.
+    1.  Assert: [=!=] [$IsDetachedBuffer$](|arrayBuffer|) is false.
+    1.  Let |arrayBufferData| be |arrayBuffer|.\[[ArrayBufferData]].
+    1.  Let |arrayBufferByteLength| be |arrayBuffer|.\[[ArrayBufferByteLength]].
+    1.  Perform [=?=] [$DetachArrayBuffer$](|arrayBuffer|).
+    1.  If |realm| is not given, let |realm| be |arrayBuffer|.\[[Realm]].
+    1.  Let |transferred| be [=!=]
+        [$OrdinaryCreateFromConstructor$](|realm|.\[[Intrinsics]].[[{{%ArrayBuffer%}}]],
+        "%ArrayBuffer.prototype%", « \[[ArrayBufferData]], \[[ArrayBufferByteLength]],
+        \[[ArrayBufferDetachKey]] »).
+    1.  Set |transferred|.\[[ArrayBufferData]] to |arrayBufferData|.
+    1.  Set |transferred|.\[[ArrayBufferByteLength]] to |arrayBufferByteLength|.
+    1.  Return |transferred|.
+
+    <p class="note">This will throw an exception under the same circumstances as
+    [=ArrayBuffer/detaching=].
+</div>
 
 <h4 id="es-frozen-array">Frozen arrays — FrozenArray&lt;|T|&gt;</h4>
 
