@@ -189,7 +189,6 @@ urlPrefix: https://tc39.github.io/ecma262/; spec: ECMA-262
         text: ToUint16; url: sec-touint16
         text: ToUint32; url: sec-touint32
         text: Type; url: sec-ecmascript-data-types-and-values
-        text: TypedArrayCreate; url: typedarray-create
         text: abs; url: eqn-abs
         text: floor; url: eqn-floor
         text: max; url: eqn-max
@@ -8987,7 +8986,7 @@ a reference to the same object that the IDL value represents.
         in |realm|.
     1.  Let |constructor| be the appropriate constructor from |realm|.\[[Intrinsics]] for the type
         of {{ArrayBufferView}} being created.
-    1.  Return [=!=] [$TypedArrayCreate$](|constructor|, « |arrayBuffer| »).
+    1.  Return [=!=] [$Construct$](|constructor|, « |arrayBuffer| »).
 </div>
 
 <div algorithm>
@@ -9007,7 +9006,7 @@ a reference to the same object that the IDL value represents.
     1.  Let |bytes| be a new [=byte sequence=] of [=byte sequence/length=] equal to |length|.
     1.  For |i| in [=the range=] |offset| to |offset| + |length| &minus; 1, inclusive, set
         |bytes|[|i| &minus; |offset|] to [=!=] [$GetValueFromBuffer$](|arrayBuffer|, |i|, Uint8,
-        false, Unordered).
+        true, Unordered).
 </div>
 
 <div algorithm>
@@ -9027,7 +9026,7 @@ a reference to the same object that the IDL value represents.
         &minus; |startingOffset|.
     1.  For |i| in [=the range=] |startingOffset| to |startingOffset| + |bytes|'s [=byte
         sequence/length=] &minus; 1, inclusive, perform [=!=] [$SetValueInBuffer$](|arrayBuffer|,
-        |i|, Uint8, |bytes|[|i| - |startingOffset|], false, Unordered).
+        |i|, Uint8, |bytes|[|i| - |startingOffset|], true, Unordered).
 </div>
 
 <div algorithm="ArrayBufferView/write">
@@ -9055,7 +9054,7 @@ code as necessary.
 <div algorithm>
     To <dfn id="dfn-detach" for="ArrayBuffer" export>detach</dfn> an {{ArrayBuffer}} |arrayBuffer|:
 
-    1.  Asssert: [=!=] [$IsSharedArrayBuffer$](|arrayBuffer|) is false.
+    1.  Assert: [=!=] [$IsSharedArrayBuffer$](|arrayBuffer|) is false.
     1.  Perform [=?=] [$DetachArrayBuffer$](|arrayBuffer|).
 
     <p class="note">This will throw an exception if |arrayBuffer| has an \[[ArrayBufferDetachKey]]
@@ -9067,12 +9066,12 @@ code as necessary.
     To <dfn for="ArrayBuffer" export>transfer</dfn> an {{ArrayBuffer}} |arrayBuffer|, optionally
     given a [=Realm=] |realm|:
 
-    1.  Asssert: [=!=] [$IsSharedArrayBuffer$](|arrayBuffer|) is false.
+    1.  Assert: [=!=] [$IsSharedArrayBuffer$](|arrayBuffer|) is false.
     1.  Assert: [=!=] [$IsDetachedBuffer$](|arrayBuffer|) is false.
     1.  Let |arrayBufferData| be |arrayBuffer|.\[[ArrayBufferData]].
     1.  Let |arrayBufferByteLength| be |arrayBuffer|.\[[ArrayBufferByteLength]].
     1.  Perform [=?=] [$DetachArrayBuffer$](|arrayBuffer|).
-    1.  If |realm| is not given, let |realm| be |arrayBuffer|.\[[Realm]].
+    1.  If |realm| is not given, let |realm| be [=the current Realm Record=].
     1.  Let |transferred| be [=!=]
         [$OrdinaryCreateFromConstructor$](|realm|.\[[Intrinsics]].[[{{%ArrayBuffer%}}]],
         "%ArrayBuffer.prototype%", « \[[ArrayBufferData]], \[[ArrayBufferByteLength]],
