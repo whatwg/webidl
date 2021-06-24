@@ -8969,11 +8969,13 @@ a reference to the same object that the IDL value represents.
     To <dfn export for="ArrayBuffer">create</dfn> an {{ArrayBuffer}} from a [=byte sequence=]
     |bytes| in a [=Realm=] |realm|:
 
-    1.  Let |arrayBuffer| be [=?=]
+    1.  Let |esArrayBuffer| be [=?=]
         [$AllocateArrayBuffer$](|realm|.\[[Intrinsics]].[[{{%ArrayBuffer%}}]], |bytes|'s
         [=byte sequence/length=]).
-    1. [=ArrayBuffer/Write=] |bytes| into |arrayBuffer|.
-    1. Return |arrayBuffer|.
+    1.  Let |arrayBuffer| be the result of [=converted to an IDL value|converting=] |esArrayBuffer|
+        to an IDL value of type {{ArrayBuffer}}.
+    1.  [=ArrayBuffer/Write=] |bytes| into |arrayBuffer|.
+    1.  Return |arrayBuffer|.
 </div>
 
 <div algorithm>
@@ -8984,37 +8986,49 @@ a reference to the same object that the IDL value represents.
         the [=element size=] of that type is 0.
     1.  Let |arrayBuffer| be the result of [=ArrayBuffer/creating=] an {{ArrayBuffer}} from |bytes|
         in |realm|.
+    1.  Let |esArrayBuffer| be the result of [=converted to an ECMAScript value|converting=]
+        |arrayBuffer| to an ECMAScript value.
     1.  Let |constructor| be the appropriate constructor from |realm|.\[[Intrinsics]] for the type
         of {{ArrayBufferView}} being created.
-    1.  Return [=!=] [$Construct$](|constructor|, « |arrayBuffer| »).
+    1.  Let |esView| be [=!=] [$Construct$](|constructor|, « |arrayBuffer| »).
+    1.  Return the result of [=converted to an IDL value|converting=] |esView| into the given type.
 </div>
 
 <div algorithm>
     To <dfn id="dfn-get-buffer-source-copy" export lt="get a copy of the buffer source">get a copy of the bytes held by the buffer source</dfn>
     given a {{BufferSource}} |bufferSource|:
 
-    1.  Let |arrayBuffer| be |bufferSource|.
+    1.  Let |esBufferSource| be be the result of [=converted to an ECMAScript value|converting=]
+        |bufferSource| to an ECMAScript value.
+    1.  Let |esArrayBuffer| be |esBufferSource|.
     1.  Let |offset| be 0.
     1.  Let |length| be 0.
-    1.  If |bufferSource| has a \[[ViewedArrayBuffer]] [=internal slot=], then:
-        1.  Set |arrayBuffer| to |bufferSource|.\[[ViewedArrayBuffer]].
-        1.  Set |offset| to |bufferSource|.\[[ByteOffset]].
-        1.  Set |length| to |bufferSource|.\[[ByteLength]].
-    1.  Otherwise, set |length| to |bufferSource|.\[[ArrayBufferByteLength]].
-    1.  If [=!=] [$IsDetachedBuffer$](|arrayBuffer|) is true, then return the empty
+    1.  If |esBufferSource| has a \[[ViewedArrayBuffer]] [=internal slot=], then:
+        1.  Set |esArrayBuffer| to |esBufferSource|.\[[ViewedArrayBuffer]].
+        1.  Set |offset| to |esBufferSource|.\[[ByteOffset]].
+        1.  Set |length| to |esBufferSource|.\[[ByteLength]].
+    1.  Otherwise:
+        1.  Assert: |esBufferSource| is an {{ECMAScript/ArrayBuffer}} or
+            {{ECMAScript/SharedArrayBuffer}} object.
+        1.  Set |length| to |esBufferSource|.\[[ArrayBufferByteLength]].
+    1.  If [=!=] [$IsDetachedBuffer$](|esArrayBuffer|) is true, then return the empty
         [=byte sequence=].
     1.  Let |bytes| be a new [=byte sequence=] of [=byte sequence/length=] equal to |length|.
     1.  For |i| in [=the range=] |offset| to |offset| + |length| &minus; 1, inclusive, set
         |bytes|[|i| &minus; |offset|] to [=!=] [$GetValueFromBuffer$](|arrayBuffer|, |i|, Uint8,
         true, Unordered).
+    1.  Return |bytes|.
 </div>
 
 <div algorithm>
     The <dfn export for="BufferSource">byte length</dfn> of a {{BufferSource}} |bufferSource| is
     given by the following algorithm:
 
-    1.  If |bufferSource| is an {{ArrayBufferView}}, then return |bufferSource|.\[[ByteLength]].
-    1.  Return |bufferSource|.\[[ArrayBufferByteLength]].
+    1.  Let |esBufferSource| be be the result of [=converted to an ECMAScript value|converting=]
+        |bufferSource| to an ECMAScript value.
+    1.  If |esBufferSource| has a \[[ViewedArrayBuffer]] internal slot, then return
+        |esBufferSource|.\[[ByteLength]].
+    1.  Return |esBufferSource|.\[[ArrayBufferByteLength]].
 </div>
 
 <div algorithm="ArrayBuffer/write">
@@ -9022,10 +9036,12 @@ a reference to the same object that the IDL value represents.
     |arrayBuffer|, optionally given a <dfn export for="ArrayBuffer/write">|startingOffset|</dfn>
     (default 0):
 
-    1.  Assert: |bytes|'s [=byte sequence/length=] ≤ |arrayBuffer|.\[[ArrayBufferByteLength]]
+    1.  Let |esArrayBuffer| be be the result of [=converted to an ECMAScript value|converting=]
+        |arrayBuffer| to an ECMAScript value.
+    1.  Assert: |bytes|'s [=byte sequence/length=] ≤ |esArrayBuffer|.\[[ArrayBufferByteLength]]
         &minus; |startingOffset|.
     1.  For |i| in [=the range=] |startingOffset| to |startingOffset| + |bytes|'s [=byte
-        sequence/length=] &minus; 1, inclusive, perform [=!=] [$SetValueInBuffer$](|arrayBuffer|,
+        sequence/length=] &minus; 1, inclusive, perform [=!=] [$SetValueInBuffer$](|esArrayBuffer|,
         |i|, Uint8, |bytes|[|i| - |startingOffset|], true, Unordered).
 </div>
 
@@ -9034,51 +9050,65 @@ a reference to the same object that the IDL value represents.
     {{ArrayBufferView}} |view|, optionally given a
     <dfn export for="ArrayBufferView/write">|startingOffset|</dfn> (default 0):
 
-    1.  Assert: |bytes|'s [=byte sequence/length=] ≤ |view|.\[[ByteLength]] &minus;
+    1.  Let |esView| be be the result of [=converted to an ECMAScript value|converting=]
+        |arrayBuffer| to an ECMAScript value.
+    1.  Assert: |bytes|'s [=byte sequence/length=] ≤ |esView|.\[[ByteLength]] &minus;
         |startingOffset|.
     1.  Assert: if |view| is not a {{DataView}}, then |bytes|'s [=byte sequence/length=] [=modulo=]
         the [=element size=] of |view|'s type is 0.
-    1.  [=ArrayBuffer/Write=] |bytes| into |view|.\[[ViewedArrayBuffer]] with
-        <i>[=ArrayBuffer/write/startingOffset=]</i> set to |view|.\[[ByteOffset]] +
+    1.  Let |arrayBuffer| be the result of [=converted to an IDL value|converting=]
+        |esView|.\[[ViewedArrayBuffer]] to an IDL value of type {{ArrayBuffer}}.
+    1.  [=ArrayBuffer/Write=] |bytes| into |arrayBuffer| with
+        <i>[=ArrayBuffer/write/startingOffset=]</i> set to |esView|.\[[ByteOffset]] +
         |startingOffset|.
 </div>
 
-<p class="advisement">Extreme care must be taken when writing specification text that
-[=ArrayBuffer/writes=] into an {{ArrayBuffer}} or {{ArrayBufferView}}, as the underlying data can
-easily be changed by the script author or other APIs at unpredictable times. This is especially true
-if the [{{AllowShared}}] [=extended attribute=] is involved. For the non-shared cases, it is
-recommended to [=ArrayBuffer/transfer=] the {{ArrayBuffer}} first if possible, to ensure the writes
-cannot overlap with other modifications, and then give the new {{ArrayBuffer}} instance to author
-code as necessary.
+<div class="advisement">
+    Extreme care must be taken when writing specification text that
+    [=ArrayBuffer/writes=] into an {{ArrayBuffer}} or {{ArrayBufferView}}, as the underlying data
+    can easily be changed by the script author or other APIs at unpredictable times. This is
+    especially true if the [{{AllowShared}}] [=extended attribute=] is involved.
+
+    For the non-shared cases, a more recommended pattern is to [=ArrayBuffer/transfer=] the
+    {{ArrayBuffer}} first if possible, to ensure the writes cannot overlap with other modifications,
+    and then give the new {{ArrayBuffer}} instance to author code as necessary. Alternately, you can
+    [=get a copy of the bytes held by the buffer source=], modify those bytes, and then use them to
+    [=ArrayBuffer/create=] a new {{ArrayBuffer}} or {{ArrayBufferView}} to give back to author code.
+</div>
 
 <div algorithm>
     To <dfn id="dfn-detach" for="ArrayBuffer" export>detach</dfn> an {{ArrayBuffer}} |arrayBuffer|:
 
-    1.  Assert: [=!=] [$IsSharedArrayBuffer$](|arrayBuffer|) is false.
-    1.  Perform [=?=] [$DetachArrayBuffer$](|arrayBuffer|).
+    1.  Let |esArrayBuffer| be be the result of [=converted to an ECMAScript value|converting=]
+        |arrayBuffer| to an ECMAScript value.
+    1.  Assert: [=!=] [$IsSharedArrayBuffer$](|esArrayBuffer|) is false.
+    1.  Perform [=?=] [$DetachArrayBuffer$](|esArrayBuffer|).
 
-    <p class="note">This will throw an exception if |arrayBuffer| has an \[[ArrayBufferDetachKey]]
-    that is not undefined, such as a {{Memory|WebAssembly.Memory}}'s {{Memory/buffer}}.
-    [[WASM-JS-API-1]]
+    <p class="note">This will throw an exception if |esArrayBuffer| has an \[[ArrayBufferDetachKey]]
+    that is not undefined, such as is the case with the value of {{Memory|WebAssembly.Memory}}'s
+    {{Memory/buffer}} attribute. [[WASM-JS-API-1]]
+
+    <p class="note">Detaching a buffer that is already detached is a no-op.
 </div>
 
 <div algorithm>
     To <dfn for="ArrayBuffer" export>transfer</dfn> an {{ArrayBuffer}} |arrayBuffer|, optionally
-    given a [=Realm=] |realm|:
+    given a [=Realm=] |targetRealm|:
 
-    1.  Assert: [=!=] [$IsSharedArrayBuffer$](|arrayBuffer|) is false.
-    1.  Assert: [=!=] [$IsDetachedBuffer$](|arrayBuffer|) is false.
-    1.  Let |arrayBufferData| be |arrayBuffer|.\[[ArrayBufferData]].
-    1.  Let |arrayBufferByteLength| be |arrayBuffer|.\[[ArrayBufferByteLength]].
-    1.  Perform [=?=] [$DetachArrayBuffer$](|arrayBuffer|).
-    1.  If |realm| is not given, let |realm| be the [=current Realm=].
-    1.  Let |transferred| be [=!=]
-        [$OrdinaryCreateFromConstructor$](|realm|.\[[Intrinsics]].[[{{%ArrayBuffer%}}]],
-        "%ArrayBuffer.prototype%", « \[[ArrayBufferData]], \[[ArrayBufferByteLength]],
-        \[[ArrayBufferDetachKey]] »).
-    1.  Set |transferred|.\[[ArrayBufferData]] to |arrayBufferData|.
-    1.  Set |transferred|.\[[ArrayBufferByteLength]] to |arrayBufferByteLength|.
-    1.  Return |transferred|.
+    1.  Let |esArrayBuffer| be be the result of [=converted to an ECMAScript value|converting=]
+        |arrayBuffer| to an ECMAScript value.
+    1.  Assert: [=!=] [$IsSharedArrayBuffer$](|esArrayBuffer|) is false.
+    1.  Assert: [=!=] [$IsDetachedBuffer$](|esArrayBuffer|) is false.
+    1.  Let |arrayBufferData| be |esArrayBuffer|.\[[ArrayBufferData]].
+    1.  Let |arrayBufferByteLength| be |esArrayBuffer|.\[[ArrayBufferByteLength]].
+    1.  Perform [=?=] [$DetachArrayBuffer$](|esArrayBuffer|).
+    1.  If |targetRealm| is not given, let |targetRealm| be the [=current Realm=].
+    1.  Let |esTransferred| be [=!=]
+        [$AllocateArrayBuffer$](|targetRealm|.\[[Intrinsics]].[[{{%ArrayBuffer%}}]], 0).
+    1.  Set |esTransferred|.\[[ArrayBufferData]] to |arrayBufferData|.
+    1.  Set |esTransferred|.\[[ArrayBufferByteLength]] to |arrayBufferByteLength|.
+    1.  Return the result of [=converted to an IDL value|converting=] |esTransferred| to an IDL
+        value of type {{ArrayBuffer}}.
 
     <p class="note">This will throw an exception under the same circumstances as
     [=ArrayBuffer/detaching=].
