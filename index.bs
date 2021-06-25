@@ -76,11 +76,6 @@ urlPrefix: https://w3c.github.io/mediacapture-main/; spec: MEDIACAPTURE-STREAMS
 urlPrefix: http://www.unicode.org/glossary/; spec: UNICODE
     type: dfn
         text: Unicode scalar value; url: unicode_scalar_value
-urlPrefix: https://webassembly.github.io/spec/js-api/; spec: WASM-JS-API-1
-    type: interface
-        text: Memory; url: #memory
-    type: attribute
-        text: buffer; for: Memory; url: #dom-memory-buffer
 urlPrefix: https://tc39.github.io/ecma262/; spec: ECMA-262
     type: interface; for: ECMAScript
         text: Array; url: sec-array-objects
@@ -8990,12 +8985,12 @@ a reference to the same object that the IDL value represents.
         |arrayBuffer| to an ECMAScript value.
     1.  Let |constructor| be the appropriate constructor from |realm|.\[[Intrinsics]] for the type
         of {{ArrayBufferView}} being created.
-    1.  Let |esView| be [=!=] [$Construct$](|constructor|, « |arrayBuffer| »).
+    1.  Let |esView| be [=!=] [$Construct$](|constructor|, « |esArrayBuffer| »).
     1.  Return the result of [=converted to an IDL value|converting=] |esView| into the given type.
 </div>
 
 <div algorithm>
-    To <dfn id="dfn-get-buffer-source-copy" export lt="get a copy of the buffer source">get a copy of the bytes held by the buffer source</dfn>
+    To <dfn id="dfn-get-buffer-source-copy" export lt="get a copy of the buffer source|get a copy of the bytes held by the buffer source">get a copy of the bytes held by the buffer source</dfn>
     given a {{BufferSource}} |bufferSource|:
 
     1.  Let |esBufferSource| be be the result of [=converted to an ECMAScript value|converting=]
@@ -9015,7 +9010,7 @@ a reference to the same object that the IDL value represents.
         [=byte sequence=].
     1.  Let |bytes| be a new [=byte sequence=] of [=byte sequence/length=] equal to |length|.
     1.  For |i| in [=the range=] |offset| to |offset| + |length| &minus; 1, inclusive, set
-        |bytes|[|i| &minus; |offset|] to [=!=] [$GetValueFromBuffer$](|arrayBuffer|, |i|, Uint8,
+        |bytes|[|i| &minus; |offset|] to [=!=] [$GetValueFromBuffer$](|esArrayBuffer|, |i|, Uint8,
         true, Unordered).
     1.  Return |bytes|.
 </div>
@@ -9050,8 +9045,8 @@ a reference to the same object that the IDL value represents.
     {{ArrayBufferView}} |view|, optionally given a
     <dfn export for="ArrayBufferView/write">|startingOffset|</dfn> (default 0):
 
-    1.  Let |esView| be be the result of [=converted to an ECMAScript value|converting=]
-        |arrayBuffer| to an ECMAScript value.
+    1.  Let |esView| be be the result of [=converted to an ECMAScript value|converting=] |view| to
+        an ECMAScript value.
     1.  Assert: |bytes|'s [=byte sequence/length=] ≤ |esView|.\[[ByteLength]] &minus;
         |startingOffset|.
     1.  Assert: if |view| is not a {{DataView}}, then |bytes|'s [=byte sequence/length=] [=modulo=]
@@ -9088,11 +9083,11 @@ a reference to the same object that the IDL value represents.
     that is not undefined, such as is the case with the value of {{Memory|WebAssembly.Memory}}'s
     {{Memory/buffer}} attribute. [[WASM-JS-API-1]]
 
-    <p class="note">Detaching a buffer that is already detached is a no-op.
+    <p class="note">Detaching a buffer that is already [=BufferSource/detached=] is a no-op.
 </div>
 
 <div algorithm>
-    A {{BufferSource}} |bufferSource| <dfn for="BufferSource" export>is detached</dfn> if the
+    A {{BufferSource}} |bufferSource| is <dfn for="BufferSource" export>detached</dfn> if the
     following steps return true:
 
     1.  Let |esArrayBuffer| be be the result of [=converted to an ECMAScript value|converting=]
