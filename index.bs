@@ -86,6 +86,7 @@ urlPrefix: https://tc39.github.io/ecma262/; spec: ECMA-262
         text: Set; url: sec-set-objects
         text: SharedArrayBuffer; url: sec-sharedarraybuffer-objects
         text: %AsyncIteratorPrototype%; url: sec-asynciteratorprototype
+        text: %ArrayBuffer%; url: sec-arraybuffer-constructor
         text: %Array.prototype%; url: sec-properties-of-the-array-prototype-object
         text: %Error.prototype%; url: sec-properties-of-the-error-prototype-object
         text: %Function.prototype%; url: sec-properties-of-the-function-prototype-object
@@ -116,6 +117,7 @@ urlPrefix: https://tc39.github.io/ecma262/; spec: ECMA-262
     type: argument
         text: NewTarget; url: sec-built-in-function-objects
     type: abstract-op
+        text: AllocateArrayBuffer; url: sec-allocatearraybuffer
         text: ArrayCreate; url: sec-arraycreate
         text: Call; url: sec-call
         text: CanonicalNumericIndexString; url: sec-canonicalnumericindexstring
@@ -140,6 +142,7 @@ urlPrefix: https://tc39.github.io/ecma262/; spec: ECMA-262
         text: GetFunctionRealm; url: sec-getfunctionrealm
         text: GetIterator; url: sec-getiterator
         text: GetMethod; url: sec-getmethod
+        text: GetValueFromBuffer; url: sec-getvaluefrombuffer
         text: IfAbruptRejectPromise; url: sec-ifabruptrejectpromise
         text: IsArray; url: sec-isarray
         text: IsAccessorDescriptor; url: sec-isaccessordescriptor
@@ -155,9 +158,10 @@ urlPrefix: https://tc39.github.io/ecma262/; spec: ECMA-262
         text: NewModuleEnvironment; url: sec-newmoduleenvironment
         text: NewPromiseCapability; url: sec-newpromisecapability
         text: NormalCompletion; url: sec-normalcompletion
-        text: OrdinaryObjectCreate; url: sec-ordinaryobjectcreate
+        text: OrdinaryCreateFromConstructor; sec: sec-ordinarycreatefromconstructor
         text: OrdinaryDefineOwnProperty; url: sec-ordinarydefineownproperty
         text: OrdinaryGetOwnProperty; url: sec-ordinarygetownproperty
+        text: OrdinaryObjectCreate; url: sec-ordinaryobjectcreate
         text: OrdinaryPreventExtensions; url: sec-ordinarypreventextensions
         text: OrdinarySetWithOwnDescriptor; url: sec-ordinarysetwithowndescriptor
         text: PerformPromiseThen; url: sec-performpromisethen
@@ -167,6 +171,7 @@ urlPrefix: https://tc39.github.io/ecma262/; spec: ECMA-262
         text: SetFunctionName; url: sec-setfunctionname
         text: SetImmutablePrototype; url: sec-set-immutable-prototype
         text: SetIntegrityLevel; url: sec-setintegritylevel
+        text: SetValueInBuffer; url: sec-setvalueinbuffer
         text: ToBigInt; url: #sec-tobigint
         text: ToBoolean; url: sec-toboolean
         text: ToInt32; url: sec-toint32
@@ -237,6 +242,7 @@ urlPrefix: https://tc39.github.io/ecma262/; spec: ECMA-262
         text: realm; url: realm
         text: ResolvedBinding Record; url: resolvedbinding-record
         text: running execution context; url: running-execution-context
+        text: element size; url: table-the-typedarray-constructors
 </pre>
 
 <style>
@@ -326,7 +332,7 @@ urlPrefix: https://tc39.github.io/ecma262/; spec: ECMA-262
           text-align: right;
         }
 
-        #distinguishable-table tr:first-child th {
+        #distinguishable-table thead th {
           white-space: nowrap;
           text-align: center;
         }
@@ -340,7 +346,7 @@ urlPrefix: https://tc39.github.io/ecma262/; spec: ECMA-262
           padding: 5px 10px;
         }
 
-        .csstransforms #distinguishable-table tr:first-child th {
+        .csstransforms #distinguishable-table thead th {
           text-align: left;
           border: none;
           height: 100px;
@@ -362,7 +368,7 @@ urlPrefix: https://tc39.github.io/ecma262/; spec: ECMA-262
           width: 30px;
         }
 
-        .csstransforms #distinguishable-table tr:first-child th div span {
+        .csstransforms #distinguishable-table thead th div span {
           border-bottom: 1px solid #ccc;
           padding: 5px 10px;
           display: block;
@@ -370,7 +376,7 @@ urlPrefix: https://tc39.github.io/ecma262/; spec: ECMA-262
           text-align: left
         }
 
-        .csstransforms #distinguishable-table tr:first-child th:last-child div span {
+        .csstransforms #distinguishable-table thead th:last-child div span {
           border-bottom: none;
         }
 
@@ -3568,169 +3574,164 @@ the following algorithm returns <i>true</i>.
     </dl>
 
     <table id="distinguishable-table" class="matrix data complex">
+        <thead>
+            <tr>
+                <th class="corner"></th>
+                <th><div><span>undefined</span></div>
+                <th><div><span>boolean</span></div>
+                <th><div><span>numeric types</span></div>
+                <th><div><span>bigint</span></div>
+                <th><div><span>string types</span></div>
+                <th><div><span>object</span></div>
+                <th><div><span>symbol</span></div>
+                <th><div><span>interface-like</span></div>
+                <th><div><span>callback function</span></div>
+                <th><div><span>dictionary-like</span></div>
+                <th><div><span>sequence-like</span></div>
+        </thead>
         <tr>
-            <th class="corner"></th>
-                <th><div>
-                    <span>boolean</span>
-            </div></th>
-                <th><div>
-                    <span>numeric types</span>
-            </div></th>
-                <th><div>
-                    <span>bigint</span>
-            </div></th>
-                <th><div>
-                    <span>string types</span>
-            </div></th>
-                <th><div>
-                    <span>object</span>
-            </div></th>
-                <th><div>
-                    <span>symbol</span>
-            </div></th>
-                <th><div>
-                    <span>interface-like</span>
-                </div></th>
-                <th><div>
-                    <span>callback function</span>
-            </div></th>
-                <th><div>
-                    <span>dictionary-like</span>
-            </div></th>
-                <th><div>
-                    <span>sequence-like</span>
-            </div></th>
-        </tr>
+            <th>undefined
+            <td>
+            <td>●
+            <td>●
+            <td>●
+            <td>●
+            <td>●
+            <td>●
+            <td>●
+            <td>●
+            <td>
+            <td>●
         <tr>
-            <th>boolean</th>
-            <td></td>
-            <td>●</td>
-            <td>●</td>
-            <td>●</td>
-            <td>●</td>
-            <td>●</td>
-            <td>●</td>
-            <td>●</td>
-            <td>●</td>
-            <td>●</td>
-        </tr>
+            <th>boolean
+            <td class="belowdiagonal">
+            <td>
+            <td>●
+            <td>●
+            <td>●
+            <td>●
+            <td>●
+            <td>●
+            <td>●
+            <td>●
+            <td>●
         <tr>
-            <th>numeric types</th>
-            <td class="belowdiagonal"></td>
-            <td></td>
-            <td></td>
-            <td>●</td>
-            <td>●</td>
-            <td>●</td>
-            <td>●</td>
-            <td>●</td>
-            <td>●</td>
-            <td>●</td>
-        </tr>
+            <th>numeric types
+            <td class="belowdiagonal">
+            <td class="belowdiagonal">
+            <td>
+            <td>
+            <td>●
+            <td>●
+            <td>●
+            <td>●
+            <td>●
+            <td>●
+            <td>●
         <tr>
-            <th>bigint</th>
-            <td class="belowdiagonal"></td>
-            <td class="belowdiagonal"></td>
-            <td>(b)</td>
-            <td>●</td>
-            <td>●</td>
-            <td>●</td>
-            <td>●</td>
-            <td>●</td>
-            <td>●</td>
-            <td>●</td>
-        </tr>
+            <th>bigint
+            <td class="belowdiagonal">
+            <td class="belowdiagonal">
+            <td class="belowdiagonal">
+            <td>(b)
+            <td>●
+            <td>●
+            <td>●
+            <td>●
+            <td>●
+            <td>●
+            <td>●
         <tr>
-            <th>string types</th>
-            <td class="belowdiagonal"></td>
-            <td class="belowdiagonal"></td>
-            <td class="belowdiagonal"></td>
-            <td></td>
-            <td>●</td>
-            <td>●</td>
-            <td>●</td>
-            <td>●</td>
-            <td>●</td>
-            <td>●</td>
-        </tr>
+            <th>string types
+            <td class="belowdiagonal">
+            <td class="belowdiagonal">
+            <td class="belowdiagonal">
+            <td class="belowdiagonal">
+            <td>
+            <td>●
+            <td>●
+            <td>●
+            <td>●
+            <td>●
+            <td>●
         <tr>
-            <th>object</th>
-            <td class="belowdiagonal"></td>
-            <td class="belowdiagonal"></td>
-            <td class="belowdiagonal"></td>
-            <td class="belowdiagonal"></td>
-            <td></td>
-            <td>●</td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-        </tr>
+            <th>object
+            <td class="belowdiagonal">
+            <td class="belowdiagonal">
+            <td class="belowdiagonal">
+            <td class="belowdiagonal">
+            <td class="belowdiagonal">
+            <td>
+            <td>●
+            <td>
+            <td>
+            <td>
+            <td>
         <tr>
-            <th>symbol</th>
-            <td class="belowdiagonal"></td>
-            <td class="belowdiagonal"></td>
-            <td class="belowdiagonal"></td>
-            <td class="belowdiagonal"></td>
-            <td class="belowdiagonal"></td>
-            <td></td>
-            <td>●</td>
-            <td>●</td>
-            <td>●</td>
-            <td>●</td>
-        </tr>
+            <th>symbol
+            <td class="belowdiagonal">
+            <td class="belowdiagonal">
+            <td class="belowdiagonal">
+            <td class="belowdiagonal">
+            <td class="belowdiagonal">
+            <td class="belowdiagonal">
+            <td>
+            <td>●
+            <td>●
+            <td>●
+            <td>●
         <tr>
-            <th>interface-like</th>
-            <td class="belowdiagonal"></td>
-            <td class="belowdiagonal"></td>
-            <td class="belowdiagonal"></td>
-            <td class="belowdiagonal"></td>
-            <td class="belowdiagonal"></td>
-            <td class="belowdiagonal"></td>
-            <td>(a)</td>
-            <td>●</td>
-            <td>●</td>
-            <td>●</td>
-        </tr>
+            <th>interface-like
+            <td class="belowdiagonal">
+            <td class="belowdiagonal">
+            <td class="belowdiagonal">
+            <td class="belowdiagonal">
+            <td class="belowdiagonal">
+            <td class="belowdiagonal">
+            <td class="belowdiagonal">
+            <td>(a)
+            <td>●
+            <td>●
+            <td>●
         <tr>
-            <th>callback function</th>
-            <td class="belowdiagonal"></td>
-            <td class="belowdiagonal"></td>
-            <td class="belowdiagonal"></td>
-            <td class="belowdiagonal"></td>
-            <td class="belowdiagonal"></td>
-            <td class="belowdiagonal"></td>
-            <td class="belowdiagonal"></td>
-            <td></td>
-            <td></td>
-            <td>●</td>
-        </tr>
+            <th>callback function
+            <td class="belowdiagonal">
+            <td class="belowdiagonal">
+            <td class="belowdiagonal">
+            <td class="belowdiagonal">
+            <td class="belowdiagonal">
+            <td class="belowdiagonal">
+            <td class="belowdiagonal">
+            <td class="belowdiagonal">
+            <td>
+            <td>
+            <td>●
         <tr>
-            <th>dictionary-like</th>
-            <td class="belowdiagonal"></td>
-            <td class="belowdiagonal"></td>
-            <td class="belowdiagonal"></td>
-            <td class="belowdiagonal"></td>
-            <td class="belowdiagonal"></td>
-            <td class="belowdiagonal"></td>
-            <td class="belowdiagonal"></td>
-            <td class="belowdiagonal"></td>
-            <td></td>
-            <td>●</td>
-        </tr>
+            <th>dictionary-like
+            <td class="belowdiagonal">
+            <td class="belowdiagonal">
+            <td class="belowdiagonal">
+            <td class="belowdiagonal">
+            <td class="belowdiagonal">
+            <td class="belowdiagonal">
+            <td class="belowdiagonal">
+            <td class="belowdiagonal">
+            <td class="belowdiagonal">
+            <td>
+            <td>●
         <tr>
-            <th>sequence-like</th>
-            <td class="belowdiagonal"></td>
-            <td class="belowdiagonal"></td>
-            <td class="belowdiagonal"></td>
-            <td class="belowdiagonal"></td>
-            <td class="belowdiagonal"></td>
-            <td class="belowdiagonal"></td>
-            <td class="belowdiagonal"></td>
-            <td class="belowdiagonal"></td>
-            <td class="belowdiagonal"></td>
-            <td></td>
-        </tr>
+            <th>sequence-like
+            <td class="belowdiagonal">
+            <td class="belowdiagonal">
+            <td class="belowdiagonal">
+            <td class="belowdiagonal">
+            <td class="belowdiagonal">
+            <td class="belowdiagonal">
+            <td class="belowdiagonal">
+            <td class="belowdiagonal">
+            <td class="belowdiagonal">
+            <td class="belowdiagonal">
+            <td>
     </table>
 
     <ol type="a">
@@ -4685,9 +4686,9 @@ associated behaviors.
 A namespace is a specification of a set of
 <dfn id="dfn-namespace-member" export lt="namespace member">namespace members</dfn>
 (matching <emu-nt><a href="#prod-NamespaceMembers">NamespaceMembers</a></emu-nt>), which are the
-[=regular operations=] and [=read only=] [=regular attributes=] that appear between the braces in
-the namespace declaration. These operations and attributes describe the behaviors packaged into the
-namespace.
+[=regular operations=], [=read only=] [=regular attributes=], and [=constants=] that appear between
+the braces in the namespace declaration. These operations and attributes describe the behaviors
+packaged into the namespace.
 
 As with interfaces, the IDL for namespaces can be split into multiple parts by using
 <dfn id="dfn-partial-namespace" export>partial namespace</dfn> definitions
@@ -4737,6 +4738,7 @@ Of the extended attributes defined in this specification, only the [{{CrossOrigi
     NamespaceMember :
         RegularOperation
         "readonly" AttributeRest
+        Const
 </pre>
 
 <div class="example" id="example-namespace">
@@ -5254,11 +5256,6 @@ over just using {{SyntaxError!!exception}} to refer to the {{DOMException}}. [[D
             <td><strong>Deprecated.</strong> Use {{RangeError}} instead.</td></td>
             <td><dfn id="dom-domexception-index_size_err" for="DOMException" const export><code>INDEX_SIZE_ERR</code></dfn>&nbsp;(1)</td>
         </tr>
-        <tr class="deprecated">
-            <td>"<dfn id="domstringsizeerror" exception export><code>DOMStringSizeError</code></dfn>"</td>
-            <td><strong>Deprecated.</strong> Use {{RangeError}} instead.</td>
-            <td><dfn id="dom-domexception-domstring_size_err" for="DOMException" const><code>DOMSTRING_SIZE_ERR</code></dfn>&nbsp;(2)</td>
-        </tr>
         <tr>
             <td>"<dfn id="hierarchyrequesterror" exception export><code>HierarchyRequestError</code></dfn>"</td>
             <td>The operation would yield an incorrect [=node tree=]. [[!DOM]]</td>
@@ -5273,11 +5270,6 @@ over just using {{SyntaxError!!exception}} to refer to the {{DOMException}}. [[D
             <td>"<dfn id="invalidcharactererror" exception export><code>InvalidCharacterError</code></dfn>"</td>
             <td>The string contains invalid characters.</td>
             <td><dfn id="dom-domexception-invalid_character_err" for="DOMException" const export><code>INVALID_CHARACTER_ERR</code></dfn>&nbsp;(5)</td>
-        </tr>
-        <tr class="deprecated">
-            <td>"<dfn id="nodataallowederror" exception export><code>NoDataAllowedError</code></dfn>"</td>
-            <td><strong>Deprecated.</strong></td>
-            <td><dfn id="dom-domexception-no_data_allowed_err" for="DOMException" const><code>NO_DATA_ALLOWED_ERR</code></dfn>&nbsp;(6)</td>
         </tr>
         <tr>
             <td>"<dfn id="nomodificationallowederror" exception export><code>NoModificationAllowedError</code></dfn>"</td>
@@ -5328,11 +5320,6 @@ over just using {{SyntaxError!!exception}} to refer to the {{DOMException}}. [[D
                 "{{NotAllowedError!!exception}}" {{DOMException}} for denied requests instead.
             </td>
             <td><dfn id="dom-domexception-invalid_access_err" for="DOMException" const><code>INVALID_ACCESS_ERR</code></dfn>&nbsp;(15)</td>
-        </tr>
-        <tr class="deprecated">
-            <td>"<dfn id="validationerror" exception export><code>ValidationError</code></dfn>"</td>
-            <td><strong>Deprecated.</strong></td>
-            <td><dfn id="dom-domexception-validation_err" for="DOMException" const><code>VALIDATION_ERR</code></dfn>&nbsp;(16)</td>
         </tr>
         <tr class="deprecated">
             <td>"<dfn id="typemismatcherror" exception export><code>TypeMismatchError</code></dfn>"</td>
@@ -5728,7 +5715,9 @@ The <dfn id="dfn-typed-array-type" export>typed array types</dfn> are
 {{Uint16Array}},
 {{Uint32Array}},
 {{Uint8ClampedArray}},
-{{Float32Array}} and
+{{BigInt64Array}},
+{{BigUint64Array}},
+{{Float32Array}}, and
 {{Float64Array}}.
 
 The <dfn id="dfn-buffer-source-type" export>buffer source types</dfn>
@@ -6259,8 +6248,8 @@ about the execution context at the time the language binding specific object ref
 converted to an IDL value.
 
 Note: For ECMAScript objects, the [=callback context=] is used to hold a reference to the
-[=incumbent settings object=] at the time the Object value is converted to an IDL callback
-interface type value. See [[#es-callback-interface]].
+<a spec="HTML">incumbent settings object</a> at the time the Object value is converted to an IDL
+callback interface type value. See [[#es-callback-interface]].
 
 There is no way to represent a constant object reference value for a particular
 [=callback interface type=] in IDL.
@@ -6320,7 +6309,7 @@ An IDL value of the callback function type is represented by a tuple of an objec
 reference and a [=callback context=].
 
 Note: As with [=callback interface types=], the [=callback context=] is used to hold a
-reference to the [=incumbent settings object=] at
+reference to the <a spec="HTML">incumbent settings object</a> at
 the time an ECMAScript Object value is converted to an IDL
 callback function type value.  See [[#es-callback-function]].
 
@@ -6577,9 +6566,16 @@ It would not be appropriate to accept such a union, only to then convert values 
 [=numeric type=] to a {{bigint}} for further processing, as this runs the risk of introducing
 precision errors.
 Please
-<a href="https://github.com/heycam/webidl/issues/new?title=Intent%20to%20use%20bigint/numeric union">file an issue</a>
+<a href="https://github.com/heycam/webidl/issues/new?title=Intent%20to%20use%20bigint/numeric%20union">file an issue</a>
 before using this feature.
 </p>
+
+A type <dfn id="dfn-includes-undefined" export>includes undefined</dfn> if:
+
+*   the type is {{undefined}}, or
+*   the type is a [=nullable type=] and its [=nullable types/inner type=] [=includes undefined=], or
+*   the type is an [=annotated type=] and its [=annotated types/inner type=] [=includes undefined=], or
+*   the type is a [=union type=] and one of its [=member types=] [=includes undefined=].
 
 [=Union type=] constant values
 in IDL are represented in the same way that constant values of their
@@ -6724,22 +6720,21 @@ data.  The table below lists these types and the kind of buffer or view they rep
     <tr><th>Type</th><th>Kind of buffer</th></tr>
     <tr><td><dfn id="idl-ArrayBuffer" interface>ArrayBuffer</dfn></td><td>An object that holds a pointer (which may be null) to a buffer of a fixed number of bytes</td></tr>
     <tr><td><dfn id="idl-DataView" interface>DataView</dfn></td><td>A view on to an {{ArrayBuffer}} that allows typed access to integers and floating point values stored at arbitrary offsets into the buffer</td></tr>
-        <tr><td>
-            <dfn id="idl-Int8Array" interface>Int8Array</dfn>,<br/>
+    <tr><td><dfn id="idl-Int8Array" interface>Int8Array</dfn>,<br/>
             <dfn id="idl-Int16Array" interface>Int16Array</dfn>,<br/>
-        <dfn id="idl-Int32Array" interface>Int32Array</dfn></td>
-    <td>A view on to an {{ArrayBuffer}} that exposes it as an array of two’s complement signed integers of the given size in bits</td></tr>
-        <tr><td>
-            <dfn id="idl-Uint8Array" interface>Uint8Array</dfn>,<br/>
+            <dfn id="idl-Int32Array" interface>Int32Array</dfn>,<br/>
+            <dfn id="idl-BigInt64Array" interface>BigInt64Array</dfn></td>
+        <td>A view on to an {{ArrayBuffer}} that exposes it as an array of two’s complement signed integers of the given size in bits</td></tr>
+    <tr><td><dfn id="idl-Uint8Array" interface>Uint8Array</dfn>,<br/>
             <dfn id="idl-Uint16Array" interface>Uint16Array</dfn>,<br/>
-        <dfn id="idl-Uint32Array" interface>Uint32Array</dfn></td>
-    <td>A view on to an {{ArrayBuffer}} that exposes it as an array of unsigned integers of the given size in bits</td></tr>
-        <tr><td><dfn id="idl-Uint8ClampedArray" interface>Uint8ClampedArray</dfn></td>
-    <td>A view on to an {{ArrayBuffer}} that exposes it as an array of unsigned 8 bit integers with clamped conversions</td></tr>
-        <tr><td>
-            <dfn id="idl-Float32Array" interface>Float32Array</dfn>,<br/>
-        <dfn id="idl-Float64Array" interface>Float64Array</dfn></td>
-    <td>A view on to an {{ArrayBuffer}} that exposes it as an array of IEEE 754 floating point numbers of the given size in bits</td></tr>
+            <dfn id="idl-Uint32Array" interface>Uint32Array</dfn>,<br/>
+            <dfn id="idl-BigUint64Array" interface>BigUint64Array</dfn></td>
+        <td>A view on to an {{ArrayBuffer}} that exposes it as an array of unsigned integers of the given size in bits</td></tr>
+    <tr><td><dfn id="idl-Uint8ClampedArray" interface>Uint8ClampedArray</dfn></td>
+        <td>A view on to an {{ArrayBuffer}} that exposes it as an array of unsigned 8 bit integers with clamped conversions</td></tr>
+    <tr><td><dfn id="idl-Float32Array" interface>Float32Array</dfn>,<br/>
+            <dfn id="idl-Float64Array" interface>Float64Array</dfn></td>
+        <td>A view on to an {{ArrayBuffer}} that exposes it as an array of IEEE 754 floating point numbers of the given size in bits</td></tr>
 </table>
 
 Note: These types all correspond to classes defined in ECMAScript.
@@ -6749,51 +6744,9 @@ There is no way to represent a constant value of any of these types in IDL.
 The [=type name=] of all
 of these types is the name of the type itself.
 
-At the specification prose level, IDL [=buffer source types=]
-are simply references to objects.  To inspect or manipulate the bytes inside the buffer,
-specification prose must first either
-<dfn id="dfn-get-buffer-source-reference" export lt="get a reference to the buffer source">get a reference to the bytes held by the buffer source</dfn>
-or <dfn id="dfn-get-buffer-source-copy" export lt="get a copy of the buffer source">get a copy of the bytes held by the buffer source</dfn>.
-With a reference to the buffer source’s bytes, specification prose can get or set individual
-byte values using that reference.
-
-<div class="advisement">
-
-    Extreme care must be taken when writing specification text that gets a reference
-    to the bytes held by a buffer source, as the underlying data can easily be changed
-    by the script author or other APIs at unpredictable times.  If you are using a buffer source type
-    as an operation argument to obtain a chunk of binary data that will not be modified,
-    it is strongly recommended to get a copy of the buffer source’s bytes at the beginning
-    of the prose defining the operation.
-
-    Requiring prose to explicitly get a reference to or copy of the bytes is intended to
-    help specification reviewers look for problematic uses of these buffer source types.
-
-</div>
-
-<div class="note">
-
-    When designing APIs that take a buffer, it is recommended to use the
-    {{BufferSource}} typedef rather than {{ArrayBuffer}}
-    or any of the view types.
-
-    When designing APIs that create and return a buffer, it is recommended
-    to use the {{ArrayBuffer}} type rather than
-    {{Uint8Array}}.
-
-</div>
-
-Attempting to [=get a reference to the buffer source|get a reference to=] or
-[=get a copy of the buffer source|get a copy of the bytes held by a buffer source=]
-when the {{ArrayBuffer}} has been [=ArrayBuffer/detached=]
-will fail in a language binding-specific manner.
-
-Note: See [[#es-buffer-source-types]] below for
-how interacting with buffer source types works in the ECMAScript language binding.
-
-<p class="issue">
-    We should include an example of specification text that uses these types and terms.
-</p>
+At the specification prose level, IDL [=buffer source types=] are simply references to objects. To
+inspect or manipulate the bytes inside the buffer, specification prose needs to use the algorithms
+in [[#es-buffer-source-types]].
 
 <pre class="grammar" id="prod-BufferRelatedType">
     BufferRelatedType :
@@ -6806,6 +6759,8 @@ how interacting with buffer source types works in the ECMAScript language bindin
         "Uint16Array"
         "Uint32Array"
         "Uint8ClampedArray"
+        "BigInt64Array"
+        "BigUint64Array"
         "Float32Array"
         "Float64Array"
 </pre>
@@ -6909,7 +6864,7 @@ string "<code>ObservableArray</code>".
         building.employees.push(new Employee("B"));
         building.employees.push(new Employee("C"));
 
-        building.employees.splice(1, 1);
+        building.employees.splice(2, 1);
         const employeeB = building.employees.pop();
 
         building.employees = [new Employee("D"), employeeB, new Employee("C")];
@@ -7355,8 +7310,7 @@ ECMAScript value type.
     to an IDL {{any}} value by running the following algorithm:
 
     1.  If |V| is <emu-val>undefined</emu-val>, then
-        return an {{object}} reference to a special object that represents
-        the ECMAScript <emu-val>undefined</emu-val> value.
+        return the unique {{undefined}} IDL value.
     1.  If |V| is <emu-val>null</emu-val>, then
         return the <emu-val>null</emu-val> {{object|object?}} reference.
     1.  If <a abstract-op>Type</a>(|V|) is Boolean, then
@@ -7378,15 +7332,10 @@ ECMAScript value type.
 </div>
 
 <p id="any-to-es">
-    An IDL {{any}} value is
-    [=converted to an ECMAScript value=]
-    as follows.  If the value is an {{object}}
-    reference to a special object that represents an ECMAScript <emu-val>undefined</emu-val>
-    value, then it is converted to the ECMAScript
-    <emu-val>undefined</emu-val> value.  Otherwise,
-    the rules for converting the [=specific type=]
-    of the IDL {{any}} value
-    as described in the remainder of this section are performed.
+    An IDL {{any}} value is [=converted to an ECMAScript value=]
+    according to the rules for converting
+    the [=specific type=] of the IDL {{any}} value
+    as described in the remainder of this section.
 </p>
 
 
@@ -7977,7 +7926,7 @@ values are represented by ECMAScript Object values (including [=function objects
 
     1.  If <a abstract-op>Type</a>(|V|) is not Object, then [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
     1.  Return the IDL [=callback interface type=] value that represents a reference to |V|, with
-        the [=incumbent settings object=] as the [=callback context=].
+        the <a spec="HTML">incumbent settings object</a> as the [=callback context=].
 </div>
 
 <p id="callback-interface-to-es">
@@ -8099,7 +8048,7 @@ IDL [=callback function types=] are represented by ECMAScript [=function objects
         then [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
     1.  Return the IDL [=callback function type=] value
         that represents a reference to the same object that |V| represents, with the
-        [=incumbent settings object=] as the [=callback context=].
+        <a spec="HTML">incumbent settings object</a> as the [=callback context=].
 </div>
 
 <p id="callback-function-to-es">
@@ -8131,6 +8080,9 @@ the ECMAScript <emu-val>null</emu-val> value.
         then return the IDL
         [=nullable type=] <code class="idl">|T|?</code>
         value <emu-val>null</emu-val>.
+    1.  Otherwise, if |V| is <emu-val>undefined</emu-val>,
+        and |T| [=includes undefined=],
+        return the unique {{undefined}} value.
     1.  Otherwise, if |V| is <emu-val>null</emu-val> or <emu-val>undefined</emu-val>, then return the IDL
         [=nullable type=] <code class="idl">|T|?</code>
         value <emu-val>null</emu-val>.
@@ -8282,9 +8234,9 @@ ECMAScript Array values.
         // Each element will be converted to a double by first calling ToNumber().
         // So the following call is equivalent to the previous one, except that
         // "hi" will be alerted before drawPolygon() returns.
-        a = [false, '',
-             { valueOf: function() { alert('hi'); return 100; } }, 0,
-             '50', new Number(62.5)];
+        a = [false, "",
+             { valueOf: function() { alert("hi"); return 100; } }, 0,
+             "50", new Number(62.5)];
         canvas.drawPolygon(a);
 
         // Modifying an Array that was passed to drawPolygon() is guaranteed not to
@@ -8606,11 +8558,12 @@ JavaScript code.
     The <code>delay(|ms|)</code> method steps are:
 
     1.  Let |realm| be [=this=]'s [=relevant Realm=].
+    1.  Let |taskSource| be some appropriate [=task source=].
     1.  If |ms| is NaN, let |ms| be +0; otherwise let |ms| be the maximum of |ms| and +0.
     1.  Let |p| be [=a new promise=] in |realm|.
     1.  Run the following steps [=in parallel=]:
         1.  Wait |ms| milliseconds.
-        1.  [=Resolve=] |p|.
+        1.  [=Queue a task=] on |taskSource| to [=resolve=] |p|.
     1.  Return |p|.
 </div>
 </div>
@@ -8633,12 +8586,13 @@ JavaScript code.
     The <code>validatedDelay(|ms|)</code> method steps are:
 
     1.  Let |realm| be [=this=]'s [=relevant Realm=].
+    1.  Let |taskSource| be some appropriate [=task source=].
     1.  If |ms| is NaN, return [=a promise rejected with=] a {{TypeError}} in |realm|.
     1.  If |ms| &lt; 0, return [=a promise rejected with=] a {{RangeError}} in |realm|.
     1.  Let |p| be [=a new promise=] in |realm|.
     1.  Run the following steps [=in parallel=]:
         1.  Wait |ms| milliseconds.
-        1.  [=Resolve=] |p|.
+        1.  [=Queue a task=] on |taskSource| to [=resolve=] |p|.
     1.  Return |p|.
 </div>
 </div>
@@ -8666,13 +8620,11 @@ JavaScript code.
         *   If |promise| was fulfilled with value |v|, then:
             1.  Run the following steps [=in parallel=]:
                 1.  Wait |ms| milliseconds.
-                1.  [=Queue a task=] to run the following steps on |taskSource|:
-                    1.  [=Resolve=] |p| with |v|.
+                1.  [=Queue a task=] on |taskSource| to [=resolve=] |p| with |v|.
         *   If |promise| was rejected with reason |r|, then:
             1.  Run the following steps [=in parallel=]:
                 1.  Wait |ms| milliseconds.
-                1.  [=Queue a task=] to run the following steps on |taskSource|:
-                    1.  [=Reject=] |p| with |r|.
+                1.  [=Queue a task=] on |taskSource| to [=reject=] |p| with |r|.
     1.  Return |p|.
 </div>
 </div>
@@ -8704,14 +8656,16 @@ JavaScript code.
     To create an <code>Environment</code> object in a [=Realm=] |realm|, perform the following
     steps:
 
+    1.  Let |taskSource| be some appropriate [=task source=].
     1.  Let |environment| be [=new=] <code>Environment</code> object in |realm|.
     1.  Set |environment|'s [=Environment/ready promise=] to [=a new promise=] in |realm|.
     1.  Run the following steps [=in parallel=]:
         1.  Do some asynchronous work.
-        1.  If |environment| becomes ready successfully, [=resolve=] |environment|'s
-            [=Environment/ready promise=].
-        1.  If |environment| fails to become ready, [=reject=] |environment|'s
-            [=Environment/ready promise=] with a "{{NetworkError!!exception}}" {{DOMException}}.
+        1.  If |environment| becomes ready successfully, then [=queue a task=] on |taskSource| to
+            [=resolve=] |environment|'s [=Environment/ready promise=].
+        1.  If |environment| fails to become ready, then [=queue a task=] on |taskSource| to
+            [=reject=] |environment|'s [=Environment/ready promise=] with a
+            "{{NetworkError!!exception}}" {{DOMException}}.
     1.  Return |environment|.
 </div>
 </div>
@@ -8734,6 +8688,7 @@ JavaScript code.
 
     The <code>addBookmark()</code> method steps are:
 
+    1.  Let |taskSource| be some appropriate [=task source=].
     1.  If this method was not invoked as a result of explicit user action, return
         [=a promise rejected with=] a "{{SecurityError}}" {{DOMException}}.
     1.  If the document's mode of operation is standalone, return [=a promise rejected with=] a
@@ -8744,9 +8699,9 @@ JavaScript code.
         1.  Using |info|, and in a manner that is user-agent specific, allow the end user to make a
             choice as to whether they want to add the bookmark.
             1.  If the end-user aborts the request to add the bookmark (e.g., they hit escape, or
-                press a "cancel" button), [=reject=] |promise| with an "{{AbortError}}"
-                {{DOMException}}.
-            1.  Otherwise, [=resolve=] |promise|.
+                press a "cancel" button), then [=queue a task=] on |taskSource| to [=reject=]
+                |promise| with an "{{AbortError}}" {{DOMException}}.
+            1.  Otherwise, [=queue a task=] on |taskSource| to [=resolve=] |promise|.
     1. Return |promise|.
 </div>
 </div>
@@ -8789,8 +8744,10 @@ that correspond to the union’s [=member types=].
     To [=converted to an IDL value|convert an ECMAScript value=] |V| to an IDL [=union type=]
     value is done as follows:
 
-    1.  If the [=union type=]
-        [=includes a nullable type=] and
+    1.  If the [=union type=] [=includes undefined=]
+        and |V| is <emu-val>undefined</emu-val>,
+        then return the unique {{undefined}} value.
+    1.  If the [=union type=] [=includes a nullable type=] and
         |V| is <emu-val>null</emu-val> or <emu-val>undefined</emu-val>,
         then return the IDL value <emu-val>null</emu-val>.
     1.  Let |types| be the [=flattened member types=]
@@ -8888,11 +8845,7 @@ that correspond to the union’s [=member types=].
 <p id="union-to-es">
     An IDL union type value is
     [=converted to an ECMAScript value=]
-    as follows.  If the value is an {{object}}
-    reference to a special object that represents an ECMAScript <emu-val>undefined</emu-val>
-    value, then it is converted to the ECMAScript
-    <emu-val>undefined</emu-val> value.  Otherwise,
-    the rules for converting the [=specific type=]
+    according to the rules for converting the [=specific type=]
     of the IDL union type value as described in this section ([[#es-type-mapping]]).
 </p>
 
@@ -8948,6 +8901,8 @@ that unless the type is [=extended attributes associated with|associated with=] 
     {{Uint16Array}},
     {{Uint32Array}},
     {{Uint8ClampedArray}},
+    {{BigInt64Array}},
+    {{BigUint64Array}},
     {{Float32Array}} or
     {{Float64Array}} value
     by running the following algorithm:
@@ -8971,37 +8926,178 @@ an IDL value of any [=buffer source type=]
 to an ECMAScript value is the Object value that represents
 a reference to the same object that the IDL value represents.
 
-<div algorithm="get a reference to a buffer source">
+<hr>
 
-    When [=get a reference to the buffer source|getting a reference to=]
-    or [=get a copy of the buffer source|getting a copy of the bytes held by a buffer source=]
-    that is an ECMAScript {{ECMAScript/ArrayBuffer}}, {{ECMAScript/DataView}}
-    or typed array object, these steps must be followed:
+<div algorithm>
+    To <dfn export for="ArrayBuffer">create</dfn> an {{ArrayBuffer}} from a [=byte sequence=]
+    |bytes| in a [=Realm=] |realm|:
 
-    1.  Let |O| be the ECMAScript object that is the buffer source.
-    1.  Initialize |arrayBuffer| to |O|.
-    1.  Initialize |offset| to 0.
-    1.  Initialize |length| to 0.
-    1.  If |O| has a \[[ViewedArrayBuffer]] [=internal slot=], then:
-        1.  Set |arrayBuffer| to the value of |O|’s \[[ViewedArrayBuffer]] [=internal slot=].
-        1.  Set |offset| to the value of |O|’s \[[ByteOffset]] [=internal slot=].
-        1.  Set |length| to the value of |O|’s \[[ByteLength]] [=internal slot=].
-    1.  Otherwise, set |length| to the value of |O|’s \[[ArrayBufferByteLength]] [=internal slot=].
-    1.  If <a abstract-op>IsDetachedBuffer</a>(|arrayBuffer|) is <emu-val>true</emu-val>, then
-        return the empty byte sequence.
-    1.  Let |data| be the value of |O|’s \[[ArrayBufferData]] [=internal slot=].
-    1.  Return a reference to or copy of (as required) the |length| bytes in |data|
-        starting at byte offset |offset|.
+    1.  Let |esArrayBuffer| be [=?=]
+        [$AllocateArrayBuffer$](|realm|.\[[Intrinsics]].[[{{%ArrayBuffer%}}]], |bytes|'s
+        [=byte sequence/length=]).
+    1.  Let |arrayBuffer| be the result of [=converted to an IDL value|converting=] |esArrayBuffer|
+        to an IDL value of type {{ArrayBuffer}}.
+    1.  [=ArrayBuffer/Write=] |bytes| into |arrayBuffer|.
+    1.  Return |arrayBuffer|.
 </div>
 
 <div algorithm>
+    To <dfn export for="ArrayBufferView">create</dfn> one of the {{ArrayBufferView}} types from a
+    [=byte sequence=] |bytes| in a [=Realm=] |realm|:
 
-    To <dfn id="dfn-detach" for="ArrayBuffer" export>detach</dfn> an {{ArrayBuffer}}, these steps must be followed:
-
-    1.  Let |O| be the ECMAScript object that is the {{ArrayBuffer}}.
-    1.  Perform [=!=] <a abstract-op>DetachArrayBuffer</a>(|O|).
+    1.  Assert: if the type is not {{DataView}}, then |bytes|'s [=byte sequence/length=] [=modulo=]
+        the [=element size=] of that type is 0.
+    1.  Let |arrayBuffer| be the result of [=ArrayBuffer/creating=] an {{ArrayBuffer}} from |bytes|
+        in |realm|.
+    1.  Let |esArrayBuffer| be the result of [=converted to an ECMAScript value|converting=]
+        |arrayBuffer| to an ECMAScript value.
+    1.  Let |constructor| be the appropriate constructor from |realm|.\[[Intrinsics]] for the type
+        of {{ArrayBufferView}} being created.
+    1.  Let |esView| be [=!=] [$Construct$](|constructor|, « |esArrayBuffer| »).
+    1.  Return the result of [=converted to an IDL value|converting=] |esView| into the given type.
 </div>
 
+<div algorithm>
+    To <dfn id="dfn-get-buffer-source-copy" export lt="get a copy of the buffer source|get a copy of the bytes held by the buffer source">get a copy of the bytes held by the buffer source</dfn>
+    given a {{BufferSource}} |bufferSource|:
+
+    1.  Let |esBufferSource| be be the result of [=converted to an ECMAScript value|converting=]
+        |bufferSource| to an ECMAScript value.
+    1.  Let |esArrayBuffer| be |esBufferSource|.
+    1.  Let |offset| be 0.
+    1.  Let |length| be 0.
+    1.  If |esBufferSource| has a \[[ViewedArrayBuffer]] [=internal slot=], then:
+        1.  Set |esArrayBuffer| to |esBufferSource|.\[[ViewedArrayBuffer]].
+        1.  Set |offset| to |esBufferSource|.\[[ByteOffset]].
+        1.  Set |length| to |esBufferSource|.\[[ByteLength]].
+    1.  Otherwise:
+        1.  Assert: |esBufferSource| is an {{ECMAScript/ArrayBuffer}} or
+            {{ECMAScript/SharedArrayBuffer}} object.
+        1.  Set |length| to |esBufferSource|.\[[ArrayBufferByteLength]].
+    1.  If [=!=] [$IsDetachedBuffer$](|esArrayBuffer|) is true, then return the empty
+        [=byte sequence=].
+    1.  Let |bytes| be a new [=byte sequence=] of [=byte sequence/length=] equal to |length|.
+    1.  For |i| in [=the range=] |offset| to |offset| + |length| &minus; 1, inclusive, set
+        |bytes|[|i| &minus; |offset|] to [=!=] [$GetValueFromBuffer$](|esArrayBuffer|, |i|, Uint8,
+        true, Unordered).
+    1.  Return |bytes|.
+</div>
+
+<div algorithm>
+    The <dfn export for="BufferSource">byte length</dfn> of a {{BufferSource}} |bufferSource| is
+    the value returned by the following steps:
+
+    1.  Let |esBufferSource| be be the result of [=converted to an ECMAScript value|converting=]
+        |bufferSource| to an ECMAScript value.
+    1.  If |esBufferSource| has a \[[ViewedArrayBuffer]] internal slot, then return
+        |esBufferSource|.\[[ByteLength]].
+    1.  Return |esBufferSource|.\[[ArrayBufferByteLength]].
+</div>
+
+<div algorithm>
+    The <dfn export for="BufferSource">underlying buffer</dfn> of a {{BufferSource}} |bufferSource|
+    is the value returned by the following steps:
+
+    1.  If |bufferSource| is an {{ArrayBuffer}}, return |bufferSource|.
+    1.  Let |esBufferSource| be be the result of [=converted to an ECMAScript value|converting=]
+        |bufferSource| to an ECMAScript value.
+    1.  Return the result of [=converted to an IDL value|converting=]
+        |esBufferSource|.\[[ViewedArrayBuffer]] to an IDL value of type {{ArrayBuffer}}.
+</div>
+
+<div algorithm="ArrayBuffer/write">
+    To <dfn export for="ArrayBuffer">write</dfn> a [=byte sequence=] |bytes| into an {{ArrayBuffer}}
+    |arrayBuffer|, optionally given a <dfn export for="ArrayBuffer/write">|startingOffset|</dfn>
+    (default 0):
+
+    1.  Let |esArrayBuffer| be be the result of [=converted to an ECMAScript value|converting=]
+        |arrayBuffer| to an ECMAScript value.
+    1.  Assert: |bytes|'s [=byte sequence/length=] ≤ |esArrayBuffer|.\[[ArrayBufferByteLength]]
+        &minus; |startingOffset|.
+    1.  For |i| in [=the range=] |startingOffset| to |startingOffset| + |bytes|'s [=byte
+        sequence/length=] &minus; 1, inclusive, perform [=!=] [$SetValueInBuffer$](|esArrayBuffer|,
+        |i|, Uint8, |bytes|[|i| - |startingOffset|], true, Unordered).
+</div>
+
+<div algorithm="ArrayBufferView/write">
+    To <dfn export for="ArrayBufferView">write</dfn> a [=byte sequence=] |bytes| into an
+    {{ArrayBufferView}} |view|, optionally given a
+    <dfn export for="ArrayBufferView/write">|startingOffset|</dfn> (default 0):
+
+    1.  Let |esView| be be the result of [=converted to an ECMAScript value|converting=] |view| to
+        an ECMAScript value.
+    1.  Assert: |bytes|'s [=byte sequence/length=] ≤ |esView|.\[[ByteLength]] &minus;
+        |startingOffset|.
+    1.  Assert: if |view| is not a {{DataView}}, then |bytes|'s [=byte sequence/length=] [=modulo=]
+        the [=element size=] of |view|'s type is 0.
+    1.  Let |arrayBuffer| be the result of [=converted to an IDL value|converting=]
+        |esView|.\[[ViewedArrayBuffer]] to an IDL value of type {{ArrayBuffer}}.
+    1.  [=ArrayBuffer/Write=] |bytes| into |arrayBuffer| with
+        <i>[=ArrayBuffer/write/startingOffset=]</i> set to |esView|.\[[ByteOffset]] +
+        |startingOffset|.
+</div>
+
+<div class="advisement">
+    Extreme care must be taken when writing specification text that
+    [=ArrayBuffer/writes=] into an {{ArrayBuffer}} or {{ArrayBufferView}}, as the underlying data
+    can easily be changed by the script author or other APIs at unpredictable times. This is
+    especially true if the [{{AllowShared}}] [=extended attribute=] is involved.
+
+    For the non-shared cases, a more recommended pattern is to [=ArrayBuffer/transfer=] the
+    {{ArrayBuffer}} first if possible, to ensure the writes cannot overlap with other modifications,
+    and then give the new {{ArrayBuffer}} instance to author code as necessary. Alternately, you can
+    [=get a copy of the bytes held by the buffer source=], modify those bytes, and then use them to
+    [=ArrayBuffer/create=] a new {{ArrayBuffer}} or {{ArrayBufferView}} to give back to author code.
+</div>
+
+<div algorithm>
+    To <dfn id="dfn-detach" for="ArrayBuffer" export>detach</dfn> an {{ArrayBuffer}} |arrayBuffer|:
+
+    1.  Let |esArrayBuffer| be be the result of [=converted to an ECMAScript value|converting=]
+        |arrayBuffer| to an ECMAScript value.
+    1.  Assert: [=!=] [$IsSharedArrayBuffer$](|esArrayBuffer|) is false.
+    1.  Perform [=?=] [$DetachArrayBuffer$](|esArrayBuffer|).
+
+    <p class="note">This will throw an exception if |esArrayBuffer| has an \[[ArrayBufferDetachKey]]
+    that is not undefined, such as is the case with the value of {{Memory|WebAssembly.Memory}}'s
+    {{Memory/buffer}} attribute. [[WASM-JS-API-1]]
+
+    <p class="note">Detaching a buffer that is already [=BufferSource/detached=] is a no-op.
+</div>
+
+<div algorithm>
+    A {{BufferSource}} |bufferSource| is <dfn for="BufferSource" export>detached</dfn> if the
+    following steps return true:
+
+    1.  Let |esArrayBuffer| be be the result of [=converted to an ECMAScript value|converting=]
+        |bufferSource| to an ECMAScript value.
+    1.  If |esArrayBuffer| has a \[[ViewedArrayBuffer]] internal slot, then set |esArrayBuffer| to
+        |esArrayBuffer|.\[[ViewedArrayBuffer]].
+    1.  Return [=!=] [$IsDetachedBuffer$](|esArrayBuffer|).
+</div>
+
+<div algorithm>
+    To <dfn for="ArrayBuffer" export>transfer</dfn> an {{ArrayBuffer}} |arrayBuffer|, optionally
+    given a [=Realm=] |targetRealm|:
+
+    1.  Let |esArrayBuffer| be be the result of [=converted to an ECMAScript value|converting=]
+        |arrayBuffer| to an ECMAScript value.
+    1.  Assert: [=!=] [$IsSharedArrayBuffer$](|esArrayBuffer|) is false.
+    1.  Assert: [=!=] [$IsDetachedBuffer$](|esArrayBuffer|) is false.
+    1.  Let |arrayBufferData| be |esArrayBuffer|.\[[ArrayBufferData]].
+    1.  Let |arrayBufferByteLength| be |esArrayBuffer|.\[[ArrayBufferByteLength]].
+    1.  Perform [=?=] [$DetachArrayBuffer$](|esArrayBuffer|).
+    1.  If |targetRealm| is not given, let |targetRealm| be the [=current Realm=].
+    1.  Let |esTransferred| be [=!=]
+        [$AllocateArrayBuffer$](|targetRealm|.\[[Intrinsics]].[[{{%ArrayBuffer%}}]], 0).
+    1.  Set |esTransferred|.\[[ArrayBufferData]] to |arrayBufferData|.
+    1.  Set |esTransferred|.\[[ArrayBufferByteLength]] to |arrayBufferByteLength|.
+    1.  Return the result of [=converted to an IDL value|converting=] |esTransferred| to an IDL
+        value of type {{ArrayBuffer}}.
+
+    <p class="note">This will throw an exception under the same circumstances as
+    [=ArrayBuffer/detaching=].
+</div>
 
 <h4 id="es-frozen-array">Frozen arrays — FrozenArray&lt;|T|&gt;</h4>
 
@@ -11659,8 +11755,8 @@ on the single object that [=implements=] the interface,
 when an interface is declared with the [{{Global}}] [=extended attribute=].
 
 <div algorithm>
-    To <dfn>define the constants</dfn> of [=interface=] or [=callback interface=] |definition| on
-    |target|, given [=Realm=] |realm|, run the following steps:
+    To <dfn>define the constants</dfn> of [=interface=], [=callback interface=], or [=namespace=]
+    |definition| on |target|, given [=Realm=] |realm|, run the following steps:
 
     1.  [=list/For each=] [=constant=] |const| that is a [=member=] of |definition|:
         1.  If |const| is not [=exposed=] in |realm|, then [=iteration/continue=].
@@ -12068,84 +12164,73 @@ A [=regular operation=] that does not [=have default method steps=] must not be 
 
 <div class=example id=example-tojson-default-inheritance-and-mixins>
 
-    The following [=IDL fragment=] defines a number of [=interfaces=],
-    which are [=inherited interfaces=] of <code class="idl">A</code>,
-    and [=interface mixins=], which are [=included=] by <code class="idl">A</code> or
-    by <code class="idl">A</code>'s [=inherited interfaces=],
-    as show in the below inheritance tree.
-
-    <pre>
-             C* - M4
-             |
-             B - M3
-             |
-        M1 - A - M2*
-    </pre>
-
-    [=Interfaces=] and [=interface mixins=] marked with an asterisk ("*")
-    declare a <code>toJSON</code> [=operation=]
-    with a [{{Default}}] [=extended attribute=].
+    Only [=regular attributes=] of [=interfaces=] that declare a <code>toJSON</code> operation with
+    a [{{Default}}] [=extended attribute=] are included, even if an [=inherited interface=] declares
+    such a <code>toJSON</code> operation. For example, consider the following [=IDL fragment=]:
 
     <pre class=webidl>
         [Exposed=Window]
-        interface A : B {
+        interface A {
+          [Default] object toJSON();
           attribute DOMString a;
         };
 
         [Exposed=Window]
-        interface B : C {
+        interface B : A {
           attribute DOMString b;
         };
 
         [Exposed=Window]
-        interface C {
+        interface C : B {
           [Default] object toJSON();
           attribute DOMString c;
         };
-
-        interface mixin M1 {
-          attribute DOMString m1;
-        };
-
-        interface mixin M2 {
-          [Default] object toJSON();
-          attribute DOMString m2;
-        };
-
-        interface mixin M3 {
-          attribute DOMString m3;
-        };
-
-        interface mixin M4 {
-          attribute DOMString m4;
-        };
-
-        A includes M1;
-        A includes M2;
-        B includes M3;
-        C includes M4;
     </pre>
 
-    Calling the <code>toJSON()</code> method of an object
-    implementing interface <code class="idl">A</code> defined above
-    would return the following JSON object:
+    Calling the <code>toJSON()</code> method of an object implementing interface
+    <code class="idl">C</code> defined above would return the following JSON object:
 
     <pre highlight=json>
     {
         "a": "...",
-        "m1": "...",
-        "m2": "...",
-        "c": "...",
-        "m4": "..."
+        "c": "..."
     }
     </pre>
 
-    An object implementing interface <code class="idl">B</code> would return:
+    Calling the <code>toJSON()</code> method of an object implementing interface
+    <code class="idl">A</code> (or <code class="idl">B</code>) defined above would return:
 
     <pre highlight=json>
     {
-        "c": "...",
-        "m4": "..."
+        "a": "..."
+    }
+    </pre>
+
+    A <code>toJSON</code> operation can also be declared on an [=interface mixin=] (or
+    [=partial interface=]) and is equivalent to declaring it on the original [=interface=]. For
+    example, consider the following [=IDL fragment=]:
+
+    <pre class=webidl>
+        [Exposed=Window]
+        interface D {
+          attribute DOMString d;
+        };
+
+        interface mixin M {
+          [Default] object toJSON();
+          attribute DOMString m;
+        };
+
+        D includes M;
+    </pre>
+
+    Calling the <code>toJSON()</code> method of an object implementing interface
+    <code class="idl">D</code> defined above would return:
+
+    <pre highlight=json>
+    {
+        "d": "...",
+        "m": "..."
     }
     </pre>
 </div>
@@ -14234,6 +14319,7 @@ The characteristics of a namespace object are described in [[#namespace-object]]
     1.  Let |namespaceObject| be [=!=] [$OrdinaryObjectCreate$](|realm|.\[[Intrinsics]].[[{{%Object.prototype%}}]]).
     1.  [=Define the regular attributes=] of |namespace| on |namespaceObject| given |realm|.
     1.  [=Define the regular operations=] of |namespace| on |namespaceObject| given |realm|.
+    1.  [=Define the constants=] of |namespace| on |namespaceObject| given |realm|.
     1.  For each [=exposed=] [=interface=] |interface| which has the [{{LegacyNamespace}}] extended
         attribute with the identifier of |namespace| as its argument,
         1.  Let |id| be |interface|'s [=identifier=].
@@ -14272,7 +14358,7 @@ A {{DOMException}} is represented by a
 
 <div algorithm="to create a simple exception or DOMException">
 
-    To [=create=] a [=simple exception=] or {{DOMException}} |E|, with a string giving the
+    To create a [=simple exception=] or {{DOMException}} |E|, with a string giving the
     [=error name=] |N| for the {{DOMException}} case and optionally a string giving a user
     agent-defined message |M|:
 
@@ -14429,6 +14515,7 @@ must support.
 <pre class="idl">
     typedef (Int8Array or Int16Array or Int32Array or
              Uint8Array or Uint16Array or Uint32Array or Uint8ClampedArray or
+             BigInt64Array or BigUint64Array or
              Float32Array or Float64Array or DataView) ArrayBufferView;
 </pre>
 
@@ -14696,6 +14783,7 @@ Anne van Kesteren,
 Olav Junker Kjær,
 Takayoshi Kochi,
 Magnus Kristiansen,
+Raphael Kubo da Costa,
 Takeshi Kurosawa,
 Yves Lafon,
 Travis Leithead,
