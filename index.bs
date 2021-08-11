@@ -1226,7 +1226,7 @@ These [=constants=], [=regular operations=], [=regular attributes=], and [=strin
 describe the behaviors that can be implemented by an object,
 as if they were specified on the [=interface=] that [=includes=] them.
 
-[=Static attributes=], [=static operations=], [=special operations=] except for [=stringifiers=], and
+[=Static attributes=], [=static operations=], [=special operations=], and
 [=iterable declaration|iterable=], [=asynchronously iterable declaration|asynchronously iterable=],
 [=maplike declaration|maplike=], and [=setlike declarations=] cannot appear in [=interface mixin=]
 declarations.
@@ -1569,10 +1569,17 @@ and summarized in the following informative table:
             <td>●</td>
         </tr>
         <tr>
+            <th>[=Stringifiers=]</th>
+            <td>●</td>
+            <td></td>
+            <td>●</td>
+            <td></td>
+        </tr>
+        <tr>
             <th>[=Special Operations=]</th>
             <td>●</td>
             <td></td>
-            <td>Only [=stringifiers=]</td>
+            <td></td>
             <td></td>
         </tr>
         <tr>
@@ -2054,7 +2061,7 @@ are applicable only to regular attributes:
 An <dfn id="dfn-operation" export>operation</dfn> is an [=interface member=], [=callback interface
 member=] or [=namespace member=]
 (matching <emu-t>static</emu-t> <emu-nt><a href="#prod-RegularOperation">RegularOperation</a></emu-nt>,
-<emu-t>stringifier</emu-t> <emu-nt><a href="#prod-RegularOperation">RegularOperation</a></emu-nt>,
+<emu-t>stringifier</emu-t>,
 <emu-nt><a href="#prod-RegularOperation">RegularOperation</a></emu-nt> or
 <emu-nt><a href="#prod-SpecialOperation">SpecialOperation</a></emu-nt>)
 that defines a behavior that can be invoked on objects implementing the interface.
@@ -2708,6 +2715,122 @@ See [[#interface-object]] for details on how a [=constructor operation=] is to b
 <div data-fill-with="grammar-ArgumentNameKeyword"></div>
 
 
+<h4 id="idl-stringifiers">Stringifiers</h4>
+
+When an [=interface=] has a <dfn id="dfn-stringifier">stringifier</dfn>, it indicates that objects
+that implement the interface have a non-default conversion to a string.  Stringifiers can be
+specified using a <emu-t>stringifier</emu-t> keyword, which creates a stringifier operation when
+used alone.
+
+<pre highlight="webidl" class="syntax">
+    interface interface_identifier {
+      stringifier;
+    };
+</pre>
+
+Prose accompanying the interface must define
+the <dfn id="dfn-stringification-behavior" export>stringification behavior</dfn>
+of the interface.
+
+The <emu-t>stringifier</emu-t> keyword
+can also be placed on an [=attribute=].
+In this case, the string to convert the object to is the
+value of the attribute.  The <emu-t>stringifier</emu-t> keyword
+must not be placed on an attribute unless
+it is declared to be of type {{DOMString}} or {{USVString}}.
+It also must not be placed on
+a [=static attribute=].
+
+<pre highlight="webidl" class="syntax">
+    interface interface_identifier {
+      stringifier attribute DOMString identifier;
+    };
+</pre>
+
+On a given [=interface=], there must exist at most one stringifier.
+
+<pre class="grammar" id="prod-Stringifier">
+    Stringifier :
+        "stringifier" StringifierRest
+</pre>
+
+<pre class="grammar" id="prod-StringifierRest">
+    StringifierRest :
+        OptionalReadOnly AttributeRest
+        ";"
+</pre>
+
+<div class="example">
+
+    The following [=IDL fragment=]
+    defines an interface that will stringify to the value of its
+    <code class="idl">name</code> attribute:
+
+    <pre highlight="webidl">
+        [Exposed=Window]
+        interface Student {
+          constructor();
+          attribute unsigned long id;
+          stringifier attribute DOMString name;
+        };
+    </pre>
+
+    In the ECMAScript binding, using a <code class="idl">Student</code>
+    object in a context where a string is expected will result in the
+    value of the object’s <code class="idl">name</code> property being
+    used:
+
+    <pre highlight="js">
+        var s = new Student();
+        s.id = 12345678;
+        s.name = '周杰倫';
+
+        var greeting = 'Hello, ' + s + '!';  // Now greeting == 'Hello, 周杰倫!'.
+    </pre>
+
+    The following [=IDL fragment=]
+    defines an interface that has custom stringification behavior that is
+    not specified in the IDL itself.
+
+    <pre highlight="webidl">
+        [Exposed=Window]
+        interface Student {
+          constructor();
+          attribute unsigned long id;
+          attribute DOMString? familyName;
+          attribute DOMString givenName;
+
+          stringifier;
+        };
+    </pre>
+
+    Thus, prose is required to explain the stringification behavior.
+    We assume that the <code class="idl">familyName</code> and
+    <code class="idl">givenName</code> attributes are backed by
+    family name and given name concepts, respectively.
+
+    <blockquote>
+
+        The [=stringification behavior=] steps are:
+
+        1. If [=this=]'s family name is null, then return [=this=]'s given name.
+        2. Return the concatenation of [=this=]'s given name, followed by U+0020 SPACE, followed by [=this=]'s family name.
+
+    </blockquote>
+
+    An ECMAScript implementation of the IDL would behave as follows:
+
+    <pre highlight="js">
+        var s = new Student();
+        s.id = 12345679;
+        s.familyName = 'Smithee';
+        s.givenName = 'Alan';
+
+        var greeting = 'Hi ' + s;  // Now greeting == 'Hi Alan Smithee'.
+    </pre>
+</div>
+
+
 <h4 id="idl-special-operations">Special operations</h4>
 
 A <dfn id="dfn-special-operation" export>special operation</dfn> is a
@@ -2717,7 +2840,7 @@ Special operations are declared by using a
 <dfn id="dfn-special-keyword" export>special keyword</dfn>
 in an operation declaration.
 
-There are four kinds of special operations. The table below indicates
+There are three kinds of special operations. The table below indicates
 for a given kind of special operation what special keyword
 is used to declare it and what the purpose of the special operation is:
 
@@ -2742,11 +2865,6 @@ is used to declare it and what the purpose of the special operation is:
         <td><dfn id="dfn-deleter" export lt="deleter">Deleters</dfn></td>
         <td><emu-t>deleter</emu-t></td>
         <td>Defines behavior for when an object is indexed for property deletion.</td>
-    </tr>
-    <tr>
-        <td><dfn id="dfn-stringifier" export lt="stringifier">Stringifiers</dfn></td>
-        <td><emu-t>stringifier</emu-t></td>
-        <td>Defines how an object is converted into a {{DOMString}}.</td>
     </tr>
 </table>
 
@@ -2828,7 +2946,6 @@ for details.
 
 On a given [=interface=],
 there must exist at most one
-stringifier, at most one
 [=named property deleter=],
 and at most one of each variety of getter and setter.
 
@@ -2845,159 +2962,6 @@ be [=variadic=] nor have any
 If an object implements more than one [=interface=]
 that defines a given special operation, then it is undefined which (if any)
 special operation is invoked for that operation.
-
-
-<h5 id="idl-stringifiers">Stringifiers</h5>
-
-When an [=interface=] has a
-[=stringifier=], it indicates that objects that implement
-the interface have a non-default conversion to a string.  As mentioned above,
-stringifiers can be specified using an [=operation=]
-declared with the <emu-t>stringifier</emu-t> keyword.
-
-<pre highlight="webidl" class="syntax">
-    interface interface_identifier {
-      stringifier DOMString identifier();
-      stringifier DOMString ();
-    };
-</pre>
-
-If an operation used to declare a stringifier does not have an
-[=identifier=], then prose
-accompanying the interface must define
-the <dfn id="dfn-stringification-behavior" export>stringification behavior</dfn>
-of the interface.  If the operation does have an identifier,
-then the object is converted to a string by invoking the
-operation to obtain the string.
-
-Stringifiers declared with operations must
-be declared to take zero arguments and return a {{DOMString}}.
-
-As a shorthand, if the <emu-t>stringifier</emu-t> keyword
-is declared using an operation with no identifier, then the
-operation’s [=return type=] and
-argument list can be omitted.
-
-<pre highlight="webidl" class="syntax">
-    interface interface_identifier {
-      stringifier;
-    };
-</pre>
-
-<div class="example">
-
-    The following two interfaces are equivalent:
-
-    <pre highlight="webidl">
-        [Exposed=Window]
-        interface A {
-          stringifier DOMString ();
-        };
-    </pre>
-    <pre highlight="webidl">
-        [Exposed=Window]
-        interface A {
-          stringifier;
-        };
-    </pre>
-</div>
-
-The <emu-t>stringifier</emu-t> keyword
-can also be placed on an [=attribute=].
-In this case, the string to convert the object to is the
-value of the attribute.  The <emu-t>stringifier</emu-t> keyword
-must not be placed on an attribute unless
-it is declared to be of type {{DOMString}} or {{USVString}}.
-It also must not be placed on
-a [=static attribute=].
-
-<pre highlight="webidl" class="syntax">
-    interface interface_identifier {
-      stringifier attribute DOMString identifier;
-    };
-</pre>
-
-<pre class="grammar" id="prod-Stringifier">
-    Stringifier :
-        "stringifier" StringifierRest
-</pre>
-
-<pre class="grammar" id="prod-StringifierRest">
-    StringifierRest :
-        OptionalReadOnly AttributeRest
-        RegularOperation
-        ";"
-</pre>
-
-<div class="example">
-
-    The following [=IDL fragment=]
-    defines an interface that will stringify to the value of its
-    <code class="idl">name</code> attribute:
-
-    <pre highlight="webidl">
-        [Exposed=Window]
-        interface Student {
-          constructor();
-          attribute unsigned long id;
-          stringifier attribute DOMString name;
-        };
-    </pre>
-
-    In the ECMAScript binding, using a <code class="idl">Student</code>
-    object in a context where a string is expected will result in the
-    value of the object’s <code class="idl">name</code> property being
-    used:
-
-    <pre highlight="js">
-        var s = new Student();
-        s.id = 12345678;
-        s.name = '周杰倫';
-
-        var greeting = 'Hello, ' + s + '!';  // Now greeting == 'Hello, 周杰倫!'.
-    </pre>
-
-    The following [=IDL fragment=]
-    defines an interface that has custom stringification behavior that is
-    not specified in the IDL itself.
-
-    <pre highlight="webidl">
-        [Exposed=Window]
-        interface Student {
-          constructor();
-          attribute unsigned long id;
-          attribute DOMString? familyName;
-          attribute DOMString givenName;
-
-          stringifier DOMString ();
-        };
-    </pre>
-
-    Thus, prose is required to explain the stringification behavior.
-    We assume that the <code class="idl">familyName</code> and
-    <code class="idl">givenName</code> attributes are backed by
-    family name and given name concepts, respectively.
-
-    <blockquote>
-
-        The [=stringification behavior=] steps are:
-
-        1. If [=this=]'s family name is null, then return [=this=]'s given name.
-        2. Return the concatenation of [=this=]'s given name, followed by U+0020 SPACE, followed by [=this=]'s family name.
-
-    </blockquote>
-
-    An ECMAScript implementation of the IDL would behave as follows:
-
-    <pre highlight="js">
-        var s = new Student();
-        s.id = 12345679;
-        s.familyName = 'Smithee';
-        s.givenName = 'Alan';
-
-        var greeting = 'Hi ' + s;  // Now greeting == 'Hi Alan Smithee'.
-    </pre>
-</div>
 
 
 <h5 id="idl-indexed-properties" dfn export>Indexed properties</h5>
@@ -12274,7 +12238,7 @@ A [=regular operation=] that does not [=have default method steps=] must not be 
     </pre>
 </div>
 
-<h5 id="es-stringifier">Stringifiers</h5>
+<h4 id="es-stringifier">Stringifiers</h4>
 
 If the [=interface=] has an [=exposed=] [=stringifier=],
 then there must exist a property with the following characteristics:
@@ -12301,19 +12265,16 @@ then there must exist a property with the following characteristics:
         1.  If |O| does not [=implement=] the [=interface=]
             on which the stringifier was declared, then [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
         1.  Let |V| be an uninitialized variable.
-        1.  Depending on where <code>stringifier</code> was specified:
+        1.  Depending on how <code>stringifier</code> was specified:
             <dl class="switch">
+                 :  as a declaration
+                 :: Set |V| to the result of performing the [=stringification behavior=]
+                    of the interface.
                  :  on an [=attribute=]
                  :: Set |V| to the result of running the [=getter steps=] of the attribute
                     (or those listed in the [=getter steps=] of the inherited attribute, if this attribute is declared to
                     [=inherit its getter=]),
                     with |O| as [=this=].
-                 :  on an [=operation=] with an identifier
-                 :: Set |V| to the result of running the [=method steps=]
-                    of the operation, with |O| as [=this=] and an empty list as the argument values.
-                 :  on an [=operation=] with no identifier
-                 :: Set |V| to the result of performing the [=stringification behavior=]
-                    of the interface.
             </dl>
         1.  Return the result of [=converted to an ECMAScript value|converting=] |V| to a String value.
     </div>
