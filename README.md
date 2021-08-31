@@ -1,16 +1,25 @@
-# Web IDL
+This repository hosts the [Web IDL Standard](https://webidl.spec.whatwg.org/).
 
-This is the repository where the [Web IDL](http://heycam.github.io/webidl/) specification is developed.
+## Code of conduct
+
+We are committed to providing a friendly, safe, and welcoming environment for all. Please read and
+respect the [WHATWG Code of Conduct](https://whatwg.org/code-of-conduct).
 
 ## Contributing
 
 Good first issues are labeled as a [short good first issue](https://github.com/heycam/webidl/issues?q=is%3Aopen+label%3A%22%E2%8C%9B+duration%3Ashort%22+label%3A%22good+first+issue%22).
 
-IDL generally follows the [WHATWG Contributor Guidelines](https://github.com/whatwg/meta/blob/master/CONTRIBUTING.md) and [WHATWG Committer Guidelines](https://github.com/whatwg/meta/blob/master/COMMITTING.md), except as otherwise noted.
+IDL generally follows the [WHATWG Contributor Guidelines](https://github.com/whatwg/meta/blob/main/CONTRIBUTING.md) and [WHATWG Committer Guidelines](https://github.com/whatwg/meta/blob/main/COMMITTING.md), except as otherwise noted.
 
 ## Markup
 
 The specification is written in [Bikeshed](https://github.com/tabatkins/bikeshed), plus the [Ecmarkup tags](https://tc39.es/ecmarkup/) `<emu-val>`, `<emu-t>`, and `<emu-nt>`.
+
+## Building "locally"
+
+For quick local iteration, run `make`. To verify your changes locally, run `npm install` and
+`make deploy`. See more in the
+[WHATWG Contributor Guidelines](https://github.com/whatwg/meta/blob/main/CONTRIBUTING.md#building).
 
 ## Filing issues elsewhere
 
