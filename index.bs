@@ -145,8 +145,6 @@ urlPrefix: https://tc39.es/ecma262/; spec: ECMA-262
         text: PerformPromiseThen; url: sec-performpromisethen
         text: ProxyCreate; url: sec-proxycreate
         text: Set; url: sec-set-o-p-v-throw
-        text: SetFunctionLength; url: sec-setfunctionlength
-        text: SetFunctionName; url: sec-setfunctionname
         text: SetImmutablePrototype; url: sec-set-immutable-prototype
         text: SetIntegrityLevel; url: sec-setintegritylevel
         text: SetValueInBuffer; url: sec-setvalueinbuffer
@@ -8372,7 +8370,7 @@ IDL [=promise type=] values are represented by ECMAScript [=PromiseCapability=] 
             the result of performing them, given |value| if |T| is not {{undefined}}. Otherwise, let
             |result| be |value|.
         1.  Return |result|, [=converted to an ECMAScript value=].
-    1.  Let |onFulfilled| be [$CreateBuiltinFunction$](|onFulfilledSteps|, « »):
+    1.  Let |onFulfilled| be [$CreateBuiltinFunction$](|onFulfilledSteps|, 1, "", « »):
     1.  Let |onRejectedSteps| be the following steps given argument |R|:
         1.  Let |reason| be the result of [=converted to an IDL value|converting=]
             |R| to an IDL value of type {{any}}.
@@ -8380,7 +8378,7 @@ IDL [=promise type=] values are represented by ECMAScript [=PromiseCapability=] 
             the result of performing them, given |reason|. Otherwise, let |result| be
             [=a promise rejected with=] |reason|.
         1.  Return |result|, [=converted to an ECMAScript value=].
-    1.  Let |onRejected| be [$CreateBuiltinFunction$](|onRejectedSteps|, « »):
+    1.  Let |onRejected| be [$CreateBuiltinFunction$](|onRejectedSteps|, 1, "", « »):
     1.  Let |constructor| be |promise|.\[[Promise]].\[[Realm]].\[[Intrinsics]].[[{{%Promise%}}]].
     1.  Let |newCapability| be [=?=] [$NewPromiseCapability$](|constructor|).
 
@@ -8431,7 +8429,7 @@ IDL [=promise type=] values are represented by ECMAScript [=PromiseCapability=] 
         1.  If |rejected| is true, abort these steps.
         1.  Set |rejected| to true.
         1.  Perform |failureSteps| given |arg|.
-    1.  Let |rejectionHandler| be [$CreateBuiltinFunction$](|rejectionHandlerSteps|, « »):
+    1.  Let |rejectionHandler| be [$CreateBuiltinFunction$](|rejectionHandlerSteps|, 1, "", « »):
     1.  Let |total| be |promises|'s [=list/size=].
     1.  If |total| is 0, then:
         1.  [=Queue a microtask=] to perform |successSteps| given « ».
@@ -8444,7 +8442,7 @@ IDL [=promise type=] values are represented by ECMAScript [=PromiseCapability=] 
             1.  Set |result|[|promiseIndex|] to |arg|.
             1.  Set |fullfilledCount| to |fullfilledCount| + 1.
             1.  If |fullfilledCount| equals |total|, then perform |successSteps| given |result|.
-        1.  Let |fulfillmentHandler| be [$CreateBuiltinFunction$](|fulfillmentHandler|, « »):
+        1.  Let |fulfillmentHandler| be [$CreateBuiltinFunction$](|fulfillmentHandler|, 1, "", « »):
         1.  Perform [$PerformPromiseThen$](|promise|, |fulfillmentHandler|, |rejectionHandler|).
         1.  Set |index| to |index| + 1.
 </div>
@@ -11490,7 +11488,13 @@ default interfaces do not have such steps.
     1.  Let |constructorProto| be |realm|.\[[Intrinsics]].[[{{%Function.prototype%}}]].
     1.  If |I| inherits from some other interface |P|,
         then set |constructorProto| to the [=interface object=] of |P| in |realm|.
-    1.  Let |F| be <a abstract-op>CreateBuiltinFunction</a>(|steps|, « \[[Unforgeables]] »,
+    1.  Let |length| be 0.
+    1.  If |I| was declared with a [=constructor operation=], then
+        1.  [=Compute the effective overload set=] for constructors with [=identifier=] |id| on
+            [=interface=] |I| and with argument count 0, and let |S| be the result.
+        1.  Set |length| to the length of the
+            shortest argument list of the entries in |S|.
+    1.  Let |F| be [$CreateBuiltinFunction$](|steps|, |length|, |id|, « \[[Unforgeables]] »,
         |realm|, |constructorProto|).
     1.  Let |unforgeables| be [$OrdinaryObjectCreate$](<emu-val>null</emu-val>).
     1.  [=Define the unforgeable regular operations=] of |I| on |unforgeables|, given |realm|.
@@ -11501,14 +11505,6 @@ default interfaces do not have such steps.
         of an interface with an unforgeable member use the same JavaScript function objects for
         [=attribute getters=], [=attribute setters=] and [=creating an operation
         function|operation functions=].
-    1.  Perform <a abstract-op>SetFunctionName</a>(|F|, |id|).
-    1.  Let |length| be 0.
-    1.  If |I| was declared with a [=constructor operation=], then
-        1.  [=Compute the effective overload set=] for constructors with [=identifier=] |id| on
-            [=interface=] |I| and with argument count 0, and let |S| be the result.
-        1.  Set |length| to the length of the
-            shortest argument list of the entries in |S|.
-    1.  Perform <a abstract-op>SetFunctionLength</a>(|F|, |length|).
     1.  Let |proto| be the result of [=create an interface prototype object|creating an interface
         prototype object=] of [=interface=] |I| in |realm|.
     1.  Perform [=!=] <a abstract-op>DefinePropertyOrThrow</a>(|F|, "<code>prototype</code>",
@@ -11554,12 +11550,10 @@ implement the interface on which the
         1.  Assert: |O| is an object that [=implements=] |I|.
         1.  Assert: |O|.\[[Realm]] is |realm|.
         1.  Return |O|.
-    1.  Let |F| be <a abstract-op>CreateBuiltinFunction</a>(|steps|, « », |realm|).
-    1.  Perform <a abstract-op>SetFunctionName</a>(|F|, |id|).
     1.  [=Compute the effective overload set=] for legacy factory functions with [=identifier=] |id|
         on [=interface=] |I| and with argument count 0, and let |S| be the result.
     1.  Let |length| be the length of the shortest argument list of the entries in |S|.
-    1.  Perform <a abstract-op>SetFunctionLength</a>(|F|, |length|).
+    1.  Let |F| be [$CreateBuiltinFunction$](|steps|, |length|, |id|, « », |realm|).
     1.  Let |proto| be the [=interface prototype object=] of [=interface=] |I| in |realm|.
     1.  Perform [=!=] <a abstract-op>DefinePropertyOrThrow</a>(|F|, "<code>prototype</code>",
         PropertyDescriptor{\[[Value]]: |proto|, \[[Writable]]: <emu-val>false</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>false</emu-val>}).
@@ -11908,11 +11902,8 @@ in which case they are exposed on every object that [=implements=] the interface
         1.  If |attribute|'s type is a [=promise type=], then return
             [=!=] <a abstract-op>Call</a>({{%Promise.reject%}}, {{%Promise%}}, «|E|»).
         1.  Otherwise, end these steps and allow the exception to propagate.
-    1.  Let |F| be <a abstract-op>CreateBuiltinFunction</a>(|steps|, « », |realm|).
-    1.  Let |name| be the string "<code>get </code>" prepended to |attribute|'s [=identifier=].
-    1.  Perform <a abstract-op>SetFunctionName</a>(|F|, |name|).
-    1.  Perform <a abstract-op>SetFunctionLength</a>(|F|, 0).
-    1.  Return |F|.
+    1.  Let |name| be |attribute|'s [=identifier=].
+    1.  Return [$CreateBuiltinFunction$](|steps|, 0, |name|, « », |realm|, |realm|.\[[Intrinsics]].\[[{{%Function.prototype%}}]], "<code>get</code>").
 
 </div>
 
@@ -11994,11 +11985,8 @@ in which case they are exposed on every object that [=implements=] the interface
         1.  Perform the [=setter steps=] of |attribute|,
             with |idlObject| as [=this=] and |idlValue| as [=the given value=].
         1.  Return <emu-val>undefined</emu-val>
-    1.  Let |F| be <a abstract-op>CreateBuiltinFunction</a>(|steps|, « », |realm|).
-    1.  Let |name| be the string "<code>set </code>" prepended to |id|.
-    1.  Perform <a abstract-op>SetFunctionName</a>(|F|, |name|).
-    1.  Perform <a abstract-op>SetFunctionLength</a>(|F|, 1).
-    1. Return |F|.
+    1.  Let |name| be |attribute|'s [=identifier=].
+    1.  Return be [$CreateBuiltinFunction$](|steps|, 1, |name|, « », |realm|, |realm|.\[[Intrinsics]].\[[{{%Function.prototype%}}]], "<code>set</code>").
 </div>
 
 Note: Although there is only a single property for an IDL attribute, since
@@ -12112,14 +12100,11 @@ in which case they are exposed on every object that [=implements=] the interface
             that is a [=promise type=], then return
             [=!=] <a abstract-op>Call</a>({{%Promise.reject%}}, {{%Promise%}}, «|E|»).
         1.  Otherwise, end these steps and allow the exception to propagate.
-    1.  Let |F| be <a abstract-op>CreateBuiltinFunction</a>(|steps|, « », |realm|).
-    1.  Perform <a abstract-op>SetFunctionName</a>(|F|, |id|).
     1.  [=Compute the effective overload set=]  for [=regular operations=] (if |op| is a regular
         operation) or for [=static operations=] (if |op| is a static operation) with [=identifier=]
         |id| on |target| and with argument count 0, and let |S| be the result.
     1.  Let |length| be the length of the shortest argument list in the entries in |S|.
-    1.  Perform <a abstract-op>SetFunctionLength</a>(|F|, |length|).
-    1.  Return |F|.
+    1.  Return [$CreateBuiltinFunction$](|steps|, |length|, |id|, « », |realm|).
 </div>
 
 
@@ -12469,9 +12454,7 @@ property is the String value "<code>forEach</code>".
                     |esValue| as its [=default iterator object/target=], "<code>key+value</code>"
                     as its [=default iterator object/kind=], and [=default iterator object/index=]
                     set to 0.
-            1.  Let |F| be [$CreateBuiltinFunction$](|steps|, « », |realm|).
-            1.  Perform [$SetFunctionName$](|F|, "<code>entries</code>").
-            1.  Perform [$SetFunctionLength$](|F|, 0).
+            1.  Let |F| be [$CreateBuiltinFunction$](|steps|, 0, "<code>entries</code>", « », |realm|).
             1.  Perform [$CreateMethodProperty$](|target|, {{@@iterator}}, |F|).
             1.  Perform [=!=] [$CreateDataProperty$](|target|, "<code>entries</code>", |F|).
         1.  Define the <code class="idl">keys</code> method:
@@ -12484,9 +12467,7 @@ property is the String value "<code>forEach</code>".
                 1.  Return a newly created [=default iterator object=] for |definition|, with
                     |esValue| as its [=default iterator object/target=], "<code>key</code>" as its
                     [=default iterator object/kind=], and [=default iterator object/index=] set to 0.
-            1.  Let |F| be [$CreateBuiltinFunction$](|steps|, « », |realm|).
-            1.  Perform [$SetFunctionName$](|F|, "<code>keys</code>").
-            1.  Perform [$SetFunctionLength$](|F|, 0).
+            1.  Let |F| be [$CreateBuiltinFunction$](|steps|, 0, "<code>keys</code>", « », |realm|).
             1.  Perform [=!=] [$CreateDataProperty$](|target|, "<code>keys</code>", |F|).
         1.  Define the <code class="idl">values</code> method:
             1.  Let |steps| be the following series of steps:
@@ -12498,9 +12479,7 @@ property is the String value "<code>forEach</code>".
                 1.  Return a newly created [=default iterator object=] for |definition|, with
                     |esValue| as its [=default iterator object/target=], "<code>value</code>" as its
                     [=default iterator object/kind=], and [=default iterator object/index=] set to 0.
-            1.  Let |F| be [$CreateBuiltinFunction$](|steps|, « », |realm|).
-            1.  Perform [$SetFunctionName$](|F|, "<code>values</code>").
-            1.  Perform [$SetFunctionLength$](|F|, 0).
+            1.  Let |F| be [$CreateBuiltinFunction$](|steps|, 0, "<code>values</code>", « », |realm|).
             1.  Perform [=!=] [$CreateDataProperty$](|target|, "<code>values</code>", |F|).
         1.  Define the <code class="idl">forEach</code> method:
             1.  Let |steps| be the following series of steps, given function argument values
@@ -12524,9 +12503,7 @@ property is the String value "<code>forEach</code>".
                     1.  Set |pairs| to |idlObject|'s current list of
                         [=value pairs to iterate over=]. (It might have changed.)
                     1.  Set |i| to |i| + 1.
-            1.  Let |F| be [$CreateBuiltinFunction$](|steps|, « », |realm|).
-            1.  Perform [$SetFunctionName$](|F|, "<code>forEach</code>").
-            1.  Perform [$SetFunctionLength$](|F|, 1).
+            1.  Let |F| be [$CreateBuiltinFunction$](|steps|, 1, "<code>forEach</code>", « », |realm|).
             1.  Perform [=!=] [$CreateDataProperty$](|target|, "<code>forEach</code>", |F|).
 </div>
 
@@ -12661,9 +12638,7 @@ and the string "<code> Iterator</code>".
             1.  Run the [=asynchronous iterator initialization steps=] for |definition| with
                 |idlObject|, |iterator|, and |idlArgs|, if any such steps exist.
             1.  Return |iterator|.
-        1.  Let |F| be [$CreateBuiltinFunction$](|steps|, « », |realm|).
-        1.  Perform [$SetFunctionName$](|F|, "<code>entries</code>").
-        1.  Perform [$SetFunctionLength$](|F|, 0).
+        1.  Let |F| be [$CreateBuiltinFunction$](|steps|, 0, "<code>entries</code>", « », |realm|).
         1.  Perform [$CreateMethodProperty$](|target|, {{@@asyncIterator}}, |F|).
         1.  Perform [=!=] [$CreateDataProperty$](|target|, "<code>entries</code>", |F|).
     1.  If |definition| has a [=pair asynchronously iterable declaration=], then define the
@@ -12686,9 +12661,7 @@ and the string "<code> Iterator</code>".
             1.  Run the [=asynchronous iterator initialization steps=] for |definition| with
                 |idlObject|, |iterator|, and |idlArgs|, if any such steps exist.
             1.  Return |iterator|.
-        1.  Let |F| be [$CreateBuiltinFunction$](|steps|, « », |realm|).
-        1.  Perform [$SetFunctionName$](|F|, "<code>keys</code>").
-        1.  Perform [$SetFunctionLength$](|F|, 0).
+        1.  Let |F| be [$CreateBuiltinFunction$](|steps|, 0, "<code>keys</code>", « », |realm|).
         1.  Perform [=!=] [$CreateDataProperty$](|target|, "<code>keys</code>", |F|).
     1.  Define the <code class="idl">values</code>, and possibly {{@@asyncIterator}}, methods:
         1.  Let |steps| be the following series of steps, given function argument values |args|:
@@ -12709,9 +12682,7 @@ and the string "<code> Iterator</code>".
             1.  Run the [=asynchronous iterator initialization steps=] for |definition| with
                 |idlObject|, |iterator|, and |idlArgs|, if any such steps exist.
             1.  Return |iterator|.
-        1.  Let |F| be [$CreateBuiltinFunction$](|steps|, « », |realm|).
-        1.  Perform [$SetFunctionName$](|F|, "<code>values</code>").
-        1.  Perform [$SetFunctionLength$](|F|, 0).
+        1.  Let |F| be [$CreateBuiltinFunction$](|steps|, 0, "<code>values</code>", « », |realm|).
         1.  Perform [=!=] [$CreateDataProperty$](|target|, "<code>values</code>", |F|).
         1.  If |definition| has a [=value asynchronously iterable declaration=], then perform [=!=]
             [$CreateMethodProperty$](|target|, {{@@asyncIterator}}, |F|).
@@ -12837,13 +12808,13 @@ The \[[Prototype]] [=internal slot=] of an [=asynchronous iterator prototype obj
                 1.  Assert: |next| is a value of the type that appears in the declaration.
                 1.  Let |value| be |next|, [=converted to an ECMAScript value=].
                 1.  Return [$CreateIterResultObject$](|value|, <emu-val>false</emu-val>).
-        1.  Let |onFulfilled| be [$CreateBuiltinFunction$](|fulfillSteps|, « »).
+        1.  Let |onFulfilled| be [$CreateBuiltinFunction$](|fulfillSteps|, 1, "", « »).
         1.  Let |rejectSteps| be the following steps, given |reason|:
             1.  Set |object|'s [=default asynchronous iterator object/ongoing promise=] to
                 null.
             1.  Set |object|'s [=default asynchronous iterator object/is finished=] to true.
             1.  [=ECMAScript/Throw=] |reason|.
-        1.  Let |onRejected| be [$CreateBuiltinFunction$](|rejectSteps|, « »).
+        1.  Let |onRejected| be [$CreateBuiltinFunction$](|rejectSteps|, 1, "", « »).
         1.  Perform [$PerformPromiseThen$](|nextPromise|, |onFulfilled|, |onRejected|,
             |nextPromiseCapability|).
         1.  Return |nextPromiseCapability|.\[[Promise]].
@@ -12852,7 +12823,7 @@ The \[[Prototype]] [=internal slot=] of an [=asynchronous iterator prototype obj
 
     1.  If |ongoingPromise| is not null, then:
         1.  Let |afterOngoingPromiseCapability| be [=!=] [$NewPromiseCapability$]({{%Promise%}}).
-        1.  Let |onSettled| be [$CreateBuiltinFunction$](|nextSteps|, « »).
+        1.  Let |onSettled| be [$CreateBuiltinFunction$](|nextSteps|, 0, "", « »).
         1.  Perform [$PerformPromiseThen$](|ongoingPromise|, |onSettled|, |onSettled|,
             |afterOngoingPromiseCapability|).
         1.  Set |object|'s [=default asynchronous iterator object/ongoing promise=] to
@@ -12918,7 +12889,7 @@ The \[[Prototype]] [=internal slot=] of an [=asynchronous iterator prototype obj
 
     1.  If |ongoingPromise| is not null, then:
         1.  Let |afterOngoingPromiseCapability| be [=!=] [$NewPromiseCapability$]({{%Promise%}}).
-        1.  Let |onSettled| be [$CreateBuiltinFunction$](|returnSteps|, « »).
+        1.  Let |onSettled| be [$CreateBuiltinFunction$](|returnSteps|, 0, "", « »).
         1.  Perform [$PerformPromiseThen$](|ongoingPromise|, |onSettled|, |onSettled|,
             |afterOngoingPromiseCapability|).
         1.  Set |returnStepsPromise| to |afterOngoingPromiseCapability|.\[[Promise]].
@@ -12929,7 +12900,7 @@ The \[[Prototype]] [=internal slot=] of an [=asynchronous iterator prototype obj
     1.  Let |fulfillSteps| be the following steps:
         1.  Return [$CreateIterResultObject$](|value|, <emu-val>true</emu-val>).
 
-    1.  Let |onFulfilled| be [$CreateBuiltinFunction$](|fulfillSteps|, « »).
+    1.  Let |onFulfilled| be [$CreateBuiltinFunction$](|fulfillSteps|, 0, "", « »).
 
     1.  Perform [$PerformPromiseThen$](|returnStepsPromise|, |onFulfilled|,
         <emu-val>undefined</emu-val>, |returnPromiseCapability|).
@@ -13910,21 +13881,21 @@ those of normal <code>Array</code> instances:
     1.  Set |handler|.\[[Type]] to |T|.
     1.  Set |handler|.\[[SetAlgorithm]] to |setAlgorithm|.
     1.  Set |handler|.\[[DeleteAlgorithm]] to |deleteAlgorithm|.
-    1.  Let |defineProperty| be [$CreateBuiltinFunction$](the steps from [[#es-observable-array-defineProperty]], « », |realm|).
+    1.  Let |defineProperty| be [$CreateBuiltinFunction$](the steps from [[#es-observable-array-defineProperty]], the number of non-optional parameters from [[#es-observable-array-defineProperty]], "<code>defineProperty</code>", « », |realm|).
     1.  Perform [=!=] [$CreateDataProperty$](|handler|, "<code>defineProperty</code>", |defineProperty|).
-    1.  Let |deleteProperty| be [$CreateBuiltinFunction$](the steps from [[#es-observable-array-deleteProperty]], « », |realm|).
+    1.  Let |deleteProperty| be [$CreateBuiltinFunction$](the steps from [[#es-observable-array-deleteProperty]], the number of non-optional parameters from [[#es-observable-array-deleteProperty]], "<code>deleteProperty</code>", « », |realm|).
     1.  Perform [=!=] [$CreateDataProperty$](|handler|, "<code>deleteProperty</code>", |deleteProperty|).
-    1.  Let |get| be [$CreateBuiltinFunction$](the steps from [[#es-observable-array-get]], « », |realm|).
+    1.  Let |get| be [$CreateBuiltinFunction$](the steps from [[#es-observable-array-get]], the number of non-optional parameters from [[#es-observable-array-get]], "<code>get</code>", « », |realm|).
     1.  Perform [=!=] [$CreateDataProperty$](|handler|, "<code>get</code>", |get|).
-    1.  Let |getOwnPropertyDescriptor| be [$CreateBuiltinFunction$](the steps from [[#es-observable-array-getOwnPropertyDescriptor]], « », |realm|).
+    1.  Let |getOwnPropertyDescriptor| be [$CreateBuiltinFunction$](the steps from [[#es-observable-array-getOwnPropertyDescriptor]], the number of non-optional parameters from [[#es-observable-array-getOwnPropertyDescriptor]], "<code>getOwnPropertyDescriptor</code>", « », |realm|).
     1.  Perform [=!=] [$CreateDataProperty$](|handler|, "<code>getOwnPropertyDescriptor</code>", |getOwnPropertyDescriptor|).
-    1.  Let |has| be [$CreateBuiltinFunction$](the steps from [[#es-observable-array-has]], « », |realm|).
+    1.  Let |has| be [$CreateBuiltinFunction$](the steps from [[#es-observable-array-has]], the number of non-optional parameters from [[#es-observable-array-has]], "<code>has</code>", « », |realm|).
     1.  Perform [=!=] [$CreateDataProperty$](|handler|, "<code>has</code>", |has|).
-    1.  Let |ownKeys| be [$CreateBuiltinFunction$](the steps from [[#es-observable-array-ownKeys]], « », |realm|).
+    1.  Let |ownKeys| be [$CreateBuiltinFunction$](the steps from [[#es-observable-array-ownKeys]], the number of non-optional parameters from [[#es-observable-array-ownKeys]], "<code>ownKeys</code>", « », |realm|).
     1.  Perform [=!=] [$CreateDataProperty$](|handler|, "<code>ownKeys</code>", |ownKeys|).
-    1.  Let |preventExtensions| be [$CreateBuiltinFunction$](the steps from [[#es-observable-array-preventExtensions]], « », |realm|).
+    1.  Let |preventExtensions| be [=!=] [$CreateBuiltinFunction$](the steps from [[#es-observable-array-preventExtensions]], the number of non-optional parameters from [[#es-observable-array-preventExtensions]], "<code>preventExtensions</code>", « », |realm|).
     1.  Perform [=!=] [$CreateDataProperty$](|handler|, "<code>preventExtensions</code>", |preventExtensions|).
-    1.  Let |set| be [$CreateBuiltinFunction$](the steps from [[#es-observable-array-set]], « », |realm|).
+    1.  Let |set| be [$CreateBuiltinFunction$](the steps from [[#es-observable-array-set]], the number of non-optional parameters from [[#es-observable-array-set]], "<code>set</code>", « », |realm|).
     1.  Perform [=!=] [$CreateDataProperty$](|handler|, "<code>set</code>", |set|).
     1.  Return [=!=] [$ProxyCreate$](|innerArray|, |handler|).
 </div>
@@ -14247,9 +14218,7 @@ when applied to a [=legacy callback interface object=].
 
     1.  Let |steps| be the following steps:
         1.  [=ECMAScript/Throw=] a {{ECMAScript/TypeError}}.
-    1.  Let |F| be <a abstract-op>CreateBuiltinFunction</a>(|steps|, « », |realm|).
-    1.  Perform <a abstract-op>SetFunctionName</a>(|F|, |id|).
-    1.  Perform <a abstract-op>SetFunctionLength</a>(|F|, 0).
+    1.  Let |F| be [$CreateBuiltinFunction$](|steps|, 0, |id|, « », |realm|).
     1.  [=Define the constants=] of |interface| on |F| given |realm|.
     1.  Return |F|.
 </div>
