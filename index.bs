@@ -6911,6 +6911,17 @@ which form (or forms) it is in:
             <code>[Exposed=(Window,Worker)]</code>
         </td>
     </tr>
+    <tr>
+        <td>
+            <emu-nt><a href="#prod-ExtendedAttributeWildcard">ExtendedAttributeWildcard</a></emu-nt>
+        </td>
+        <td>
+            <dfn id="dfn-xattr-wildcard" for="extended attribute" export>takes a wildcard</dfn>
+        </td>
+        <td>
+            <code>[Exposed=*]</code>
+        </td>
+    </tr>
 
 </table>
 
@@ -6972,6 +6983,7 @@ five forms are allowed.
         "="
         "&gt;"
         "?"
+        "*"
         "ByteString"
         "DOMString"
         "FrozenArray"
@@ -7034,6 +7046,11 @@ five forms are allowed.
 <pre class="grammar" id="prod-ExtendedAttributeIdent">
     ExtendedAttributeIdent :
         identifier "=" identifier
+</pre>
+
+<pre class="grammar" id="prod-ExtendedAttributeWildcard">
+    ExtendedAttributeWildcard :
+        identifier "=" "*"
 </pre>
 
 <pre class="grammar" id="prod-ExtendedAttributeIdentList">
@@ -9497,14 +9514,31 @@ it indicates that the construct is exposed
 on that particular set of global interfaces.
 
 The [{{Exposed}}] [=extended attribute=] must either
-[=takes an identifier|take an identifier=] or
-[=takes an identifier list|take an identifier list=].
-Each of the identifiers mentioned must be a [=global name=] and be unique.
-This list of identifiers is known as the construct's
-<dfn>own exposure set</dfn>.
+[=takes an identifier|take an identifier=],
+[=takes an identifier list|take an identifier list=] or
+[=takes a wildcard|take a wildcard=].
+Each of the identifiers mentioned must be a [=global name=] of some [=interface=] and be unique.
+
+The <dfn>own exposure set</dfn> is the [=/set=] of identifiers defined as follows:
+
+<dl class="switch">
+     :  If the [{{Exposed}}] [=extended attribute=] [=takes an identifier=] |I|
+     :: The [=own exposure set=] is the [=/set=] « |I| ».
+     :  If the [{{Exposed}}] [=extended attribute=] [=takes an identifier list=] |I|
+     :: The [=own exposure set=] is the [=/set=] |I|.
+     :  If the [{{Exposed}}] [=extended attribute=] [=takes a wildcard=]
+     :: The [=own exposure set=] is the [=/set=] of all [=global names=] of all [=interfaces=]
+        which have the [{{Global}}] [=extended attribute=].
+</dl>
+
+<p class="advisement">
+    <code>[Exposed=*]</code> is to be used with care.
+    It is only appropriate when an API does not expose significant new capabilities.
+    If the API might be restricted or disabled in some environments,
+    it is preferred to list the globals explicitly.
+</p>
 
 <div algorithm>
-
     To get the <dfn id="dfn-exposure-set" export>exposure set</dfn> of a construct |C|,
     run the following steps:
 
