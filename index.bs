@@ -8390,7 +8390,7 @@ IDL [=promise type=] values are represented by ECMAScript [=PromiseCapability=] 
         |newCapability|).
 
     Note: This algorithm will behave in a very similar way to the
-    {{%Promise.prototype.then%|Promise.then()}} method.
+    {{%Promise.prototype.then%|promise.then()}} method.
     In particular, if the steps return a value of type |U| or
     <code><a interface>Promise</a>&lt;|U|&gt;</code>, this algorithm returns a
     <code><a interface>Promise</a>&lt;|U|&gt;</code> as well.
@@ -8465,11 +8465,23 @@ IDL [=promise type=] values are represented by ECMAScript [=PromiseCapability=] 
         1.  [=Reject=] |promise| with |reason|.
     1.  [=Wait for all=] with |promises|, given |successSteps| and |failureSteps|.
     1.  Return |promise|.
+
+    <p class="note">This definition is useful when you wish to aggregate the results of multiple
+    promises, and then produce another promise from them, in the same way that
+    {{Promise/all()|Promise.all()}} functions for JavaScript code. If you do not need to produce
+    another promise, then [=waiting for all=] is likely better.
 </div>
 
-This phrase is useful when you wish to aggregate the results of multiple promises, and then produce
-another promise from them, in the same way that {{Promise/all()|Promise.all()}} functions for
-JavaScript code.
+<div algorithm>
+    To <dfn export lt="mark a promise as handled|mark as handled">mark as handled</dfn> a
+    <code><a interface>Promise</a>&lt;<var ignore>T</var>&gt;</code> |promise|, set
+    |promise|.\[[Promise]].\[[PromiseIsHandled]] to true.
+
+    <p class="note">This definition is useful for promises for which you expect rejections to often
+    be ignored; it ensures such promises do not cause {{Window/unhandledrejection}} events. The most
+    common use case is for promise properties, which the web developer might or might not consult.
+    An example is the {{WritableStreamDefaultWriter/closed|writableStreamWriter.closed}} promise.
+</div>
 
 
 <h5 id="es-promise-examples">Examples</h5>
