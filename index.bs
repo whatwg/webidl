@@ -11880,7 +11880,6 @@ in which case they are exposed on every object that [=implements=] the interface
 
     1.  Let |steps| be the following series of steps:
         1.  Try running the following steps:
-            1.  Let |idlObject| be null.
             1.  If |target| is an [=interface=], and |attribute| is a [=regular attribute=]:
                 1.  Let |esValue| be the <emu-val>this</emu-val> value, if it is not
                     <emu-val>null</emu-val> or <emu-val>undefined</emu-val>, or |realm|'s
@@ -11899,8 +11898,16 @@ in which case they are exposed on every object that [=implements=] the interface
                     [=backing observable array exotic object=] for |attribute|.
                 1.  Set |idlObject| to the IDL [=interface type=] value that represents a reference
                     to |esValue|.
-            1.  Let |R| be the result of running the [=getter steps=] of |attribute| with
-                |idlObject| as [=this=].
+                1.  Let |R| be the result of running the [=getter steps=] of |attribute| with
+                    |idlObject| as [=this=].
+
+                Otherwise, let |R| be the result of running the [=getter steps=] of |attribute| with
+                    null as [=this=].
+
+                Note: [=Namespaces=] and [=interface=] objects (themselves,
+                rather than their instances) are not intended to carry state,
+                so their attribute getters intentionally do not get access to them.
+
             1.  Return the result of [=converted to an ECMAScript value|converting=] |R| to an
                 ECMAScript value of the type |attribute| is declared as.
 
