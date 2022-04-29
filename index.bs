@@ -4415,15 +4415,14 @@ An [=interface=] can be declared to be
 </pre>
 
 Objects implementing an interface that is declared to be maplike
-represent an ordered list of key–value pairs known as its <dfn id="dfn-map-entries" export>map entries</dfn>.
+represent an [=ordered map=] of key–value pairs, initially empty,
+known as its <dfn id="dfn-map-entries" export>map entries</dfn>.
 The types used for the keys and values are given in the angle
 brackets of the maplike declaration.  Keys are required to be unique.
 
-The [=map entries=] of an object
-implementing a [=maplike=] interface is empty at
-the of the object’s creation.  Prose accompanying the interface can
-describe how the [=map entries=]
-of an object change.
+Specification authors can modify the contents of the [=map entries=],
+which will automatically be reflected in the contents of the object
+as observed by ECMAScript code.
 
 Maplike interfaces support an API for querying the map entries
 appropriate for the language binding.  If the <emu-t>readonly</emu-t>
@@ -4449,6 +4448,7 @@ named "<code>entries</code>", "<code>forEach</code>",
 "<code>values</code>",
 or have any [=inherited interfaces=]
 that have [=members=] with these names.
+
 Read–write maplike interfaces must not
 have any [=attributes=]
 or [=constants=] named
@@ -4456,11 +4456,10 @@ or [=constants=] named
 or "<code>set</code>", or have any [=inherited interfaces=]
 that have [=attributes=] or [=constants=] with these names.
 
-Note: Operations named "<code>clear</code>", "<code>delete</code>",
-or "<code>set</code>" are allowed on read–write maplike
-interfaces and will prevent the default implementation of these methods being
-added to the interface prototype object in the ECMAScript language binding.
-This allows the default behavior of these operations to be overridden.
+Note: Read-write maplike interfaces <em>can</em> have <em>operations</em>
+named "<code>clear</code>", "<code>delete</code>", or "<code>set</code>",
+which will override the default implementation of those methods
+(defined in [[#es-maplike]]).
 
 An interface must not have more than one
 [=maplike declaration=].
@@ -4491,9 +4490,7 @@ an [=indexed property getter=].
 No [=extended attributes=]
 defined in this specification are applicable to [=maplike declarations=].
 
-<p class="issue">
-    Add example.
-</p>
+Issue: Add example.
 
 
 <h4 id="idl-setlike">Setlike declarations</h4>
@@ -4511,15 +4508,14 @@ An [=interface=] can be declared to be
 </pre>
 
 Objects implementing an interface that is declared to be setlike
-represent an ordered list of values known as its <dfn id="dfn-set-entries" export>set entries</dfn>.
+represent an [=ordered set=] of values, initially empty,
+known as its <dfn id="dfn-set-entries" export>set entries</dfn>.
 The type of the values is given in the angle
 brackets of the setlike declaration.  Values are required to be unique.
 
-The [=set entries=] of an object
-implementing a [=setlike=] interface is empty at
-the of the object’s creation.  Prose accompanying the interface can
-describe how the [=set entries=]
-of an object change.
+Specification authors can modify the contents of the [=map entries=],
+which will automatically be reflected in the contents of the object
+as observed by ECMAScript code.
 
 Setlike interfaces support an API for querying the set entries
 appropriate for the language binding.  If the <emu-t>readonly</emu-t>
@@ -4550,11 +4546,10 @@ or [=constants=] named
 or "<code>delete</code>", or have any [=inherited interfaces=]
 that have [=attributes=] or [=constants=] with these names.
 
-Note: Operations named "<code>add</code>", "<code>clear</code>",
-or "<code>delete</code>" are allowed on read–write setlike
-interfaces and will prevent the default implementation of these methods being
-added to the interface prototype object in the ECMAScript language binding.
-This allows the default behavior of these operations to be overridden.
+Note: Read-write setlike interfaces <em>can</em> have <em>operations</em>
+named "<code>add</code>", "<code>clear</code>", or "<code>delete</code>",
+which will override the default implementation of those methods
+(defined in [[#es-setlike]].)
 
 An interface must not have more than one
 [=setlike declaration=].
@@ -4585,9 +4580,7 @@ an [=indexed property getter=].
 No [=extended attributes=]
 defined in this specification are applicable to [=setlike declarations=].
 
-<p class="issue">
-    Add example.
-</p>
+Issue: Add example.
 
 
 <h3 id="idl-namespaces">Namespaces</h3>
@@ -12360,12 +12353,11 @@ The location of the property is determined as follows:
         on which the [=maplike declaration=]
         or [=setlike declaration=] is defined,
         then [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
-    1.  If the interface has a [=maplike declaration=], then:
-        1.  Let |backing| be the value of the \[[BackingMap]] [=internal slot=] of |object|.
-        1.  Return [=!=] <a abstract-op>CreateMapIterator</a>(|backing|, "<code>key+value</code>").
-    1.  Otherwise:
-        1.  Let |backing| be the value of the \[[BackingSet]] [=internal slot=] of |object|.
-        1.  Return [=!=] <a abstract-op>CreateSetIterator</a>(|backing|, "<code>value</code>").
+    1.  If the interface has a [=maplike declaration=], then
+        [=create a map iterator=] from |thisValue|'s [=map entries=]
+        and return the result.
+    1.  Otherwise, [=create a set iterator=] from |thisValue|'s [=set entries=]
+        and return the result.
 </div>
 
 The value of the {{@@iterator}} [=function object=]’s <code class="idl">length</code>
@@ -12376,6 +12368,40 @@ is the String value "<code>entries</code>"
 if the interface has a [=maplike declaration=]
 and the String "<code>values</code>"
 if the interface has a [=setlike declaration=].
+
+<div algorithm>
+    To <dfn>create a map iterator</dfn>
+    from a [=map=] |map|
+    and a |kind| ("key+value", "key", or "value"):
+
+1. Let |closure| be a new [=ECMAScript/Abstract Closure=] with no parameters
+    that captures |map| and |kind| and performs the following steps when called:
+    1. Let |index| be 0.
+    1. Let |numEntries| be the [=map/size=] of |map|.
+    1. Repeat, while |index| < |numEntries| and |index| < |map|'s [=map/size=]:
+        1. Let |key| and |value| be the [=map/key=] and [=map/value=] of the
+            |index|th [=map/entry=] of |map|,
+            each [=converted toECMAScript values=].
+        1. Set |index| to |index| + 1.
+        1. If |kind| is "key", let |result| be |key|.
+        1. Else if |kind| is "value", let |result| be |value|.
+        1. Else, let |result| be [$CreateArrayFromList$](« |key|, |value| »)
+        1. Perform [=?=] [$GeneratorYield$]([$CreaterIterResultObject$](|result|, <emu-value>false</emu-value>)).
+
+        Note: The [=size=] of |map|, and the order of its entries,
+        might have changed while execution of this abstract operation
+        was paused by [$Yield$].
+    1. Return <emu-value>undefined</emu>.
+1. Return [$CreateIteratorFromClosure$](|closure|, "%MapIteratorPrototype%", {{%MapIteratorPrototype%}}).
+</div>
+
+<div algorithm>
+    To <dfn>create a set iterator</dfn>
+    from a [=set=] |set|
+    and a |kind| ("key+value" or "value"):
+
+    Issue: ...
+</div>
 
 
 <h5 id="es-forEach">forEach</h5>
