@@ -12978,13 +12978,6 @@ the result of concatenating the [=identifier=] of the [=interface=] and the stri
 
 <h4 id="es-maplike">Maplike declarations</h4>
 
-Any object that [=implements=] an [=interface=]
-that has a [=maplike declaration=]
-must have a \[[BackingMap]] [=internal slot=], which is
-initially set to a newly created {{ECMAScript/Map}} object.
-This {{ECMAScript/Map}} object’s \[[MapData]] internal slot is
-the object’s [=map entries=].
-
 If an [=interface=] |A| is declared with
 a [=maplike declaration=], then
 there exists a number of additional properties on |A|’s
@@ -12992,26 +12985,21 @@ there exists a number of additional properties on |A|’s
 These additional properties are described in the sub-sections below.
 
 <div algorithm>
+    To <dfn local-lt="coherency-check">coherency-check an object</dfn> |this|
+    against the interface |interface|,
+    with the identifier |name|
+    and the type |type|:
 
-    Some of the properties below are defined to have a [=function object=] value that
-    <dfn id="dfn-forwards-to-the-internal-map-object" export>forwards to the internal map object</dfn>
-    for a given function name.  Such functions behave as follows when invoked:
-
-    1.  Let |O| be the <emu-val>this</emu-val> value.
-    1.  Let |arguments| be the list of arguments passed to this function.
-    1.  Let |name| be the function name.
-    1.  If |O| [=is a platform object=],
+    1. Set |this| to [=?=] [$ToObject$](|this|).
+    1. If |this| is a [=platform object=],
         then [=perform a security check=], passing:
-        *   the platform object |O|,
-        *   an identifier equal to |name|, and
-        *   the type "<code>method</code>".
-    1.  If |O| does not [=implement=] <var ignore>A</var>, then [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
-    1.  Let |map| be the {{ECMAScript/Map}} object that is the value of |O|’s \[[BackingMap]] [=internal slot=].
-    1.  Let |function| be [=?=] <a abstract-op>GetMethod</a>(|map|, |name|).
-    1.  If |function| is <emu-val>undefined</emu-val>, then [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
-    1.  Return [=?=] <a abstract-op>Call</a>(|function|, |map|, |arguments|).
-</div>
 
+        * the platform object |this|
+        * the identifier |name|
+        * the type |type|
+    1. If |this| does not [=implement=] |interface|, then [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
+    1. Return |this|.
+</div>
 
 <h5 id="es-map-size">size</h5>
 
@@ -13028,15 +13016,9 @@ with the following characteristics:
         The [=map size getter=] is a [=built-in function object=]
         whose behavior when invoked is as follows:
 
-        1.  Let |O| be the <emu-val>this</emu-val> value.
-        1.  If |O| [=is a platform object=],
-            then [=perform a security check=], passing:
-            *   the platform object |O|,
-            *   the identifier "<code>size</code>", and
-            *   the type "<code>getter</code>".
-        1.  If |O| does not [=implement=] <var ignore>A</var>, then [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
-        1.  Let |map| be the {{ECMAScript/Map}} object that is the value of |O|’s \[[BackingMap]] [=internal slot=].
-        1.  Return [=!=] <a abstract-op>Get</a>(|map|, "<code>size</code>").
+        1.  Let |O| be the <emu-val>this</emu-val> value, [=coherency-checked=] against |A| with identifier "size" and type "getter".
+        1.  Let |map| be |O|'s [=map entries=].
+        1.  Return |map|'s [=map/size=], [=converted to an ECMAScript value=].
     </div>
 
     The value of the [=function object=]’s <code class="idl">length</code> property is the Number value <emu-val>0</emu-val>.
@@ -13052,66 +13034,121 @@ with attributes { \[[Writable]]: <emu-val>true</emu-val>, \[[Enumerable]]: <emu-
 and whose value is the [=function object=] that is the value of
 the {{@@iterator}} property.
 
+<h5 id="es-map-keys" oldids="es-map-keys-values">keys</h5>
 
-<h5 id="es-map-keys-values">keys and values</h5>
-
-For both of <code class="idl">keys</code> and <code class="idl">values</code>, there must exist a data property with that name on
+There must exist a <code class="idl">keys</code> data property on
 |A|’s [=interface prototype object=]
 with the following characteristics:
 
 *   The property has attributes { \[[Writable]]: <emu-val>true</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val> }.
-*   The value of the property is a [=built-in function object=] that [=forwards to the internal map object|forwards that name to the internal map object=].
+*   The value of the property is a [=built-in function object=]
+    whose behavior when invoked is as follows:
+
+    <div algorithm="to invoke the keys method of Maps">
+        1. Let |O| be the <emu-val>this</emu-val> value, [=coherency-checked=] against |A| with identifier "keys" and type "method".
+        1. Let |map| be |O|'s [=map entries=].
+        1. Return the result of [=creating a map iterator=] from |map| with kind "keys".
+    </div>
 
 The value of the [=function objects=]’ <code class="idl">length</code> properties is the Number value <emu-val>0</emu-val>.
 
-The value of the [=function object=]’s <code class="idl">name</code> property is the String value "<code>keys</code>" or "<code>values</code>", correspondingly.
+The value of the [=function object=]’s <code class="idl">name</code> property is the String value "<code>keys</code>".
 
 
-<h5 id="es-map-get-has">get and has</h5>
+<h5 id="es-map-values">values</h5>
 
-For both of <code class="idl">get</code> and <code class="idl">has</code>, there must exist a data property with that name on
-|A|’s [=interface prototype object=] with the following characteristics:
+There must exist a <code class="idl">values</code> data property on
+|A|’s [=interface prototype object=]
+with the following characteristics:
 
-*   The property has attributes
-    { \[[Writable]]: <emu-val>true</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val> }.
-*   <div algorithm="to invoke the get and has methods of Maps">
+*   The property has attributes { \[[Writable]]: <emu-val>true</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val> }.
+*   The value of the property is a [=built-in function object=]
+    whose behavior when invoked is as follows:
 
-        The value of the property is a [=built-in function object=]
-        that behaves as follows when invoked:
+    <div algorithm="to invoke the values method of Maps">
+        1. Let |O| be the <emu-val>this</emu-val> value, [=coherency-checked=] against |A| with "values" and "method".
+        1. Let |map| be |O|'s [=map entries=].
+        1. Return the result of [=creating a map iterator=] from |map| with kind "values".
+    </div>
 
-        1.  Let |O| be the <emu-val>this</emu-val> value.
-        1.  Let |name| be the name of the property – "<code>get</code>" or "<code>has</code>".
-        1.  If |O| [=is a platform object=],
-            then [=perform a security check=], passing:
-            *   the platform object |O|,
-            *   an identifier equal to |name|, and
-            *   the type "<code>method</code>".
-        1.  If |O| does not [=implement=] <var ignore>A</var>, then [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
-        1.  Let |map| be the {{ECMAScript/Map}} object that is the value of |O|’s \[[BackingMap]] [=internal slot=].
+The value of the [=function objects=]’ <code class="idl">length</code> properties is the Number value <emu-val>0</emu-val>.
+
+The value of the [=function object=]’s <code class="idl">name</code> property is the String value "<code>values</code>".
+
+
+<h5 id="es-map-get" oldids="es-map-get-has">get</h5>
+
+There must exist a <code class="idl">get</code> data property on
+|A|’s [=interface prototype object=]
+with the following characteristics:
+
+*   The property has attributes { \[[Writable]]: <emu-val>true</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val> }.
+*   The value of the property is a [=built-in function object=]
+    that behaves as follows when invoked:
+
+    <div algorithm="to invoke the get method of Maps">
+        1.  Let |O| be the <emu-val>this</emu-val> value, [=coherency-checked=] against |A| with identifier "get" and type "method".
+        1.  Let |map| be |O|'s [=map entries=].
         1.  Let |keyType| be the key type specified in the [=maplike declaration=].
-        1.  Let |function| be [=!=] <a abstract-op>Get</a>(|map|, |name|).
         1.  Let |keyArg| be the first argument passed to this function, or <emu-val>undefined</emu-val> if not supplied.
-        1.  Let |keyIDL| be the result of [=converted to an IDL value|converting=] |keyArg| to an IDL value of type |keyType|.
-        1.  Let |key| be the result of [=converted to ECMAScript values|converting=] |keyIDL| to an ECMAScript value.
-        1.  Return [=?=] <a abstract-op>Call</a>(|function|, |map|, «|key|»).
+        1.  Let |key| be |keyArg| [=converted to an IDL value=] of type |keyType|.
+        1.  If |key| is -0, set |key| to +0.
+        1.  If |map|[|key|] [=map/exists=], then return |map|[|key|],
+            [=converted to an ECMAScript value=].
     </div>
 
 The value of the [=function object=]’s <code class="idl">length</code> properties is the Number value <emu-val>1</emu-val>.
 
-The value of the [=function object=]’s <code class="idl">name</code> property is the String value "<code>get</code>" or "<code>has</code>", correspondingly.
+The value of the [=function object=]’s <code class="idl">name</code> property is the String value "<code>get</code>".
+
+
+<h5 id="es-map-has">get</h5>
+
+There must exist a <code class="idl">has</code> data property on
+|A|’s [=interface prototype object=]
+with the following characteristics:
+
+*   The property has attributes { \[[Writable]]: <emu-val>true</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val> }.
+*   The value of the property is a [=built-in function object=]
+    that behaves as follows when invoked:
+
+    <div algorithm="to invoke the has method of Maps">
+        1.  Let |O| be the <emu-val>this</emu-val> value, [=coherency-checked=] against |A| with identifier "has" and type "method".
+        1.  Let |map| be |O|'s [=map entries=].
+        1.  Let |keyType| be the key type specified in the [=maplike declaration=].
+        1.  Let |keyArg| be the first argument passed to this function, or <emu-val>undefined</emu-val> if not supplied.
+        1.  Let |key| be |keyArg| [=converted to an IDL value=] of type |keyType|.
+        1.  If |key| is -0, set |key| to +0.
+        1.  If |map|[|key|] [=map/exists=], then return <emu-val>true</emu-val>,
+            otherwise return <emu-val>false</emu-val>.
+    </div>
+
+The value of the [=function object=]’s <code class="idl">length</code> properties is the Number value <emu-val>1</emu-val>.
+
+The value of the [=function object=]’s <code class="idl">name</code> property is the String value "<code>has</code>".
 
 
 <h5 id="es-map-clear">clear</h5>
 
-If |A| does not declare a [=member=]
-with identifier "<code>clear</code>", and
-|A| was declared with a read–write maplike declaration,
-then a <code class="idl">clear</code> data property with the following characteristics
-must exist on |A|’s
-[=interface prototype object=]:
+If |A| does not declare a [=member=] with identifier "<code>clear</code>",
+and |A| was declared with a read–write maplike declaration,
+then there must exist a <code class="idl">clear</code> data property
+on |A|’s [=interface prototype object=]
+with the following characteristics:
 
 *   The property has attributes { \[[Writable]]: <emu-val>true</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val> }.
-*   The value of the property is a [=built-in function object=] that <a lt="forwards to the internal map object">forwards <code class="idl">clear</code> to the internal map object</a>.
+*   The value of the property is a [=built-in function object=]
+    that behaves as follows when invoked:
+
+    <div algorithm="to invoke the clear method of Maps">
+        1.  Let |O| be the <emu-val>this</emu-val> value, [=coherency-checked=] against |A| with identifier "clear" and type "method".
+        1.  Let |map| be |O|'s [=map entries=].
+        1.  [=map/Clear=] |map|.
+
+            Note: The [=/map=] is preserved because there may be existing
+            iterators, currently suspended, iterating over it.
+        1.  Return <emu-val>undefined</emu-val>.
+    </div>
 
 The value of the [=function object=]’s <code class="idl">length</code> property is the Number value <emu-val>0</emu-val>.
 
@@ -13120,32 +13157,27 @@ The value of the [=function object=]’s <code class="idl">name</code> property 
 
 <h5 id="es-map-delete">delete</h5>
 
-If |A| does not declare a [=member=]
-with identifier "<code>delete</code>", and
-|A| was declared with a read–write maplike declaration,
-then a <code class="idl">delete</code> data property with the following characteristics
-must exist on |A|’s
-[=interface prototype object=]:
+If |A| does not declare a [=member=] with identifier "<code>delete</code>",
+and |A| was declared with a read–write maplike declaration,
+then there must exist a <code class="idl">delete</code> data property
+on |A|’s [=interface prototype object=]
+with the following characteristics:
 
 *   The property has attributes { \[[Writable]]: <emu-val>true</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val> }.
-*   <div algorithm="to invoke the delete method of Maps">
+*   The value of the property is a [=built-in function object=]
+    that behaves as follows when invoked:
 
-        The value of the property is a [=built-in function object=] that behaves as follows when invoked:
-
-        1.  Let |O| be the <emu-val>this</emu-val> value.
-        1.  If |O| [=is a platform object=],
-            then [=perform a security check=], passing:
-            *   the platform object |O|,
-            *   the identifier "<code>delete</code>", and
-            *   the type "<code>method</code>".
-        1.  If |O| does not [=implement=] <var ignore>A</var>, then [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
-        1.  Let |map| be the {{ECMAScript/Map}} object that is the value of |O|’s \[[BackingMap]] [=internal slot=].
+    <div algorithm="to invoke the delete method of Maps">
+        1.  Let |O| be the <emu-val>this</emu-val> value, [=coherency-checked=] against |A| with identifier "delete" and type "method".
+        1.  Let |map| be |O|'s [=map entries=].
         1.  Let |keyType| be the key type specified in the [=maplike declaration=].
-        1.  Let |function| be [=!=] <a abstract-op>Get</a>(|map|, "<code>delete</code>").
         1.  Let |keyArg| be the first argument passed to this function, or <emu-val>undefined</emu-val> if not supplied.
-        1.  Let |keyIDL| be the result of [=converted to an IDL value|converting=] |keyArg| to an IDL value of type |keyType|.
-        1.  Let |key| be the result of [=converted to ECMAScript values|converting=] |keyIDL| to an ECMAScript value.
-        1.  Return [=?=] <a abstract-op>Call</a>(|function|, |map|, «|key|»).
+        1.  Let |key| be |keyArg| [=converted to an IDL value=] of type |keyType|.
+        1.  If |key| is -0, set |key| to +0.
+        1.  Let |retVal| be <emu-val>true</emu-val> if |map|[|key|] exists,
+            or else <emu-val>false</emu-val>.
+        1.  [=map/Remove=] |map|[|key|].
+        1.  Return |retVal|.
     </div>
 
 The value of the [=function object=]’s <code class="idl">length</code> property is the Number value <emu-val>1</emu-val>.
@@ -13157,33 +13189,25 @@ The value of the [=function object=]’s <code class="idl">name</code> property 
 
 If |A| does not declare a [=member=] with identifier "<code>set</code>",
 and |A| was declared with a read–write maplike declaration,
-then a <code class="idl">set</code> data property with the following characteristics
-must exist on |A|’s [=interface prototype object=]:
+then there must exist a <code class="idl">set</code> data property
+on |A|’s [=interface prototype object=]
+with the following characteristics:
 
-*   The property has attributes
-    { \[[Writable]]: <emu-val>true</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val> }.
-*   <div algorithm="to invoke the set method of Maps">
+*   The property has attributes { \[[Writable]]: <emu-val>true</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val> }.
+*   The value of the property is a [=built-in function object=]
+    that behaves as follows when invoked:
 
-        The value of the property is a [=built-in function object=] that behaves as follows when invoked:
-
-        1.  Let |O| be the <emu-val>this</emu-val> value.
-        1.  If |O| [=is a platform object=],
-            then [=perform a security check=], passing:
-            *   the platform object |O|,
-            *   the identifier "<code>set</code>", and
-            *   the type "<code>method</code>".
-        1.  If |O| does not [=implement=] <var ignore>A</var>, then [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
-        1.  Let |map| be the {{ECMAScript/Map}} object that is the value of |O|’s \[[BackingMap]] [=internal slot=].
-        1.  Let |keyType| and |valueType| be the key and value types specified in the [=maplike declaration=].
-        1.  Let |function| be [=!=] <a abstract-op>Get</a>(|map|, "<code>set</code>").
+    <div algorithm="to invoke the set method of Maps">
+        1.  Let |O| be the <emu-val>this</emu-val> value, [=coherency-checked=] against |A| with identifier "set" and type "method".
+        1.  Let |map| be |O|'s [=map entries=].
+        1.  Let |keyType| be the key type specified in the [=maplike declaration=], and |valueType| be the value type.
         1.  Let |keyArg| be the first argument passed to this function, or <emu-val>undefined</emu-val> if not supplied.
+        1.  Let |key| be |keyArg| [=converted to an IDL value=] of type |keyType|.
+        1.  If |key| is -0, set |key| to +0.
         1.  Let |valueArg| be the second argument passed to this function, or <emu-val>undefined</emu-val> if not supplied.
-        1.  Let |keyIDL| be the result of [=converted to an IDL value|converting=] |keyArg| to an IDL value of type |keyType|.
-        1.  Let |valueIDL| be the result of [=converted to an IDL value|converting=] |valueArg| to an IDL value of type |valueType|.
-        1.  Let |key| be the result of [=converted to ECMAScript values|converting=] |keyIDL| to an ECMAScript value.
-        1.  Let |value| be the result of [=converted to ECMAScript values|converting=] |valueIDL| to an ECMAScript value.
-        1.  Perform [=?=] <a abstract-op>Call</a>(|function|, |map|, «|key|, |value|»).
-        1.  Return |O|.
+        1.  Let |value| be |valueArg| [=converted to an IDL value=] of type |valueType|.
+        1.  [=map/Set=] |map|[|key|] to |value|.
+        1.  Return |value| [=converted to an ECMAScript value=].
     </div>
 
 The value of the [=function object=]’s <code class="idl">length</code> property is the Number value <emu-val>2</emu-val>.
