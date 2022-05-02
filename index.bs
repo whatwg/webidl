@@ -12447,39 +12447,32 @@ The location of the property is determined as follows:
     the method, when invoked, must behave as follows:
 
     1.  Let |thisValue| be the <emu-val>this</emu-val> value.
-    1.  Let |object| be [=?=] <a abstract-op>ToObject</a>(|thisValue|).
-    1.  If |object| [=is a platform object=],
+    1.  Let |esThis| be [=?=] <a abstract-op>ToObject</a>(|thisValue|).
+    1.  If |esThis| [=is a platform object=],
         then [=perform a security check=], passing:
-        *   the platform object |object|,
+        *   the platform object |esThis|,
         *   the identifier "<code>forEach</code>", and
         *   the type "<code>method</code>".
     1.  Let |interface| be the [=interface=]
         on which the [=maplike declaration=]
         or [=setlike declaration=] is declared.
-    1.  If |object| does not [=implement=] |interface|,
+    1.  If |esThis| does not [=implement=] |interface|,
         then [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
     1.  Let |callbackFn| be the value of the first argument passed to the function, or <emu-val>undefined</emu-val> if the argument was not supplied.
     1.  If <a abstract-op>IsCallable</a>(|callbackFn|) is <emu-val>false</emu-val>, [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
     1.  Let |thisArg| be the value of the second argument passed to the function, or <emu-val>undefined</emu-val> if the argument was not supplied.
-    1.  Let |backing| be the value of the \[[BackingMap]] [=internal slot=] of |object|,
-        if the interface has a [=maplike declaration=],
-        or the \[[BackingSet]] [=internal slot=] of |object| otherwise.
-    1.  Let |callbackWrapper| be a [=built-in function object=] that, when invoked, behaves as follows:
-        1.  Let |v| and |k| be the first two arguments passed to the function.
-        1.  Let |thisArg| be the <emu-val>this</emu-val> value.
-        1.  Perform [=?=] <a abstract-op>Call</a>(|callbackFn|, |thisArg|, «|v|, |k|, |object|»).
+    1. If |interface| has a [=maplike declaration=], then:
 
-        Note: The |callbackWrapper| function simply calls the incoming |callbackFn|
-        with |object| as the third argument rather than its internal \[[BackingMap]] or \[[BackingSet]] object.
+        1. [=map/For each=] |key|→|value| of |thisValue|'s [=map entries=]:
+        1. Let |esKey| be the result of [=converting to an ECMAScript value=] |key|,
+            and |esValue| be the result of [=converting to an ECMAScript value=] |value|.
+        1. Perform [=?=] [$Call$](|callbackFn|, |thisArg|, « |esValue|, |esKey|, |esThis|»)
 
-        <p class="issue">
-            Can the script author observe that |callbackWrapper| might be a new function
-            every time forEach is called?  What's the best way of specifying that there's only
-            one function that has captured an environment?
-        </p>
-    1.  Let |forEach| be [=?=] <a abstract-op>GetMethod</a>(|backing|, "<code>forEach</code>").
-    1.  If |forEach| is <emu-val>undefined</emu-val>, then [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
-    1.  Perform [=?=] <a abstract-op>Call</a>(|forEach|, |backing|, «|callbackWrapper|, |thisArg|»).
+        Otherwise:
+
+        1. [=map/For each=] |value| of |thisValue|'s [=set entries=]:
+        1. Let |esValue| be the result of [=converting to an ECMAScript value=] |value|.
+        1. Perform [=?=] [$Call$](|callbackFn|, |thisArg|, « |esValue|, |esValue|, |esThis|»)
     1.  Return <emu-val>undefined</emu-val>.
 </div>
 
