@@ -72,9 +72,11 @@ urlPrefix: https://tc39.es/ecma262/; spec: ECMA-262
         text: %Function.prototype%; url: sec-properties-of-the-function-prototype-object
         text: %IteratorPrototype%; url: sec-%25iteratorprototype%25-object
         text: %Map.prototype%; url: sec-properties-of-the-map-prototype-object
+        text: %MapIteratorPrototype%; url: sec-%mapiteratorprototype%-object
         text: %Object.prototype%; url: sec-properties-of-the-object-prototype-object
         text: %Promise%; url: sec-promise-constructor
         text: %Set.prototype%; url: sec-properties-of-the-set-prototype-object
+        text: %SetIteratorPrototype%; url: sec-%setiteratorprototype%-object
     type: exception; for: ECMAScript
         text: Error; url: sec-error-objects
         text: SyntaxError; url: sec-native-error-types-used-in-this-standard-syntaxerror
@@ -107,6 +109,7 @@ urlPrefix: https://tc39.es/ecma262/; spec: ECMA-262
         text: CreateArrayIterator; url: sec-createarrayiterator
         text: CreateBuiltinFunction; url: sec-createbuiltinfunction
         text: CreateDataProperty; url: sec-createdataproperty
+        text: CreateIteratorFromClosure; url: sec-createiteratorfromclosure
         text: CreateIterResultObject; url: sec-createiterresultobject
         text: CreateMapIterator; url: sec-createmapiterator
         text: CreateMethodProperty; url: sec-createmethodproperty
@@ -118,6 +121,7 @@ urlPrefix: https://tc39.es/ecma262/; spec: ECMA-262
             text: CreateMutableBinding
             text: InitializeBinding
         text: FromPropertyDescriptor; url: sec-frompropertydescriptor
+        text: GeneratorYield; url: sec-generatoryield
         text: Get; url: sec-get-o-p
         text: GetFunctionRealm; url: sec-getfunctionrealm
         text: GetIterator; url: sec-getiterator
@@ -163,11 +167,13 @@ urlPrefix: https://tc39.es/ecma262/; spec: ECMA-262
         text: ToUint16; url: sec-touint16
         text: ToUint32; url: sec-touint32
         text: Type; url: sec-ecmascript-data-types-and-values
+        text: Yield; url: sec-yield
         text: abs; url: eqn-abs
         text: floor; url: eqn-floor
         text: max; url: eqn-max
         text: min; url: eqn-min
-    type: dfn
+    type: dfn;
+        text: Abstract Closure; url: sec-abstract-closure
         text: NumericLiteral; url: sec-literals-numeric-literals
         text: modulo; url: eqn-modulo
         url: sec-returnifabrupt-shorthands
@@ -12355,8 +12361,10 @@ The location of the property is determined as follows:
         then [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
     1.  If the interface has a [=maplike declaration=], then
         [=create a map iterator=] from |thisValue|'s [=map entries=]
+        with <var ignore>kind</var> set to "key+value"
         and return the result.
     1.  Otherwise, [=create a set iterator=] from |thisValue|'s [=set entries=]
+        with <var ignore>kind</var> set to "value"
         and return the result.
 </div>
 
@@ -12371,36 +12379,52 @@ if the interface has a [=setlike declaration=].
 
 <div algorithm>
     To <dfn>create a map iterator</dfn>
-    from a [=map=] |map|
+    from a [=/map=] |map|
     and a |kind| ("key+value", "key", or "value"):
 
-1. Let |closure| be a new [=ECMAScript/Abstract Closure=] with no parameters
-    that captures |map| and |kind| and performs the following steps when called:
-    1. Let |index| be 0.
-    1. Let |numEntries| be the [=map/size=] of |map|.
-    1. Repeat, while |index| < |numEntries| and |index| < |map|'s [=map/size=]:
-        1. Let |key| and |value| be the [=map/key=] and [=map/value=] of the
-            |index|th [=map/entry=] of |map|,
-            each [=converted toECMAScript values=].
-        1. Set |index| to |index| + 1.
-        1. If |kind| is "key", let |result| be |key|.
-        1. Else if |kind| is "value", let |result| be |value|.
-        1. Else, let |result| be [$CreateArrayFromList$](« |key|, |value| »)
-        1. Perform [=?=] [$GeneratorYield$]([$CreaterIterResultObject$](|result|, <emu-value>false</emu-value>)).
+    1. Let |closure| be a new [=/Abstract Closure=] with no parameters
+        that captures |map| and |kind| and performs the following steps when called:
+        1. Let |index| be 0.
+        1. Let |numEntries| be the [=map/size=] of |map|.
+        1. Repeat, while |index| < |numEntries| and |index| < |map|'s [=map/size=]:
+            1. Let |key| and |value| be the [=map/key=] and [=map/value=] of the
+                |index|th [=map/entry=] of |map|,
+                each [=converted to ECMAScript values=].
+            1. Set |index| to |index| + 1.
+            1. If |kind| is "key", let |result| be |key|.
+            1. Else if |kind| is "value", let |result| be |value|.
+            1. Else, let |result| be [$CreateArrayFromList$](« |key|, |value| »)
+            1. Perform [=?=] [$GeneratorYield$]([$CreateIterResultObject$](|result|, <emu-value>false</emu-value>)).
 
-        Note: The [=size=] of |map|, and the order of its entries,
-        might have changed while execution of this abstract operation
-        was paused by [$Yield$].
-    1. Return <emu-value>undefined</emu>.
-1. Return [$CreateIteratorFromClosure$](|closure|, "%MapIteratorPrototype%", {{%MapIteratorPrototype%}}).
+            Note: The [=map/size=] of |map|, and the order of its entries,
+            might have changed while execution of this abstract operation
+            was paused by [$Yield$].
+        1. Return <emu-value>undefined</emu>.
+    1. Return [$CreateIteratorFromClosure$](|closure|, "%MapIteratorPrototype%", {{%MapIteratorPrototype%}}).
 </div>
 
 <div algorithm>
     To <dfn>create a set iterator</dfn>
-    from a [=set=] |set|
+    from a [=/set=] |set|
     and a |kind| ("key+value" or "value"):
 
-    Issue: ...
+    1. Let |closure| be a new [=/Abstract Closure=] with no parameters
+        that captures |set| and |kind| and performs the following steps when called:
+        1. Let |index| be 0.
+        1. Let |numEntries| be the [=set/size=] of |set|.
+        1. Repeat, while |index| < |numEntries| and |index| < |set|'s [=set/size=]:
+            1. Let |entry| be the |index|th [=set/item=] of |set|,
+                [=converted to an ECMAScript value=].
+            1. Set |index| to |index| + 1.
+            1. If |kind| is "value", let |result| be |entry|.
+            1. Else, let |result| be [$CreateArrayFromList$](« |entry|, |entry| »)
+            1. Perform [=?=] [$GeneratorYield$]([$CreateIterResultObject$](|result|, <emu-value>false</emu-value>)).
+
+            Note: The [=set/size=] of |set|, and the order of its entries,
+            might have changed while execution of this abstract operation
+            was paused by [$Yield$].
+        1. Return <emu-value>undefined</emu>.
+    1. Return [$CreateIteratorFromClosure$](|closure|, "%SetIteratorPrototype%", {{%SetIteratorPrototype%}}).
 </div>
 
 
