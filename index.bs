@@ -7165,8 +7165,6 @@ and comprise the following:
 *   [=attribute setters=]
 *   <a href="#es-operations">the function objects that correspond to operations</a>
 *   <a href="#es-stringifier">the function objects that correspond to stringifiers</a>
-*   <a href="#es-iterators">the function objects that correspond to iterators</a>
-*   [=map size getters=]
 
 Each [=Realm=]
 must have its own unique set of each of
@@ -9687,7 +9685,6 @@ See
 [[#es-constants]],
 [[#es-attributes]],
 [[#es-operations]], and
-[[#es-iterators]]
 for the specific requirements that the use of
 [{{Exposed}}] entails.
 
@@ -11637,7 +11634,6 @@ with the [{{LegacyNoInterfaceObject}}] [=extended attribute=].
 Additionally, [=interface prototype objects=] get properties declaratively from:
 
 * [[#es-stringifier]],
-* [[#es-iterators]],
 * [[#es-iterable]],
 * [[#es-maplike]], and
 * [[#es-setlike]].
@@ -12325,154 +12321,6 @@ then there must exist a property with the following characteristics:
     property is the String value "<code>toString</code>".
 
 
-<h4 id="es-iterators">Maplike and setlike iterator behavior</h4>
-
-
-<h5 id="es-iterator">@@iterator</h5>
-
-If the [=interface=] has a [=maplike declaration=] or a [=setlike declaration=],
-then a property must exist
-whose name is the {{@@iterator}} symbol, with attributes
-{ \[[Writable]]: <emu-val>true</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val> }
-and whose value is a [=function object=].
-
-The location of the property is determined as follows:
-
-*   If the interface was declared with the [{{Global}}] [=extended attribute=],
-    then the property exists on the single object that [=implements=] the interface.
-*   Otherwise, the property exists solely on the interface’s [=interface prototype object=].
-
-<div algorithm="to invoke the @@iterator property of interfaces with maplike or setlike declarations">
-
-    If the interface has a [=maplike declaration=] or [=setlike declaration=],
-    then the [=function object=] is a [=built-in function object=] that,
-    when invoked, must behave as follows:
-
-    1.  Let |thisValue| be the <emu-val>this</emu-val> value.
-    1.  Let |object| be [=?=] <a abstract-op>ToObject</a>(|thisValue|).
-    1.  If |object| [=is a platform object=],
-        then [=perform a security check=], passing:
-        *   the platform object |object|,
-        *   the identifier "<code>@@iterator</code>", and
-        *   the type "<code>method</code>".
-    1.  If |object| does not [=implement=] the [=interface=]
-        on which the [=maplike declaration=]
-        or [=setlike declaration=] is defined,
-        then [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
-    1.  If the interface has a [=maplike declaration=], then
-        [=create a map iterator=] from |thisValue|'s [=map entries=]
-        with <var ignore>kind</var> set to "key+value"
-        and return the result.
-    1.  Otherwise, [=create a set iterator=] from |thisValue|'s [=set entries=]
-        with <var ignore>kind</var> set to "value"
-        and return the result.
-</div>
-
-The value of the {{@@iterator}} [=function object=]’s <code class="idl">length</code>
-property is the Number value <emu-val>0</emu-val>.
-
-The value of the {{@@iterator}} [=function object=]’s <code class="idl">name</code> property
-is the String value "<code>entries</code>"
-if the interface has a [=maplike declaration=]
-and the String "<code>values</code>"
-if the interface has a [=setlike declaration=].
-
-<div algorithm>
-    To <dfn>create a map iterator</dfn>
-    from a [=/map=] |map|
-    and a |kind| ("key+value", "key", or "value"):
-
-    1. Let |closure| be a new [=/Abstract Closure=] with no parameters
-        that captures |map| and |kind| and performs the following steps when called:
-        1. [=map/For each=] |key|→|value| of |map|'s [=map entries=]:
-            1. Set |key| and |value| to each [=converted to an ECMAScript value=].
-            1. If |kind| is "key", let |result| be |key|.
-            1. Else if |kind| is "value", let |result| be |value|.
-            1. Else, let |result| be [$CreateArrayFromList$](« |key|, |value| »)
-            1. Perform [=?=] [$GeneratorYield$]([$CreateIterResultObject$](|result|, <emu-value>false</emu-value>)).
-
-            Note: The [=map/size=] of |map|, and the order of its entries,
-            might have changed while execution of this abstract operation
-            was paused by [$Yield$].
-        1. Return <emu-value>undefined</emu>.
-    1. Return [$CreateIteratorFromClosure$](|closure|, "%MapIteratorPrototype%", {{%MapIteratorPrototype%}}).
-</div>
-
-<div algorithm>
-    To <dfn>create a set iterator</dfn>
-    from a [=/set=] |set|
-    and a |kind| ("key+value" or "value"):
-
-    1. Let |closure| be a new [=/Abstract Closure=] with no parameters
-        that captures |set| and |kind| and performs the following steps when called:
-        1. [=set/For each=] |entry| of |set|'s [=set entries=]:
-            1. Set |entry| to be |entry| [=converted to an ECMAScript value=].
-            1. If |kind| is "value", let |result| be |entry|.
-            1. Else, let |result| be [$CreateArrayFromList$](« |entry|, |entry| »)
-            1. Perform [=?=] [$GeneratorYield$]([$CreateIterResultObject$](|result|, <emu-value>false</emu-value>)).
-
-            Note: The [=set/size=] of |set|, and the order of its entries,
-            might have changed while execution of this abstract operation
-            was paused by [$Yield$].
-        1. Return <emu-value>undefined</emu>.
-    1. Return [$CreateIteratorFromClosure$](|closure|, "%SetIteratorPrototype%", {{%SetIteratorPrototype%}}).
-</div>
-
-
-<h5 id="es-forEach">forEach</h5>
-
-If the [=interface=] has a [=maplike declaration=] or a [=setlike declaration=],
-then a <code class="idl">forEach</code> data property must exist with attributes
-{ \[[Writable]]: <emu-val>true</emu-val>, \[[Enumerable]]: <emu-val>true</emu-val>, \[[Configurable]]: <emu-val>true</emu-val> }
-and whose value is a [=function object=].
-
-The location of the property is determined as follows:
-
-*   If the interface was declared with the [{{Global}}] [=extended attribute=],
-    then the property exists on the single object that [=implements=] the interface.
-*   Otherwise, the property exists solely on the interface’s [=interface prototype object=].
-
-<div algorithm="to invoke the forEach method of interfaces with maplike or setlike declarations">
-
-    If the interface has a [=maplike declaration=] or [=setlike declaration=] then
-    the method, when invoked, must behave as follows:
-
-    1.  Let |thisValue| be the <emu-val>this</emu-val> value.
-    1.  Let |esThis| be [=?=] <a abstract-op>ToObject</a>(|thisValue|).
-    1.  If |esThis| [=is a platform object=],
-        then [=perform a security check=], passing:
-        *   the platform object |esThis|,
-        *   the identifier "<code>forEach</code>", and
-        *   the type "<code>method</code>".
-    1.  Let |interface| be the [=interface=]
-        on which the [=maplike declaration=]
-        or [=setlike declaration=] is declared.
-    1.  If |esThis| does not [=implement=] |interface|,
-        then [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
-    1.  Let |callbackFn| be the value of the first argument passed to the function, or <emu-val>undefined</emu-val> if the argument was not supplied.
-    1.  If <a abstract-op>IsCallable</a>(|callbackFn|) is <emu-val>false</emu-val>, [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
-    1.  Let |thisArg| be the value of the second argument passed to the function, or <emu-val>undefined</emu-val> if the argument was not supplied.
-    1. If |interface| has a [=maplike declaration=], then:
-
-        1. [=map/For each=] |key|→|value| of |thisValue|'s [=map entries=]:
-        1. Let |esKey| and |esValue| be |key| and |value| [=converted to an ECMAScript value=].
-        1. Perform [=?=] [$Call$](|callbackFn|, |thisArg|, « |esValue|, |esKey|, |esThis|»)
-
-        Otherwise:
-
-        1. [=map/For each=] |value| of |thisValue|'s [=set entries=]:
-        1. Let |esValue| be |value| [=converted to an ECMAScript value=].
-        1. Perform [=?=] [$Call$](|callbackFn|, |thisArg|, « |esValue|, |esValue|, |esThis|»)
-    1.  Return <emu-val>undefined</emu-val>.
-</div>
-
-The value of the [=function object=]’s <code class="idl">length</code>
-property is the Number value <emu-val>1</emu-val>.
-
-The value of the [=function object=]’s <code class="idl">name</code>
-property is the String value "<code>forEach</code>".
-
-
 <h4 id="es-iterable">Iterable declarations</h4>
 
 <div algorithm>
@@ -13026,13 +12874,55 @@ with the following characteristics:
     The value of the [=function object=]’s <code class="idl">name</code> property is the String value "<code>size</code>".
 
 
-<h5 id="es-map-entries">entries</h5>
+<h5 id="es-map-iterator">@@iterator</h5>
 
-An <code class="idl">entries</code> data property must exist on
+There must exist a data property whose name is the {{@@iterator}} symbol on
 |A|’s [=interface prototype object=]
 with attributes { \[[Writable]]: <emu-val>true</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val> }
 and whose value is the [=function object=] that is the value of
-the {{@@iterator}} property.
+the <code>entries</code> property.
+
+<div algorithm>
+    To <dfn>create a map iterator</dfn>
+    from a [=/map=] |map|
+    and a |kind| ("key+value", "key", or "value"):
+
+    1. Let |closure| be a new [=/Abstract Closure=] with no parameters
+        that captures |map| and |kind| and performs the following steps when called:
+        1. [=map/For each=] |key|→|value| of |map|'s [=map entries=]:
+            1. Set |key| and |value| to each [=converted to an ECMAScript value=].
+            1. If |kind| is "key", let |result| be |key|.
+            1. Else if |kind| is "value", let |result| be |value|.
+            1. Else, let |result| be [$CreateArrayFromList$](« |key|, |value| »)
+            1. Perform [=?=] [$GeneratorYield$]([$CreateIterResultObject$](|result|, <emu-value>false</emu-value>)).
+
+            Note: The [=map/size=] of |map|, and the order of its entries,
+            might have changed while execution of this abstract operation
+            was paused by [$Yield$].
+        1. Return <emu-value>undefined</emu>.
+    1. Return [$CreateIteratorFromClosure$](|closure|, "%MapIteratorPrototype%", {{%MapIteratorPrototype%}}).
+</div>
+
+
+<h5 id="es-map-entries">entries</h5>
+
+There must exist a <code class="idl">entries</code> data property on
+|A|’s [=interface prototype object=]
+with the following characteristics:
+
+*   The property has attributes { \[[Writable]]: <emu-val>true</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val> }.
+*   The value of the property is a [=built-in function object=]
+    whose behavior when invoked is as follows:
+
+    <div algorithm="to invoke the entries method of Maps">
+        1. Let |O| be the <emu-val>this</emu-val> value, [=coherency-checked=] against |A| with identifier "entries" and type "method".
+        1. Let |map| be |O|'s [=map entries=].
+        1. Return the result of [=creating a map iterator=] from |map| with kind "key+value".
+    </div>
+
+The value of the [=function objects=]’ <code class="idl">length</code> properties is the Number value <emu-val>0</emu-val>.
+
+The value of the [=function object=]’s <code class="idl">name</code> property is the String value "<code>entries</code>".
 
 <h5 id="es-map-keys" oldids="es-map-keys-values">keys</h5>
 
@@ -13066,7 +12956,7 @@ with the following characteristics:
     whose behavior when invoked is as follows:
 
     <div algorithm="to invoke the values method of Maps">
-        1. Let |O| be the <emu-val>this</emu-val> value, [=coherency-checked=] against |A| with "values" and "method".
+        1. Let |O| be the <emu-val>this</emu-val> value, [=coherency-checked=] against |A| with identifier "values" and type "method".
         1. Let |map| be |O|'s [=map entries=].
         1. Return the result of [=creating a map iterator=] from |map| with kind "value".
     </div>
@@ -13074,6 +12964,33 @@ with the following characteristics:
 The value of the [=function objects=]’ <code class="idl">length</code> properties is the Number value <emu-val>0</emu-val>.
 
 The value of the [=function object=]’s <code class="idl">name</code> property is the String value "<code>values</code>".
+
+
+<h5 id="es-map-forEach">forEach</h5>
+
+There must exist a <code class="idl">forEach</code> data property on
+|A|’s [=interface prototype object=]
+with the following characteristics:
+
+*   The property has attributes { \[[Writable]]: <emu-val>true</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val> }.
+*   The value of the property is a [=built-in function object=]
+    whose behavior when invoked is as follows:
+
+    <div algorithm="to invoke the forEach method of Maps">
+        1. Let |O| be the <emu-val>this</emu-val> value, [=coherency-checked=] against |A| with "forEach" and "method".
+        1. Let |map| be |O|'s [=map entries=].
+        1.  Let |callbackFn| be the first argument passed to the function, or <emu-val>undefined</emu-val> if not supplied.
+        1.  If [$IsCallable$](|callbackFn|) is <emu-val>false</emu-val>, [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
+        1.  Let |thisArg| be the second argument passed to the function, or <emu-val>undefined</emu-val> if not supplied.
+        1. [=map/For each=] |key|→|value| of |map|:
+            1. Let |esKey| and |esValue| be |key| and |value| [=converted to an ECMAScript value=].
+            1. Perform [=?=] [$Call$](|callbackFn|, |thisArg|, « |esValue|, |esKey|, |O| »)
+        1.  Return <emu-val>undefined</emu-val>.
+    </div>
+
+The value of the [=function objects=]’ <code class="idl">length</code> properties is the Number value <emu-val>1</emu-val>.
+
+The value of the [=function object=]’s <code class="idl">name</code> property is the String value "<code>forEach</code>".
 
 
 <h5 id="es-map-get" oldids="es-map-get-has">get</h5>
@@ -13244,6 +13161,35 @@ with the following characteristics:
     The value of the [=function object=]’s <code class="idl">name</code> property is the String value "<code>size</code>".
 
 
+<h5 id="es-set-iterator">@@iterator</h5>
+
+There must exist a data property whose name is the {{@@iterator}} symbol on
+|A|’s [=interface prototype object=]
+with attributes { \[[Writable]]: <emu-val>true</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val> }
+and whose value is the [=function object=] that is the value of
+the <code class="idl">values</code> property.
+
+<div algorithm>
+    To <dfn>create a set iterator</dfn>
+    from a [=/set=] |set|
+    and a |kind| ("key+value" or "value"):
+
+    1. Let |closure| be a new [=/Abstract Closure=] with no parameters
+        that captures |set| and |kind| and performs the following steps when called:
+        1. [=set/For each=] |entry| of |set|'s [=set entries=]:
+            1. Set |entry| to be |entry| [=converted to an ECMAScript value=].
+            1. If |kind| is "value", let |result| be |entry|.
+            1. Else, let |result| be [$CreateArrayFromList$](« |entry|, |entry| »)
+            1. Perform [=?=] [$GeneratorYield$]([$CreateIterResultObject$](|result|, <emu-value>false</emu-value>)).
+
+            Note: The [=set/size=] of |set|, and the order of its entries,
+            might have changed while execution of this abstract operation
+            was paused by [$Yield$].
+        1. Return <emu-value>undefined</emu>.
+    1. Return [$CreateIteratorFromClosure$](|closure|, "%SetIteratorPrototype%", {{%SetIteratorPrototype%}}).
+</div>
+
+
 <h5 id="es-set-entries" oldids="es-set-entries-keys">entries</h5>
 
 There must exist a <code class="idl">entries</code> data property on
@@ -13272,15 +13218,57 @@ the String value "<code>entries</code>" or "<code>keys</code>", correspondingly.
 A <code class="idl">keys</code> data property must exist on |A|’s [=interface prototype object=]
 with attributes { \[[Writable]]: <emu-val>true</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val> }
 and whose value is the [=function object=] that is the value of
-the {{@@iterator}} property.
+the <code class="idl">values</code> property.
 
 
 <h5 id="es-set-values">values</h5>
 
-A <code class="idl">values</code> data property must exist on |A|’s [=interface prototype object=]
-with attributes { \[[Writable]]: <emu-val>true</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val> }
-and whose value is the [=function object=] that is the value of
-the {{@@iterator}} property.
+There must exist a <code class="idl">values</code> data property on
+|A|’s [=interface prototype object=]
+with the following characteristics:
+
+*   The property has attributes { \[[Writable]]: <emu-val>true</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val> }.
+*   The value of the property is a [=built-in function object=]
+    whose behavior when invoked is as follows:
+
+    <div algorithm="to invoke the values method of Sets">
+        1. Let |O| be the <emu-val>this</emu-val> value, [=coherency-checked=] against |A| with identifier "values" and type "method".
+        1. Let |set| be |O|'s [=set entries=].
+        1. Return the result of [=creating a set iterator=] from |set| with kind "value".
+    </div>
+
+The value of the [=function object=]’s <code class="idl">length</code> properties is
+the Number value <emu-val>0</emu-val>.
+
+The value of the [=function object=]’s <code class="idl">name</code> property is
+the String value "<code>values</code>".
+
+
+<h5 id="es-set-forEach">forEach</h5>
+
+There must exist a <code class="idl">forEach</code> data property on
+|A|’s [=interface prototype object=]
+with the following characteristics:
+
+*   The property has attributes { \[[Writable]]: <emu-val>true</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val> }.
+*   The value of the property is a [=built-in function object=]
+    whose behavior when invoked is as follows:
+
+    <div algorithm="to invoke the forEach method of Sets">
+        1. Let |O| be the <emu-val>this</emu-val> value, [=coherency-checked=] against |A| with "forEach" and "method".
+        1. Let |set| be |O|'s [=set entries=].
+        1.  Let |callbackFn| be the first argument passed to the function, or <emu-val>undefined</emu-val> if not supplied.
+        1.  If [$IsCallable$](|callbackFn|) is <emu-val>false</emu-val>, [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
+        1.  Let |thisArg| be the second argument passed to the function, or <emu-val>undefined</emu-val> if not supplied.
+        1. [=map/For each=] |value| of |set|:
+            1. Let |esValue| be |value| [=converted to an ECMAScript value=].
+            1. Perform [=?=] [$Call$](|callbackFn|, |thisArg|, « |esValue|, |esValue|, |O|»)
+        1.  Return <emu-val>undefined</emu-val>.
+    </div>
+
+The value of the [=function objects=]’ <code class="idl">length</code> properties is the Number value <emu-val>1</emu-val>.
+
+The value of the [=function object=]’s <code class="idl">name</code> property is the String value "<code>forEach</code>".
 
 
 <h5 id="es-set-has">has</h5>
@@ -13557,7 +13545,6 @@ which has a [{{Global}}] [=extended attribute=]
 get properties declaratively from:
 
 * [[#es-stringifier]],
-* [[#es-iterators]],
 * [[#es-iterable]],
 * [[#es-maplike]], and
 * [[#es-setlike]].
