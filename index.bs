@@ -13047,7 +13047,7 @@ with the following characteristics:
     <div algorithm="to invoke the keys method of Maps">
         1. Let |O| be the <emu-val>this</emu-val> value, [=coherency-checked=] against |A| with identifier "keys" and type "method".
         1. Let |map| be |O|'s [=map entries=].
-        1. Return the result of [=creating a map iterator=] from |map| with kind "keys".
+        1. Return the result of [=creating a map iterator=] from |map| with kind "key".
     </div>
 
 The value of the [=function objects=]’ <code class="idl">length</code> properties is the Number value <emu-val>0</emu-val>.
@@ -13068,7 +13068,7 @@ with the following characteristics:
     <div algorithm="to invoke the values method of Maps">
         1. Let |O| be the <emu-val>this</emu-val> value, [=coherency-checked=] against |A| with "values" and "method".
         1. Let |map| be |O|'s [=map entries=].
-        1. Return the result of [=creating a map iterator=] from |map| with kind "values".
+        1. Return the result of [=creating a map iterator=] from |map| with kind "value".
     </div>
 
 The value of the [=function objects=]’ <code class="idl">length</code> properties is the Number value <emu-val>0</emu-val>.
@@ -13102,7 +13102,7 @@ The value of the [=function object=]’s <code class="idl">length</code> propert
 The value of the [=function object=]’s <code class="idl">name</code> property is the String value "<code>get</code>".
 
 
-<h5 id="es-map-has">get</h5>
+<h5 id="es-map-has">has</h5>
 
 There must exist a <code class="idl">has</code> data property on
 |A|’s [=interface prototype object=]
@@ -13217,42 +13217,9 @@ The value of the [=function object=]’s <code class="idl">name</code> property 
 
 <h4 id="es-setlike">Setlike declarations</h4>
 
-Any object that [=implements=] an [=interface=]
-that has a [=setlike declaration=]
-must have a \[[BackingSet]] [=internal slot=], which is
-initially set to a newly created {{ECMAScript/Set}} object.
-This {{ECMAScript/Set}} object’s \[[SetData]] internal slot is
-the object’s [=set entries=].
-
-If an [=interface=] |A| is declared with a [=setlike declaration=], then
-there exists a number of additional properties
-on |A|’s [=interface prototype object=].
+If an [=interface=] |A| is declared with a [=setlike declaration=],
+then there exists a number of additional properties on |A|'s [=interface prototype object=].
 These additional properties are described in the sub-sections below.
-
-<div algorithm>
-
-    Some of the properties below are defined to have a [=built-in function object=] value that
-    <dfn id="dfn-forwards-to-the-internal-set-object" export>forwards to the internal set object</dfn>
-    for a given function name. Such functions behave as follows when invoked:
-
-    1.  Let |O| be the <emu-val>this</emu-val> value.
-    1.  Let |arguments| be the list of arguments passed to this function.
-    1.  Let |name| be the function name.
-    1.  If |O| [=is a platform object=],
-        then [=perform a security check=], passing:
-        *   the platform object |O|,
-        *   an identifier equal to |name|, and
-        *   the type "<code>method</code>".
-    1.  If |O| does not [=implement=] <var ignore>A</var>,
-        then [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
-    1.  Let |set| be the {{ECMAScript/Set}} object that is
-        the value of |O|’s \[[BackingSet]] [=internal slot=].
-    1.  Let |function| be [=?=] <a abstract-op>GetMethod</a>(|set|, |name|).
-    1.  If |function| is <emu-val>undefined</emu-val>,
-        then [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
-    1.  Return [=?=] <a abstract-op>Call</a>(|function|, |set|, |arguments|).
-</div>
-
 
 <h5 id="es-set-size">size</h5>
 
@@ -13267,15 +13234,9 @@ with the following characteristics:
         The [=set size getter=] is a [=built-in function object=]
         whose behavior when invoked is as follows:
 
-        1.  Let |O| be the <emu-val>this</emu-val> value.
-        1.  If |O| [=is a platform object=],
-            then [=perform a security check=], passing:
-            *   the platform object |O|,
-            *   the identifier "<code>size</code>", and
-            *   the type "<code>getter</code>".
-        1.  If |O| does not [=implement=] <var ignore>A</var>, then [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
-        1.  Let |set| be the {{ECMAScript/Set}} object that is the value of |O|’s \[[BackingSet]] [=internal slot=].
-        1.  Return the result of calling the \[[Get]] internal method of |set| passing "<code>size</code>" and |set| as arguments.
+        1.  Let |O| be the <emu-val>this</emu-val> value, [=coherency-checked=] against |A| with identifier "size" and type "getter".
+        1.  Let |set| be |O|'s [=set entries=].
+        1.  Return |set|'s [=set/size=], [=converted to an ECMAScript value=].
     </div>
 
     The value of the [=function object=]’s <code class="idl">length</code> property is the Number value <emu-val>0</emu-val>.
@@ -13283,23 +13244,35 @@ with the following characteristics:
     The value of the [=function object=]’s <code class="idl">name</code> property is the String value "<code>size</code>".
 
 
-<h5 id="es-set-values">values</h5>
+<h5 id="es-set-keys-values" oldids="es-set-entries-keys">keys and values</h5>
 
 A <code class="idl">values</code> data property must exist on |A|’s [=interface prototype object=]
 with attributes { \[[Writable]]: <emu-val>true</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val> }
 and whose value is the [=function object=] that is the value of
 the {{@@iterator}} property.
 
+A <code class="idl">keys</code> data property must exist on |A|’s [=interface prototype object=]
+with attributes { \[[Writable]]: <emu-val>true</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val> }
+and whose value is the [=function object=] that is the value of
+the {{@@iterator}} property.
 
-<h5 id="es-set-entries-keys">entries and keys</h5>
 
-For both of <code class="idl">entries</code> and <code class="idl">keys</code>, there must exist a data property with that name on
-|A|’s [=interface prototype object=] with the following characteristics:
 
-*   The property has attributes
-    { \[[Writable]]: <emu-val>true</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val> }.
-*   The value of the property is a [=built-in function object=] that
-    [=forwards to the internal set object|forwards that name to the internal set object=].
+<h5 id="es-set-entries">entries</h5>
+
+There must exist a <code class="idl">entries</code> data property on
+|A|’s [=interface prototype object=]
+with the following characteristics:
+
+*   The property has attributes { \[[Writable]]: <emu-val>true</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val> }.
+*   The value of the property is a [=built-in function object=]
+    whose behavior when invoked is as follows:
+
+    <div algorithm="to invoke the entries method of Sets">
+        1. Let |O| be the <emu-val>this</emu-val> value, [=coherency-checked=] against |A| with identifier "entries" and type "method".
+        1. Let |set| be |O|'s [=set entries=].
+        1. Return the result of [=creating a set iterator=] from |set| with kind "key+value".
+    </div>
 
 The value of the [=function object=]’s <code class="idl">length</code> properties is
 the Number value <emu-val>0</emu-val>.
@@ -13310,29 +13283,23 @@ the String value "<code>entries</code>" or "<code>keys</code>", correspondingly.
 
 <h5 id="es-set-has">has</h5>
 
-There must exist a <code class="idl">has</code> data property on |A|’s [=interface prototype object=]
+There must exist a <code class="idl">has</code> data property on
+|A|’s [=interface prototype object=]
 with the following characteristics:
 
-*   The property has attributes
-    { \[[Writable]]: <emu-val>true</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val> }.
-*   <div algorithm="to invoke the has method of Sets">
+*   The property has attributes { \[[Writable]]: <emu-val>true</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val> }.
+*   The value of the property is a [=built-in function object=]
+    that behaves as follows when invoked:
 
-        The value of the property is a [=built-in function object=] that behaves as follows when invoked:
-
-        1.  Let |O| be the <emu-val>this</emu-val> value.
-        1.  If |O| [=is a platform object=],
-            then [=perform a security check=], passing:
-            *   the platform object |O|,
-            *   the identifier "<code>has</code>", and
-            *   the type "<code>method</code>".
-        1.  If |O| does not [=implement=] <var ignore>A</var>, then [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
-        1.  Let |set| be the {{ECMAScript/Set}} object that is the value of |O|’s \[[BackingSet]] [=internal slot=].
-        1.  Let |type| be the value type specified in the [=setlike declaration=].
-        1.  Let |function| be [=!=] <a abstract-op>Get</a>(|set|, "<code>has</code>").
-        1.  Let |arg| be the first argument passed to this function, or <emu-val>undefined</emu-val> if not supplied.
-        1.  Let |idlValue| be the result of [=converted to an IDL value|converting=] |arg| to an IDL value of type |type|.
-        1.  Let |value| be the result of [=converted to ECMAScript values|converting=] |idlValue| to an ECMAScript value.
-        1.  Return [=?=] <a abstract-op>Call</a>(|function|, |set|, «|value|»).
+    <div algorithm="to invoke the has method of Sets">
+        1.  Let |O| be the <emu-val>this</emu-val> value, [=coherency-checked=] against |A| with identifier "has" and type "method".
+        1.  Let |set| be |O|'s [=set entries=].
+        1.  Let |valueType| be the value type specified in the [=setlike declaration=].
+        1.  Let |valueArg| be the first argument passed to this function, or <emu-val>undefined</emu-val> if not supplied.
+        1.  Let |value| be |valueArg| [=converted to an IDL value=] of type |valueType|.
+        1.  If |value| is -0, set |value| to +0.
+        1.  If |set| [=set/contains=] |value|, then return <emu-val>true</emu-val>,
+            otherwise return <emu-val>false</emu-val>.
     </div>
 
 The value of the [=function object=]’s <code class="idl">length</code> property is a Number value <emu-val>1</emu-val>.
@@ -13340,56 +13307,84 @@ The value of the [=function object=]’s <code class="idl">length</code> propert
 The value of the [=function object=]’s <code class="idl">name</code> property is the String value "<code>has</code>".
 
 
-<h5 id="es-add-delete">add and delete</h5>
+<h5 id="es-set-add" oldids="es-add-delete">add</h5>
 
-For both of <code class="idl">add</code> and <code class="idl">delete</code>, if:
-
-*   |A| does not declare an [=member=] with a matching identifier, and
-*   |A| was declared with a read–write setlike declaration,
-
-then a data property with that name and the following characteristics
-must exist on |A|’s [=interface prototype object=]:
+If |A| does not declare a [=member=] with identifier "<code>add</code>",
+and |A| was declared with a read–write maplike declaration,
+then there must exist an <code class="idl">add</code> data property
+on |A|’s [=interface prototype object=]
+with the following characteristics:
 
 *   The property has attributes { \[[Writable]]: <emu-val>true</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val> }.
-*   <div algorithm="to invoke the add and delete methods of Sets">
+*   The value of the property is a [=built-in function object=]
+    that behaves as follows when invoked:
 
-        The value of the property is a [=built-in function object=] that behaves as follows when invoked:
-
-        1.  Let |O| be the <emu-val>this</emu-val> value.
-        1.  Let |name| be the name of the property – "<code>add</code>" or "<code>delete</code>".
-        1.  If |O| [=is a platform object=],
-            then [=perform a security check=], passing:
-            *   the platform object |O|,
-            *   an identifier equal to |name|, and
-            *   the type "<code>method</code>".
-        1.  If |O| does not [=implement=] <var ignore>A</var>, then [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
-        1.  Let |set| be the {{ECMAScript/Set}} object that is the value of |O|’s \[[BackingSet]] [=internal slot=].
-        1.  Let |type| be the value type specified in the [=setlike declaration=].
-        1.  Let |function| be [=?=] <a abstract-op>Get</a>(|set|, |name|).
-        1.  Let |arg| be the first argument passed to this function, or <emu-val>undefined</emu-val> if not supplied.
-        1.  Let |idlValue| be the result of [=converted to an IDL value|converting=] |arg| to an IDL value of type |type|.
-        1.  Let |value| be the result of [=converted to ECMAScript values|converting=] |idlValue| to an ECMAScript value.
-        1.  Let |result| be [=?=] <a abstract-op>Call</a>(|function|, |set|, «|value|»).
-        1.  If |name| is "delete", then return |result|.
-        1.  Otherwise, return |O|.
+    <div algorithm="to invoke the add method of Sets">
+        1.  Let |O| be the <emu-val>this</emu-val> value, [=coherency-checked=] against |A| with identifier "add" and type "method".
+        1.  Let |set| be |O|'s [=set entries=].
+        1.  Let |valueType| be the value type specified in the [=setlike declaration=].
+        1.  Let |valueArg| be the first argument passed to this function, or <emu-val>undefined</emu-val> if not supplied.
+        1.  Let |value| be |valueArg| [=converted to an IDL value=] of type |valueType|.
+        1.  If |value| is -0, set |value| to +0.
+        1.  [=set/Append=] |value| to |set|.
+        1.  Return |value| [=converted to an ECMAScript value=].
     </div>
 
 The value of the [=function object=]’s <code class="idl">length</code> property is the Number value <emu-val>1</emu-val>.
 
-The value of the [=function object=]’s <code class="idl">name</code> property is the String value "<code>add</code>" or "<code>delete</code>", correspondingly.
+The value of the [=function object=]’s <code class="idl">name</code> property is the String value "<code>add</code>".
+
+
+<h5 id="es-set-delete">delete</h5>
+
+If |A| does not declare a [=member=] with identifier "<code>delete</code>",
+and |A| was declared with a read–write maplike declaration,
+then there must exist an <code class="idl">delete</code> data property
+on |A|’s [=interface prototype object=]
+with the following characteristics:
+
+*   The property has attributes { \[[Writable]]: <emu-val>true</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val> }.
+*   The value of the property is a [=built-in function object=]
+    that behaves as follows when invoked:
+
+    <div algorithm="to invoke the delete method of Sets">
+        1.  Let |O| be the <emu-val>this</emu-val> value, [=coherency-checked=] against |A| with identifier "delete" and type "method".
+        1.  Let |set| be |O|'s [=set entries=].
+        1.  Let |valueType| be the value type specified in the [=setlike declaration=].
+        1.  Let |valueArg| be the first argument passed to this function, or <emu-val>undefined</emu-val> if not supplied.
+        1.  Let |value| be |valueArg| [=converted to an IDL value=] of type |valueType|.
+        1.  If |value| is -0, set |value| to +0.
+        1.  Let |retVal| be <emu-val>true</emu-val> if |set| [=set/contains=] |value|, or else <emu-val>false</emu-val>.
+        1.  [=list/Remove=] |value| from |set|.
+        1.  Return |retVal|.
+    </div>
+
+The value of the [=function object=]’s <code class="idl">length</code> property is the Number value <emu-val>1</emu-val>.
+
+The value of the [=function object=]’s <code class="idl">name</code> property is the String value "<code>delete</code>".
 
 
 <h5 id="es-set-clear">clear</h5>
 
-If |A| does not declare a [=member=]
-with a matching identifier, and
-|A| was declared with a read–write setlike declaration,
-then a <code class="idl">clear</code> data property with the following characteristics
-must exist on |A|’s
-[=interface prototype object=]:
+If |A| does not declare a [=member=] with identifier "<code>clear</code>",
+and |A| was declared with a read–write maplike declaration,
+then there must exist a <code class="idl">clear</code> data property
+on |A|’s [=interface prototype object=]
+with the following characteristics:
 
 *   The property has attributes { \[[Writable]]: <emu-val>true</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val> }.
-*   The value of the property is a [=built-in function object=] that <a lt="forwards to the internal set object">forwards <code class="idl">clear</code> to the internal map object</a>.
+*   The value of the property is a [=built-in function object=]
+    that behaves as follows when invoked:
+
+    <div algorithm="to invoke the clear method of Sets">
+        1.  Let |O| be the <emu-val>this</emu-val> value, [=coherency-checked=] against |A| with identifier "clear" and type "method".
+        1.  Let |set| be |O|'s [=set entries=].
+        1.  [=set/Empty=] |set|.
+
+            Note: The [=/set=] is preserved because there may be existing
+            iterators, currently suspended, iterating over it.
+        1.  Return <emu-val>undefined</emu-val>.
+    </div>
 
 The value of the [=function object=]’s <code class="idl">length</code> property is the Number value <emu-val>0</emu-val>.
 
