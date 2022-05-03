@@ -11418,6 +11418,32 @@ and its value is an object called a <dfn id="dfn-legacy-factory-function" export
 which allows creation of objects that implement the interface.
 The characteristics of a legacy factory function are described in [[#legacy-factory-functions]].
 
+<div algorithm>
+    Some interface operations are defined directly over ECMAScript values,
+    rather than IDL or other spec-internal types.
+    These algorithms need to perform an [=implementation check=]
+    as their opening steps,
+    to ensure they're being called on the correct kind of object
+    and that the operation is valid to call from the given script.
+
+    To <dfn local-lt="implementation check|implementation-check">implementation-check an object</dfn> |esValue|
+    against the interface |interface|,
+    with the identifier |name|
+    and the type |type|:
+
+    1. Let |object| to [=?=] [$ToObject$](|esValue|).
+    1. If |object| is a [=platform object=],
+        then [=perform a security check=], passing:
+
+        * the platform object |object|
+        * the identifier |name|
+        * the type |type|
+    1. If |object| does not [=implement=] |interface|, then [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
+    1. Return |object|.
+
+    Issue: This algo is not yet consistently used everywhere.
+</div>
+
 
 <h4 id="interface-object" oldids="es-interface-call,es-constructible-interfaces">Interface object</h4>
 
@@ -12832,23 +12858,6 @@ there exists a number of additional properties on |A|’s
 [=interface prototype object=].
 These additional properties are described in the sub-sections below.
 
-<div algorithm>
-    To <dfn local-lt="coherency-check">coherency-check an object</dfn> |this|
-    against the interface |interface|,
-    with the identifier |name|
-    and the type |type|:
-
-    1. Set |this| to [=?=] [$ToObject$](|this|).
-    1. If |this| is a [=platform object=],
-        then [=perform a security check=], passing:
-
-        * the platform object |this|
-        * the identifier |name|
-        * the type |type|
-    1. If |this| does not [=implement=] |interface|, then [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
-    1. Return |this|.
-</div>
-
 <h5 id="es-map-size">size</h5>
 
 There must exist a <code class="idl">size</code> property on
@@ -12864,7 +12873,7 @@ with the following characteristics:
         The [=map size getter=] is a [=built-in function object=]
         whose behavior when invoked is as follows:
 
-        1.  Let |O| be the <emu-val>this</emu-val> value, [=coherency-checked=] against |A| with identifier "size" and type "getter".
+        1.  Let |O| be the <emu-val>this</emu-val> value, [=implementation-checked=] against |A| with identifier "size" and type "getter".
         1.  Let |map| be |O|'s [=map entries=].
         1.  Return |map|'s [=map/size=], [=converted to an ECMAScript value=].
     </div>
@@ -12915,7 +12924,7 @@ with the following characteristics:
     whose behavior when invoked is as follows:
 
     <div algorithm="to invoke the entries method of Maps">
-        1. Let |O| be the <emu-val>this</emu-val> value, [=coherency-checked=] against |A| with identifier "entries" and type "method".
+        1. Let |O| be the <emu-val>this</emu-val> value, [=implementation-checked=] against |A| with identifier "entries" and type "method".
         1. Let |map| be |O|'s [=map entries=].
         1. Return the result of [=creating a map iterator=] from |map| with kind "key+value".
     </div>
@@ -12935,7 +12944,7 @@ with the following characteristics:
     whose behavior when invoked is as follows:
 
     <div algorithm="to invoke the keys method of Maps">
-        1. Let |O| be the <emu-val>this</emu-val> value, [=coherency-checked=] against |A| with identifier "keys" and type "method".
+        1. Let |O| be the <emu-val>this</emu-val> value, [=implementation-checked=] against |A| with identifier "keys" and type "method".
         1. Let |map| be |O|'s [=map entries=].
         1. Return the result of [=creating a map iterator=] from |map| with kind "key".
     </div>
@@ -12956,7 +12965,7 @@ with the following characteristics:
     whose behavior when invoked is as follows:
 
     <div algorithm="to invoke the values method of Maps">
-        1. Let |O| be the <emu-val>this</emu-val> value, [=coherency-checked=] against |A| with identifier "values" and type "method".
+        1. Let |O| be the <emu-val>this</emu-val> value, [=implementation-checked=] against |A| with identifier "values" and type "method".
         1. Let |map| be |O|'s [=map entries=].
         1. Return the result of [=creating a map iterator=] from |map| with kind "value".
     </div>
@@ -12977,7 +12986,7 @@ with the following characteristics:
     whose behavior when invoked is as follows:
 
     <div algorithm="to invoke the forEach method of Maps">
-        1. Let |O| be the <emu-val>this</emu-val> value, [=coherency-checked=] against |A| with "forEach" and "method".
+        1. Let |O| be the <emu-val>this</emu-val> value, [=implementation-checked=] against |A| with "forEach" and "method".
         1. Let |map| be |O|'s [=map entries=].
         1.  Let |callbackFn| be the first argument passed to the function, or <emu-val>undefined</emu-val> if not supplied.
         1.  If [$IsCallable$](|callbackFn|) is <emu-val>false</emu-val>, [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
@@ -13004,7 +13013,7 @@ with the following characteristics:
     that behaves as follows when invoked:
 
     <div algorithm="to invoke the get method of Maps">
-        1.  Let |O| be the <emu-val>this</emu-val> value, [=coherency-checked=] against |A| with identifier "get" and type "method".
+        1.  Let |O| be the <emu-val>this</emu-val> value, [=implementation-checked=] against |A| with identifier "get" and type "method".
         1.  Let |map| be |O|'s [=map entries=].
         1.  Let |keyType| be the key type specified in the [=maplike declaration=].
         1.  Let |keyArg| be the first argument passed to this function, or <emu-val>undefined</emu-val> if not supplied.
@@ -13030,7 +13039,7 @@ with the following characteristics:
     that behaves as follows when invoked:
 
     <div algorithm="to invoke the has method of Maps">
-        1.  Let |O| be the <emu-val>this</emu-val> value, [=coherency-checked=] against |A| with identifier "has" and type "method".
+        1.  Let |O| be the <emu-val>this</emu-val> value, [=implementation-checked=] against |A| with identifier "has" and type "method".
         1.  Let |map| be |O|'s [=map entries=].
         1.  Let |keyType| be the key type specified in the [=maplike declaration=].
         1.  Let |keyArg| be the first argument passed to this function, or <emu-val>undefined</emu-val> if not supplied.
@@ -13058,7 +13067,7 @@ with the following characteristics:
     that behaves as follows when invoked:
 
     <div algorithm="to invoke the set method of Maps">
-        1.  Let |O| be the <emu-val>this</emu-val> value, [=coherency-checked=] against |A| with identifier "set" and type "method".
+        1.  Let |O| be the <emu-val>this</emu-val> value, [=implementation-checked=] against |A| with identifier "set" and type "method".
         1.  Let |map| be |O|'s [=map entries=].
         1.  Let |keyType| be the key type specified in the [=maplike declaration=], and |valueType| be the value type.
         1.  Let |keyArg| be the first argument passed to this function, or <emu-val>undefined</emu-val> if not supplied.
@@ -13088,7 +13097,7 @@ with the following characteristics:
     that behaves as follows when invoked:
 
     <div algorithm="to invoke the delete method of Maps">
-        1.  Let |O| be the <emu-val>this</emu-val> value, [=coherency-checked=] against |A| with identifier "delete" and type "method".
+        1.  Let |O| be the <emu-val>this</emu-val> value, [=implementation-checked=] against |A| with identifier "delete" and type "method".
         1.  Let |map| be |O|'s [=map entries=].
         1.  Let |keyType| be the key type specified in the [=maplike declaration=].
         1.  Let |keyArg| be the first argument passed to this function, or <emu-val>undefined</emu-val> if not supplied.
@@ -13118,7 +13127,7 @@ with the following characteristics:
     that behaves as follows when invoked:
 
     <div algorithm="to invoke the clear method of Maps">
-        1.  Let |O| be the <emu-val>this</emu-val> value, [=coherency-checked=] against |A| with identifier "clear" and type "method".
+        1.  Let |O| be the <emu-val>this</emu-val> value, [=implementation-checked=] against |A| with identifier "clear" and type "method".
         1.  Let |map| be |O|'s [=map entries=].
         1.  [=map/Clear=] |map|.
 
@@ -13151,7 +13160,7 @@ with the following characteristics:
         The [=set size getter=] is a [=built-in function object=]
         whose behavior when invoked is as follows:
 
-        1.  Let |O| be the <emu-val>this</emu-val> value, [=coherency-checked=] against |A| with identifier "size" and type "getter".
+        1.  Let |O| be the <emu-val>this</emu-val> value, [=implementation-checked=] against |A| with identifier "size" and type "getter".
         1.  Let |set| be |O|'s [=set entries=].
         1.  Return |set|'s [=set/size=], [=converted to an ECMAScript value=].
     </div>
@@ -13201,7 +13210,7 @@ with the following characteristics:
     whose behavior when invoked is as follows:
 
     <div algorithm="to invoke the entries method of Sets">
-        1. Let |O| be the <emu-val>this</emu-val> value, [=coherency-checked=] against |A| with identifier "entries" and type "method".
+        1. Let |O| be the <emu-val>this</emu-val> value, [=implementation-checked=] against |A| with identifier "entries" and type "method".
         1. Let |set| be |O|'s [=set entries=].
         1. Return the result of [=creating a set iterator=] from |set| with kind "key+value".
     </div>
@@ -13232,7 +13241,7 @@ with the following characteristics:
     whose behavior when invoked is as follows:
 
     <div algorithm="to invoke the values method of Sets">
-        1. Let |O| be the <emu-val>this</emu-val> value, [=coherency-checked=] against |A| with identifier "values" and type "method".
+        1. Let |O| be the <emu-val>this</emu-val> value, [=implementation-checked=] against |A| with identifier "values" and type "method".
         1. Let |set| be |O|'s [=set entries=].
         1. Return the result of [=creating a set iterator=] from |set| with kind "value".
     </div>
@@ -13255,7 +13264,7 @@ with the following characteristics:
     whose behavior when invoked is as follows:
 
     <div algorithm="to invoke the forEach method of Sets">
-        1. Let |O| be the <emu-val>this</emu-val> value, [=coherency-checked=] against |A| with "forEach" and "method".
+        1. Let |O| be the <emu-val>this</emu-val> value, [=implementation-checked=] against |A| with "forEach" and "method".
         1. Let |set| be |O|'s [=set entries=].
         1.  Let |callbackFn| be the first argument passed to the function, or <emu-val>undefined</emu-val> if not supplied.
         1.  If [$IsCallable$](|callbackFn|) is <emu-val>false</emu-val>, [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
@@ -13282,7 +13291,7 @@ with the following characteristics:
     that behaves as follows when invoked:
 
     <div algorithm="to invoke the has method of Sets">
-        1.  Let |O| be the <emu-val>this</emu-val> value, [=coherency-checked=] against |A| with identifier "has" and type "method".
+        1.  Let |O| be the <emu-val>this</emu-val> value, [=implementation-checked=] against |A| with identifier "has" and type "method".
         1.  Let |set| be |O|'s [=set entries=].
         1.  Let |valueType| be the value type specified in the [=setlike declaration=].
         1.  Let |valueArg| be the first argument passed to this function, or <emu-val>undefined</emu-val> if not supplied.
@@ -13310,7 +13319,7 @@ with the following characteristics:
     that behaves as follows when invoked:
 
     <div algorithm="to invoke the add method of Sets">
-        1.  Let |O| be the <emu-val>this</emu-val> value, [=coherency-checked=] against |A| with identifier "add" and type "method".
+        1.  Let |O| be the <emu-val>this</emu-val> value, [=implementation-checked=] against |A| with identifier "add" and type "method".
         1.  Let |set| be |O|'s [=set entries=].
         1.  Let |valueType| be the value type specified in the [=setlike declaration=].
         1.  Let |valueArg| be the first argument passed to this function, or <emu-val>undefined</emu-val> if not supplied.
@@ -13338,7 +13347,7 @@ with the following characteristics:
     that behaves as follows when invoked:
 
     <div algorithm="to invoke the delete method of Sets">
-        1.  Let |O| be the <emu-val>this</emu-val> value, [=coherency-checked=] against |A| with identifier "delete" and type "method".
+        1.  Let |O| be the <emu-val>this</emu-val> value, [=implementation-checked=] against |A| with identifier "delete" and type "method".
         1.  Let |set| be |O|'s [=set entries=].
         1.  Let |valueType| be the value type specified in the [=setlike declaration=].
         1.  Let |valueArg| be the first argument passed to this function, or <emu-val>undefined</emu-val> if not supplied.
@@ -13367,7 +13376,7 @@ with the following characteristics:
     that behaves as follows when invoked:
 
     <div algorithm="to invoke the clear method of Sets">
-        1.  Let |O| be the <emu-val>this</emu-val> value, [=coherency-checked=] against |A| with identifier "clear" and type "method".
+        1.  Let |O| be the <emu-val>this</emu-val> value, [=implementation-checked=] against |A| with identifier "clear" and type "method".
         1.  Let |set| be |O|'s [=set entries=].
         1.  [=set/Empty=] |set|.
 
