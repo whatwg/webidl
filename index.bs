@@ -72,9 +72,11 @@ urlPrefix: https://tc39.es/ecma262/; spec: ECMA-262
         text: %Function.prototype%; url: sec-properties-of-the-function-prototype-object
         text: %IteratorPrototype%; url: sec-%25iteratorprototype%25-object
         text: %Map.prototype%; url: sec-properties-of-the-map-prototype-object
+        text: %MapIteratorPrototype%; url: sec-%25mapiteratorprototype%25-object
         text: %Object.prototype%; url: sec-properties-of-the-object-prototype-object
         text: %Promise%; url: sec-promise-constructor
         text: %Set.prototype%; url: sec-properties-of-the-set-prototype-object
+        text: %SetIteratorPrototype%; url: sec-%25setiteratorprototype%25-object
     type: exception; for: ECMAScript
         text: Error; url: sec-error-objects
         text: SyntaxError; url: sec-native-error-types-used-in-this-standard-syntaxerror
@@ -107,6 +109,7 @@ urlPrefix: https://tc39.es/ecma262/; spec: ECMA-262
         text: CreateArrayIterator; url: sec-createarrayiterator
         text: CreateBuiltinFunction; url: sec-createbuiltinfunction
         text: CreateDataProperty; url: sec-createdataproperty
+        text: CreateIteratorFromClosure; url: sec-createiteratorfromclosure
         text: CreateIterResultObject; url: sec-createiterresultobject
         text: CreateMapIterator; url: sec-createmapiterator
         text: CreateMethodProperty; url: sec-createmethodproperty
@@ -118,6 +121,7 @@ urlPrefix: https://tc39.es/ecma262/; spec: ECMA-262
             text: CreateMutableBinding
             text: InitializeBinding
         text: FromPropertyDescriptor; url: sec-frompropertydescriptor
+        text: GeneratorYield; url: sec-generatoryield
         text: Get; url: sec-get-o-p
         text: GetFunctionRealm; url: sec-getfunctionrealm
         text: GetIterator; url: sec-getiterator
@@ -163,11 +167,13 @@ urlPrefix: https://tc39.es/ecma262/; spec: ECMA-262
         text: ToUint16; url: sec-touint16
         text: ToUint32; url: sec-touint32
         text: Type; url: sec-ecmascript-data-types-and-values
+        text: Yield; url: sec-yield
         text: abs; url: eqn-abs
         text: floor; url: eqn-floor
         text: max; url: eqn-max
         text: min; url: eqn-min
-    type: dfn
+    type: dfn;
+        text: Abstract Closure; url: sec-abstract-closure
         text: NumericLiteral; url: sec-literals-numeric-literals
         text: modulo; url: eqn-modulo
         url: sec-returnifabrupt-shorthands
@@ -735,7 +741,7 @@ across [=IDL fragments=].
     on the <code class="idl">TextField</code> [=interface=]
     need not have been escaped with an underscore (because "<code>value</code>" is
     not a keyword in the IDL grammar), it is still unescaped
-    to obtain the attribute’s [=identifier=].
+    to obtain the attribute's [=identifier=].
 
 </div>
 
@@ -833,7 +839,7 @@ a given interface |A| is the set of all interfaces that |A|
 inherits from, directly or indirectly.  If |A| does not [=interface/inherit=]
 from another interface, then the set is empty.  Otherwise, the set
 includes the interface |B| that |A| [=interface/inherits=]
-from and all of |B|’s [=inherited interfaces=].
+from and all of |B|'s [=inherited interfaces=].
 
 An interface must not be declared such that
 its inheritance hierarchy has a cycle.  That is, an interface
@@ -856,7 +862,7 @@ interface |B| that inherits from |A|, and so on.
 Note that general multiple inheritance of interfaces is not supported, and
 objects also cannot implement arbitrary sets of interfaces.
 Objects can be defined to implement a single given interface |A|,
-which means that it also implements all of |A|’s [=inherited interfaces=].
+which means that it also implements all of |A|'s [=inherited interfaces=].
 In addition, an [=includes statement=] can be used
 to define that objects implementing an [=interface=] |A|
 will always also include the [=interface mixin member|members=]
@@ -2049,14 +2055,14 @@ defined on the same [=interface=].
 
 The <dfn id="dfn-return-type" export>return type</dfn> of the operation is given
 by the type (matching <emu-nt><a href="#prod-Type">Type</a></emu-nt>)
-that appears before the operation’s optional [=identifier=].
+that appears before the operation's optional [=identifier=].
 If the return type is an
 [=identifier=] followed by <emu-t>?</emu-t>,
 then the identifier must
 identify an [=interface=], [=dictionary=], [=enumeration=],
 [=callback function=], [=callback interface=] or [=typedef=].
 
-An operation’s arguments (matching <emu-nt><a href="#prod-ArgumentList">ArgumentList</a></emu-nt>)
+An operation's arguments (matching <emu-nt><a href="#prod-ArgumentList">ArgumentList</a></emu-nt>)
 are given between the parentheses in the declaration.  Each individual argument is specified
 as a type (matching <emu-nt><a href="#prod-Type">Type</a></emu-nt>) followed by an [=identifier=]
 (matching <emu-nt><a href="#prod-ArgumentName">ArgumentName</a></emu-nt>).
@@ -2134,7 +2140,7 @@ Those extra implied formal arguments are of the same type as the final explicit
 argument in the operation declaration.  The final argument can also be omitted
 when invoking the operation.  An argument must not
 be declared with the <emu-t>...</emu-t> token unless it
-is the final argument in the operation’s argument list.
+is the final argument in the operation's argument list.
 
 <pre highlight="webidl" class="syntax">
     interface interface_identifier {
@@ -2197,7 +2203,7 @@ optional if the operation is [=variadic=].
 </pre>
 
 Optional arguments can also have a <dfn id="dfn-optional-argument-default-value" for="optional argument" export>default value</dfn>
-specified.  If the argument’s identifier is followed by a <span class="char">U+003D EQUALS SIGN ("=")</span>
+specified.  If the argument's identifier is followed by a <span class="char">U+003D EQUALS SIGN ("=")</span>
 and a value (matching <emu-nt><a href="#prod-DefaultValue">DefaultValue</a></emu-nt>),
 then that gives the optional argument its [=optional argument/default value=].
 The implicitly optional final argument of a [=variadic=]
@@ -2229,7 +2235,7 @@ optional and have a default value provided.
 <div class="note">
 
     This is to encourage API designs that do not require authors to pass an
-    empty dictionary value when they wish only to use the dictionary’s
+    empty dictionary value when they wish only to use the dictionary's
     default values.
 
     Usually the default value provided will be <emu-t>{}</emu-t>, but in the
@@ -2276,7 +2282,7 @@ it is interpreted in the same way as for a [=constant=].
 If the type of the [=optional argument=]
 is an [=enumeration=], then its
 [=optional argument/default value=] if specified must
-be one of the [=enumeration values|enumeration’s values=].
+be one of the [=enumeration's values=].
 
 Optional argument default values can also be specified using the
 two token value <emu-t>[]</emu-t>, which represents an empty sequence
@@ -2700,7 +2706,7 @@ On a given [=interface=], there must exist at most one stringifier.
 
     In the ECMAScript binding, using a <code class="idl">Student</code>
     object in a context where a string is expected will result in the
-    value of the object’s <code class="idl">name</code> property being
+    value of the object's <code class="idl">name</code> property being
     used:
 
     <pre highlight="js">
@@ -2820,7 +2826,7 @@ will not be such functionality.
 Defining a special operation  with an [=identifier=]
 is equivalent to separating the special operation out into its own
 declaration without an identifier.  This approach is allowed to
-simplify [=method steps=] of an interface’s operations.
+simplify [=method steps=] of an interface's operations.
 
 <div class="example" id="example-50d7ab88">
 
@@ -3018,7 +3024,7 @@ The following requirements apply to the definitions of indexed property getters 
     <code class="idl">OrderedMap</code> that correspond to
     entries in both the named and indexed property sets.
     These properties can then be used to interact
-    with the object in the same way as invoking the object’s
+    with the object in the same way as invoking the object's
     methods, as demonstrated below:
 
     <pre highlight="js">
@@ -3318,7 +3324,7 @@ the same operation or constructor.
     *   the interface is |I|
 
     Whenever an argument of an extended attribute is mentioned,
-    it is referring to an argument of the extended attribute’s
+    it is referring to an argument of the extended attribute's
     [=takes a named argument list|named argument list=].
 
     1.  Let |S| be an [=ordered set=].
@@ -3338,7 +3344,7 @@ the same operation or constructor.
              :: The elements of |F| are the
                 [{{LegacyFactoryFunction}}]
                 [=extended attributes=] on interface |I| whose
-                [=takes a named argument list|named argument lists’=]
+                [=takes a named argument list|named argument lists'=]
                 identifiers are |A|.
         </dl>
 
@@ -3745,8 +3751,8 @@ argument at the [=distinguishing argument index=].
 In addition, for each index |j|, where |j| is less than the
 [=distinguishing argument index=]
 for a given type list size, the types at index |j| in
-all of the items’ type lists must be the same,
-and the [=optionality values=] at index |j| in all of the items’ optionality lists must
+all of the items' type lists must be the same,
+and the [=optionality values=] at index |j| in all of the items' optionality lists must
 be the same.
 
 <div class="example" id="example-dab6ca0a">
@@ -4062,7 +4068,7 @@ The value-type of the [=value iterator=]
 must be the same as the type returned by
 the [=indexed property getter=].
 A [=value iterator=] is implicitly
-defined to iterate over the object’s indexed properties.
+defined to iterate over the object's indexed properties.
 
 A [=pair iterator=]
 must not be declared on an interface
@@ -4089,7 +4095,7 @@ Prose accompanying an [=interface=] with a [=pair iterator=] must define a [=/li
     [=support indexed properties=],
     or (b) with a forEach method that instead invokes its callback like
     Set.prototype.forEach (where the key is the same as the value).
-    If you’re creating an API that needs such a forEach method, please
+    If you're creating an API that needs such a forEach method, please
     <a href="https://github.com/heycam/webidl/issues/new?title=Enhancement%20request%20for%20Iterables">file an issue</a>.
 
 </div>
@@ -4421,15 +4427,14 @@ An [=interface=] can be declared to be
 </pre>
 
 Objects implementing an interface that is declared to be maplike
-represent an ordered list of key–value pairs known as its <dfn id="dfn-map-entries" export>map entries</dfn>.
+represent an [=ordered map=] of key–value pairs, initially empty,
+known as that object's <dfn id="dfn-map-entries" export>map entries</dfn>.
 The types used for the keys and values are given in the angle
 brackets of the maplike declaration.  Keys are required to be unique.
 
-The [=map entries=] of an object
-implementing a [=maplike=] interface is empty at
-the of the object’s creation.  Prose accompanying the interface can
-describe how the [=map entries=]
-of an object change.
+Specification authors can modify the contents of the [=map entries=],
+which will automatically be reflected in the contents of the object
+as observed by ECMAScript code.
 
 Maplike interfaces support an API for querying the map entries
 appropriate for the language binding.  If the <emu-t>readonly</emu-t>
@@ -4455,6 +4460,7 @@ named "<code>entries</code>", "<code>forEach</code>",
 "<code>values</code>",
 or have any [=inherited interfaces=]
 that have [=members=] with these names.
+
 Read–write maplike interfaces must not
 have any [=attributes=]
 or [=constants=] named
@@ -4462,11 +4468,12 @@ or [=constants=] named
 or "<code>set</code>", or have any [=inherited interfaces=]
 that have [=attributes=] or [=constants=] with these names.
 
-Note: Operations named "<code>clear</code>", "<code>delete</code>",
-or "<code>set</code>" are allowed on read–write maplike
-interfaces and will prevent the default implementation of these methods being
-added to the interface prototype object in the ECMAScript language binding.
-This allows the default behavior of these operations to be overridden.
+Note: Read-write maplike interfaces <em>can</em> have <em>operations</em>
+named "<code>clear</code>", "<code>delete</code>", or "<code>set</code>",
+which will override the default implementation of those methods
+(defined in [[#es-maplike]]). If such operations are defined, they must
+match the input and output expectations of each method, defined in their
+default implementation sections.
 
 An interface must not have more than one
 [=maplike declaration=].
@@ -4497,9 +4504,7 @@ an [=indexed property getter=].
 No [=extended attributes=]
 defined in this specification are applicable to [=maplike declarations=].
 
-<p class="issue">
-    Add example.
-</p>
+Issue: Add example.
 
 
 <h4 id="idl-setlike">Setlike declarations</h4>
@@ -4517,15 +4522,14 @@ An [=interface=] can be declared to be
 </pre>
 
 Objects implementing an interface that is declared to be setlike
-represent an ordered list of values known as its <dfn id="dfn-set-entries" export>set entries</dfn>.
+represent an [=ordered set=] of values, initially empty,
+known as that object's <dfn id="dfn-set-entries" export>set entries</dfn>.
 The type of the values is given in the angle
 brackets of the setlike declaration.  Values are required to be unique.
 
-The [=set entries=] of an object
-implementing a [=setlike=] interface is empty at
-the of the object’s creation.  Prose accompanying the interface can
-describe how the [=set entries=]
-of an object change.
+Specification authors can modify the contents of the [=set entries=],
+which will automatically be reflected in the contents of the object
+as observed by ECMAScript code.
 
 Setlike interfaces support an API for querying the set entries
 appropriate for the language binding.  If the <emu-t>readonly</emu-t>
@@ -4556,11 +4560,10 @@ or [=constants=] named
 or "<code>delete</code>", or have any [=inherited interfaces=]
 that have [=attributes=] or [=constants=] with these names.
 
-Note: Operations named "<code>add</code>", "<code>clear</code>",
-or "<code>delete</code>" are allowed on read–write setlike
-interfaces and will prevent the default implementation of these methods being
-added to the interface prototype object in the ECMAScript language binding.
-This allows the default behavior of these operations to be overridden.
+Note: Read-write setlike interfaces <em>can</em> have <em>operations</em>
+named "<code>add</code>", "<code>clear</code>", or "<code>delete</code>",
+which will override the default implementation of those methods
+(defined in [[#es-setlike]].)
 
 An interface must not have more than one
 [=setlike declaration=].
@@ -4591,9 +4594,7 @@ an [=indexed property getter=].
 No [=extended attributes=]
 defined in this specification are applicable to [=setlike declarations=].
 
-<p class="issue">
-    Add example.
-</p>
+Issue: Add example.
 
 
 <h3 id="idl-namespaces">Namespaces</h3>
@@ -4741,7 +4742,7 @@ a given dictionary |D| is the set of all dictionaries that |D|
 inherits from, directly or indirectly.  If |D| does not [=dictionary/inherit=]
 from another dictionary, then the set is empty.  Otherwise, the set
 includes the dictionary |E| that |D| [=interface/inherits=]
-from and all of |E|’s [=inherited dictionaries=].
+from and all of |E|'s [=inherited dictionaries=].
 
 [=Dictionary members=] can be specified as
 <dfn id="required-dictionary-member" export for="dictionary member">required</dfn>, meaning that
@@ -4761,7 +4762,7 @@ which is the value used by default when author code or specification text does n
 for that member.
 
 A given dictionary value of type |D| can have [=map/entries=] for each of the dictionary members
-defined on |D| and on any of |D|’s [=inherited dictionaries=]. Dictionary members that are specified
+defined on |D| and on any of |D|'s [=inherited dictionaries=]. Dictionary members that are specified
 as [=dictionary member/required=], or that are specified as having a
 [=dictionary member/default value=], will always have such corresponding [=map/entries=]. Other
 members' entries might or might not [=map/exist=] in the dictionary value.
@@ -4847,13 +4848,13 @@ a <emu-t class="regex"><a href="#prod-string">string</a></emu-t> token, the two
 token sequence <emu-t>[]</emu-t>, or the two token sequence <emu-t>{}</emu-t> is
 used as the
 [=dictionary member/default value=],
-it is interpreted in the same way as for an [=operation=]’s
+it is interpreted in the same way as for an [=operation=]'s
 [=optional argument/default value|optional argument default value=].
 
 If the type of the [=dictionary member=]
 is an [=enumeration=], then its
 [=dictionary member/default value=] if specified must
-be one of the [=enumeration values|enumeration’s values=].
+be one of the [=enumeration's values=].
 
 If the type of the dictionary member is preceded by the
 <emu-t>required</emu-t> keyword, the member is considered a [=dictionary member/required=]
@@ -4977,7 +4978,7 @@ identifiers.
 
 The identifier of a dictionary member must not be
 the same as that of another dictionary member defined on the dictionary or
-on that dictionary’s [=inherited dictionaries=].
+on that dictionary's [=inherited dictionaries=].
 
 No [=extended attributes=] are applicable to dictionaries.
 
@@ -5358,7 +5359,7 @@ can be used to restrict the possible
 
 <pre highlight="webidl" class="syntax">enum identifier { "enum", "values" /* , ... */ };</pre>
 
-The <dfn id="dfn-enumeration-value" export lt="enumeration value">enumeration values</dfn> are specified
+The <dfn id="dfn-enumeration-value" export lt="enumeration value|enumeration’s values">enumeration values</dfn> are specified
 as a comma-separated list of <emu-t class="regex"><a href="#prod-string">string</a></emu-t> literals.
 The list of [=enumeration values=]
 must not include duplicates.
@@ -5582,7 +5583,7 @@ does not have a [{{Global}}] [=extended attribute=], and which
 
 In a browser, for example,
 the browser-implemented DOM objects (implementing interfaces such as <code class="idl">Node</code> and
-<code class="idl">Document</code>) that provide access to a web page’s contents
+<code class="idl">Document</code>) that provide access to a web page's contents
 to ECMAScript running in the page would be [=platform objects=].  These objects might be exotic objects,
 implemented in a language like C++, or they might be native ECMAScript objects.  Regardless,
 an implementation of a given set of IDL fragments needs to be able to recognize all [=platform objects=]
@@ -6112,7 +6113,7 @@ identifies an [=enumeration=] is used to
 refer to a type whose values are the set of strings (sequences of
 [=code units=], as with
 {{DOMString}}) that are the
-[=enumeration values|enumeration’s values=].
+[=enumeration's values=].
 
 Like {{DOMString}}, there is no way to represent a constant [=enumeration=]
 value in IDL, although enumeration-typed [=dictionary member=] [=dictionary member/default values=]
@@ -6272,7 +6273,7 @@ is the union of those in two or more other types.  Union types (matching
 are written as a series of types separated by the <emu-t>or</emu-t> keyword
 with a set of surrounding parentheses.
 The types which comprise the union type are known as the
-union’s <dfn id="dfn-union-member-type" for="union" export>member types</dfn>.
+union's <dfn id="dfn-union-member-type" for="union" export>member types</dfn>.
 
 <div class="note">
 
@@ -6518,7 +6519,7 @@ data.  The table below lists these types and the kind of buffer or view they rep
             <dfn id="idl-Int16Array" interface>Int16Array</dfn>,<br/>
             <dfn id="idl-Int32Array" interface>Int32Array</dfn>,<br/>
             <dfn id="idl-BigInt64Array" interface>BigInt64Array</dfn></td>
-        <td>A view on to an {{ArrayBuffer}} that exposes it as an array of two’s complement signed integers of the given size in bits</td></tr>
+        <td>A view on to an {{ArrayBuffer}} that exposes it as an array of two's complement signed integers of the given size in bits</td></tr>
     <tr><td><dfn id="idl-Uint8Array" interface>Uint8Array</dfn>,<br/>
             <dfn id="idl-Uint16Array" interface>Uint16Array</dfn>,<br/>
             <dfn id="idl-Uint32Array" interface>Uint32Array</dfn>,<br/>
@@ -7034,8 +7035,6 @@ and comprise the following:
 *   [=attribute setters=]
 *   <a href="#es-operations">the function objects that correspond to operations</a>
 *   <a href="#es-stringifier">the function objects that correspond to stringifiers</a>
-*   <a href="#es-iterators">the function objects that correspond to iterators</a>
-*   [=map size getters=]
 
 Each [=Realm=]
 must have its own unique set of each of
@@ -7754,7 +7753,7 @@ the object (or its prototype chain) correspond to [=dictionary members=].
 
     1.  If <a abstract-op>Type</a>(|esDict|) is not Undefined, Null or Object, then [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
     1.  Let |idlDict| be an empty [=ordered map=], representing a dictionary of type |D|.
-    1.  Let |dictionaries| be a list consisting of |D| and all of |D|’s [=inherited dictionaries=],
+    1.  Let |dictionaries| be a list consisting of |D| and all of |D|'s [=inherited dictionaries=],
         in order from least to most derived.
     1.  For each dictionary |dictionary| in |dictionaries|, in order:
         1.  For each dictionary member |member| declared on |dictionary|, in lexicographical order:
@@ -7771,7 +7770,7 @@ the object (or its prototype chain) correspond to [=dictionary members=].
                 1.  Let |idlMemberValue| be the result of [=converted to an IDL value|converting=] |esMemberValue| to an IDL value whose type is the type |member| is declared to be of.
                 1.  [=map/Set=] |idlDict|[|key|] to |idlMemberValue|.
             1.  Otherwise, if |esMemberValue| is <emu-val>undefined</emu-val> but |member| has a [=dictionary member/default value=], then:
-                1.  Let |idlMemberValue| be |member|’s default value.
+                1.  Let |idlMemberValue| be |member|'s default value.
                 1.  [=map/Set=] |idlDict|[|key|] to |idlMemberValue|.
             1.  Otherwise, if |esMemberValue| is <emu-val>undefined</emu-val> and |member| is
                 [=dictionary member/required=], then throw a {{ECMAScript/TypeError}}.
@@ -7779,7 +7778,7 @@ the object (or its prototype chain) correspond to [=dictionary members=].
 </div>
 
 Note: The order that [=dictionary members=] are looked
-up on the ECMAScript object are not necessarily the same as the object’s property enumeration order.
+up on the ECMAScript object are not necessarily the same as the object's property enumeration order.
 
 <div id="dictionary-to-es" algorithm="convert a dictionary to an ECMAScript value">
 
@@ -7788,7 +7787,7 @@ up on the ECMAScript object are not necessarily the same as the object’s prope
     running the following algorithm (where |D| is the [=dictionary=]):
 
     1.  Let |O| be [$OrdinaryObjectCreate$]({{%Object.prototype%}}).
-    1.  Let |dictionaries| be a list consisting of |D| and all of |D|’s [=inherited dictionaries=],
+    1.  Let |dictionaries| be a list consisting of |D| and all of |D|'s [=inherited dictionaries=],
         in order from least to most derived.
     1.  For each dictionary |dictionary| in |dictionaries|, in order:
         1.  For each dictionary member |member| declared on |dictionary|, in lexicographical order:
@@ -7816,7 +7815,7 @@ values.
     (where |E| is the [=enumeration=]):
 
     1.  Let |S| be the result of calling [=?=] <a abstract-op>ToString</a>(|V|).
-    1.  If |S| is not one of |E|’s [=enumeration values=],
+    1.  If |S| is not one of |E|'s [=enumeration values=],
         then [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
     1.  Return the enumeration value of type |E| that is equal to |S|.
 </div>
@@ -8551,7 +8550,7 @@ IDL [=promise type=] values are represented by ECMAScript [=PromiseCapability=] 
 <h4 id="es-union">Union types</h4>
 
 IDL [=union type=] values are represented by ECMAScript values
-that correspond to the union’s [=member types=].
+that correspond to the union's [=member types=].
 
 <div id="es-to-union" algorithm="convert an ECMAScript value to union">
 
@@ -8588,7 +8587,7 @@ that correspond to the union’s [=member types=].
             that is a reference to the object |V|.
     1.  If <a abstract-op>Type</a>(|V|) is Object and |V| has a \[[TypedArrayName]] [=internal slot=], then:
         1.  If |types| includes a [=typed array type=]
-            whose name is the value of |V|’s \[[TypedArrayName]] [=internal slot=], then return the
+            whose name is the value of |V|'s \[[TypedArrayName]] [=internal slot=], then return the
             result of [=converted to an IDL value|converting=]
             |V| to that type.
         1.  If |types| includes {{object}}, then return the IDL value
@@ -9554,7 +9553,6 @@ See
 [[#es-constants]],
 [[#es-attributes]],
 [[#es-operations]], and
-[[#es-iterators]]
 for the specific requirements that the use of
 [{{Exposed}}] entails.
 
@@ -9723,7 +9721,7 @@ than one object implementing it in the same [=Realm=].
 
 Note: This is because the [=named properties object=],
 which exposes the named properties, is in the prototype chain, and it would not make
-sense for more than one object’s named properties to be exposed on an object that
+sense for more than one object's named properties to be exposed on an object that
 all of those objects inherit from.
 
 If an interface is declared with the [{{Global}}] [=extended attribute=], then
@@ -9988,7 +9986,7 @@ for the specific requirements that the use of
     defines an [=interface=]
     with an [=operation=]
     that increments a counter, and an [=attribute=]
-    that exposes the counter’s value, which is initially 0:
+    that exposes the counter's value, which is initially 0:
 
     <pre highlight="webidl">
         [Exposed=Window]
@@ -10170,8 +10168,8 @@ environment record with it as its base object.  The result of this is
 that bare identifiers matching the property name will not resolve to
 the property in a <code>with</code> statement.  This is achieved by
 including the property name on the
-[=interface prototype object=]’s
-{{@@unscopables}} property’s value.
+[=interface prototype object=]'s
+{{@@unscopables}} property's value.
 
 The [{{Unscopable}}]
 extended attribute must
@@ -10305,7 +10303,7 @@ If the [{{LegacyLenientSetter}}]
 [=extended attribute=]
 appears on a [=read only=]
 [=regular attribute=],
-it indicates that a no-op setter will be generated for the attribute’s
+it indicates that a no-op setter will be generated for the attribute's
 accessor property.  This results in erroneous assignments to the property
 in strict mode to be ignored rather than causing an exception to be thrown.
 
@@ -10367,7 +10365,7 @@ See the <a href="#es-attributes">Attributes</a> section for how
 If the [{{LegacyLenientThis}}]
 [=extended attribute=]
 appears on a [=regular attribute=],
-it indicates that invocations of the attribute’s getter or setter
+it indicates that invocations of the attribute's getter or setter
 with a <emu-val>this</emu-val> value that is not an
 object that [=implements=] the [=interface=]
 on which the attribute appears will be ignored.
@@ -10489,7 +10487,7 @@ for the specific requirements that the use of
 <div class="example" id="example-ecf33c5c">
 
     The following [=IDL fragment=] defines two interfaces, one whose interface object
-    is exposed on the ECMAScript global object, and one whose isn’t:
+    is exposed on the ECMAScript global object, and one whose isn't:
 
     <pre highlight="webidl">
         [Exposed=Window]
@@ -10505,8 +10503,8 @@ for the specific requirements that the use of
     </pre>
 
     An ECMAScript implementation of the above IDL would allow
-    manipulation of <code class="idl">Storage</code>’s
-    prototype, but not <code class="idl">Query</code>’s.
+    manipulation of <code class="idl">Storage</code>'s
+    prototype, but not <code class="idl">Query</code>'s.
 
     <pre highlight="js">
         typeof Storage;                        // evaluates to "object"
@@ -10519,7 +10517,7 @@ for the specific requirements that the use of
         };
 
         typeof Query;                          // evaluates to "undefined"
-        var fn = Query.prototype.lookupEntry;  // exception, Query isn’t defined
+        var fn = Query.prototype.lookupEntry;  // exception, Query isn't defined
     </pre>
 </div>
 
@@ -10581,7 +10579,7 @@ If the [{{LegacyOverrideBuiltIns}}]
 appears on an [=interface=],
 it indicates that for a [=legacy platform object=] implementing the interface,
 properties corresponding to all of
-the object’s [=supported property names=]
+the object's [=supported property names=]
 will appear to be on the object,
 regardless of what other properties exist on the object or its
 prototype chain.  This means that named properties will always shadow
@@ -10767,7 +10765,7 @@ it indicates that the attribute or operation
 will be reflected as an ECMAScript property
 in a way that means its behavior cannot be modified
 and that performing a property lookup on the object
-will always result in the attribute’s property value being returned.
+will always result in the attribute's property value being returned.
 In particular, the property will be non-configurable
 and will exist as an own property on the object itself
 rather than on its prototype.
@@ -10964,7 +10962,7 @@ Note: The HTML Standard defines how a security check is performed. [[!HTML]]
     is defined.  Its input is an [=effective overload set=],
     |S|, and a list of ECMAScript values, |args|.
     Its output is a pair consisting of the [=operation=] or
-    [=extended attribute=] of one of |S|’s entries
+    [=extended attribute=] of one of |S|'s entries
     and a list of IDL values or the special value “missing”.  The algorithm behaves as follows:
 
     1.  Let |maxarg| be the length of the longest type list of the entries in |S|.
@@ -11048,7 +11046,7 @@ Note: The HTML Standard defines how a security check is performed. [[!HTML]]
         1.  Otherwise: if <a abstract-op>Type</a>(|V|) is Object, |V| has a \[[TypedArrayName]] [=internal slot=], and
             there is an entry in |S| that has one of the following types at position |i| of its type list,
             *   a [=typed array type=] whose name
-                is equal to the value of |V|’s \[[TypedArrayName]] [=internal slot=]
+                is equal to the value of |V|'s \[[TypedArrayName]] [=internal slot=]
             *   {{object}}
             *   a [=nullable type|nullable=] version of either of the above types
             *   an [=annotated type=] whose [=annotated types/inner type=] is one of the above types
@@ -11193,9 +11191,9 @@ Note: The HTML Standard defines how a security check is performed. [[!HTML]]
             [=converted to an IDL value|converting=] |V| to IDL type |type|.
         1.  Set |i| to |i| + 1.
     1.  While |i| is less than the number of arguments |callable| is declared to take:
-        1.  If |callable|’s argument at index |i| is declared with a [=optional argument/default value=],
+        1.  If |callable|'s argument at index |i| is declared with a [=optional argument/default value=],
             then append to |values| that default value.
-        1.  Otherwise, if |callable|’s argument at index |i| is not variadic, then append to |values| the special value “missing”.
+        1.  Otherwise, if |callable|'s argument at index |i| is not variadic, then append to |values| the special value “missing”.
         1.  Set |i| to |i| + 1.
     1.  Return the pair &lt;|callable|, |values|&gt;.
 </div>
@@ -11250,10 +11248,10 @@ Note: The HTML Standard defines how a security check is performed. [[!HTML]]
     again ignoring any additional arguments that were ignored due to being passed
     after the last possible argument.
 
-    When converting an <span class=allow-rfc2119>optional</span> argument’s ECMAScript value to its
+    When converting an <span class=allow-rfc2119>optional</span> argument's ECMAScript value to its
     equivalent IDL value,
     <emu-val>undefined</emu-val> will be converted into the
-    <a for="optional argument" lt="default value" class=allow-2119>optional argument’s default value</a>,
+    <a for="optional argument" lt="default value" class=allow-2119>optional argument's default value</a>,
     if it has one, or a special value “missing” otherwise.
 
     <span class=allow-2119>Optional</span> arguments corresponding to a final, variadic argument do
@@ -11287,6 +11285,29 @@ The name of the property is the [{{LegacyFactoryFunction}}]'s [=LegacyFactoryFun
 and its value is an object called a <dfn id="dfn-legacy-factory-function" export oldids="dfn-named-constructor">legacy factory function</dfn>,
 which allows creation of objects that implement the interface.
 The characteristics of a legacy factory function are described in [[#legacy-factory-functions]].
+
+<div algorithm>
+    Some ECMAScript methods defined in this section will perform an implementation check in their opening steps,
+    to ensure they're being called on the correct kind of object
+    and that the method is valid to call from the current context.
+
+    To <dfn local-lt="implementation check|implementation-check">implementation-check an object</dfn> |esValue|
+    against the interface |interface|,
+    with the identifier |name|
+    and the type |type|:
+
+    1. Let |object| to [=?=] [$ToObject$](|esValue|).
+    1. If |object| is a [=platform object=],
+        then [=perform a security check=], passing:
+
+        * the platform object |object|
+        * the identifier |name|
+        * the type |type|
+    1. If |object| does not [=implement=] |interface|, then [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
+    1. Return |object|.
+
+    Issue: This algo is not yet consistently used everywhere.
+</div>
 
 
 <h4 id="interface-object" oldids="es-interface-call,es-constructible-interfaces">Interface object</h4>
@@ -11504,7 +11525,6 @@ with the [{{LegacyNoInterfaceObject}}] [=extended attribute=].
 Additionally, [=interface prototype objects=] get properties declaratively from:
 
 * [[#es-stringifier]],
-* [[#es-iterators]],
 * [[#es-iterable]],
 * [[#es-maplike]], and
 * [[#es-setlike]].
@@ -11541,7 +11561,7 @@ Issue: Define those properties imperatively instead.
 
 </div>
 
-The [=class string=] of an [=interface prototype object=] is the [=interface=]’s [=qualified name=].
+The [=class string=] of an [=interface prototype object=] is the [=interface=]'s [=qualified name=].
 
 
 <h4 id="named-properties-object">Named properties object</h4>
@@ -11570,7 +11590,7 @@ for that interface on which named properties are exposed.
 </div>
 
 The [=class string=] of a [=named properties object=]
-is the concatenation of the [=interface=]’s
+is the concatenation of the [=interface=]'s
 [=identifier=] and the string "<code>Properties</code>".
 
 
@@ -11671,7 +11691,7 @@ when an interface is declared with the [{{Global}}] [=extended attribute=].
     1.  [=list/For each=] [=constant=] |const| that is a [=member=] of |definition|:
         1.  If |const| is not [=exposed=] in |realm|, then [=iteration/continue=].
         1.  Let |value| be the result of [=converted to an ECMAScript value|converting=]
-            |const|’s IDL value to an ECMAScript value.
+            |const|'s IDL value to an ECMAScript value.
         1.  Let |desc| be the PropertyDescriptor{\[[Writable]]: <emu-val>false</emu-val>,
             \[[Enumerable]]: <emu-val>true</emu-val>, \[[Configurable]]: <emu-val>false</emu-val>,
             \[[Value]]: |value|}.
@@ -11846,7 +11866,7 @@ in which case they are exposed on every object that [=implements=] the interface
                 <dt>|attribute|'s type is an [=enumeration=]</dt>
                 <dd>
                     1.  Let |S| be [=?=] <a abstract-op>ToString</a>(|V|).
-                    1.  If |S| is not one of the [=enumeration values|enumeration’s values=], then
+                    1.  If |S| is not one of the [=enumeration's values=], then
                         return <emu-val>undefined</emu-val>.
                     1.  Otherwise, |idlValue| is the enumeration value equal to |S|.
                 </dd>
@@ -12186,124 +12206,10 @@ then there must exist a property with the following characteristics:
             </dl>
         1.  Return the result of [=converted to an ECMAScript value|converting=] |V| to a String value.
     </div>
-*   The value of the [=function object=]’s <code class="idl">length</code>
+*   The value of the [=function object=]'s <code class="idl">length</code>
     property is the Number value <emu-val>0</emu-val>.
-*   The value of the [=function object=]’s <code class="idl">name</code>
+*   The value of the [=function object=]'s <code class="idl">name</code>
     property is the String value "<code>toString</code>".
-
-
-<h4 id="es-iterators">Maplike and setlike iterator behavior</h4>
-
-
-<h5 id="es-iterator">@@iterator</h5>
-
-If the [=interface=] has a [=maplike declaration=] or a [=setlike declaration=],
-then a property must exist
-whose name is the {{@@iterator}} symbol, with attributes
-{ \[[Writable]]: <emu-val>true</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val> }
-and whose value is a [=function object=].
-
-The location of the property is determined as follows:
-
-*   If the interface was declared with the [{{Global}}] [=extended attribute=],
-    then the property exists on the single object that [=implements=] the interface.
-*   Otherwise, the property exists solely on the interface’s [=interface prototype object=].
-
-<div algorithm="to invoke the @@iterator property of interfaces with maplike or setlike declarations">
-
-    If the interface has a [=maplike declaration=] or [=setlike declaration=],
-    then the [=function object=] is a [=built-in function object=] that,
-    when invoked, must behave as follows:
-
-    1.  Let |thisValue| be the <emu-val>this</emu-val> value.
-    1.  Let |object| be [=?=] <a abstract-op>ToObject</a>(|thisValue|).
-    1.  If |object| [=is a platform object=],
-        then [=perform a security check=], passing:
-        *   the platform object |object|,
-        *   the identifier "<code>@@iterator</code>", and
-        *   the type "<code>method</code>".
-    1.  If |object| does not [=implement=] the [=interface=]
-        on which the [=maplike declaration=]
-        or [=setlike declaration=] is defined,
-        then [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
-    1.  If the interface has a [=maplike declaration=], then:
-        1.  Let |backing| be the value of the \[[BackingMap]] [=internal slot=] of |object|.
-        1.  Return [=!=] <a abstract-op>CreateMapIterator</a>(|backing|, "<code>key+value</code>").
-    1.  Otherwise:
-        1.  Let |backing| be the value of the \[[BackingSet]] [=internal slot=] of |object|.
-        1.  Return [=!=] <a abstract-op>CreateSetIterator</a>(|backing|, "<code>value</code>").
-</div>
-
-The value of the {{@@iterator}} [=function object=]’s <code class="idl">length</code>
-property is the Number value <emu-val>0</emu-val>.
-
-The value of the {{@@iterator}} [=function object=]’s <code class="idl">name</code> property
-is the String value "<code>entries</code>"
-if the interface has a [=maplike declaration=]
-and the String "<code>values</code>"
-if the interface has a [=setlike declaration=].
-
-
-<h5 id="es-forEach">forEach</h5>
-
-If the [=interface=] has a [=maplike declaration=] or a [=setlike declaration=],
-then a <code class="idl">forEach</code> data property must exist with attributes
-{ \[[Writable]]: <emu-val>true</emu-val>, \[[Enumerable]]: <emu-val>true</emu-val>, \[[Configurable]]: <emu-val>true</emu-val> }
-and whose value is a [=function object=].
-
-The location of the property is determined as follows:
-
-*   If the interface was declared with the [{{Global}}] [=extended attribute=],
-    then the property exists on the single object that [=implements=] the interface.
-*   Otherwise, the property exists solely on the interface’s [=interface prototype object=].
-
-<div algorithm="to invoke the forEach method of interfaces with maplike or setlike declarations">
-
-    If the interface has a [=maplike declaration=] or [=setlike declaration=] then
-    the method, when invoked, must behave as follows:
-
-    1.  Let |thisValue| be the <emu-val>this</emu-val> value.
-    1.  Let |object| be [=?=] <a abstract-op>ToObject</a>(|thisValue|).
-    1.  If |object| [=is a platform object=],
-        then [=perform a security check=], passing:
-        *   the platform object |object|,
-        *   the identifier "<code>forEach</code>", and
-        *   the type "<code>method</code>".
-    1.  Let |interface| be the [=interface=]
-        on which the [=maplike declaration=]
-        or [=setlike declaration=] is declared.
-    1.  If |object| does not [=implement=] |interface|,
-        then [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
-    1.  Let |callbackFn| be the value of the first argument passed to the function, or <emu-val>undefined</emu-val> if the argument was not supplied.
-    1.  If <a abstract-op>IsCallable</a>(|callbackFn|) is <emu-val>false</emu-val>, [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
-    1.  Let |thisArg| be the value of the second argument passed to the function, or <emu-val>undefined</emu-val> if the argument was not supplied.
-    1.  Let |backing| be the value of the \[[BackingMap]] [=internal slot=] of |object|,
-        if the interface has a [=maplike declaration=],
-        or the \[[BackingSet]] [=internal slot=] of |object| otherwise.
-    1.  Let |callbackWrapper| be a [=built-in function object=] that, when invoked, behaves as follows:
-        1.  Let |v| and |k| be the first two arguments passed to the function.
-        1.  Let |thisArg| be the <emu-val>this</emu-val> value.
-        1.  Perform [=?=] <a abstract-op>Call</a>(|callbackFn|, |thisArg|, «|v|, |k|, |object|»).
-
-        Note: The |callbackWrapper| function simply calls the incoming |callbackFn|
-        with |object| as the third argument rather than its internal \[[BackingMap]] or \[[BackingSet]] object.
-
-        <p class="issue">
-            Can the script author observe that |callbackWrapper| might be a new function
-            every time forEach is called?  What's the best way of specifying that there's only
-            one function that has captured an environment?
-        </p>
-    1.  Let |forEach| be [=?=] <a abstract-op>GetMethod</a>(|backing|, "<code>forEach</code>").
-    1.  If |forEach| is <emu-val>undefined</emu-val>, then [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
-    1.  Perform [=?=] <a abstract-op>Call</a>(|forEach|, |backing|, «|callbackWrapper|, |thisArg|»).
-    1.  Return <emu-val>undefined</emu-val>.
-</div>
-
-The value of the [=function object=]’s <code class="idl">length</code>
-property is the Number value <emu-val>1</emu-val>.
-
-The value of the [=function object=]’s <code class="idl">name</code>
-property is the String value "<code>forEach</code>".
 
 
 <h4 id="es-iterable">Iterable declarations</h4>
@@ -12417,7 +12323,7 @@ has three internal values:
 
 Note: Default iterator objects are only used for [=pair iterators=];
 [=value iterators=], as they are currently
-restricted to iterating over an object’s
+restricted to iterating over an object's
 [=support indexed properties|supported indexed properties=],
 use standard ECMAScript Array iterator objects.
 
@@ -12446,16 +12352,16 @@ must be {{%IteratorPrototype%}}.
     1.  Let |result| be a value determined by the value of |kind|:
         <dl class="switch">
              :  "<code>key</code>"
-             :: 1.  Let |idlKey| be |pair|’s [=value pair/key=].
+             :: 1.  Let |idlKey| be |pair|'s [=value pair/key=].
                 1.  Let |key| be the result of [=converted to an ECMAScript value|converting=] |idlKey| to an ECMAScript value.
                 1.  |result| is |key|.
              :  "<code>value</code>"
-             :: 1.  Let |idlValue| be |pair|’s [=value pair/value=].
+             :: 1.  Let |idlValue| be |pair|'s [=value pair/value=].
                 1.  Let |value| be the result of [=converted to an ECMAScript value|converting=] |idlValue| to an ECMAScript value.
                 1.  |result| is |value|.
              :  "<code>key+value</code>"
-             :: 1.  Let |idlKey| be |pair|’s [=value pair/key=].
-                1.  Let |idlValue| be |pair|’s [=value pair/value=].
+             :: 1.  Let |idlKey| be |pair|'s [=value pair/key=].
+                1.  Let |idlValue| be |pair|'s [=value pair/value=].
                 1.  Let |key| be the result of [=converted to an ECMAScript value|converting=] |idlKey| to an ECMAScript value.
                 1.  Let |value| be the result of [=converted to an ECMAScript value|converting=] |idlValue| to an ECMAScript value.
                 1.  Let |array| be [=!=] [$ArrayCreate$](2).
@@ -12483,14 +12389,14 @@ must be {{%IteratorPrototype%}}.
         *   the type "<code>method</code>".
     1.  If |object| is not a [=default iterator object=] for |interface|,
         then [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
-    1.  Let |index| be |object|’s [=default iterator object/index=].
-    1.  Let |kind| be |object|’s [=default iterator object/kind=].
+    1.  Let |index| be |object|'s [=default iterator object/index=].
+    1.  Let |kind| be |object|'s [=default iterator object/kind=].
     1.  Let |values| be |object|'s [=default iterator object/target=]'s [=value pairs to iterate over=].
     1.  Let |len| be the length of |values|.
     1.  If |index| is greater than or equal to |len|, then
         return <a abstract-op>CreateIterResultObject</a>(<emu-val>undefined</emu-val>, <emu-val>true</emu-val>).
     1.  Let |pair| be the entry in |values| at index |index|.
-    1.  Set |object|’s index to |index| + 1.
+    1.  Set |object|'s index to |index| + 1.
     1.  Return the [=iterator result=] for |pair| and |kind|.
 </div>
 
@@ -12811,398 +12717,585 @@ the result of concatenating the [=identifier=] of the [=interface=] and the stri
 
 <h4 id="es-maplike">Maplike declarations</h4>
 
-Any object that [=implements=] an [=interface=]
-that has a [=maplike declaration=]
-must have a \[[BackingMap]] [=internal slot=], which is
-initially set to a newly created {{ECMAScript/Map}} object.
-This {{ECMAScript/Map}} object’s \[[MapData]] internal slot is
-the object’s [=map entries=].
-
 If an [=interface=] |A| is declared with
 a [=maplike declaration=], then
-there exists a number of additional properties on |A|’s
+there exists a number of additional properties on |A|'s
 [=interface prototype object=].
 These additional properties are described in the sub-sections below.
-
-<div algorithm>
-
-    Some of the properties below are defined to have a [=function object=] value that
-    <dfn id="dfn-forwards-to-the-internal-map-object" export>forwards to the internal map object</dfn>
-    for a given function name.  Such functions behave as follows when invoked:
-
-    1.  Let |O| be the <emu-val>this</emu-val> value.
-    1.  Let |arguments| be the list of arguments passed to this function.
-    1.  Let |name| be the function name.
-    1.  If |O| [=is a platform object=],
-        then [=perform a security check=], passing:
-        *   the platform object |O|,
-        *   an identifier equal to |name|, and
-        *   the type "<code>method</code>".
-    1.  If |O| does not [=implement=] <var ignore>A</var>, then [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
-    1.  Let |map| be the {{ECMAScript/Map}} object that is the value of |O|’s \[[BackingMap]] [=internal slot=].
-    1.  Let |function| be [=?=] <a abstract-op>GetMethod</a>(|map|, |name|).
-    1.  If |function| is <emu-val>undefined</emu-val>, then [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
-    1.  Return [=?=] <a abstract-op>Call</a>(|function|, |map|, |arguments|).
-</div>
-
 
 <h5 id="es-map-size">size</h5>
 
 There must exist a <code class="idl">size</code> property on
-|A|’s [=interface prototype object=]
+|A|'s [=interface prototype object=]
 with the following characteristics:
 
 *   The property has attributes
     { \[[Get]]: |G|, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val> },
-    where |G| is the interface’s <dfn id="dfn-map-size-getter" export>map size getter</dfn>,
+    where |G| is the interface's <dfn id="dfn-map-size-getter" export>map size getter</dfn>,
     defined below.
 *   <div algorithm="to invoke the size method of Maps">
 
         The [=map size getter=] is a [=built-in function object=]
         whose behavior when invoked is as follows:
 
-        1.  Let |O| be the <emu-val>this</emu-val> value.
-        1.  If |O| [=is a platform object=],
-            then [=perform a security check=], passing:
-            *   the platform object |O|,
-            *   the identifier "<code>size</code>", and
-            *   the type "<code>getter</code>".
-        1.  If |O| does not [=implement=] <var ignore>A</var>, then [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
-        1.  Let |map| be the {{ECMAScript/Map}} object that is the value of |O|’s \[[BackingMap]] [=internal slot=].
-        1.  Return [=!=] <a abstract-op>Get</a>(|map|, "<code>size</code>").
+        1.  Let |O| be the <emu-val>this</emu-val> value, [=implementation-checked=] against <var ignore>A</var> with identifier "<code>size</code>" and type "<code>getter</code>".
+        1.  Let |map| be the [=map entries=] of the IDL value
+            that represents a reference to |O|.
+        1.  Return |map|'s [=map/size=], [=converted to an ECMAScript value=].
     </div>
 
-    The value of the [=function object=]’s <code class="idl">length</code> property is the Number value <emu-val>0</emu-val>.
+    The value of the [=function object=]'s <code class="idl">length</code> property is the Number value <emu-val>0</emu-val>.
 
-    The value of the [=function object=]’s <code class="idl">name</code> property is the String value "<code>size</code>".
+    The value of the [=function object=]'s <code class="idl">name</code> property is the String value "<code>size</code>".
+
+
+<h5 id="es-map-iterator" oldids="es-iterator, es-iterators">@@iterator</h5>
+
+There must exist a data property whose name is the {{@@iterator}} symbol on
+|A|'s [=interface prototype object=]
+with attributes { \[[Writable]]: <emu-val>true</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val> }
+and whose value is the [=function object=] that is the value of
+the <code>entries</code> property.
+
+<div algorithm>
+    To <dfn>create a map iterator</dfn>
+    from a [=/map=] |map|
+    and a |kind| which is either "<code>key+value</code>", "<code>key</code>", or "<code>value</code>":
+
+    1. Let |closure| be a new [=/Abstract Closure=] with no parameters
+        that captures |map| and |kind| and performs the following steps when called:
+        1. [=map/For each=] |key| → |value| of |map|:
+            1. Set |key| and |value| to each [=converted to an ECMAScript value=].
+            1. If |kind| is "<code>key</code>", let |result| be |key|.
+            1. Else if |kind| is "<code>value</code>", let |result| be |value|.
+            1. Else, let |result| be [$CreateArrayFromList$](« |key|, |value| »).
+            1. Perform [=?=] [$GeneratorYield$]([$CreateIterResultObject$](|result|, <emu-val>false</emu-val>)).
+
+            Note: The [=map/size=] of |map|, and the order of its entries,
+            might have changed while execution of this abstract operation
+            was paused by [$Yield$].
+        1. Return <emu-val>undefined</emu-val>.
+    1. Return [$CreateIteratorFromClosure$](|closure|, "<code>%MapIteratorPrototype%</code>", {{%MapIteratorPrototype%}}).
+</div>
 
 
 <h5 id="es-map-entries">entries</h5>
 
-An <code class="idl">entries</code> data property must exist on
-|A|’s [=interface prototype object=]
-with attributes { \[[Writable]]: <emu-val>true</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val> }
-and whose value is the [=function object=] that is the value of
-the {{@@iterator}} property.
-
-
-<h5 id="es-map-keys-values">keys and values</h5>
-
-For both of <code class="idl">keys</code> and <code class="idl">values</code>, there must exist a data property with that name on
-|A|’s [=interface prototype object=]
+There must exist an <code class="idl">entries</code> data property on
+|A|'s [=interface prototype object=]
 with the following characteristics:
 
 *   The property has attributes { \[[Writable]]: <emu-val>true</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val> }.
-*   The value of the property is a [=built-in function object=] that [=forwards to the internal map object|forwards that name to the internal map object=].
+*   The value of the property is a [=built-in function object=]
+    whose behavior when invoked is as follows:
 
-The value of the [=function objects=]’ <code class="idl">length</code> properties is the Number value <emu-val>0</emu-val>.
-
-The value of the [=function object=]’s <code class="idl">name</code> property is the String value "<code>keys</code>" or "<code>values</code>", correspondingly.
-
-
-<h5 id="es-map-get-has">get and has</h5>
-
-For both of <code class="idl">get</code> and <code class="idl">has</code>, there must exist a data property with that name on
-|A|’s [=interface prototype object=] with the following characteristics:
-
-*   The property has attributes
-    { \[[Writable]]: <emu-val>true</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val> }.
-*   <div algorithm="to invoke the get and has methods of Maps">
-
-        The value of the property is a [=built-in function object=]
-        that behaves as follows when invoked:
-
-        1.  Let |O| be the <emu-val>this</emu-val> value.
-        1.  Let |name| be the name of the property – "<code>get</code>" or "<code>has</code>".
-        1.  If |O| [=is a platform object=],
-            then [=perform a security check=], passing:
-            *   the platform object |O|,
-            *   an identifier equal to |name|, and
-            *   the type "<code>method</code>".
-        1.  If |O| does not [=implement=] <var ignore>A</var>, then [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
-        1.  Let |map| be the {{ECMAScript/Map}} object that is the value of |O|’s \[[BackingMap]] [=internal slot=].
-        1.  Let |keyType| be the key type specified in the [=maplike declaration=].
-        1.  Let |function| be [=!=] <a abstract-op>Get</a>(|map|, |name|).
-        1.  Let |keyArg| be the first argument passed to this function, or <emu-val>undefined</emu-val> if not supplied.
-        1.  Let |keyIDL| be the result of [=converted to an IDL value|converting=] |keyArg| to an IDL value of type |keyType|.
-        1.  Let |key| be the result of [=converted to ECMAScript values|converting=] |keyIDL| to an ECMAScript value.
-        1.  Return [=?=] <a abstract-op>Call</a>(|function|, |map|, «|key|»).
+    <div algorithm="to invoke the entries method of Maps">
+        1. Let |O| be the <emu-val>this</emu-val> value, [=implementation-checked=] against <var ignore>A</var> with identifier "<code>entries</code>" and type "<code>method</code>".
+        1.  Let |map| be the [=map entries=] of the IDL value
+            that represents a reference to |O|.
+        1. Return the result of [=creating a map iterator=] from |map| with kind "<code>key+value</code>".
     </div>
 
-The value of the [=function object=]’s <code class="idl">length</code> properties is the Number value <emu-val>1</emu-val>.
+The value of the [=function object=]'s <code class="idl">length</code> property is the Number value <emu-val>0</emu-val>.
 
-The value of the [=function object=]’s <code class="idl">name</code> property is the String value "<code>get</code>" or "<code>has</code>", correspondingly.
+The value of the [=function object=]'s <code class="idl">name</code> property is the String value "<code>entries</code>".
 
+<h5 id="es-map-keys" oldids="es-map-keys-values">keys</h5>
 
-<h5 id="es-map-clear">clear</h5>
-
-If |A| does not declare a [=member=]
-with identifier "<code>clear</code>", and
-|A| was declared with a read–write maplike declaration,
-then a <code class="idl">clear</code> data property with the following characteristics
-must exist on |A|’s
-[=interface prototype object=]:
+There must exist a <code class="idl">keys</code> data property on
+|A|'s [=interface prototype object=]
+with the following characteristics:
 
 *   The property has attributes { \[[Writable]]: <emu-val>true</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val> }.
-*   The value of the property is a [=built-in function object=] that <a lt="forwards to the internal map object">forwards <code class="idl">clear</code> to the internal map object</a>.
+*   The value of the property is a [=built-in function object=]
+    whose behavior when invoked is as follows:
 
-The value of the [=function object=]’s <code class="idl">length</code> property is the Number value <emu-val>0</emu-val>.
-
-The value of the [=function object=]’s <code class="idl">name</code> property is the String value "<code>clear</code>".
-
-
-<h5 id="es-map-delete">delete</h5>
-
-If |A| does not declare a [=member=]
-with identifier "<code>delete</code>", and
-|A| was declared with a read–write maplike declaration,
-then a <code class="idl">delete</code> data property with the following characteristics
-must exist on |A|’s
-[=interface prototype object=]:
-
-*   The property has attributes { \[[Writable]]: <emu-val>true</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val> }.
-*   <div algorithm="to invoke the delete method of Maps">
-
-        The value of the property is a [=built-in function object=] that behaves as follows when invoked:
-
-        1.  Let |O| be the <emu-val>this</emu-val> value.
-        1.  If |O| [=is a platform object=],
-            then [=perform a security check=], passing:
-            *   the platform object |O|,
-            *   the identifier "<code>delete</code>", and
-            *   the type "<code>method</code>".
-        1.  If |O| does not [=implement=] <var ignore>A</var>, then [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
-        1.  Let |map| be the {{ECMAScript/Map}} object that is the value of |O|’s \[[BackingMap]] [=internal slot=].
-        1.  Let |keyType| be the key type specified in the [=maplike declaration=].
-        1.  Let |function| be [=!=] <a abstract-op>Get</a>(|map|, "<code>delete</code>").
-        1.  Let |keyArg| be the first argument passed to this function, or <emu-val>undefined</emu-val> if not supplied.
-        1.  Let |keyIDL| be the result of [=converted to an IDL value|converting=] |keyArg| to an IDL value of type |keyType|.
-        1.  Let |key| be the result of [=converted to ECMAScript values|converting=] |keyIDL| to an ECMAScript value.
-        1.  Return [=?=] <a abstract-op>Call</a>(|function|, |map|, «|key|»).
+    <div algorithm="to invoke the keys method of Maps">
+        1. Let |O| be the <emu-val>this</emu-val> value, [=implementation-checked=] against <var ignore>A</var> with identifier "<code>keys</code>" and type "<code>method</code>".
+        1.  Let |map| be the [=map entries=] of the IDL value
+            that represents a reference to |O|.
+        1. Return the result of [=creating a map iterator=] from |map| with kind "<code>key</code>".
     </div>
 
-The value of the [=function object=]’s <code class="idl">length</code> property is the Number value <emu-val>1</emu-val>.
+The value of the [=function object=]'s <code class="idl">length</code> property is the Number value <emu-val>0</emu-val>.
 
-The value of the [=function object=]’s <code class="idl">name</code> property is the String value "<code>delete</code>".
+The value of the [=function object=]'s <code class="idl">name</code> property is the String value "<code>keys</code>".
+
+
+<h5 id="es-map-values">values</h5>
+
+There must exist a <code class="idl">values</code> data property on
+|A|'s [=interface prototype object=]
+with the following characteristics:
+
+*   The property has attributes { \[[Writable]]: <emu-val>true</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val> }.
+*   The value of the property is a [=built-in function object=]
+    whose behavior when invoked is as follows:
+
+    <div algorithm="to invoke the values method of Maps">
+        1. Let |O| be the <emu-val>this</emu-val> value, [=implementation-checked=] against <var ignore>A</var> with identifier "<code>values</code>" and type "<code>method</code>".
+        1.  Let |map| be the [=map entries=] of the IDL value
+            that represents a reference to |O|.
+        1. Return the result of [=creating a map iterator=] from |map| with kind "<code>value</code>".
+    </div>
+
+The value of the [=function object=]'s <code class="idl">length</code> property is the Number value <emu-val>0</emu-val>.
+
+The value of the [=function object=]'s <code class="idl">name</code> property is the String value "<code>values</code>".
+
+
+<h5 id="es-map-forEach" oldids="es-forEach">forEach</h5>
+
+There must exist a <code class="idl">forEach</code> data property on
+|A|'s [=interface prototype object=]
+with the following characteristics:
+
+*   The property has attributes { \[[Writable]]: <emu-val>true</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val> }.
+*   The value of the property is a [=built-in function object=]
+    whose behavior when invoked is as follows:
+
+    <div algorithm="to invoke the forEach method of Maps">
+        1. Let |O| be the <emu-val>this</emu-val> value, [=implementation-checked=] against <var ignore>A</var> with identifier "<code>forEach</code>" and type "<code>method</code>".
+        1.  Let |map| be the [=map entries=] of the IDL value
+            that represents a reference to |O|.
+        1.  Let |callbackFn| be the first argument passed to the function, or <emu-val>undefined</emu-val> if not supplied.
+        1.  If [$IsCallable$](|callbackFn|) is <emu-val>false</emu-val>, [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
+        1.  Let |thisArg| be the second argument passed to the function, or <emu-val>undefined</emu-val> if not supplied.
+        1. [=map/For each=] |key| → |value| of |map|:
+            1. Let |esKey| and |esValue| be |key| and |value| [=converted to an ECMAScript value=].
+            1. Perform [=?=] [$Call$](|callbackFn|, |thisArg|, « |esValue|, |esKey|, |O| »).
+        1.  Return <emu-val>undefined</emu-val>.
+    </div>
+
+The value of the [=function object=]'s <code class="idl">length</code> property is the Number value <emu-val>1</emu-val>.
+
+The value of the [=function object=]'s <code class="idl">name</code> property is the String value "<code>forEach</code>".
+
+
+<h5 id="es-map-get" oldids="es-map-get-has">get</h5>
+
+There must exist a <code class="idl">get</code> data property on
+|A|'s [=interface prototype object=]
+with the following characteristics:
+
+*   The property has attributes { \[[Writable]]: <emu-val>true</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val> }.
+*   The value of the property is a [=built-in function object=]
+    that behaves as follows when invoked:
+
+    <div algorithm="to invoke the get method of Maps">
+        1.  Let |O| be the <emu-val>this</emu-val> value, [=implementation-checked=] against <var ignore>A</var> with identifier "<code>get</code>" and type "<code>method</code>".
+        1.  Let |map| be the [=map entries=] of the IDL value
+            that represents a reference to |O|.
+        1.  Let |keyType| be the key type specified in the [=maplike declaration=].
+        1.  Let |keyArg| be the first argument passed to this function, or <emu-val>undefined</emu-val> if not supplied.
+        1.  Let |key| be |keyArg| [=converted to an IDL value=] of type |keyType|.
+        1.  If |key| is -0, set |key| to +0.
+        1.  If |map|[|key|] [=map/exists=], then return |map|[|key|],
+            [=converted to an ECMAScript value=].
+    </div>
+
+The value of the [=function object=]'s <code class="idl">length</code> property is the Number value <emu-val>1</emu-val>.
+
+The value of the [=function object=]'s <code class="idl">name</code> property is the String value "<code>get</code>".
+
+
+<h5 id="es-map-has">has</h5>
+
+There must exist a <code class="idl">has</code> data property on
+|A|'s [=interface prototype object=]
+with the following characteristics:
+
+*   The property has attributes { \[[Writable]]: <emu-val>true</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val> }.
+*   The value of the property is a [=built-in function object=]
+    that behaves as follows when invoked:
+
+    <div algorithm="to invoke the has method of Maps">
+        1.  Let |O| be the <emu-val>this</emu-val> value, [=implementation-checked=] against <var ignore>A</var> with identifier "<code>has</code>" and type "<code>method</code>".
+        1.  Let |map| be the [=map entries=] of the IDL value
+            that represents a reference to |O|.
+        1.  Let |keyType| be the key type specified in the [=maplike declaration=].
+        1.  Let |keyArg| be the first argument passed to this function, or <emu-val>undefined</emu-val> if not supplied.
+        1.  Let |key| be |keyArg| [=converted to an IDL value=] of type |keyType|.
+        1.  If |key| is -0, set |key| to +0.
+        1.  If |map|[|key|] [=map/exists=], then return <emu-val>true</emu-val>;
+            otherwise return <emu-val>false</emu-val>.
+    </div>
+
+The value of the [=function object=]'s <code class="idl">length</code> property is the Number value <emu-val>1</emu-val>.
+
+The value of the [=function object=]'s <code class="idl">name</code> property is the String value "<code>has</code>".
 
 
 <h5 id="es-map-set">set</h5>
 
 If |A| does not declare a [=member=] with identifier "<code>set</code>",
 and |A| was declared with a read–write maplike declaration,
-then a <code class="idl">set</code> data property with the following characteristics
-must exist on |A|’s [=interface prototype object=]:
+then there must exist a <code class="idl">set</code> data property
+on |A|'s [=interface prototype object=]
+with the following characteristics:
 
-*   The property has attributes
-    { \[[Writable]]: <emu-val>true</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val> }.
-*   <div algorithm="to invoke the set method of Maps">
+*   The property has attributes { \[[Writable]]: <emu-val>true</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val> }.
+*   The value of the property is a [=built-in function object=]
+    that behaves as follows when invoked:
 
-        The value of the property is a [=built-in function object=] that behaves as follows when invoked:
-
-        1.  Let |O| be the <emu-val>this</emu-val> value.
-        1.  If |O| [=is a platform object=],
-            then [=perform a security check=], passing:
-            *   the platform object |O|,
-            *   the identifier "<code>set</code>", and
-            *   the type "<code>method</code>".
-        1.  If |O| does not [=implement=] <var ignore>A</var>, then [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
-        1.  Let |map| be the {{ECMAScript/Map}} object that is the value of |O|’s \[[BackingMap]] [=internal slot=].
-        1.  Let |keyType| and |valueType| be the key and value types specified in the [=maplike declaration=].
-        1.  Let |function| be [=!=] <a abstract-op>Get</a>(|map|, "<code>set</code>").
+    <div algorithm="to invoke the set method of Maps">
+        1.  Let |O| be the <emu-val>this</emu-val> value, [=implementation-checked=] against <var ignore>A</var> with identifier "<code>set</code>" and type "<code>method</code>".
+        1.  Let |map| be the [=map entries=] of the IDL value
+            that represents a reference to |O|.
+        1.  Let |keyType| be the key type specified in the [=maplike declaration=], and |valueType| be the value type.
         1.  Let |keyArg| be the first argument passed to this function, or <emu-val>undefined</emu-val> if not supplied.
+        1.  Let |key| be |keyArg| [=converted to an IDL value=] of type |keyType|.
+        1.  If |key| is -0, set |key| to +0.
         1.  Let |valueArg| be the second argument passed to this function, or <emu-val>undefined</emu-val> if not supplied.
-        1.  Let |keyIDL| be the result of [=converted to an IDL value|converting=] |keyArg| to an IDL value of type |keyType|.
-        1.  Let |valueIDL| be the result of [=converted to an IDL value|converting=] |valueArg| to an IDL value of type |valueType|.
-        1.  Let |key| be the result of [=converted to ECMAScript values|converting=] |keyIDL| to an ECMAScript value.
-        1.  Let |value| be the result of [=converted to ECMAScript values|converting=] |valueIDL| to an ECMAScript value.
-        1.  Perform [=?=] <a abstract-op>Call</a>(|function|, |map|, «|key|, |value|»).
+        1.  Let |value| be |valueArg| [=converted to an IDL value=] of type |valueType|.
+        1.  [=map/Set=] |map|[|key|] to |value|.
         1.  Return |O|.
     </div>
 
-The value of the [=function object=]’s <code class="idl">length</code> property is the Number value <emu-val>2</emu-val>.
+The value of the [=function object=]'s <code class="idl">length</code> property is the Number value <emu-val>2</emu-val>.
 
-The value of the [=function object=]’s <code class="idl">name</code> property is the String value "<code>set</code>".
+The value of the [=function object=]'s <code class="idl">name</code> property is the String value "<code>set</code>".
+
+If the interface does declare a <code class=idl>set</code> method,
+it should similarly map a -0 key to +0,
+and must return [=this=].
+
+
+<h5 id="es-map-delete">delete</h5>
+
+If |A| does not declare a [=member=] with identifier "<code>delete</code>",
+and |A| was declared with a read–write maplike declaration,
+then there must exist a <code class="idl">delete</code> data property
+on |A|'s [=interface prototype object=]
+with the following characteristics:
+
+*   The property has attributes { \[[Writable]]: <emu-val>true</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val> }.
+*   The value of the property is a [=built-in function object=]
+    that behaves as follows when invoked:
+
+    <div algorithm="to invoke the delete method of Maps">
+        1.  Let |O| be the <emu-val>this</emu-val> value, [=implementation-checked=] against <var ignore>A</var> with identifier "<code>delete</code>" and type "<code>method</code>".
+        1.  Let |map| be the [=map entries=] of the IDL value
+            that represents a reference to |O|.
+        1.  Let |keyType| be the key type specified in the [=maplike declaration=].
+        1.  Let |keyArg| be the first argument passed to this function, or <emu-val>undefined</emu-val> if not supplied.
+        1.  Let |key| be |keyArg| [=converted to an IDL value=] of type |keyType|.
+        1.  If |key| is -0, set |key| to +0.
+        1.  Let |retVal| be <emu-val>true</emu-val> if |map|[|key|] exists,
+            or else <emu-val>false</emu-val>.
+        1.  [=map/Remove=] |map|[|key|].
+        1.  Return |retVal|.
+    </div>
+
+The value of the [=function object=]'s <code class="idl">length</code> property is the Number value <emu-val>1</emu-val>.
+
+The value of the [=function object=]'s <code class="idl">name</code> property is the String value "<code>delete</code>".
+
+If the interface does declare a <code class=idl>delete</code> method,
+it should similarly map a -0 key to +0,
+and must return a {{boolean}} indicating whether the key was present or not.
+
+
+<h5 id="es-map-clear">clear</h5>
+
+If |A| does not declare a [=member=] with identifier "<code>clear</code>",
+and |A| was declared with a read–write maplike declaration,
+then there must exist a <code class="idl">clear</code> data property
+on |A|'s [=interface prototype object=]
+with the following characteristics:
+
+*   The property has attributes { \[[Writable]]: <emu-val>true</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val> }.
+*   The value of the property is a [=built-in function object=]
+    that behaves as follows when invoked:
+
+    <div algorithm="to invoke the clear method of Maps">
+        1.  Let |O| be the <emu-val>this</emu-val> value, [=implementation-checked=] against <var ignore>A</var> with identifier "<code>clear</code>" and type "<code>method</code>".
+        1.  Let |map| be the [=map entries=] of the IDL value
+            that represents a reference to |O|.
+        1.  [=map/Clear=] |map|.
+
+            Note: The [=/map=] is preserved because there may be existing
+            iterators, currently suspended, iterating over it.
+        1.  Return <emu-val>undefined</emu-val>.
+    </div>
+
+The value of the [=function object=]'s <code class="idl">length</code> property is the Number value <emu-val>0</emu-val>.
+
+The value of the [=function object=]'s <code class="idl">name</code> property is the String value "<code>clear</code>".
+
+If the interface does declare a <code class=idl>clear</code> method,
+it must preserve the [=map entries=] object (rather than generating a new one)
+and must return {{undefined}}.
 
 
 <h4 id="es-setlike">Setlike declarations</h4>
 
-Any object that [=implements=] an [=interface=]
-that has a [=setlike declaration=]
-must have a \[[BackingSet]] [=internal slot=], which is
-initially set to a newly created {{ECMAScript/Set}} object.
-This {{ECMAScript/Set}} object’s \[[SetData]] internal slot is
-the object’s [=set entries=].
-
-If an [=interface=] |A| is declared with a [=setlike declaration=], then
-there exists a number of additional properties
-on |A|’s [=interface prototype object=].
+If an [=interface=] |A| is declared with a [=setlike declaration=],
+then there exists a number of additional properties on |A|'s [=interface prototype object=].
 These additional properties are described in the sub-sections below.
-
-<div algorithm>
-
-    Some of the properties below are defined to have a [=built-in function object=] value that
-    <dfn id="dfn-forwards-to-the-internal-set-object" export>forwards to the internal set object</dfn>
-    for a given function name. Such functions behave as follows when invoked:
-
-    1.  Let |O| be the <emu-val>this</emu-val> value.
-    1.  Let |arguments| be the list of arguments passed to this function.
-    1.  Let |name| be the function name.
-    1.  If |O| [=is a platform object=],
-        then [=perform a security check=], passing:
-        *   the platform object |O|,
-        *   an identifier equal to |name|, and
-        *   the type "<code>method</code>".
-    1.  If |O| does not [=implement=] <var ignore>A</var>,
-        then [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
-    1.  Let |set| be the {{ECMAScript/Set}} object that is
-        the value of |O|’s \[[BackingSet]] [=internal slot=].
-    1.  Let |function| be [=?=] <a abstract-op>GetMethod</a>(|set|, |name|).
-    1.  If |function| is <emu-val>undefined</emu-val>,
-        then [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
-    1.  Return [=?=] <a abstract-op>Call</a>(|function|, |set|, |arguments|).
-</div>
-
 
 <h5 id="es-set-size">size</h5>
 
-A <code class="idl">size</code> property must exist on |A|’s [=interface prototype object=]
+A <code class="idl">size</code> property must exist on
+|A|'s [=interface prototype object=]
 with the following characteristics:
 
 *   The property has attributes { \[[Get]]: |G|, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val> },
-    where |G| is the interface’s <dfn id="dfn-set-size-getter" export>set size getter</dfn>,
+    where |G| is the interface's <dfn id="dfn-set-size-getter" export>set size getter</dfn>,
     defined below.
 *   <div algorithm="to invoke the size method of Sets">
 
         The [=set size getter=] is a [=built-in function object=]
         whose behavior when invoked is as follows:
 
-        1.  Let |O| be the <emu-val>this</emu-val> value.
-        1.  If |O| [=is a platform object=],
-            then [=perform a security check=], passing:
-            *   the platform object |O|,
-            *   the identifier "<code>size</code>", and
-            *   the type "<code>getter</code>".
-        1.  If |O| does not [=implement=] <var ignore>A</var>, then [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
-        1.  Let |set| be the {{ECMAScript/Set}} object that is the value of |O|’s \[[BackingSet]] [=internal slot=].
-        1.  Return the result of calling the \[[Get]] internal method of |set| passing "<code>size</code>" and |set| as arguments.
+        1.  Let |O| be the <emu-val>this</emu-val> value, [=implementation-checked=] against <var ignore>A</var> with identifier "<code>size</code>" and type "<code>getter</code>".
+        1.  Let |set| be the [=set entries=] of the IDL value
+            that represents a reference to |O|.
+        1.  Return |set|'s [=set/size=], [=converted to an ECMAScript value=].
     </div>
 
-    The value of the [=function object=]’s <code class="idl">length</code> property is the Number value <emu-val>0</emu-val>.
+    The value of the [=function object=]'s <code class="idl">length</code> property is the Number value <emu-val>0</emu-val>.
 
-    The value of the [=function object=]’s <code class="idl">name</code> property is the String value "<code>size</code>".
+    The value of the [=function object=]'s <code class="idl">name</code> property is the String value "<code>size</code>".
+
+
+<h5 id="es-set-iterator">@@iterator</h5>
+
+There must exist a data property whose name is the {{@@iterator}} symbol on
+|A|'s [=interface prototype object=]
+with attributes { \[[Writable]]: <emu-val>true</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val> }
+and whose value is the [=function object=] that is the value of
+the <code class="idl">values</code> property.
+
+<div algorithm>
+    To <dfn>create a set iterator</dfn>
+    from a [=/set=] |set|
+    and a |kind| which is either "<code>key+value</code>" or "<code>value</code>":
+
+    1. Let |closure| be a new [=/Abstract Closure=] with no parameters
+        that captures |set| and |kind| and performs the following steps when called:
+        1. [=set/For each=] |entry| of |set|:
+            1. Set |entry| to be |entry| [=converted to an ECMAScript value=].
+            1. If |kind| is "<code>value</code>", let |result| be |entry|.
+            1. Else, let |result| be [$CreateArrayFromList$](« |entry|, |entry| »).
+            1. Perform [=?=] [$GeneratorYield$]([$CreateIterResultObject$](|result|, <emu-val>false</emu-val>)).
+
+            Note: The [=set/size=] of |set|, and the order of its entries,
+            might have changed while execution of this abstract operation
+            was paused by [$Yield$].
+        1. Return <emu-val>undefined</emu-val>.
+    1. Return [$CreateIteratorFromClosure$](|closure|, "<code>%SetIteratorPrototype%</code>", {{%SetIteratorPrototype%}}).
+</div>
+
+
+<h5 id="es-set-entries" oldids="es-set-entries-keys">entries</h5>
+
+There must exist an <code class="idl">entries</code> data property on
+|A|'s [=interface prototype object=]
+with the following characteristics:
+
+*   The property has attributes { \[[Writable]]: <emu-val>true</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val> }.
+*   The value of the property is a [=built-in function object=]
+    whose behavior when invoked is as follows:
+
+    <div algorithm="to invoke the entries method of Sets">
+        1. Let |O| be the <emu-val>this</emu-val> value, [=implementation-checked=] against <var ignore>A</var> with identifier "<code>entries</code>" and type "<code>method</code>".
+        1.  Let |set| be the [=set entries=] of the IDL value
+            that represents a reference to |O|.
+        1. Return the result of [=creating a set iterator=] from |set| with kind "<code>key+value</code>".
+    </div>
+
+The value of the [=function object=]'s <code class="idl">length</code> property is
+the Number value <emu-val>0</emu-val>.
+
+The value of the [=function object=]'s <code class="idl">name</code> property is
+the String value "<code>entries</code>".
+
+
+<h5 id="es-set-keys">keys</h5>
+
+A <code class="idl">keys</code> data property must exist
+on |A|'s [=interface prototype object=]
+with attributes { \[[Writable]]: <emu-val>true</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val> }
+and whose value is the [=function object=] that is the value of
+the <code class="idl">values</code> property.
 
 
 <h5 id="es-set-values">values</h5>
 
-A <code class="idl">values</code> data property must exist on |A|’s [=interface prototype object=]
-with attributes { \[[Writable]]: <emu-val>true</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val> }
-and whose value is the [=function object=] that is the value of
-the {{@@iterator}} property.
+There must exist a <code class="idl">values</code> data property on
+|A|'s [=interface prototype object=]
+with the following characteristics:
 
+*   The property has attributes { \[[Writable]]: <emu-val>true</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val> }.
+*   The value of the property is a [=built-in function object=]
+    whose behavior when invoked is as follows:
 
-<h5 id="es-set-entries-keys">entries and keys</h5>
+    <div algorithm="to invoke the values method of Sets">
+        1. Let |O| be the <emu-val>this</emu-val> value, [=implementation-checked=] against <var ignore>A</var> with identifier "<code>values</code>" and type "<code>method</code>".
+        1.  Let |set| be the [=set entries=] of the IDL value
+            that represents a reference to |O|.
+        1. Return the result of [=creating a set iterator=] from |set| with kind "<code>value</code>".
+    </div>
 
-For both of <code class="idl">entries</code> and <code class="idl">keys</code>, there must exist a data property with that name on
-|A|’s [=interface prototype object=] with the following characteristics:
-
-*   The property has attributes
-    { \[[Writable]]: <emu-val>true</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val> }.
-*   The value of the property is a [=built-in function object=] that
-    [=forwards to the internal set object|forwards that name to the internal set object=].
-
-The value of the [=function object=]’s <code class="idl">length</code> properties is
+The value of the [=function object=]'s <code class="idl">length</code> property is
 the Number value <emu-val>0</emu-val>.
 
-The value of the [=function object=]’s <code class="idl">name</code> property is
-the String value "<code>entries</code>" or "<code>keys</code>", correspondingly.
+The value of the [=function object=]'s <code class="idl">name</code> property is
+the String value "<code>values</code>".
+
+
+<h5 id="es-set-forEach">forEach</h5>
+
+There must exist a <code class="idl">forEach</code> data property on
+|A|'s [=interface prototype object=]
+with the following characteristics:
+
+*   The property has attributes { \[[Writable]]: <emu-val>true</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val> }.
+*   The value of the property is a [=built-in function object=]
+    whose behavior when invoked is as follows:
+
+    <div algorithm="to invoke the forEach method of Sets">
+        1.  Let |O| be the <emu-val>this</emu-val> value, [=implementation-checked=] against <var ignore>A</var> with identifier "<code>forEach</code>" and type "<code>method</code>".
+        1.  Let |set| be the [=set entries=] of the IDL value
+            that represents a reference to |O|.
+        1.  Let |callbackFn| be the first argument passed to the function, or <emu-val>undefined</emu-val> if not supplied.
+        1.  If [$IsCallable$](|callbackFn|) is <emu-val>false</emu-val>, [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
+        1.  Let |thisArg| be the second argument passed to the function, or <emu-val>undefined</emu-val> if not supplied.
+        1. [=map/For each=] |value| of |set|:
+            1. Let |esValue| be |value| [=converted to an ECMAScript value=].
+            1. Perform [=?=] [$Call$](|callbackFn|, |thisArg|, « |esValue|, |esValue|, |O|»).
+        1.  Return <emu-val>undefined</emu-val>.
+    </div>
+
+The value of the [=function object=]'s <code class="idl">length</code> property is the Number value <emu-val>1</emu-val>.
+
+The value of the [=function object=]'s <code class="idl">name</code> property is the String value "<code>forEach</code>".
 
 
 <h5 id="es-set-has">has</h5>
 
-There must exist a <code class="idl">has</code> data property on |A|’s [=interface prototype object=]
+There must exist a <code class="idl">has</code> data property on
+|A|'s [=interface prototype object=]
 with the following characteristics:
 
-*   The property has attributes
-    { \[[Writable]]: <emu-val>true</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val> }.
-*   <div algorithm="to invoke the has method of Sets">
+*   The property has attributes { \[[Writable]]: <emu-val>true</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val> }.
+*   The value of the property is a [=built-in function object=]
+    that behaves as follows when invoked:
 
-        The value of the property is a [=built-in function object=] that behaves as follows when invoked:
-
-        1.  Let |O| be the <emu-val>this</emu-val> value.
-        1.  If |O| [=is a platform object=],
-            then [=perform a security check=], passing:
-            *   the platform object |O|,
-            *   the identifier "<code>has</code>", and
-            *   the type "<code>method</code>".
-        1.  If |O| does not [=implement=] <var ignore>A</var>, then [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
-        1.  Let |set| be the {{ECMAScript/Set}} object that is the value of |O|’s \[[BackingSet]] [=internal slot=].
-        1.  Let |type| be the value type specified in the [=setlike declaration=].
-        1.  Let |function| be [=!=] <a abstract-op>Get</a>(|set|, "<code>has</code>").
-        1.  Let |arg| be the first argument passed to this function, or <emu-val>undefined</emu-val> if not supplied.
-        1.  Let |idlValue| be the result of [=converted to an IDL value|converting=] |arg| to an IDL value of type |type|.
-        1.  Let |value| be the result of [=converted to ECMAScript values|converting=] |idlValue| to an ECMAScript value.
-        1.  Return [=?=] <a abstract-op>Call</a>(|function|, |set|, «|value|»).
+    <div algorithm="to invoke the has method of Sets">
+        1.  Let |O| be the <emu-val>this</emu-val> value, [=implementation-checked=] against <var ignore>A</var> with identifier "<code>has</code>" and type "<code>method</code>".
+        1.  Let |set| be the [=set entries=] of the IDL value
+            that represents a reference to |O|.
+        1.  Let |valueType| be the value type specified in the [=setlike declaration=].
+        1.  Let |valueArg| be the first argument passed to this function, or <emu-val>undefined</emu-val> if not supplied.
+        1.  Let |value| be |valueArg| [=converted to an IDL value=] of type |valueType|.
+        1.  If |value| is -0, set |value| to +0.
+        1.  If |set| [=set/contains=] |value|, then return <emu-val>true</emu-val>,
+            otherwise return <emu-val>false</emu-val>.
     </div>
 
-The value of the [=function object=]’s <code class="idl">length</code> property is a Number value <emu-val>1</emu-val>.
+The value of the [=function object=]'s <code class="idl">length</code> property is a Number value <emu-val>1</emu-val>.
 
-The value of the [=function object=]’s <code class="idl">name</code> property is the String value "<code>has</code>".
+The value of the [=function object=]'s <code class="idl">name</code> property is the String value "<code>has</code>".
 
 
-<h5 id="es-add-delete">add and delete</h5>
+<h5 id="es-set-add" oldids="es-add-delete">add</h5>
 
-For both of <code class="idl">add</code> and <code class="idl">delete</code>, if:
-
-*   |A| does not declare an [=member=] with a matching identifier, and
-*   |A| was declared with a read–write setlike declaration,
-
-then a data property with that name and the following characteristics
-must exist on |A|’s [=interface prototype object=]:
+If |A| does not declare a [=member=] with identifier "<code>add</code>",
+and |A| was declared with a read–write setlike declaration,
+then there must exist an <code class="idl">add</code> data property
+on |A|'s [=interface prototype object=]
+with the following characteristics:
 
 *   The property has attributes { \[[Writable]]: <emu-val>true</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val> }.
-*   <div algorithm="to invoke the add and delete methods of Sets">
+*   The value of the property is a [=built-in function object=]
+    that behaves as follows when invoked:
 
-        The value of the property is a [=built-in function object=] that behaves as follows when invoked:
-
-        1.  Let |O| be the <emu-val>this</emu-val> value.
-        1.  Let |name| be the name of the property – "<code>add</code>" or "<code>delete</code>".
-        1.  If |O| [=is a platform object=],
-            then [=perform a security check=], passing:
-            *   the platform object |O|,
-            *   an identifier equal to |name|, and
-            *   the type "<code>method</code>".
-        1.  If |O| does not [=implement=] <var ignore>A</var>, then [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
-        1.  Let |set| be the {{ECMAScript/Set}} object that is the value of |O|’s \[[BackingSet]] [=internal slot=].
-        1.  Let |type| be the value type specified in the [=setlike declaration=].
-        1.  Let |function| be [=?=] <a abstract-op>Get</a>(|set|, |name|).
-        1.  Let |arg| be the first argument passed to this function, or <emu-val>undefined</emu-val> if not supplied.
-        1.  Let |idlValue| be the result of [=converted to an IDL value|converting=] |arg| to an IDL value of type |type|.
-        1.  Let |value| be the result of [=converted to ECMAScript values|converting=] |idlValue| to an ECMAScript value.
-        1.  Let |result| be [=?=] <a abstract-op>Call</a>(|function|, |set|, «|value|»).
-        1.  If |name| is "delete", then return |result|.
-        1.  Otherwise, return |O|.
+    <div algorithm="to invoke the add method of Sets">
+        1.  Let |O| be the <emu-val>this</emu-val> value, [=implementation-checked=] against <var ignore>A</var> with identifier "<code>add</code>" and type "<code>method</code>".
+        1.  Let |set| be the [=set entries=] of the IDL value
+            that represents a reference to |O|.
+        1.  Let |valueType| be the value type specified in the [=setlike declaration=].
+        1.  Let |valueArg| be the first argument passed to this function, or <emu-val>undefined</emu-val> if not supplied.
+        1.  Let |value| be |valueArg| [=converted to an IDL value=] of type |valueType|.
+        1.  If |value| is -0, set |value| to +0.
+        1.  [=set/Append=] |value| to |set|.
+        1.  Return |value| [=converted to an ECMAScript value=].
     </div>
 
-The value of the [=function object=]’s <code class="idl">length</code> property is the Number value <emu-val>1</emu-val>.
+The value of the [=function object=]'s <code class="idl">length</code> property is the Number value <emu-val>1</emu-val>.
 
-The value of the [=function object=]’s <code class="idl">name</code> property is the String value "<code>add</code>" or "<code>delete</code>", correspondingly.
+The value of the [=function object=]'s <code class="idl">name</code> property is the String value "<code>add</code>".
+
+If the interface does declare an <code class=idl>add</code> method,
+it should similarly map a -0 value to +0,
+and must return the value that was set.
+
+
+<h5 id="es-set-delete">delete</h5>
+
+If |A| does not declare a [=member=] with identifier "<code>delete</code>",
+and |A| was declared with a read–write setlike declaration,
+then there must exist a <code class="idl">delete</code> data property
+on |A|'s [=interface prototype object=]
+with the following characteristics:
+
+*   The property has attributes { \[[Writable]]: <emu-val>true</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val> }.
+*   The value of the property is a [=built-in function object=]
+    that behaves as follows when invoked:
+
+    <div algorithm="to invoke the delete method of Sets">
+        1.  Let |O| be the <emu-val>this</emu-val> value, [=implementation-checked=] against <var ignore>A</var> with identifier "<code>delete</code>" and type "<code>method</code>".
+        1.  Let |set| be |O|'s [=set entries=].
+        1.  Let |valueType| be the value type specified in the [=setlike declaration=].
+        1.  Let |valueArg| be the first argument passed to this function, or <emu-val>undefined</emu-val> if not supplied.
+        1.  Let |value| be |valueArg| [=converted to an IDL value=] of type |valueType|.
+        1.  If |value| is -0, set |value| to +0.
+        1.  Let |retVal| be <emu-val>true</emu-val> if |set| [=set/contains=] |value|, or else <emu-val>false</emu-val>.
+        1.  [=list/Remove=] |value| from |set|.
+        1.  Return |retVal|.
+    </div>
+
+The value of the [=function object=]'s <code class="idl">length</code> property is the Number value <emu-val>1</emu-val>.
+
+The value of the [=function object=]'s <code class="idl">name</code> property is the String value "<code>delete</code>".
+
+If the interface does declare a <code class=idl>delete</code> method,
+it should similarly map a -0 value to +0,
+and must return a {{boolean}} indicating whether the value was present or not.
 
 
 <h5 id="es-set-clear">clear</h5>
 
-If |A| does not declare a [=member=]
-with a matching identifier, and
-|A| was declared with a read–write setlike declaration,
-then a <code class="idl">clear</code> data property with the following characteristics
-must exist on |A|’s
-[=interface prototype object=]:
+If |A| does not declare a [=member=] with identifier "<code>clear</code>",
+and |A| was declared with a read–write setlike declaration,
+then there must exist a <code class="idl">clear</code> data property
+on |A|'s [=interface prototype object=]
+with the following characteristics:
 
 *   The property has attributes { \[[Writable]]: <emu-val>true</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>, \[[Configurable]]: <emu-val>true</emu-val> }.
-*   The value of the property is a [=built-in function object=] that <a lt="forwards to the internal set object">forwards <code class="idl">clear</code> to the internal map object</a>.
+*   The value of the property is a [=built-in function object=]
+    that behaves as follows when invoked:
 
-The value of the [=function object=]’s <code class="idl">length</code> property is the Number value <emu-val>0</emu-val>.
+    <div algorithm="to invoke the clear method of Sets">
+        1.  Let |O| be the <emu-val>this</emu-val> value, [=implementation-checked=] against <var ignore>A</var> with identifier "<code>clear</code>" and type "<code>method</code>".
+        1.  Let |set| be the [=set entries=] of the IDL value
+            that represents a reference to |O|.
+        1.  [=set/Empty=] |set|.
 
-The value of the [=function object=]’s <code class="idl">name</code> property is the String value "<code>clear</code>".
+            Note: The [=/set=] is preserved because there may be existing
+            iterators, currently suspended, iterating over it.
+        1.  Return <emu-val>undefined</emu-val>.
+    </div>
+
+The value of the [=function object=]'s <code class="idl">length</code> property is the Number value <emu-val>0</emu-val>.
+
+The value of the [=function object=]'s <code class="idl">name</code> property is the String value "<code>clear</code>".
+
+If the interface does declare a <code class=idl>clear</code> method,
+it must preserve the [=set entries=] object (rather than generating a new one)
+and must return {{undefined}}.
 
 
 <h3 id="es-platform-objects">Platform objects implementing interfaces</h3>
@@ -13362,14 +13455,13 @@ the [=Realm=] associated with a platform object is changed, its
 \[[Prototype]] [=internal slot=] must be immediately
 updated to be the [=interface prototype object=]
 of the [=primary interface=]
-from the [=platform object=]’s newly associated [=Realm=].
+from the [=platform object=]'s newly associated [=Realm=].
 
 Additionally, [=platform objects=] which implement an [=interface=]
 which has a [{{Global}}] [=extended attribute=]
 get properties declaratively from:
 
 * [[#es-stringifier]],
-* [[#es-iterators]],
 * [[#es-iterable]],
 * [[#es-maplike]], and
 * [[#es-setlike]].
@@ -13401,7 +13493,7 @@ properties on the object, but are made to look like they are by being exposed
 by the <a href="#legacy-platform-object-getownproperty">\[[GetOwnProperty]] internal method</a> .
 
 It is permissible for an object to implement multiple interfaces that support indexed properties.
-However, if so, and there are conflicting definitions as to the object’s
+However, if so, and there are conflicting definitions as to the object's
 [=supported property indices=],
 then it is undefined what additional properties the object will appear to
 have, or what its exact behavior will be with regard to its indexed properties.
@@ -13570,15 +13662,15 @@ internal method as follows.
     the following steps are taken:
 
     1.  Let |keys| be a new empty [=list=] of ECMAScript String and Symbol values.
-    1.  If |O| [=support indexed properties|supports indexed properties=], then [=list|for each=] |index| of |O|’s
+    1.  If |O| [=support indexed properties|supports indexed properties=], then [=list|for each=] |index| of |O|'s
         [=supported property indices=], in ascending numerical order, [=list|append=] [=!=] <a abstract-op>ToString</a>(|index|) to
         |keys|.
-    1.  If |O| [=support named properties|supports named properties=], then [=list|for each=] |P| of |O|’s
+    1.  If |O| [=support named properties|supports named properties=], then [=list|for each=] |P| of |O|'s
         [=supported property names=] that is visible according to the [=named property visibility algorithm=],
         [=list|append=] |P| to |keys|.
-    1.  [=list|For each=] |P| of |O|’s own property keys that is a String, in ascending chronological order of
+    1.  [=list|For each=] |P| of |O|'s own property keys that is a String, in ascending chronological order of
         property creation, [=list|append=] |P| to |keys|.
-    1.  [=list|For each=] |P| of |O|’s own property keys that is a Symbol, in ascending chronological order of
+    1.  [=list|For each=] |P| of |O|'s own property keys that is a Symbol, in ascending chronological order of
         property creation, [=list|append=] |P| to |keys|.
     1.  Assert: |keys| has no duplicate items.
     1.  Return |keys|.
@@ -14071,7 +14163,7 @@ the special value “missing”, which represents a missing optional argument.
     1.  If |callResult| is an [=abrupt completion=], set |completion| to
         |callResult| and jump to the step labeled <a href="#call-user-object-operation-return"><i>return</i></a>.
     1.  Set |completion| to the result of [=converted to an IDL value|converting=]
-        |callResult|.\[[Value]] to an IDL value of the same type as the operation’s
+        |callResult|.\[[Value]] to an IDL value of the same type as the operation's
         return type.
     1.  <i id="call-user-object-operation-return">Return:</i> at this
         point |completion| will be set to an ECMAScript completion value.
@@ -14159,7 +14251,7 @@ described in the previous section).
     1.  If |callResult| is an [=abrupt completion=], set |completion| to
         |callResult| and jump to the step labeled <a href="#invoke-return"><i>return</i></a>.
     1.  Set |completion| to the result of [=converted to an IDL value|converting=]
-        |callResult|.\[[Value]] to an IDL value of the same type as the operation’s
+        |callResult|.\[[Value]] to an IDL value of the same type as the operation's
         return type.
     1.  <i id="invoke-return">Return:</i> at this
         point |completion| will be set to an ECMAScript completion value.
@@ -14201,7 +14293,7 @@ a return type that is a [=promise type=].
     1.  If |callResult| is an [=abrupt completion=], set |completion| to
         |callResult| and jump to the step labeled <a href="#construct-return"><i>return</i></a>.
     1.  Set |completion| to the result of [=converted to an IDL value|converting=]
-        |callResult|.\[[Value]] to an IDL value of the same type as the operation’s
+        |callResult|.\[[Value]] to an IDL value of the same type as the operation's
         return type.
     1.  <i id="construct-return">Return:</i> at this
         point |completion| will be set to an ECMAScript completion value.
@@ -14241,7 +14333,7 @@ The characteristics of a namespace object are described in [[#namespace-object]]
     1.  Return |namespaceObject|.
 </div>
 
-The [=class string=] of a [=namespace object=] is the [=namespace=]’s [=identifier=].
+The [=class string=] of a [=namespace object=] is the [=namespace=]'s [=identifier=].
 
 
 <h3 id="es-exceptions">Exceptions</h3>
@@ -14909,7 +15001,7 @@ The following conventions are used in the algorithms in this document:
     interchangeably. That is, an algorithm that uses return/throw terminology may be treated as
     returning a [=Completion Record=], while one that returns a [=Completion Record=] may be treated as
     returning a value or throwing an exception. Similarly, to catch exceptions, defining the
-    behavior to adopt when [=an exception was thrown=] and checking if the [=Completion Record=]’s
+    behavior to adopt when [=an exception was thrown=] and checking if the [=Completion Record=]'s
     \[[Type]] field is “throw” are equivalent.
 *   [=Completion Records=] are extended by allowing them to contain values that are not ECMAScript
     values, such as Web IDL values.
