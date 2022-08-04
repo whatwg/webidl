@@ -9402,7 +9402,8 @@ The [{{Exposed}}] [=extended attribute=] must either
 [=takes a wildcard|take a wildcard=].
 Each of the identifiers mentioned must be a [=global name=] of some [=interface=] and be unique.
 
-The <dfn>own exposure set</dfn> is the [=/set=] of identifiers defined as follows:
+The <dfn>own exposure set</dfn> is either a [=/set=] of identifiers or the special value
+<code>*</code>, defined as follows:
 
 <dl class="switch">
      :  If the [{{Exposed}}] [=extended attribute=] [=takes an identifier=] |I|
@@ -9410,8 +9411,7 @@ The <dfn>own exposure set</dfn> is the [=/set=] of identifiers defined as follow
      :  If the [{{Exposed}}] [=extended attribute=] [=takes an identifier list=] |I|
      :: The [=own exposure set=] is the [=/set=] |I|.
      :  If the [{{Exposed}}] [=extended attribute=] [=takes a wildcard=]
-     :: The [=own exposure set=] is the [=/set=] of all [=global names=] of all [=interfaces=]
-        which have the [{{Global}}] [=extended attribute=].
+     :: The [=own exposure set=] is <code>*</code>.
 </dl>
 
 <p class="advisement">
@@ -9430,26 +9430,33 @@ The <dfn>own exposure set</dfn> is the [=/set=] of identifiers defined as follow
     1.  Let |H| be |C|'s [=host interface=] if |C| is an [=interface mixin member=], or null otherwise.
     1.  If |C| is an [=interface member=], [=interface mixin member=], or [=namespace member=], then:
         1.  If the [{{Exposed}}] [=extended attribute=] is specified on |C|, then:
-            1.  If |H| is set, return the [=set/intersection=] of |C|'s [=own exposure set=]
-                and |H|'s [=exposure set=].
-            1.  Otherwise, return |C|'s [=own exposure set=].
-        1.  Otherwise, set |C| to be the
+            1.  If |H| is null, return |C|'s [=own exposure set=].
+            1.  If |C|'s [=own exposure set=] is <code>*</code>, return |H|'s [=exposure set=].
+            1.  If |H|'s [=exposure set=] is <code>*</code>, return |C|'s [=own exposure set=].
+            1.  Return the [=set/intersection=] of |C|'s [=own exposure set=] and |H|'s
+                [=exposure set=].
+        1.  Set |C| to the
             [=interface=], [=partial interface=],
             [=interface mixin=], [=partial interface mixin=],
             [=namespace=], or [=partial namespace=]
             |C| is declared on.
     1.  If |C| is a [=partial interface=], [=partial interface mixin=], or [=partial namespace=], then:
         1.  If the [{{Exposed}}] [=extended attribute=] is specified on |C|, then:
-            1.  If |H| is set, return the [=set/intersection=] of |C|'s [=own exposure set=]
-                and |H|'s [=exposure set=].
-            1.  Otherwise, return |C|'s [=own exposure set=].
-        1.  Otherwise, set |C| to be the original [=interface=], [=interface mixin=], or [=namespace=]
-            definition of |C|.
+            1.  If |H| is null, return |C|'s [=own exposure set=].
+            1.  If |C|'s [=own exposure set=] is <code>*</code>, return |H|'s [=exposure set=].
+            1.  If |H|'s [=exposure set=] is <code>*</code>, return |C|'s [=own exposure set=].
+            1.  Return the [=set/intersection=] of |C|'s [=own exposure set=] and |H|'s
+                [=exposure set=].
+        1.  Set |C| to the original [=interface=], [=interface mixin=], or [=namespace=] definition
+            of |C|.
     1.  If |C| is an [=interface mixin=], then:
-        1.  If the [{{Exposed}}] [=extended attribute=] is specified on |C|,
-            then return the [=set/intersection=] of |C|'s [=own exposure set=]
-            and |H|'s [=exposure set=].
-        1.  Otherwise, set |C| to |H|.
+        1.  Assert: |H| is not null.
+        1.  If the [{{Exposed}}] [=extended attribute=] is specified on |C|, then:
+            1.  If |C|'s [=own exposure set=] is <code>*</code>, return |H|'s [=exposure set=].
+            1.  If |H|'s [=exposure set=] is <code>*</code>, return |C|'s [=own exposure set=].
+            1.  Return the [=set/intersection=] of |C|'s [=own exposure set=] and |H|'s
+                [=exposure set=].
+        1.  Set |C| to |H|.
     1.  Assert: |C| is an [=interface=], [=callback interface=] or [=namespace=].
     1.  Assert: The [{{Exposed}}] [=extended attribute=] is specified on |C|.
     1.  Return |C|'s [=own exposure set=].
@@ -9503,8 +9510,8 @@ Otherwise, it is the [=host interface=]'s [=exposure set=].
     <dfn id="dfn-exposed" export>exposed</dfn> in a given [=Realm=] |realm| if the following steps
     return true:
 
-    1.  If |realm|.\[[GlobalObject]] does not implement an [=interface=]
-        that is in |construct|'s [=exposure set=], then return false.
+    1.  If |construct|'s [=exposure set=] is not <code>*</code>, and |realm|.\[[GlobalObject]] does
+        not implement an [=interface=] that is in |construct|'s [=exposure set=], then return false.
     1.  If |realm|'s [=Realm/settings object=] is not a [=secure context=], and |construct| is
         [=conditionally exposed=] on [{{SecureContext}}], then return false.
     1.  If |realm|'s [=Realm/settings object=]'s
