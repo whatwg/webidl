@@ -14559,13 +14559,20 @@ The {{DOMException}} type is an [=interface type=] defined by the following IDL
 fragment:
 
 <pre class="idl">
+
+dictionary DOMExceptionOptions {
+  any cause;
+  DOMString name = "Error";
+};
+
 [Exposed=(Window,Worker),
  Serializable]
 interface DOMException { // but see below note about ECMAScript binding
-  constructor(optional DOMString message = "", optional DOMString name = "Error");
+  constructor(optional DOMString message = "", optional (DOMExceptionOptions or DOMString) options = {});
   readonly attribute DOMString name;
   readonly attribute DOMString message;
   readonly attribute unsigned short code;
+  readonly attribute any cause;
 
   const unsigned short INDEX_SIZE_ERR = 1;
   const unsigned short DOMSTRING_SIZE_ERR = 2;
@@ -14601,18 +14608,27 @@ requirements beyond the normal ones for [=interface types=].
 Each {{DOMException}} object has an associated <dfn for="DOMException">name</dfn> and
 <dfn for="DOMException">message</dfn>, both [=strings=].
 
+Each {{DOMException}} object has an associated <dfn for="DOMException">cause</dfn>, which
+is a JavaScript value. It is {{undefined}} unless specified otherwise.
+
 The
-<dfn constructor for="DOMException" lt="DOMException(message, name)"><code>new DOMException(|message|, |name|)</code></dfn>
+<dfn constructor for="DOMException" lt="DOMException(message, options)"><code>new DOMException(|message|, |options|)</code></dfn>
 constructor steps are:
 
-1. Set [=this=]'s [=DOMException/name=] to |name|.
-1. Set [=this=]'s [=DOMException/message=] to |message|.
+1.  Set [=this=]'s [=DOMException/message=] to |message|.
+1.  If |options| is a string, then set [=this=]'s [=DOMException/name=] to |options|.
+1.  Otherwise,
+    1.  Set [=this=]'s [=DOMException/name=] to |options|["{{DOMExceptionOptions/name}}"].
+    1.  Set [=this=]'s [=DOMException/cause=] to |options|["{{DOMExceptionOptions/cause}}"].
 
 The <dfn attribute for="DOMException"><code>name</code></dfn> getter steps are to return
 [=this=]'s [=DOMException/name=].
 
 The <dfn attribute for="DOMException"><code>message</code></dfn> getter steps are to
 return [=this=]'s [=DOMException/message=].
+
+The <dfn attribute for="DOMException"><code>cause</code></dfn> getter steps are to
+return [=this=]'s [=DOMException/cause=].
 
 The <dfn attribute for="DOMException"><code>code</code></dfn> getter steps are to return the legacy
 code indicated in the [=error names table=] for [=this=]'s [=DOMException/name=], or 0 if no such
@@ -14625,6 +14641,7 @@ Their [=serialization steps=], given <var>value</var> and <var>serialized</var>,
 <ol>
     <li>Set <var>serialized</var>.\[[Name]] to <var>value</var>'s [=DOMException/name=].</li>
     <li>Set <var>serialized</var>.\[[Message]] to <var>value</var>'s [=DOMException/message=].</li>
+    <li>Set <var>serialized</var>.\[[Cause]] to <var>value</var>'s [=DOMException/cause=].</li>
     <li>User agents should attach a serialized representation of any interesting accompanying data
     which are not yet specified, notably the <code>stack</code> property, to
     <var>serialized</var>.</li>
@@ -14635,6 +14652,7 @@ Their [=deserialization steps=], given <var>value</var> and <var>serialized</var
 <ol>
     <li>Set <var>value</var>'s [=DOMException/name=] to <var>serialized</var>.\[[Name]].</li>
     <li>Set <var>value</var>'s [=DOMException/message=] to <var>serialized</var>.\[[Message]].</li>
+    <li>Set <var>value</var>'s [=DOMException/cause=] to <var>serialized</var>.\[[Cause]].</li>
     <li>If any other data is attached to <var>serialized</var>, then deserialize and attach it to
     <var>value</var>.</li>
 </ol>
