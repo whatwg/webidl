@@ -20,7 +20,7 @@ local: index.bs
 
 deploy: index.bs
 	curl --remote-name --fail https://resources.whatwg.org/build/deploy.sh
-	POST_BUILD_STEP='node ./check-grammar.js "$$DIR/index.html" && npm run pp-webidl -- --input "$$DIR/index.html"' \
+	POST_BUILD_STEP='node ./check-grammar.js "$$DIR/index.html" && npm run webidl-grammar-post-processor -- --input "$$DIR/index.html"' \
 	bash ./deploy.sh
 
 review: index.bs
