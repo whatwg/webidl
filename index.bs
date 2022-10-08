@@ -1048,7 +1048,7 @@ are [=included=] by their [=host interface=].
 
 Issue: [=interface mixin member|Member=] order isn't clearly specified,
 in particular when [=interface mixins=] are defined in separate documents.
-It is discussed in <a href="https://github.com/heycam/webidl/issues/432">issue #432</a>.
+It is discussed in <a href="https://github.com/whatwg/webidl/issues/432">issue #432</a>.
 
 No [=extended attributes=] defined in this specification are applicable to [=includes statements=].
 
@@ -1380,7 +1380,7 @@ Constants can appear on [=interfaces=] and [=callback interfaces=].
     named integer codes in the style of an enumeration.  The Web platform
     is moving away from this design pattern in favor of the use of strings.
     Editors who wish to use this feature are strongly advised to discuss this
-    by <a href="https://github.com/heycam/webidl/issues/new?title=Intent%20to%20use%20Constants">filing an issue</a>
+    by <a href="https://github.com/whatwg/webidl/issues/new?title=Intent%20to%20use%20Constants">filing an issue</a>
     before proceeding.
 </p>
 
@@ -2442,7 +2442,7 @@ See [[#interface-object]] for details on how a [=constructor operation=] is to b
     new object that [=implements=] the interface.
     It would take either zero or one argument.
 
-    Issue(heycam/webidl#698): It is unclear whether the <code class="idl">NodeList</code> interface
+    Issue(whatwg/webidl#698): It is unclear whether the <code class="idl">NodeList</code> interface
     object would implement a \[[Construct]] internal method. In any case, trying to use it as a
     constructor will cause a {{TypeError}} to be thrown.
 
@@ -3927,7 +3927,7 @@ Prose accompanying an [=interface=] with a [=pair iterator=] must define a [=/li
     or (b) with a forEach method that instead invokes its callback like
     Set.prototype.forEach (where the key is the same as the value).
     If you're creating an API that needs such a forEach method, please
-    <a href="https://github.com/heycam/webidl/issues/new?title=Enhancement%20request%20for%20Iterables">file an issue</a>.
+    <a href="https://github.com/whatwg/webidl/issues/new?title=Enhancement%20request%20for%20Iterables">file an issue</a>.
 
 </div>
 
@@ -4117,7 +4117,7 @@ async iterator's <code>return()</code> method is invoked. This most commonly occ
 
 <p class="note">We could add a similar hook for <code>throw()</code>. So far there has been no need,
 but if you are creating an API that needs such capabilities, please
-<a href="https://github.com/heycam/webidl/issues/new?title=Enhancement%20request%20for%20Async%20Iterables">file an issue</a>.
+<a href="https://github.com/whatwg/webidl/issues/new?title=Enhancement%20request%20for%20Async%20Iterables">file an issue</a>.
 
 The prose may also define <dfn export>asynchronous iterator initialization steps</dfn>. These
 receive the instance of the [=interface=] being iterated, the newly-created iterator object, and a
@@ -4898,21 +4898,14 @@ No [=extended attributes=] are applicable to dictionaries.
 
 <h3 id="idl-exceptions">Exceptions</h3>
 
-An <dfn id="dfn-exception" export>exception</dfn> is a type of object that
-represents an error and which can be thrown or treated as a first
-class value by implementations.  Web IDL does not allow exceptions
-to be defined, but instead has a number of pre-defined exceptions
-that specifications can reference and throw in their definition of
-operations, attributes, and so on.  Exceptions have an
-<dfn id="dfn-exception-error-name" for="exception" export>error name</dfn>,
-a {{DOMString}},
-which is the type of error the exception represents, and a
-<dfn id="dfn-exception-message" for="exception" export>message</dfn>, which is an optional,
-user agent-defined value that provides human readable details of the error.
+An <dfn id="dfn-exception" export>exception</dfn> is a type of object that represents an error and
+which can be thrown or treated as a first class value by implementations. Web IDL has a number of
+pre-defined exceptions that specifications can reference and throw in their definition of
+operations, attributes, and so on. Custom exception types can also be defined, as [=interfaces=]
+that [=interface/inherit=] from {{DOMException}}.
 
-There are two kinds of exceptions available to be thrown from specifications.
-The first is a <dfn id="dfn-simple-exception" export>simple exception</dfn>, which
-is identified by one of the following types:
+A <dfn id="dfn-simple-exception" export>simple exception</dfn> is identified by one of the
+following types:
 
 *   <dfn exception>EvalError</dfn>
 *   <dfn exception>RangeError</dfn>
@@ -4920,74 +4913,102 @@ is identified by one of the following types:
 *   <dfn exception>TypeError</dfn>
 *   <dfn exception>URIError</dfn>
 
-These correspond to all of the ECMAScript [=ECMAScript/error objects=]
-(apart from <l spec=ecmascript>{{SyntaxError}}</l> and {{Error}},
-which are deliberately omitted as they are reserved for use
-by the ECMAScript parser and by authors, respectively).
-The meaning of each [=simple exception=] matches
-its corresponding error object in the
-ECMAScript specification.
+These correspond to all of the ECMAScript [=ECMAScript/error objects=] (apart from
+<l spec=ecmascript>{{SyntaxError}}</l> and <l spec=ecmascript>{{Error}}</l>, which are deliberately
+omitted as they are reserved for use by the ECMAScript parser and by authors, respectively). The
+meaning of each [=simple exception=] matches its corresponding error object in the ECMAScript
+specification.
 
-The second kind of exception is a {{DOMException}},
-which is an exception that encapsulates a name and an optional integer code,
-for compatibility with historically defined exceptions in the DOM.
+The second kind of exception is a {{DOMException}}, which provides further
+programmatically-introspectable detail on the error that occurred by giving a [=DOMException/name=].
+Such [=DOMException/names=] are drawn from the <a><code>DOMException</code> names table</a> below.
 
-For [=simple exceptions=], the [=error name=] is the type of the exception.
-For a {{DOMException}}, the [=error name=] must be one of the names
-listed in the [=error names table=] below.
-The table also indicates the {{DOMException}}'s integer code for that error name,
-if it has one.
+<p class=note>As {{DOMException}} is an [=interface type=], it can be used as a type in IDL. This
+allows for example an [=operation=] to be declared to have a {{DOMException}} [=return type=]. This
+is generally a bad pattern, however, as exceptions are meant to be thrown and not returned.
 
-Note: As {{DOMException}} is an [=interface type=], it can be used as a type in IDL.
-This allows for example an [=operation=]
-to be declared to have a {{DOMException}}
-[=return type=].
+The final kind of exception is a derived interface of {{DOMException}}. These are more complicated,
+and thus described in the dedicated section [[#idl-DOMException-derived-interfaces]].
 
-[=Simple exceptions=] can be <dfn id="dfn-create-exception" for="exception" export>created</dfn>
-by providing their [=error name=].
-A {{DOMException}} can be [=created=]
-by providing its [=error name=] followed by {{DOMException}}.
-Exceptions can also be <dfn id="dfn-throw" for="exception" export lt="throw">thrown</dfn>, by providing the
-same details required to [=created|create=] one.
+[=Simple exceptions=] can be
+<dfn id="dfn-create-exception" for="exception" export lt="create">created</dfn> by providing their
+type name. A {{DOMException}} can be [=exception/created=] by providing its [=DOMException/name=]
+followed by {{DOMException}}. Exceptions can also be
+<dfn id="dfn-throw" for="exception" export lt="throw">thrown</dfn>, by providing the same details
+required to [=exception/create=] one. In both cases, the caller may provide additional information
+about what the exception indicates, which is useful when constructing the exception's message.
 
-The resulting behavior from creating and throwing an exception is language binding-specific.
-
-Note: See [[#es-creating-throwing-exceptions]] for details on what creating and throwing an exception
-entails in the ECMAScript language binding.
-
-<div class="example" id="example-56ad390c">
-
-    Here is are some examples of wording to use to create and throw exceptions.
-    To throw a new [=simple exception=] named {{TypeError}}:
+<div class="example" id="example-exception-creation-and-throwing">
+    <p>Here is are some examples of wording to use to create and throw exceptions.
+    To throw a new [=simple exception=] whose type is {{TypeError}}:
 
     <blockquote>
-        [=exception/Throw=] a {{TypeError}}.
+        <p>[=exception/Throw=] a {{TypeError}}.
     </blockquote>
 
-    To throw a new {{DOMException}} with [=error name=] "{{NotAllowedError!!exception}}":
+    <p>To throw a new {{DOMException}} with [=DOMException/name=] "{{NotAllowedError}}":
 
     <blockquote>
-        [=exception/Throw=] a "{{NotAllowedError!!exception}}" {{DOMException}}.
+        <p>[=exception/Throw=] a "{{NotAllowedError}}" {{DOMException}}.
     </blockquote>
 
-    To create a new {{DOMException}} with [=error name=] "{{SyntaxError!!exception}}":
+    <p>To create a new {{DOMException}} with [=DOMException/name=] "{{SyntaxError}}":
 
     <blockquote>
-        Let <var ignore>object</var> be a newly [=created=] "{{SyntaxError!!exception}}" {{DOMException}}.
+        <p>Let <var ignore>object</var> be a newly [=exception/created=] "{{SyntaxError}}"
+        {{DOMException}}.
+    </blockquote>
+
+    <p>To [=reject=] a promise with a new {{DOMException}} with [=DOMException/name=]
+    "{{OperationError}}":
+
+    <blockquote>
+        [=Reject=] <var ignore>p</var> with an "{{OperationError}}" {{DOMException}}.
     </blockquote>
 </div>
 
+<div class=example id=example-exception-throwing-message-hint>
+    <p>An example of including additional information used to construct the exception message would
+    be:
 
-<h4 id="idl-DOMException-error-names">Error names</h4>
+    <blockquote>
+        [=exception/Throw=] a "{{SyntaxError}}" {{DOMException}} indicating that the given value
+        had disallowed trailing spaces.
+    </blockquote>
 
-The <dfn id="dfn-error-names-table" export>error names table</dfn> below lists all the allowed error names
-for {{DOMException}}, a description, and legacy code values.
+    <p>Such additional context is most helpful to implementers when it is not immediately obvious
+    why the exception is being thrown, e.g., because there are many different steps in the algorithm
+    which throw a "{{SyntaxError}}" {{DOMException}}. In contrast, if your specification throws a
+    "{{NotAllowedError}}" {{DOMException}} immediately after checking if the user has provided
+    permission to use a given feature, it's fairly obvious what sort of message the implementation
+    should construct, and so specifying it is not necessary.
+</div>
 
-<p class="warning">
-    The {{DOMException}} names marked as deprecated are kept for legacy purposes but their usage is discouraged.
-</p>
+The resulting behavior from creating and throwing an exception is language binding specific.
 
-Note: If an error name is not listed here, please file a bug as indicated at the top of this specification and it will be addressed shortly. Thanks!
+<p class=note>See [[#es-creating-throwing-exceptions]] for details on what creating and throwing an
+exception entails in the ECMAScript language binding.
+
+
+<h4 id="idl-DOMException-error-names">Base {{DOMException}} error names</h4>
+
+The <dfn id="dfn-error-names-table"><code>DOMException</code> names table</dfn> below lists all the
+allowed [=DOMException/names=] for instances of the base {{DOMException}} interface, along with a
+description of what such names mean, and legacy numeric error code values.
+
+<p class="note">Interfaces [=interface/inheriting=] from {{DOMException}}, in the manner described
+in [[#idl-DOMException-derived-interfaces]], will have their own names, not listed in this table.
+
+When [=exception/creating=] or [=exception/throwing=] a {{DOMException}}, specifications must use
+one of these names. If a specification author believes none of these names are a good fit for their
+case, they must
+<a href="https://github.com/whatwg/webidl/issues/new?title=DOMException%20name%20proposal">file an issue</a>
+to discuss adding a new name to the shared namespace, so that the community can coordinate such
+efforts. Note that adding new use-case-specific names is only important if you believe web
+developers will discriminate multiple error conditions arising from a single API.
+
+<p class="warning">The {{DOMException}} names marked as deprecated are kept for legacy purposes, but
+their usage is discouraged.
 
 Note: Don't confuse the "{{SyntaxError!!exception}}" {{DOMException}} defined here
 with ECMAScript's <l spec=ecmascript>{{SyntaxError}}</l>.
@@ -5176,6 +5197,93 @@ over just using {{SyntaxError!!exception}} to refer to the {{DOMException}}. [[D
     </tbody>
 </table>
 
+<h4 id="idl-DOMException-derived-interfaces">{{DOMException}} derived interfaces</h4>
+
+When an exception needs to carry additional programmatically-introspectable information, beyond what
+can be provided with a {{DOMException}}'s [=DOMException/name=], specification authors can create an
+[=interface=] which [=interface/inherits=] from {{DOMException}}. Such interfaces need to follow
+certain rules, in order to have a predictable shape for developers. Specifically:
+
+*   The [=identifier=] of the [=interface=] must end with <code>Error</code>, and must not be any
+    of the names in the <a><code>DOMException</code> names table</a>.
+*   The [=interface=] must have a [=constructor operation=] which sets the instance's
+    [=DOMException/name=] to the interface's [=identifier=].
+*   Their [=constructor operation=] must take as its first parameter an [=optional argument|optional=]
+    {{DOMString}} named |message| defaulting to the empty string, and must set the instance's
+    [=DOMException/message=] to |message|.
+*   Their [=constructor operation=] should take as its second parameter a [=dictionary=] containing
+    the additional information that needs to be exposed.
+*   They should have [=read only=] [=attributes=], whose names are the same as the members of the
+    constructor dictionary, which return the values accepted by the constructor operation.
+*   They should be [=serializable objects=], whose [=serialization steps=] and
+    [=deserialization steps=] preserve the additional information.
+
+<p class=note>These requirements mean that the inherited {{DOMException/code}} property of these
+interfaces will always return 0.
+
+<div class=example id=example-domexception-derived-interface>
+    The definition for a {{DOMException}} derived interface which carries along an additional
+    "protocol error code", which is derived from what the server sent over some some hypothetical
+    network protocol "protocol X", could look something like this:
+
+    <pre highlight=webidl>
+        [Exposed=Window, Serializable]
+        interface ProtocolXError : DOMException {
+          constructor(optional DOMString message = "", ProtocolXErrorOptions options);
+
+          readonly attribute unsigned long long errorCode;
+        };
+
+        dictionary ProtocolXErrorOptions {
+            required [EnforceRange] unsigned long long errorCode;
+        };
+    </pre>
+
+    Every <code>ProtocolXError</code> instance has an <dfn for="ProtocolXError">error code</dfn>,
+    a number.
+
+    <div algorithm="ProtocolXError constructor">
+        The <b><code>new ProtocolXError(|message|, |options|)</code></b> constructor steps are:
+
+        1.  Set [=this=]'s [=DOMException/name=] to "<code>ProtocolXError</code>".
+        1.  Set [=this=]'s [=DOMException/message=] to |message|.
+        1.  Set [=this=]'s [=ProtocolXError/error code=] to |options|["<code>errorCode</code>"].
+    </div>
+
+    <div algorithm="ProtocolXError errorCode">
+        The <b><code>errorCode</code></b> getter steps are to return [=this=]'s
+        [=ProtocolXError/error code=].
+    </div>
+
+    <code>ProtocolXError</code> objects are [=serializable objects=].
+
+    <div algorithm="ProtocolXError serialization steps">
+        Their [=serialization steps=], given |value| and |serialized|, are:
+
+        1. Run the {{DOMException}} [=serialization steps=] given |value| and |serialized|.
+        1. Set |serialized|.\[[ErrorCode]] to |value|'s [=ProtocolXError/error code=].
+    </div>
+
+    <div algorithm="ProtocolXError deserialization steps">
+        Their [=deserialization steps=], given |serialized| and |value|, are:
+
+        1. Run the {{DOMException}} [=deserialization steps=] given |serialized| and |value|.
+        1. Set |value|'s [=ProtocolXError/error code=] to |serialized|.\[[ErrorCode]].
+    </div>
+</div>
+
+To [=exception/create=] or [=exception/throw=] a {{DOMException}} derived interface, supply its
+[=interface=] [=identifier=] as well as the additional information needed to construct it.
+
+<div class=example id=example-domexception-derived-throwing>
+    <p>To throw an instance of the <code>ProtocolXError</code> exemplified
+    <a href=#example-domexception-derived-interface>above</a>:
+
+    <blockquote>
+        <p>[=exception/Throw=] a <code>ProtocolXError</code> whose [=ProtocolXError/error code=]
+        is 42.
+    </blockquote>
+</div>
 
 <h3 id="idl-enums">Enumerations</h3>
 
@@ -6191,7 +6299,7 @@ It would not be appropriate to accept such a union, only to then convert values 
 [=numeric type=] to a {{bigint}} for further processing, as this runs the risk of introducing
 precision errors.
 Please
-<a href="https://github.com/heycam/webidl/issues/new?title=Intent%20to%20use%20bigint/numeric%20union">file an issue</a>
+<a href="https://github.com/whatwg/webidl/issues/new?title=Intent%20to%20use%20bigint/numeric%20union">file an issue</a>
 before using this feature.
 </p>
 
@@ -10049,7 +10157,7 @@ behavior of legacy APIs.
 
 Editors who believe they have a good reason for using these extended attributes are strongly advised
 to discuss this by
-<a href="https://github.com/heycam/webidl/issues/new?title=Intent%20to%20use%20a%20legacy%20extended%20attribute">filing an issue</a>
+<a href="https://github.com/whatwg/webidl/issues/new?title=Intent%20to%20use%20a%20legacy%20extended%20attribute">filing an issue</a>
 before proceeding.
 
 
@@ -11171,7 +11279,7 @@ default interfaces do not have such steps.
     In general, constructors are described by defining a [=constructor operation=] and its behavior.
     The [=overridden constructor steps=] are used only for more complicated situations.
     Editors who wish to use this feature are strongly advised to discuss this by
-    <a href="https://github.com/heycam/webidl/issues/new?title=Intent%20to%20use%20constructor%20steps">filing an issue</a> before proceeding.
+    <a href="https://github.com/whatwg/webidl/issues/new?title=Intent%20to%20use%20constructor%20steps">filing an issue</a> before proceeding.
 </p>
 
 <div algorithm>
@@ -11323,7 +11431,7 @@ with the [{{LegacyNoInterfaceObject}}] [=extended attribute=].
 
         Issue: Should an {{@@unscopables}} property also be defined if |interface| is
         declared with the [{{Global}}] [=extended attribute=]?
-        This is discussed in <a href="https://github.com/heycam/webidl/issues/544">issue #544</a>.
+        This is discussed in <a href="https://github.com/whatwg/webidl/issues/544">issue #544</a>.
         1.  Let |unscopableObject| be [$OrdinaryObjectCreate$](<emu-val>null</emu-val>).
         1.  [=list/For each=] [=exposed=] [=member=] |member| of |interface|
             that is declared with the [{{Unscopable}}] [=extended attribute=]:
@@ -11824,7 +11932,7 @@ in which case they are exposed on every object that [=implements=] the interface
                 with |idlObject| as [=this=] and |values| as the argument values.
             1.  Return |R|, [=converted to an ECMAScript value=].
 
-                Issue(heycam/webidl#674): |R| is assumed to be an IDL value of the type |op| is declared to return.
+                Issue(whatwg/webidl#674): |R| is assumed to be an IDL value of the type |op| is declared to return.
 
         And then, if <a lt="an exception was thrown">an exception |E| was thrown</a>:
 
@@ -14192,39 +14300,71 @@ A {{DOMException}} is represented by a
 <h4 id="es-creating-throwing-exceptions">Creating and throwing exceptions</h4>
 
 
-<div algorithm="to create a simple exception or DOMException">
+<div algorithm="to create a simple exception">
+    To [=exception/create=] a [=simple exception=] of type |T|:
 
-    To create a [=simple exception=] or {{DOMException}} |E|, with a string giving the
-    [=error name=] |N| for the {{DOMException}} case and optionally a string giving a user
-    agent-defined message |M|:
+    1.  Let |message| be an [=implementation-defined=] message appropriate for the exceptional
+        situation. The calling specification may contain information to to help implementations
+        construct this message.
 
-    1.  If |M| was not specified, let |M| be <emu-val>undefined</emu-val>.
-    1.  Let |args| be a list of ECMAScript values determined based on the type of |E|:
-        <dl class="switch">
-             :  |E| is {{DOMException}}
-             :: |args| is «|M|, |N|».
-             :  |E| is a [=simple exception=]
-             :: |args| is «|M|».
-        </dl>
-    1.  Let |X| be an object determined based on the type of |E|:
-        <dl class="switch">
-             :  |E| is {{DOMException}}
-             :: |X| is the {{DOMException}} [=interface object=]
-                from the [=current realm=].
-             :  |E| is a [=simple exception=]
-             :: |X| is the [=constructor=] for the corresponding ECMAScript error
-                from the [=current realm=].
-        </dl>
-    1.  Return [=!=] <a abstract-op>Construct</a>(|X|, |args|).
+        Implementations need to be cautious not to leak sensitive or secured information when
+        constructing this message, e.g., by including the URL of a cross-origin frame, or
+        information which could identify the user.
+
+    1.  Let |args| be « |message| ».
+
+    1.  Let |constructor| be [=current realm=].\[[Intrinsics]].[[%|T|%]].
+
+    1. Return [=!=] [$Construct$](|constructor|, |args|).
+</div>
+
+<div algorithm="to create a DOMException">
+    To [=exception/create=] a {{DOMException}} given a string |name|:
+
+    1.  Assert: |name| appears in the <a><code>DOMException</code> names table</a>.
+
+    1.  Let |ex| be a [=new=] {{DOMException}} created in the [=current realm=].
+
+    1.  Set |ex|'s [=DOMException/name=] to |name|.
+
+    1.  Set |ex|'s [=DOMException/message=] to an [=implementation-defined=] message appropriate for
+        the exceptional situation. The calling specification may contain information to to help
+        implementations construct this message.
+
+        Implementations need to be cautious not to leak sensitive or secured information when
+        constructing this message, e.g., by including the URL of a cross-origin frame, or
+        information which could identify the user.
+
+    1.  Return |ex|.
+</div>
+
+<div algorithm="to create a DOMException derived interface">
+    To [=exception/create=] a {{DOMException}} derived interface given the [=interface=]
+    [=identifier=] |type| and additional initialization instructions:
+
+    1.  Let |ex| be a [=new=] instance of the [=interface=] identified by |type|, created in the
+        [=current realm=].
+
+    1.  Set |ex|'s [=DOMException/name=] to |type|.
+
+    1.  Set |ex|'s [=DOMException/message=] to an [=implementation-defined=] message appropriate for
+        the exceptional situation. The calling specification may contain information to to help
+        implementations construct this message.
+
+        Implementations need to be cautious not to leak sensitive or secured information when
+        constructing this message, e.g., by including the URL of a cross-origin frame, or
+        information which could identify the user.
+
+    1.  Perform any additional initialization on |ex| as described by the caller.
+
+    1.  Return |ex|.
 </div>
 
 <div algorithm="throw an exception">
+    To [=exception/throw=] an [=exception=]:
 
-    To [=exception/throw=] a [=simple exception=] or {{DOMException}}, with a string giving the
-    [=error name=] for the {{DOMException}} case and optionally a string giving a user
-    agent-defined message:
-
-    1.  Let |O| be the result of [=created|creating an exception=] with the same arguments.
+    1.  Let |O| be the result of [=exception/create|creating an exception=] with the same
+        arguments.
     1.  Throw |O|.
 </div>
 
@@ -14429,8 +14569,8 @@ The <dfn attribute for="DOMException"><code>message</code></dfn> getter steps ar
 return [=this=]'s [=DOMException/message=].
 
 The <dfn attribute for="DOMException"><code>code</code></dfn> getter steps are to return the legacy
-code indicated in the [=error names table=] for [=this=]'s [=DOMException/name=], or 0 if no such
-entry exists in the table.
+code indicated in the <a><code>DOMException</code> names table</a> for [=this=]'s
+[=DOMException/name=], or 0 if no such entry exists in the table.
 
 {{DOMException}} objects are [=serializable objects=].
 
@@ -14502,7 +14642,7 @@ It is strongly discouraged to use legacy Web IDL constructs in specifications
 unless required to specify the behavior of legacy Web platform features,
 or for consistency with such features.
 Editors who wish to use legacy Web IDL constructs are strongly advised to discuss this
-by <a href="https://github.com/heycam/webidl/issues/new?title=Intent%20to%20use%20a%20legacy%20Web%20IDL%20construct">filing an issue</a>
+by <a href="https://github.com/whatwg/webidl/issues/new?title=Intent%20to%20use%20a%20legacy%20Web%20IDL%20construct">filing an issue</a>
 before proceeding.
 
 Marking a construct as legacy does not, in itself,
