@@ -1,5 +1,5 @@
 SHELL=/bin/bash -o pipefail
-.PHONY: local remote deploy review
+.PHONY: local remote deploy
 
 remote: index.bs
 	@ (HTTP_STATUS=$$(curl https://api.csswg.org/bikeshed/ \
@@ -22,7 +22,3 @@ deploy: index.bs
 	curl --remote-name --fail https://resources.whatwg.org/build/deploy.sh
 	POST_BUILD_STEP='node ./check-grammar.js "$$DIR/index.html" && npm run webidl-grammar-post-processor -- --input "$$DIR/index.html"' \
 	bash ./deploy.sh
-
-review: index.bs
-	curl --remote-name --fail https://resources.whatwg.org/build/review.sh
-	bash ./review.sh
