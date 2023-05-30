@@ -5465,6 +5465,8 @@ The <dfn id="dfn-string-type" export>string types</dfn> are
 {{DOMString}}, all [=enumeration types=],
 {{ByteString}} and {{USVString}}.
 
+The <dfn export>buffer types</dfn> are {{ArrayBuffer}} and {{SharedArrayBuffer}}.
+
 The <dfn id="dfn-typed-array-type" export>typed array types</dfn> are
 {{Int8Array}},
 {{Int16Array}},
@@ -5478,10 +5480,9 @@ The <dfn id="dfn-typed-array-type" export>typed array types</dfn> are
 {{Float32Array}}, and
 {{Float64Array}}.
 
-The <dfn id="dfn-buffer-source-type" export>buffer source types</dfn>
-are {{ArrayBuffer}},
-{{DataView}},
-and the [=typed array types=].
+The <dfn export>buffer view types</dfn> are {{DataView}} and the [=typed array types=].
+
+The <dfn id="dfn-buffer-source-type" export>buffer source types</dfn> are the [=buffer types=] and the [=buffer view types=].
 
 The {{object}} type,
 all [=interface types=], and
@@ -6328,27 +6329,28 @@ For any type, the [=extended attributes associated with=] it must only contain
 
 There are a number of types that correspond to sets of all possible non-null
 references to objects that represent a buffer of data or a view on to a buffer of
-data.  The table below lists these types and the kind of buffer or view they represent.
+data. The table below lists these types and the kind of buffer or view they represent.
 
 <table class="vert data">
     <tr><th>Type</th><th>Kind of buffer</th></tr>
     <tr><td><dfn id="idl-ArrayBuffer" interface>ArrayBuffer</dfn></td><td>An object that holds a pointer (which can be null) to a buffer of a fixed number of bytes</td></tr>
-    <tr><td><dfn id="idl-DataView" interface>DataView</dfn></td><td>A view on to an {{ArrayBuffer}} that allows typed access to integers and floating point values stored at arbitrary offsets into the buffer</td></tr>
+    <tr><td><dfn id="idl-SharedArrayBuffer" interface>SharedArrayBuffer</dfn></td><td>An object that holds a pointer (which cannot be null) to a shared buffer of a fixed number of bytes</td></tr>
+    <tr><td><dfn id="idl-DataView" interface>DataView</dfn></td><td>A view on to a [=buffer type=] that allows typed access to integers and floating point values stored at arbitrary offsets into the buffer</td></tr>
     <tr><td><dfn id="idl-Int8Array" interface>Int8Array</dfn>,<br/>
             <dfn id="idl-Int16Array" interface>Int16Array</dfn>,<br/>
             <dfn id="idl-Int32Array" interface>Int32Array</dfn>,<br/>
             <dfn id="idl-BigInt64Array" interface>BigInt64Array</dfn></td>
-        <td>A view on to an {{ArrayBuffer}} that exposes it as an array of two's complement signed integers of the given size in bits</td></tr>
+        <td>A view on to a [=buffer type=] that exposes it as an array of two's complement signed integers of the given size in bits</td></tr>
     <tr><td><dfn id="idl-Uint8Array" interface>Uint8Array</dfn>,<br/>
             <dfn id="idl-Uint16Array" interface>Uint16Array</dfn>,<br/>
             <dfn id="idl-Uint32Array" interface>Uint32Array</dfn>,<br/>
             <dfn id="idl-BigUint64Array" interface>BigUint64Array</dfn></td>
-        <td>A view on to an {{ArrayBuffer}} that exposes it as an array of unsigned integers of the given size in bits</td></tr>
+        <td>A view on to a [=buffer type=] that exposes it as an array of unsigned integers of the given size in bits</td></tr>
     <tr><td><dfn id="idl-Uint8ClampedArray" interface>Uint8ClampedArray</dfn></td>
-        <td>A view on to an {{ArrayBuffer}} that exposes it as an array of unsigned 8-bit integers with clamped conversions</td></tr>
+        <td>A view on to a [=buffer type=] that exposes it as an array of unsigned 8-bit integers with clamped conversions</td></tr>
     <tr><td><dfn id="idl-Float32Array" interface>Float32Array</dfn>,<br/>
             <dfn id="idl-Float64Array" interface>Float64Array</dfn></td>
-        <td>A view on to an {{ArrayBuffer}} that exposes it as an array of IEEE 754 floating point numbers of the given size in bits</td></tr>
+        <td>A view on to a [=buffer type=] that exposes it as an array of IEEE 754 floating point numbers of the given size in bits</td></tr>
 </table>
 
 Note: These types all correspond to classes defined in ECMAScript.
@@ -6362,6 +6364,7 @@ in [[#es-buffer-source-types]].
 <pre class="grammar" id="prod-BufferRelatedType">
     BufferRelatedType :
         "ArrayBuffer"
+        "SharedArrayBuffer"
         "DataView"
         "Int8Array"
         "Int16Array"
@@ -8388,10 +8391,18 @@ that correspond to the union's [=member types=].
             [=implements=], then return the IDL value that is a reference to the object |V|.
         1.  If |types| includes {{object}}, then return the IDL value
             that is a reference to the object |V|.
-    1.  If <a abstract-op>Type</a>(|V|) is Object and |V| has an \[[ArrayBufferData]] [=/internal slot=], then:
+    1.  If <a abstract-op>Type</a>(|V|) is Object, |V| has an \[[ArrayBufferData]]
+        [=/internal slot=], and <a abstract-op>IsSharedArrayBuffer</a>(|V|) is false, then:
         1.  If |types| includes {{ArrayBuffer}}, then return the
             result of [=converted to an IDL value|converting=]
             |V| to {{ArrayBuffer}}.
+        1.  If |types| includes {{object}}, then return the IDL value
+            that is a reference to the object |V|.
+    1.  If <a abstract-op>Type</a>(|V|) is Object, |V|, has an \[[ArrayBufferData]]
+        [=/internal slot=], and <a abstract-op>IsSharedArrayBuffer</a>(|V|) is true, then:
+        1.  If |types| includes {{SharedArrayBuffer}}, then return the
+            result of [=converted to an IDL value|converting=]
+            |V| to {{SharedArrayBuffer}}.
         1.  If |types| includes {{object}}, then return the IDL value
             that is a reference to the object |V|.
     1.  If <a abstract-op>Type</a>(|V|) is Object and |V| has a \[[DataView]] [=/internal slot=], then:
@@ -8480,33 +8491,41 @@ that correspond to the union's [=member types=].
 
 <h4 id="es-buffer-source-types">Buffer source types</h4>
 
-Values of the IDL [=buffer source types=]
-are represented by objects of the corresponding ECMAScript class, with the following additional restrictions on those objects.
+A value of an IDL {{ArrayBuffer}} is represented by an object of the corresponding ECMAScript class.
+If it is not [=extended attributes associated with|associated with=] the [{{AllowResizable}}]
+[=extended attribute=], it can only be backed by ECMAScript {{ArrayBuffer}} objects |V| for which
+<a abstract-op>IsResizableArrayBuffer</a>(|V|) is false.
+
+A value of an IDL {{SharedArrayBuffer}} is represented by an object of the corresponding ECMAScript
+class. If it is not [=extended attributes associated with|associated with=] the [{{AllowResizable}}]
+[=extended attribute=], it can only be backed by ECMAScript {{ArrayBuffer}} objects |V| for which
+<a abstract-op>IsResizableArrayBuffer</a>(|V|) is false.
+
+Values of the IDL [=buffer view types=] are represented by objects of the corresponding ECMAScript
+class, with the following additional restrictions on those objects.
 
 <ul>
     <li>
         If the type is not [=extended attributes associated with|associated with=] either the
-        [{{AllowResizable}}] or [{{AllowShared}}] [=extended attribute=], they can only be backed by
-        ECMAScript {{ArrayBuffer}} objects |V| for which <a
+        [{{AllowResizable}}] or [{{AllowShared}}] [=extended attribute=], if applicable, they can
+        only be backed by ECMAScript {{ArrayBuffer}} objects |V| for which <a
         abstract-op>IsResizableArrayBuffer</a>(|V|) is false.
     </li>
     <li>
         If the type is [=extended attributes associated with|associated with=] the
         [{{AllowResizable}}] [=extended attribute=] but not with the [{{AllowShared}}] [=extended
-        attribute=], they can only be backed by ECMAScript {{ArrayBuffer}} objects.
+        attribute=], if applicable, they can only be backed by ECMAScript {{ArrayBuffer}} objects.
     </li>
     <li>
         If the type is [=extended attributes associated with|associated with=] the [{{AllowShared}}]
         [=extended attribute=] but not with the [{{AllowResizable}}] [=extended attribute=], they
-        can only be backed by ECMAScript {{ArrayBuffer}} and ECMAScript
-        {{SharedArrayBuffer}} objects |V| for which <a
-        abstract-op>IsResizableArrayBuffer</a>(|V|) is false.
+        can only be backed by ECMAScript {{ArrayBuffer}} and {{SharedArrayBuffer}} objects |V| for
+        which <a abstract-op>IsResizableArrayBuffer</a>(|V|) is false.
     </li>
     <li>
         If the type is [=extended attributes associated with|associated with=] both the
         [{{AllowResizable}}] and the [{{AllowShared}}] [=extended attribute|extended attributes=],
-        they can be backed by any ECMAScript {{ArrayBuffer}} or
-        {{SharedArrayBuffer}} object.
+        they can be backed by any ECMAScript {{ArrayBuffer}} or {{SharedArrayBuffer}} object.
     </li>
 </ul>
 
@@ -8518,9 +8537,7 @@ are represented by objects of the corresponding ECMAScript class, with the follo
     1.  If <a abstract-op>Type</a>(|V|) is not Object,
         or |V| does not have an \[[ArrayBufferData]] [=/internal slot=],
         then [=ECMAScript/throw=] a <l spec=ecmascript>{{TypeError}}</l>.
-    1.  If the conversion is not to an IDL type
-        [=extended attributes associated with|associated with=] the [{{AllowShared}}]
-        [=extended attribute=], and <a abstract-op>IsSharedArrayBuffer</a>(|V|) is true, then [=ECMAScript/throw=]
+    1.  If <a abstract-op>IsSharedArrayBuffer</a>(|V|) is true, then [=ECMAScript/throw=]
         a <l spec=ecmascript>{{TypeError}}</l>.
     1.  If the conversion is not to an IDL type
         [=extended attributes associated with|associated with=] the [{{AllowResizable}}]
@@ -8530,7 +8547,25 @@ are represented by objects of the corresponding ECMAScript class, with the follo
         to the same object as |V|.
 </div>
 
-<div id="buffer-source-to-es" algorithm="convert an ECMAScript value to IDL DataView">
+<div algorithm="convert an ECMAScript value to IDL SharedArrayBuffer">
+
+    An ECMAScript value |V| is [=converted to an IDL value|converted=]
+    to an IDL {{SharedArrayBuffer}} value by running the following algorithm:
+
+    1.  If <a abstract-op>Type</a>(|V|) is not Object,
+        or |V| does not have an \[[ArrayBufferData]] [=/internal slot=],
+        then [=ECMAScript/throw=] a <l spec=ecmascript>{{TypeError}}</l>.
+    1.  If <a abstract-op>IsSharedArrayBuffer</a>(|V|) is false, then [=ECMAScript/throw=]
+        a <l spec=ecmascript>{{TypeError}}</l>.
+    1.  If the conversion is not to an IDL type
+        [=extended attributes associated with|associated with=] the [{{AllowResizable}}]
+        [=extended attribute=], and <a abstract-op>IsResizableArrayBuffer</a>(|V|) is true,
+        then [=ECMAScript/throw=] a <l spec=ecmascript>{{TypeError}}</l>.
+    1.  Return the IDL {{SharedArrayBuffer}} value that is a reference
+        to the same object as |V|.
+</div>
+
+<div algorithm="convert an ECMAScript value to IDL DataView">
 
     An ECMAScript value |V| is [=converted to an IDL value|converted=]
     to an IDL {{DataView}} value by running the following algorithm:
@@ -8583,10 +8618,12 @@ are represented by objects of the corresponding ECMAScript class, with the follo
     1.  Return the IDL value of type |T| that is a reference to the same object as |V|.
 </div>
 
+<div id="buffer-source-to-es" algorithm>
 The result of [=converted to an ECMAScript value|converting=]
 an IDL value of any [=buffer source type=]
 to an ECMAScript value is the Object value that represents
 a reference to the same object that the IDL value represents.
+</div>
 
 <hr>
 
@@ -8604,8 +8641,21 @@ a reference to the same object that the IDL value represents.
 </div>
 
 <div algorithm>
-    To <dfn export for="ArrayBufferView">create</dfn> one of the {{ArrayBufferView}} types from a
+    To <dfn export for=SharedArrayBuffer>create</dfn> a {{SharedArrayBuffer}} from a
     [=byte sequence=] |bytes| in a [=realm=] |realm|:
+
+    1.  Let |esSharedArrayBuffer| be [=?=]
+        [$AllocateSharedArrayBuffer$](|realm|.\[[Intrinsics]].[[{{%SharedArrayBuffer%}}]], |bytes|'s
+        [=byte sequence/length=]).
+    1.  Let |sharedArrayBuffer| be the result of [=converted to an IDL value|converting=]
+        |esSharedArrayBuffer| to an IDL value of type {{SharedArrayBuffer}}.
+    1.  [=buffer type/Write=] |bytes| into |sharedArrayBuffer|.
+    1.  Return |sharedArrayBuffer|.
+</div>
+
+<div algorithm>
+    To <dfn id=arraybufferview-create export for="buffer view type">create</dfn> one of the
+    [=buffer view types=] from a [=byte sequence=] |bytes| in a [=realm=] |realm|:
 
     1.  Assert: if the type is not {{DataView}}, then |bytes|'s [=byte sequence/length=] [=modulo=]
         the [=element size=] of that type is 0.
@@ -8614,14 +8664,14 @@ a reference to the same object that the IDL value represents.
     1.  Let |esArrayBuffer| be the result of [=converted to an ECMAScript value|converting=]
         |arrayBuffer| to an ECMAScript value.
     1.  Let |constructor| be the appropriate constructor from |realm|.\[[Intrinsics]] for the type
-        of {{ArrayBufferView}} being created.
+        of [=buffer view type=] being created.
     1.  Let |esView| be [=!=] [$Construct$](|constructor|, « |esArrayBuffer| »).
     1.  Return the result of [=converted to an IDL value|converting=] |esView| into the given type.
 </div>
 
 <div algorithm>
     To <dfn id="dfn-get-buffer-source-copy" export lt="get a copy of the buffer source|get a copy of the bytes held by the buffer source">get a copy of the bytes held by the buffer source</dfn>
-    given a {{BufferSource}} |bufferSource|:
+    given a [=buffer source type=] |bufferSource|:
 
     1.  Let |esBufferSource| be the result of [=converted to an ECMAScript value|converting=]
         |bufferSource| to an ECMAScript value.
@@ -8646,8 +8696,8 @@ a reference to the same object that the IDL value represents.
 </div>
 
 <div algorithm>
-    The <dfn export for="BufferSource">byte length</dfn> of a {{BufferSource}} |bufferSource| is
-    the value returned by the following steps:
+    The <dfn id=buffersource-byte-length export for="buffer source type">byte length</dfn> of a
+    [=buffer source type=] |bufferSource| is the value returned by the following steps:
 
     1.  Let |esBufferSource| be the result of [=converted to an ECMAScript value|converting=]
         |bufferSource| to an ECMAScript value.
@@ -8655,21 +8705,24 @@ a reference to the same object that the IDL value represents.
         |esBufferSource|.\[[ByteLength]].
     1.  Return |esBufferSource|.\[[ArrayBufferByteLength]].
 </div>
+<!-- TODO: should this be stricter around not being detached? -->
 
 <div algorithm>
-    The <dfn export for="BufferSource">underlying buffer</dfn> of a {{BufferSource}} |bufferSource|
-    is the value returned by the following steps:
+    The
+    <dfn id=buffersource-underlying-buffer export for="buffer source type">underlying buffer</dfn>
+    of a [=buffer source type=] |bufferSource| is the value returned by the following steps:
 
-    1.  If |bufferSource| is an {{ArrayBuffer}}, return |bufferSource|.
+    1.  If |bufferSource| is a [=buffer type=], then return |bufferSource|.
     1.  Let |esBufferSource| be the result of [=converted to an ECMAScript value|converting=]
         |bufferSource| to an ECMAScript value.
     1.  Return the result of [=converted to an IDL value|converting=]
-        |esBufferSource|.\[[ViewedArrayBuffer]] to an IDL value of type {{ArrayBuffer}}.
+        |esBufferSource|.\[[ViewedArrayBuffer]] to an IDL value of type [=buffer type=].
 </div>
 
-<div algorithm="ArrayBuffer/write">
-    To <dfn export for="ArrayBuffer">write</dfn> a [=byte sequence=] |bytes| into an {{ArrayBuffer}}
-    |arrayBuffer|, optionally given a <dfn export for="ArrayBuffer/write">|startingOffset|</dfn>
+<div algorithm="buffer type/write">
+    To <dfn id=arraybuffer-write export for="buffer type">write</dfn> a [=byte sequence=] |bytes|
+    into a [=buffer type=] |arrayBuffer|, optionally given a
+    <dfn id=arraybuffer-write-startingoffset export for="buffer type/write">|startingOffset|</dfn>
     (default 0):
 
     1.  Let |esArrayBuffer| be the result of [=converted to an ECMAScript value|converting=]
@@ -8681,10 +8734,11 @@ a reference to the same object that the IDL value represents.
         |i|, Uint8, |bytes|[|i| - |startingOffset|], true, Unordered).
 </div>
 
-<div algorithm="ArrayBufferView/write">
-    To <dfn export for="ArrayBufferView">write</dfn> a [=byte sequence=] |bytes| into an
-    {{ArrayBufferView}} |view|, optionally given a
-    <dfn export for="ArrayBufferView/write">|startingOffset|</dfn> (default 0):
+<div algorithm="buffer view type/write">
+    To <dfn id=arraybufferview-write export for="buffer view type">write</dfn> a [=byte sequence=]
+    |bytes| into an [=buffer view type=] |view|, optionally given a
+    <dfn id=arraybufferview-write-startingoffset export for="buffer view type/write">|startingOffset|</dfn>
+    (default 0):
 
     1.  Let |esView| be the result of [=converted to an ECMAScript value|converting=] |view| to
         an ECMAScript value.
@@ -8701,9 +8755,9 @@ a reference to the same object that the IDL value represents.
 
 <div class="warning">
     Extreme care must be taken when writing specification text that
-    [=ArrayBuffer/writes=] into an {{ArrayBuffer}} or {{ArrayBufferView}}, as the underlying data
+    [=buffer type/writes=] into an [=buffer source type=], as the underlying data
     can easily be changed by the script author or other APIs at unpredictable times. This is
-    especially true if the [{{AllowShared}}] [=extended attribute=] is involved.
+    especially true if a {{SharedArrayBuffer}} object is involved.
 
     For the non-shared cases, a more recommended pattern is to [=ArrayBuffer/transfer=] the
     {{ArrayBuffer}} first if possible, to ensure the writes cannot overlap with other modifications,
@@ -8718,6 +8772,8 @@ a reference to the same object that the IDL value represents.
     1.  Let |esArrayBuffer| be the result of [=converted to an ECMAScript value|converting=]
         |arrayBuffer| to an ECMAScript value.
     1.  Assert: [$IsSharedArrayBuffer$](|esArrayBuffer|) is false.
+        <!-- We'll keep this in for now as we're generally bad at distinguishing IDL and JS
+             objects. -->
     1.  Perform [=?=] [$DetachArrayBuffer$](|esArrayBuffer|).
 
     <p class="note">This will throw an exception if |esArrayBuffer| has an \[[ArrayBufferDetachKey]]
@@ -8728,8 +8784,9 @@ a reference to the same object that the IDL value represents.
 </div>
 
 <div algorithm>
-    A {{BufferSource}} |bufferSource| is <dfn for="BufferSource" export>detached</dfn> if the
-    following steps return true:
+    A [=buffer source types=] |bufferSource| is
+    <dfn id=buffersource-detached for="buffer source type" export>detached</dfn> if the following
+    steps return true:
 
     1.  Let |esArrayBuffer| be the result of [=converted to an ECMAScript value|converting=]
         |bufferSource| to an ECMAScript value.
@@ -8745,6 +8802,8 @@ a reference to the same object that the IDL value represents.
     1.  Let |esArrayBuffer| be the result of [=converted to an ECMAScript value|converting=]
         |arrayBuffer| to an ECMAScript value.
     1.  Assert: [$IsSharedArrayBuffer$](|esArrayBuffer|) is false.
+        <!-- We'll keep this in for now as we're generally bad at distinguishing IDL and JS
+             objects. -->
     1.  Assert: [$IsDetachedBuffer$](|esArrayBuffer|) is false.
     1.  Let |arrayBufferData| be |esArrayBuffer|.\[[ArrayBufferData]].
     1.  Let |arrayBufferByteLength| be |esArrayBuffer|.\[[ArrayBufferByteLength]].
@@ -8842,13 +8901,18 @@ whose presence affects the ECMAScript binding.
 
 <h4 id="AllowResizable" extended-attribute lt="AllowResizable">[AllowResizable]</h4>
 
-If the [{{AllowResizable}}] [=extended attribute=] appears on one of the [=buffer source types=] without the presence of the [{{AllowShared}}] [=extended attribute=], it
-creates a new IDL type that allows the buffer source type to be backed by an ECMAScript
-{{ArrayBuffer}} that is resizable, instead of only by a fixed-length {{ArrayBuffer}}.
+If the [{{AllowResizable}}] [=extended attribute=] appears on a [=buffer type=], it creates a new
+IDL type that allows for the respective corresponding ECMAScript {{ArrayBuffer}} or
+{{SharedArrayBuffer}} object to be resizable.
 
-If the [{{AllowResizable}}] [=extended attribute=] and the [{{AllowShared}}] [=extended attribute=] both appear on one of the [=buffer source types=], it
-creates a new IDL type that allows the buffer source type to be additionally backed by an ECMAScript
-{{SharedArrayBuffer}} that is growable.
+If the [{{AllowResizable}}] [=extended attribute=] appears on one of the [=buffer view types=]
+and the [{{AllowShared}}] [=extended attribute=] does not, it creates a new IDL type
+that allows the buffer source type to be backed by an ECMAScript {{ArrayBuffer}} that is resizable,
+instead of only by a fixed-length {{ArrayBuffer}}.
+
+If the [{{AllowResizable}}] [=extended attribute=] and the [{{AllowShared}}] [=extended attribute=]
+both appear on one of the [=buffer view types=], it creates a new IDL type that allows the buffer
+view type to be additionally backed by an ECMAScript {{SharedArrayBuffer}} that is growable.
 
 The [{{AllowResizable}}] extended attribute must [=takes no arguments|take no arguments=].
 
@@ -8863,16 +8927,16 @@ See the <a href="#example-allowresizable-allowshared">example</a> in [[#AllowSha
 
 <h4 id="AllowShared" extended-attribute lt="AllowShared">[AllowShared]</h4>
 
-If the [{{AllowShared}}] [=extended attribute=] appears on one of the [=buffer source types=], it
-creates a new IDL type that allows the buffer source type to be backed by an ECMAScript
-{{SharedArrayBuffer}}, instead of only by a non-shared {{ArrayBuffer}}.
+If the [{{AllowShared}}] [=extended attribute=] appears on one of the [=buffer view types=], it
+creates a new IDL type that allows the object to be backed by an {{SharedArrayBuffer}} instead of
+only by an {{ArrayBuffer}}.
 
 The [{{AllowShared}}] extended attribute must [=takes no arguments|take no arguments=].
 
-A type that is not a [=buffer source type=] must not be
+A type that is not a [=buffer view type=] must not be
 [=extended attributes associated with|associated with=] the [{{AllowShared}}] extended attribute.
 
-See the rules for converting ECMAScript values to IDL [=buffer source types=] in
+See the rules for converting ECMAScript values to IDL [=buffer view types=] in
 [[#es-buffer-source-types]] for the specific requirements that the use of [{{AllowShared}}] entails.
 
 <div class="example" id="example-allowresizable-allowshared">
@@ -8882,34 +8946,34 @@ See the rules for converting ECMAScript values to IDL [=buffer source types=] in
     <pre highlight="webidl">
         [Exposed=Window]
         interface ExampleBufferFeature {
-          undefined writeInto(BufferSource dest);
-          undefined writeIntoResizable([AllowResizable] BufferSource dest);
-          undefined writeIntoShared([AllowShared] BufferSource dest);
-          undefined writeIntoSharedResizable([AllowResizable, AllowShared] BufferSource dest);
+          undefined writeInto(ArrayBufferView dest);
+          undefined writeIntoResizable([AllowResizable] ArrayBufferView dest);
+          undefined writeIntoShared([AllowShared] ArrayBufferView dest);
+          undefined writeIntoSharedResizable([AllowResizable, AllowShared] ArrayBufferView dest);
         };
     </pre>
 
     With this definition,
     <ul>
         <li>
-            A call to <code>writeInto</code> with a resizable {{ArrayBuffer}} instance, a
-            {{SharedArrayBuffer}} instance, or any typed array or {{DataView}}
-            backed by either, will throw a {{TypeError}} exception.
+            A call to <code>writeInto</code> with any [=buffer view type=] backed by
+            either a resizable {{ArrayBuffer}} instance or a {{SharedArrayBuffer}} instance,
+            will throw a {{TypeError}} exception.
        </li>
         <li>
-            A call to <code>writeIntoResizable</code> with a {{SharedArrayBuffer}}
-            instance, or any typed array or {{DataView}} backed by one, will throw a
+            A call to <code>writeIntoResizable</code> with any [=buffer view type=] backed by
+            a {{SharedArrayBuffer}} instance, will throw a
             {{TypeError}} exception.
         </li>
         <li>
-            A call to <code>writeIntoShared</code> with a resizable {{ArrayBuffer}}
-            instance, a growable {{SharedArrayBuffer}} instance, or any typed array or
-            {{DataView}} backed by one, will throw a {{TypeError}} exception.
+            A call to <code>writeIntoShared</code> with any [=buffer view type=] backed by a
+            resizable {{ArrayBuffer}} instance or a growable {{SharedArrayBuffer}} instance,
+            will throw a {{TypeError}} exception.
         </li>
         <li>
-            A call to <code>writeIntoSharedResizable</code> will accept an
-            {{ArrayBuffer}} instance, a {{SharedArrayBuffer}} instance, or any
-            typed array or {{DataView}} backed by either.
+            A call to <code>writeIntoSharedResizable</code> will accept any
+            [=buffer view type=] backed by a {{ArrayBuffer}} instance or a
+            {{SharedArrayBuffer}} instance.
         </li>
     </ul>
 </div>
@@ -10852,6 +10916,7 @@ Note: The HTML Standard defines how a security check is performed. [[!HTML]]
         1.  Otherwise: if <a abstract-op>Type</a>(|V|) is Object, |V| has an \[[ArrayBufferData]] [=/internal slot=], and
             there is an entry in |S| that has one of the following types at position |i| of its type list,
             *   {{ArrayBuffer}}
+            *   {{SharedArrayBuffer}}
             *   {{object}}
             *   a [=nullable type|nullable=] version of either of the above types
             *   an [=annotated type=] whose [=annotated types/inner type=] is one of the above types
@@ -14356,7 +14421,8 @@ must support.
 </pre>
 
 The {{ArrayBufferView}} typedef is used to represent
-objects that provide a view on to an {{ArrayBuffer}}.
+objects that provide a view on to an {{ArrayBuffer}} or
+{{SharedArrayBuffer}} (when [{{AllowShared}}] is used).
 
 
 <h3 id="BufferSource" typedef oldids="common-BufferSource">BufferSource</h3>
@@ -14366,6 +14432,19 @@ objects that provide a view on to an {{ArrayBuffer}}.
 The {{BufferSource}} typedef is used to represent objects
 that are either themselves an {{ArrayBuffer}} or which
 provide a view on to an {{ArrayBuffer}}.
+
+Note: [{{AllowShared}}] cannot be used in conjunction as {{ArrayBuffer}} does not support it.
+Use {{AllowSharedBufferSource}} instead.
+
+
+<h3 id="AllowSharedBufferSource" typedef>AllowSharedBufferSource</h3>
+
+<pre class="idl">typedef (ArrayBuffer or SharedArrayBuffer or [AllowShared] ArrayBufferView) AllowSharedBufferSource;</pre>
+
+The {{AllowSharedBufferSource}} typedef is used to represent objects
+that are either themselves an {{ArrayBuffer}} or {{SharedArrayBuffer}} or which
+provide a view on to an {{ArrayBuffer}} or {{SharedArrayBuffer}}.
+
 
 <h3 id="idl-DOMException" interface oldids="dfn-DOMException">DOMException</h3>
 
