@@ -1,5 +1,7 @@
 <pre class="metadata">
 Group: WHATWG
+Status: RD
+Date: 2023-03-20
 H1: Web IDL
 Shortname: webidl
 Text Macro: TWITTER webidl
@@ -11,9 +13,7 @@ Complain About: accidental-2119 no
 </pre>
 
 <pre class="link-defaults">
-spec: infra; type: dfn;
-    text: code unit
-    text: list
+spec: infra; type: dfn; text: list
 spec: ecmascript; type: dfn;
     for: ECMAScript;
         text: constructor
@@ -1048,7 +1048,7 @@ are [=included=] by their [=host interface=].
 
 Issue: [=interface mixin member|Member=] order isn't clearly specified,
 in particular when [=interface mixins=] are defined in separate documents.
-It is discussed in <a href="https://github.com/whatwg/webidl/issues/432">issue #432</a>.
+It is discussed in <a href="https://github.com/heycam/webidl/issues/432">issue #432</a>.
 
 No [=extended attributes=] defined in this specification are applicable to [=includes statements=].
 
@@ -1380,7 +1380,7 @@ Constants can appear on [=interfaces=] and [=callback interfaces=].
     named integer codes in the style of an enumeration.  The Web platform
     is moving away from this design pattern in favor of the use of strings.
     Editors who wish to use this feature are strongly advised to discuss this
-    by <a href="https://github.com/whatwg/webidl/issues/new?title=Intent%20to%20use%20Constants">filing an issue</a>
+    by <a href="https://github.com/heycam/webidl/issues/new?title=Intent%20to%20use%20Constants">filing an issue</a>
     before proceeding.
 </p>
 
@@ -2097,15 +2097,17 @@ the value is the IDL {{undefined}} value.
     1.  Depending on the type of the argument:
         <dl class="switch">
              :  {{DOMString}}
-             :  {{USVString}}
              :  an [=enumeration=] type
              :: The value of the <emu-t class="regex"><a href="#prod-string">string</a></emu-t> token
-                is |S|.
+                is the sequence of 16 bit unsigned integer code units
+                (hereafter referred to just as <dfn id="dfn-code-unit">code units</dfn>)
+                corresponding to the UTF-16 encoding of |S|.
              :  {{ByteString}}
-             :: Assert: |S| doesn't contain any [=code points=] higher than U+00FF.
-
-                The value of the <emu-t class="regex"><a href="#prod-string">string</a></emu-t> token
-                is the [=isomorphic encoding=] of |S|.
+             :: The value of the <emu-t class="regex"><a href="#prod-string">string</a></emu-t> token
+                is the sequence of 8 bit unsigned integer code units
+                corresponding to the UTF-8 encoding of |S|.
+             :  {{USVString}}
+             :: The value of the <emu-t class="regex"><a href="#prod-string">string</a></emu-t> token is |S|.
         </dl>
 </div>
 
@@ -2442,7 +2444,7 @@ See [[#interface-object]] for details on how a [=constructor operation=] is to b
     new object that [=implements=] the interface.
     It would take either zero or one argument.
 
-    Issue(whatwg/webidl#698): It is unclear whether the <code class="idl">NodeList</code> interface
+    Issue(heycam/webidl#698): It is unclear whether the <code class="idl">NodeList</code> interface
     object would implement a \[[Construct]] internal method. In any case, trying to use it as a
     constructor will cause a {{TypeError}} to be thrown.
 
@@ -3927,7 +3929,7 @@ Prose accompanying an [=interface=] with a [=pair iterator=] must define a [=/li
     or (b) with a forEach method that instead invokes its callback like
     Set.prototype.forEach (where the key is the same as the value).
     If you're creating an API that needs such a forEach method, please
-    <a href="https://github.com/whatwg/webidl/issues/new?title=Enhancement%20request%20for%20Iterables">file an issue</a>.
+    <a href="https://github.com/heycam/webidl/issues/new?title=Enhancement%20request%20for%20Iterables">file an issue</a>.
 
 </div>
 
@@ -4117,7 +4119,7 @@ async iterator's <code>return()</code> method is invoked. This most commonly occ
 
 <p class="note">We could add a similar hook for <code>throw()</code>. So far there has been no need,
 but if you are creating an API that needs such capabilities, please
-<a href="https://github.com/whatwg/webidl/issues/new?title=Enhancement%20request%20for%20Async%20Iterables">file an issue</a>.
+<a href="https://github.com/heycam/webidl/issues/new?title=Enhancement%20request%20for%20Async%20Iterables">file an issue</a>.
 
 The prose may also define <dfn export>asynchronous iterator initialization steps</dfn>. These
 receive the instance of the [=interface=] being iterated, the newly-created iterator object, and a
@@ -4898,14 +4900,21 @@ No [=extended attributes=] are applicable to dictionaries.
 
 <h3 id="idl-exceptions">Exceptions</h3>
 
-An <dfn id="dfn-exception" export>exception</dfn> is a type of object that represents an error and
-which can be thrown or treated as a first class value by implementations. Web IDL has a number of
-pre-defined exceptions that specifications can reference and throw in their definition of
-operations, attributes, and so on. Custom exception types can also be defined, as [=interfaces=]
-that [=interface/inherit=] from {{DOMException}}.
+An <dfn id="dfn-exception" export>exception</dfn> is a type of object that
+represents an error and which can be thrown or treated as a first
+class value by implementations.  Web IDL does not allow exceptions
+to be defined, but instead has a number of pre-defined exceptions
+that specifications can reference and throw in their definition of
+operations, attributes, and so on.  Exceptions have an
+<dfn id="dfn-exception-error-name" for="exception" export>error name</dfn>,
+a {{DOMString}},
+which is the type of error the exception represents, and a
+<dfn id="dfn-exception-message" for="exception" export>message</dfn>, which is an optional,
+user agent-defined value that provides human readable details of the error.
 
-A <dfn id="dfn-simple-exception" export>simple exception</dfn> is identified by one of the
-following types:
+There are two kinds of exceptions available to be thrown from specifications.
+The first is a <dfn id="dfn-simple-exception" export>simple exception</dfn>, which
+is identified by one of the following types:
 
 *   <dfn exception>EvalError</dfn>
 *   <dfn exception>RangeError</dfn>
@@ -4913,102 +4922,74 @@ following types:
 *   <dfn exception>TypeError</dfn>
 *   <dfn exception>URIError</dfn>
 
-These correspond to all of the ECMAScript [=ECMAScript/error objects=] (apart from
-<l spec=ecmascript>{{SyntaxError}}</l> and <l spec=ecmascript>{{Error}}</l>, which are deliberately
-omitted as they are reserved for use by the ECMAScript parser and by authors, respectively). The
-meaning of each [=simple exception=] matches its corresponding error object in the ECMAScript
-specification.
+These correspond to all of the ECMAScript [=ECMAScript/error objects=]
+(apart from <l spec=ecmascript>{{SyntaxError}}</l> and {{Error}},
+which are deliberately omitted as they are reserved for use
+by the ECMAScript parser and by authors, respectively).
+The meaning of each [=simple exception=] matches
+its corresponding error object in the
+ECMAScript specification.
 
-The second kind of exception is a {{DOMException}}, which provides further
-programmatically-introspectable detail on the error that occurred by giving a [=DOMException/name=].
-Such [=DOMException/names=] are drawn from the <a><code>DOMException</code> names table</a> below.
+The second kind of exception is a {{DOMException}},
+which is an exception that encapsulates a name and an optional integer code,
+for compatibility with historically defined exceptions in the DOM.
 
-<p class=note>As {{DOMException}} is an [=interface type=], it can be used as a type in IDL. This
-allows for example an [=operation=] to be declared to have a {{DOMException}} [=return type=]. This
-is generally a bad pattern, however, as exceptions are meant to be thrown and not returned.
+For [=simple exceptions=], the [=error name=] is the type of the exception.
+For a {{DOMException}}, the [=error name=] must be one of the names
+listed in the [=error names table=] below.
+The table also indicates the {{DOMException}}'s integer code for that error name,
+if it has one.
 
-The final kind of exception is a derived interface of {{DOMException}}. These are more complicated,
-and thus described in the dedicated section [[#idl-DOMException-derived-interfaces]].
+Note: As {{DOMException}} is an [=interface type=], it can be used as a type in IDL.
+This allows for example an [=operation=]
+to be declared to have a {{DOMException}}
+[=return type=].
 
-[=Simple exceptions=] can be
-<dfn id="dfn-create-exception" for="exception" export lt="create">created</dfn> by providing their
-type name. A {{DOMException}} can be [=exception/created=] by providing its [=DOMException/name=]
-followed by {{DOMException}}. Exceptions can also be
-<dfn id="dfn-throw" for="exception" export lt="throw">thrown</dfn>, by providing the same details
-required to [=exception/create=] one. In both cases, the caller may provide additional information
-about what the exception indicates, which is useful when constructing the exception's message.
+[=Simple exceptions=] can be <dfn id="dfn-create-exception" for="exception" export>created</dfn>
+by providing their [=error name=].
+A {{DOMException}} can be [=created=]
+by providing its [=error name=] followed by {{DOMException}}.
+Exceptions can also be <dfn id="dfn-throw" for="exception" export lt="throw">thrown</dfn>, by providing the
+same details required to [=created|create=] one.
 
-<div class="example" id="example-exception-creation-and-throwing">
-    <p>Here is are some examples of wording to use to create and throw exceptions.
-    To throw a new [=simple exception=] whose type is {{TypeError}}:
+The resulting behavior from creating and throwing an exception is language binding-specific.
+
+Note: See [[#es-creating-throwing-exceptions]] for details on what creating and throwing an exception
+entails in the ECMAScript language binding.
+
+<div class="example" id="example-56ad390c">
+
+    Here is are some examples of wording to use to create and throw exceptions.
+    To throw a new [=simple exception=] named {{TypeError}}:
 
     <blockquote>
-        <p>[=exception/Throw=] a {{TypeError}}.
+        [=exception/Throw=] a {{TypeError}}.
     </blockquote>
 
-    <p>To throw a new {{DOMException}} with [=DOMException/name=] "{{NotAllowedError}}":
+    To throw a new {{DOMException}} with [=error name=] "{{NotAllowedError!!exception}}":
 
     <blockquote>
-        <p>[=exception/Throw=] a "{{NotAllowedError}}" {{DOMException}}.
+        [=exception/Throw=] a "{{NotAllowedError!!exception}}" {{DOMException}}.
     </blockquote>
 
-    <p>To create a new {{DOMException}} with [=DOMException/name=] "{{SyntaxError}}":
+    To create a new {{DOMException}} with [=error name=] "{{SyntaxError!!exception}}":
 
     <blockquote>
-        <p>Let <var ignore>object</var> be a newly [=exception/created=] "{{SyntaxError}}"
-        {{DOMException}}.
-    </blockquote>
-
-    <p>To [=reject=] a promise with a new {{DOMException}} with [=DOMException/name=]
-    "{{OperationError}}":
-
-    <blockquote>
-        [=Reject=] <var ignore>p</var> with an "{{OperationError}}" {{DOMException}}.
+        Let <var ignore>object</var> be a newly [=created=] "{{SyntaxError!!exception}}" {{DOMException}}.
     </blockquote>
 </div>
 
-<div class=example id=example-exception-throwing-message-hint>
-    <p>An example of including additional information used to construct the exception message would
-    be:
 
-    <blockquote>
-        [=exception/Throw=] a "{{SyntaxError}}" {{DOMException}} indicating that the given value
-        had disallowed trailing spaces.
-    </blockquote>
+<h4 id="idl-DOMException-error-names">Error names</h4>
 
-    <p>Such additional context is most helpful to implementers when it is not immediately obvious
-    why the exception is being thrown, e.g., because there are many different steps in the algorithm
-    which throw a "{{SyntaxError}}" {{DOMException}}. In contrast, if your specification throws a
-    "{{NotAllowedError}}" {{DOMException}} immediately after checking if the user has provided
-    permission to use a given feature, it's fairly obvious what sort of message the implementation
-    ought to construct, and so specifying it is not necessary.
-</div>
+The <dfn id="dfn-error-names-table" export>error names table</dfn> below lists all the allowed error names
+for {{DOMException}}, a description, and legacy code values.
 
-The resulting behavior from creating and throwing an exception is language binding specific.
+<p class="warning">
+    The {{DOMException}} names marked as deprecated are kept for legacy purposes but their usage is discouraged.
+</p>
 
-<p class=note>See [[#es-creating-throwing-exceptions]] for details on what creating and throwing an
-exception entails in the ECMAScript language binding.
-
-
-<h4 id="idl-DOMException-error-names">Base {{DOMException}} error names</h4>
-
-The <dfn export id="dfn-error-names-table"><code>DOMException</code> names table</dfn> below lists all the
-allowed [=DOMException/names=] for instances of the base {{DOMException}} interface, along with a
-description of what such names mean, and legacy numeric error code values.
-
-<p class="note">Interfaces [=interface/inheriting=] from {{DOMException}}, in the manner described
-in [[#idl-DOMException-derived-interfaces]], will have their own names, not listed in this table.
-
-When [=exception/creating=] or [=exception/throwing=] a {{DOMException}}, specifications must use
-one of these names. If a specification author believes none of these names are a good fit for their
-case, they must
-<a href="https://github.com/whatwg/webidl/issues/new?title=DOMException%20name%20proposal">file an issue</a>
-to discuss adding a new name to the shared namespace, so that the community can coordinate such
-efforts. Note that adding new use-case-specific names is only important if you believe web
-developers will discriminate multiple error conditions arising from a single API.
-
-<p class="warning">The {{DOMException}} names marked as deprecated are kept for legacy purposes, but
-their usage is discouraged.
+Note: If an error name is not listed here, please file a bug as indicated at the top of this specification and it will be addressed shortly. Thanks!
 
 Note: Don't confuse the "{{SyntaxError!!exception}}" {{DOMException}} defined here
 with ECMAScript's <l spec=ecmascript>{{SyntaxError}}</l>.
@@ -5197,93 +5178,6 @@ over just using {{SyntaxError!!exception}} to refer to the {{DOMException}}. [[D
     </tbody>
 </table>
 
-<h4 id="idl-DOMException-derived-interfaces">{{DOMException}} derived interfaces</h4>
-
-When an exception needs to carry additional programmatically-introspectable information, beyond what
-can be provided with a {{DOMException}}'s [=DOMException/name=], specification authors can create an
-[=interface=] which [=interface/inherits=] from {{DOMException}}. Such interfaces need to follow
-certain rules, in order to have a predictable shape for developers. Specifically:
-
-*   The [=identifier=] of the [=interface=] must end with <code>Error</code>, and must not be any
-    of the names in the <a><code>DOMException</code> names table</a>.
-*   The [=interface=] must have a [=constructor operation=] which sets the instance's
-    [=DOMException/name=] to the interface's [=identifier=].
-*   Their [=constructor operation=] must take as its first parameter an [=optional argument|optional=]
-    {{DOMString}} named |message| defaulting to the empty string, and must set the instance's
-    [=DOMException/message=] to |message|.
-*   Their [=constructor operation=] should take as its second parameter a [=dictionary=] containing
-    the additional information that needs to be exposed.
-*   They should have [=read only=] [=attributes=], whose names are the same as the members of the
-    constructor dictionary, which return the values accepted by the constructor operation.
-*   They should be [=serializable objects=], whose [=serialization steps=] and
-    [=deserialization steps=] preserve the additional information.
-
-<p class=note>These requirements mean that the inherited {{DOMException/code}} property of these
-interfaces will always return 0.
-
-<div class=example id=example-domexception-derived-interface>
-    The definition for a {{DOMException}} derived interface which carries along an additional
-    "protocol error code", which is derived from what the server sent over some some hypothetical
-    network protocol "protocol X", could look something like this:
-
-    <pre highlight=webidl>
-        [Exposed=Window, Serializable]
-        interface ProtocolXError : DOMException {
-          constructor(optional DOMString message = "", ProtocolXErrorOptions options);
-
-          readonly attribute unsigned long long errorCode;
-        };
-
-        dictionary ProtocolXErrorOptions {
-            required [EnforceRange] unsigned long long errorCode;
-        };
-    </pre>
-
-    Every <code>ProtocolXError</code> instance has an <dfn for="ProtocolXError">error code</dfn>,
-    a number.
-
-    <div algorithm="ProtocolXError constructor">
-        The <b><code>new ProtocolXError(|message|, |options|)</code></b> constructor steps are:
-
-        1.  Set [=this=]'s [=DOMException/name=] to "<code>ProtocolXError</code>".
-        1.  Set [=this=]'s [=DOMException/message=] to |message|.
-        1.  Set [=this=]'s [=ProtocolXError/error code=] to |options|["<code>errorCode</code>"].
-    </div>
-
-    <div algorithm="ProtocolXError errorCode">
-        The <b><code>errorCode</code></b> getter steps are to return [=this=]'s
-        [=ProtocolXError/error code=].
-    </div>
-
-    <code>ProtocolXError</code> objects are [=serializable objects=].
-
-    <div algorithm="ProtocolXError serialization steps">
-        Their [=serialization steps=], given |value| and |serialized|, are:
-
-        1. Run the {{DOMException}} [=serialization steps=] given |value| and |serialized|.
-        1. Set |serialized|.\[[ErrorCode]] to |value|'s [=ProtocolXError/error code=].
-    </div>
-
-    <div algorithm="ProtocolXError deserialization steps">
-        Their [=deserialization steps=], given |serialized| and |value|, are:
-
-        1. Run the {{DOMException}} [=deserialization steps=] given |serialized| and |value|.
-        1. Set |value|'s [=ProtocolXError/error code=] to |serialized|.\[[ErrorCode]].
-    </div>
-</div>
-
-To [=exception/create=] or [=exception/throw=] a {{DOMException}} derived interface, supply its
-[=interface=] [=identifier=] as well as the additional information needed to construct it.
-
-<div class=example id=example-domexception-derived-throwing>
-    <p>To throw an instance of the <code>ProtocolXError</code> exemplified
-    <a href=#example-domexception-derived-interface>above</a>:
-
-    <blockquote>
-        <p>[=exception/Throw=] a <code>ProtocolXError</code> whose [=ProtocolXError/error code=]
-        is 42.
-    </blockquote>
-</div>
 
 <h3 id="idl-enums">Enumerations</h3>
 
@@ -5544,8 +5438,7 @@ allows authors to register callbacks by providing objects that implement the
 
 <h3 id="idl-types">Types</h3>
 
-This section lists the types supported by Web IDL,
-the set of values or [[Infra|Infra]] type
+This section lists the types supported by Web IDL, the set of values
 corresponding to each type, and how [=constants=]
 of that type are represented.
 
@@ -5573,8 +5466,6 @@ The <dfn id="dfn-string-type" export>string types</dfn> are
 {{DOMString}}, all [=enumeration types=],
 {{ByteString}} and {{USVString}}.
 
-The <dfn export>buffer types</dfn> are {{ArrayBuffer}} and {{SharedArrayBuffer}}.
-
 The <dfn id="dfn-typed-array-type" export>typed array types</dfn> are
 {{Int8Array}},
 {{Int16Array}},
@@ -5588,9 +5479,10 @@ The <dfn id="dfn-typed-array-type" export>typed array types</dfn> are
 {{Float32Array}}, and
 {{Float64Array}}.
 
-The <dfn export>buffer view types</dfn> are {{DataView}} and the [=typed array types=].
-
-The <dfn id="dfn-buffer-source-type" export>buffer source types</dfn> are the [=buffer types=] and the [=buffer view types=].
+The <dfn id="dfn-buffer-source-type" export>buffer source types</dfn>
+are {{ArrayBuffer}},
+{{DataView}},
+and the [=typed array types=].
 
 The {{object}} type,
 all [=interface types=], and
@@ -5847,7 +5739,7 @@ tokens.
 <h4 oldids="dom-float" id="idl-float" interface>float</h4>
 
 The {{float}} type is a floating point numeric
-type that corresponds to the set of finite single-precision 32-bit
+type that corresponds to the set of finite single-precision 32 bit
 IEEE 754 floating point numbers. [[!IEEE-754]]
 
 {{float}} constant values in IDL are
@@ -5855,7 +5747,7 @@ represented with <emu-t class="regex"><a href="#prod-decimal">decimal</a></emu-t
 tokens.
 
 <p class="warning">
-    Unless there are specific reasons to use a 32-bit floating point type,
+    Unless there are specific reasons to use a 32 bit floating point type,
     specifications should use
     {{double}} rather than {{float}},
     since the set of values that a {{double}} can
@@ -5865,7 +5757,7 @@ tokens.
 <h4 oldids="dom-unrestrictedfloat" id="idl-unrestricted-float" interface>unrestricted float</h4>
 
 The {{unrestricted float}} type is a floating point numeric
-type that corresponds to the set of all possible single-precision 32-bit
+type that corresponds to the set of all possible single-precision 32 bit
 IEEE 754 floating point numbers, finite, non-finite, and special "not a number" values (NaNs). [[!IEEE-754]]
 
 {{unrestricted float}} constant values in IDL are
@@ -5875,7 +5767,7 @@ tokens.
 <h4 oldids="dom-double" id="idl-double" interface>double</h4>
 
 The {{double}} type is a floating point numeric
-type that corresponds to the set of finite double-precision 64-bit
+type that corresponds to the set of finite double-precision 64 bit
 IEEE 754 floating point numbers. [[!IEEE-754]]
 
 {{double}} constant values in IDL are
@@ -5885,7 +5777,7 @@ tokens.
 <h4 oldids="dom-unrestricteddouble" id="idl-unrestricted-double" interface>unrestricted double</h4>
 
 The {{unrestricted double}} type is a floating point numeric
-type that corresponds to the set of all possible double-precision 64-bit
+type that corresponds to the set of all possible double-precision 64 bit
 IEEE 754 floating point numbers, finite, non-finite, and special "not a number" values (NaNs). [[!IEEE-754]]
 
 {{unrestricted double}} constant values in IDL are
@@ -5901,14 +5793,23 @@ The {{bigint}} type is an arbitrary integer type, unrestricted in range.
 
 <h4 oldids="dom-DOMString" id="idl-DOMString" interface>DOMString</h4>
 
-The {{DOMString}} type corresponds to [=strings=].
+The {{DOMString}} type corresponds to
+the set of all possible sequences of [=code units=].
+Such sequences are commonly interpreted as UTF-16 encoded strings [[!RFC2781]]
+although this is not required.
 
-Note: <emu-val>null</emu-val> is not a value of type {{DOMString}}. To allow
-<emu-val>null</emu-val>, a [=nullable type|nullable=] {{DOMString}}, written as
-<code>DOMString?</code> in IDL, needs to be used.
+Note: Note also that <emu-val>null</emu-val>
+is not a value of type {{DOMString}}.
+To allow <emu-val>null</emu-val>, a
+[=nullable type|nullable=] {{DOMString}},
+written as <code>DOMString?</code> in IDL, needs to be used.
 
-Note: A {{DOMString}} value might include unmatched [=surrogate=] [=code points=]. Use {{USVString}}
-if this is not desirable.
+Nothing in this specification requires a {{DOMString}}
+value to be a valid UTF-16 string.  For example, a {{DOMString}}
+value might include unmatched [=surrogate=] [=code points=].  However, authors
+of specifications using Web IDL might want to obtain a sequence of
+[=scalar values=] given a particular sequence of
+[=code units=].
 
 There is no way to represent a constant {{DOMString}}
 value in IDL, although {{DOMString}} [=dictionary member=] [=dictionary member/default values=]
@@ -5918,7 +5819,10 @@ can be set to [=value of string literal tokens|the value=] of a
 
 <h4 oldids="dom-ByteString" id="idl-ByteString" interface>ByteString</h4>
 
-The {{ByteString}} type corresponds to [=byte sequences=].
+The {{ByteString}} type
+corresponds to the set of all possible sequences of bytes.
+Such sequences might be interpreted as UTF-8 encoded strings [[!RFC3629]]
+or strings in some other 8-bit-per-code-unit encoding, although this is not required.
 
 There is no way to represent a constant {{ByteString}}
 value in IDL, although {{ByteString}} [=dictionary member=] [=dictionary member/default values=]
@@ -5933,20 +5837,20 @@ can be set to [=value of string literal tokens|the value=] of a
     strings should be represented with
     {{DOMString}} values, even if it is expected
     that values of the string will always be in ASCII or some
-    8-bit character encoding. [=sequence types|Sequences=] or
+    8 bit character encoding. [=sequence types|Sequences=] or
     [=frozen array type|frozen arrays=] with {{octet}} or {{byte}}
     elements, {{Uint8Array}}, or {{Int8Array}} should be used for holding
-    8-bit data rather than {{ByteString}}.
+    8 bit data rather than {{ByteString}}.
 </p>
 
 
 <h4 oldids="dom-USVString" id="idl-USVString" interface>USVString</h4>
 
 The {{USVString}} type
-corresponds to [=scalar value strings=].
-Depending on the context,
-these can be treated as sequences of either 16-bit unsigned integer [=code units=]
-or [=scalar values=].
+corresponds to the set of all possible sequences of
+[=scalar values=],
+which are all of the Unicode code points apart from the
+surrogate code points.
 
 There is no way to represent a constant {{USVString}}
 value in IDL, although {{USVString}} [=dictionary member=] [=dictionary member/default values=]
@@ -6300,7 +6204,7 @@ It would not be appropriate to accept such a union, only to then convert values 
 [=numeric type=] to a {{bigint}} for further processing, as this runs the risk of introducing
 precision errors.
 Please
-<a href="https://github.com/whatwg/webidl/issues/new?title=Intent%20to%20use%20bigint/numeric%20union">file an issue</a>
+<a href="https://github.com/heycam/webidl/issues/new?title=Intent%20to%20use%20bigint/numeric%20union">file an issue</a>
 before using this feature.
 </p>
 
@@ -6437,47 +6341,27 @@ For any type, the [=extended attributes associated with=] it must only contain
 
 There are a number of types that correspond to sets of all possible non-null
 references to objects that represent a buffer of data or a view on to a buffer of
-data. The table below lists these types and the kind of buffer or view they represent.
+data.  The table below lists these types and the kind of buffer or view they represent.
 
 <table class="vert data">
-    <tr>
-        <th>Type
-        <th>Kind of buffer
-    <tr>
-        <td><dfn id="idl-ArrayBuffer" interface>ArrayBuffer</dfn>
-        <td>An object that holds a pointer (which can be null) to a buffer of a fixed number of bytes
-    <tr>
-        <td><dfn id="idl-SharedArrayBuffer" interface>SharedArrayBuffer</dfn>
-        <td>An object that holds a pointer (which cannot be null) to a shared buffer of a fixed number of bytes
-    <tr>
-        <td><dfn id="idl-DataView" interface>DataView</dfn>
-        <td>A view on to a [=buffer type=] instance that allows typed access to integers and floating point values stored at arbitrary offsets into the buffer
-    <tr>
-        <td><dfn id="idl-Int8Array" interface>Int8Array</dfn>
-        <td rowspan=4>A view on to a [=buffer type=] instance that exposes it as an array of two's complement signed integers of the given size in bits
-    <tr>
-        <td><dfn id="idl-Int16Array" interface>Int16Array</dfn>
-    <tr>
-        <td><dfn id="idl-Int32Array" interface>Int32Array</dfn>
-    <tr>
-        <td><dfn id="idl-BigInt64Array" interface>BigInt64Array</dfn>
-    <tr>
-        <td><dfn id="idl-Uint8Array" interface>Uint8Array</dfn>
-        <td rowspan=4>A view on to a [=buffer type=] instance that exposes it as an array of unsigned integers of the given size in bits
-    <tr>
-        <td><dfn id="idl-Uint16Array" interface>Uint16Array</dfn>
-    <tr>
-        <td><dfn id="idl-Uint32Array" interface>Uint32Array</dfn>
-    <tr>
-        <td><dfn id="idl-BigUint64Array" interface>BigUint64Array</dfn>
-    <tr>
-        <td><dfn id="idl-Uint8ClampedArray" interface>Uint8ClampedArray</dfn>
-        <td>A view on to a [=buffer type=] instance that exposes it as an array of unsigned 8-bit integers with clamped conversions
-    <tr>
-        <td><dfn id="idl-Float32Array" interface>Float32Array</dfn>
-        <td rowspan=2>A view on to a [=buffer type=] instance that exposes it as an array of IEEE 754 floating point numbers of the given size in bits
-    <tr>
-        <td><dfn id="idl-Float64Array" interface>Float64Array</dfn>
+    <tr><th>Type</th><th>Kind of buffer</th></tr>
+    <tr><td><dfn id="idl-ArrayBuffer" interface>ArrayBuffer</dfn></td><td>An object that holds a pointer (which can be null) to a buffer of a fixed number of bytes</td></tr>
+    <tr><td><dfn id="idl-DataView" interface>DataView</dfn></td><td>A view on to an {{ArrayBuffer}} that allows typed access to integers and floating point values stored at arbitrary offsets into the buffer</td></tr>
+    <tr><td><dfn id="idl-Int8Array" interface>Int8Array</dfn>,<br/>
+            <dfn id="idl-Int16Array" interface>Int16Array</dfn>,<br/>
+            <dfn id="idl-Int32Array" interface>Int32Array</dfn>,<br/>
+            <dfn id="idl-BigInt64Array" interface>BigInt64Array</dfn></td>
+        <td>A view on to an {{ArrayBuffer}} that exposes it as an array of two's complement signed integers of the given size in bits</td></tr>
+    <tr><td><dfn id="idl-Uint8Array" interface>Uint8Array</dfn>,<br/>
+            <dfn id="idl-Uint16Array" interface>Uint16Array</dfn>,<br/>
+            <dfn id="idl-Uint32Array" interface>Uint32Array</dfn>,<br/>
+            <dfn id="idl-BigUint64Array" interface>BigUint64Array</dfn></td>
+        <td>A view on to an {{ArrayBuffer}} that exposes it as an array of unsigned integers of the given size in bits</td></tr>
+    <tr><td><dfn id="idl-Uint8ClampedArray" interface>Uint8ClampedArray</dfn></td>
+        <td>A view on to an {{ArrayBuffer}} that exposes it as an array of unsigned 8 bit integers with clamped conversions</td></tr>
+    <tr><td><dfn id="idl-Float32Array" interface>Float32Array</dfn>,<br/>
+            <dfn id="idl-Float64Array" interface>Float64Array</dfn></td>
+        <td>A view on to an {{ArrayBuffer}} that exposes it as an array of IEEE 754 floating point numbers of the given size in bits</td></tr>
 </table>
 
 Note: These types all correspond to classes defined in ECMAScript.
@@ -6491,7 +6375,6 @@ in [[#es-buffer-source-types]].
 <pre class="grammar" id="prod-BufferRelatedType">
     BufferRelatedType :
         "ArrayBuffer"
-        "SharedArrayBuffer"
         "DataView"
         "Int8Array"
         "Int16Array"
@@ -7423,7 +7306,7 @@ In effect, where <var ignore>x</var> is a Number value,
 Note: Since there is only a single ECMAScript <emu-val>NaN</emu-val> value,
 it must be canonicalized to a particular single precision IEEE 754 NaN value.  The NaN value
 mentioned above is chosen simply because it is the quiet NaN with the lowest
-value when its bit pattern is interpreted as an unsigned 32-bit integer.
+value when its bit pattern is interpreted as an unsigned 32 bit integer.
 
 <div id="unrestricted-float-to-es" algorithm="convert an unrestricted float to an ECMAScript value">
 
@@ -7479,7 +7362,7 @@ value when its bit pattern is interpreted as an unsigned 32-bit integer.
 Note: Since there is only a single ECMAScript <emu-val>NaN</emu-val> value,
 it must be canonicalized to a particular double precision IEEE 754 NaN value.  The NaN value
 mentioned above is chosen simply because it is the quiet NaN with the lowest
-value when its bit pattern is interpreted as an unsigned 64-bit integer.
+value when its bit pattern is interpreted as an unsigned 64 bit integer.
 
 <div id="unrestricted-double-to-es" algorithm="convert an unrestricted double to an ECMAScript value">
 
@@ -7590,9 +7473,12 @@ value when its bit pattern is interpreted as an unsigned 64-bit integer.
 
 <div id="USVString-to-es" algorithm="convert an USVString to an ECMAScript value">
 
-    The result of [=converted to an ECMAScript value|converting=]
-    an IDL {{USVString}} value |S| to an ECMAScript
-    value is |S|.
+    An IDL {{USVString}} value is [=converted to an ECMAScript value|converted=]
+    to an ECMAScript value by running the following algorithm:
+
+    1.  Let |scalarValues| be the sequence of [=scalar values=] the {{USVString}} represents.
+    1.  Let |string| be the sequence of [=code units=] that results from encoding |scalarValues| in UTF-16.
+    1.  Return the String value that represents the same sequence of [=code units=] as |string|.
 </div>
 
 
@@ -8518,18 +8404,10 @@ that correspond to the union's [=member types=].
             [=implements=], then return the IDL value that is a reference to the object |V|.
         1.  If |types| includes {{object}}, then return the IDL value
             that is a reference to the object |V|.
-    1.  If <a abstract-op>Type</a>(|V|) is Object, |V| has an \[[ArrayBufferData]]
-        [=/internal slot=], and <a abstract-op>IsSharedArrayBuffer</a>(|V|) is false, then:
+    1.  If <a abstract-op>Type</a>(|V|) is Object and |V| has an \[[ArrayBufferData]] [=/internal slot=], then:
         1.  If |types| includes {{ArrayBuffer}}, then return the
             result of [=converted to an IDL value|converting=]
             |V| to {{ArrayBuffer}}.
-        1.  If |types| includes {{object}}, then return the IDL value
-            that is a reference to the object |V|.
-    1.  If <a abstract-op>Type</a>(|V|) is Object, |V|, has an \[[ArrayBufferData]]
-        [=/internal slot=], and <a abstract-op>IsSharedArrayBuffer</a>(|V|) is true, then:
-        1.  If |types| includes {{SharedArrayBuffer}}, then return the
-            result of [=converted to an IDL value|converting=]
-            |V| to {{SharedArrayBuffer}}.
         1.  If |types| includes {{object}}, then return the IDL value
             that is a reference to the object |V|.
     1.  If <a abstract-op>Type</a>(|V|) is Object and |V| has a \[[DataView]] [=/internal slot=], then:
@@ -8618,45 +8496,33 @@ that correspond to the union's [=member types=].
 
 <h4 id="es-buffer-source-types">Buffer source types</h4>
 
-A value of an IDL {{ArrayBuffer}} is represented by an object of the corresponding ECMAScript class.
-If it is not [=extended attributes associated with|associated with=] the [{{AllowResizable}}]
-[=extended attribute=], it can only be backed by ECMAScript <l spec=ecmascript>{{ArrayBuffer}}</l>
-objects |V| for which <a abstract-op>IsResizableArrayBuffer</a>(|V|) is false.
-
-A value of an IDL {{SharedArrayBuffer}} is represented by an object of the corresponding ECMAScript
-class. If it is not [=extended attributes associated with|associated with=] the [{{AllowResizable}}]
-[=extended attribute=], it can only be backed by ECMAScript
-<l spec=ecmascript>{{SharedArrayBuffer}}</l> objects |V| for which
-<a abstract-op>IsResizableArrayBuffer</a>(|V|) is false.
-
-Values of the IDL [=buffer view types=] are represented by objects of the corresponding ECMAScript
-class, with the following additional restrictions on those objects.
+Values of the IDL [=buffer source types=]
+are represented by objects of the corresponding ECMAScript class, with the following additional restrictions on those objects.
 
 <ul>
     <li>
         If the type is not [=extended attributes associated with|associated with=] either the
-        [{{AllowResizable}}] or [{{AllowShared}}] [=extended attribute=], if applicable, they can
-        only be backed by ECMAScript <l spec=ecmascript>{{ArrayBuffer}}</l> objects |V| for which <a
+        [{{AllowResizable}}] or [{{AllowShared}}] [=extended attribute=], they can only be backed by
+        ECMAScript {{ArrayBuffer}} objects |V| for which <a
         abstract-op>IsResizableArrayBuffer</a>(|V|) is false.
     </li>
     <li>
         If the type is [=extended attributes associated with|associated with=] the
         [{{AllowResizable}}] [=extended attribute=] but not with the [{{AllowShared}}] [=extended
-        attribute=], if applicable, they can only be backed by ECMAScript
-        <l spec=ecmascript>{{ArrayBuffer}}</l> objects.
+        attribute=], they can only be backed by ECMAScript {{ArrayBuffer}} objects.
     </li>
     <li>
         If the type is [=extended attributes associated with|associated with=] the [{{AllowShared}}]
         [=extended attribute=] but not with the [{{AllowResizable}}] [=extended attribute=], they
-        can only be backed by ECMAScript <l spec=ecmascript>{{ArrayBuffer}}</l> and
-        <l spec=ecmascript>{{SharedArrayBuffer}}</l> objects |V| for which
-        <a abstract-op>IsResizableArrayBuffer</a>(|V|) is false.
+        can only be backed by ECMAScript {{ArrayBuffer}} and ECMAScript
+        {{SharedArrayBuffer}} objects |V| for which <a
+        abstract-op>IsResizableArrayBuffer</a>(|V|) is false.
     </li>
     <li>
         If the type is [=extended attributes associated with|associated with=] both the
         [{{AllowResizable}}] and the [{{AllowShared}}] [=extended attribute|extended attributes=],
-        they can be backed by any ECMAScript <l spec=ecmascript>{{ArrayBuffer}}</l> or
-        <l spec=ecmascript>{{SharedArrayBuffer}}</l> object.
+        they can be backed by any ECMAScript {{ArrayBuffer}} or
+        {{SharedArrayBuffer}} object.
     </li>
 </ul>
 
@@ -8668,7 +8534,9 @@ class, with the following additional restrictions on those objects.
     1.  If <a abstract-op>Type</a>(|V|) is not Object,
         or |V| does not have an \[[ArrayBufferData]] [=/internal slot=],
         then [=ECMAScript/throw=] a <l spec=ecmascript>{{TypeError}}</l>.
-    1.  If <a abstract-op>IsSharedArrayBuffer</a>(|V|) is true, then [=ECMAScript/throw=]
+    1.  If the conversion is not to an IDL type
+        [=extended attributes associated with|associated with=] the [{{AllowShared}}]
+        [=extended attribute=], and <a abstract-op>IsSharedArrayBuffer</a>(|V|) is true, then [=ECMAScript/throw=]
         a <l spec=ecmascript>{{TypeError}}</l>.
     1.  If the conversion is not to an IDL type
         [=extended attributes associated with|associated with=] the [{{AllowResizable}}]
@@ -8678,25 +8546,7 @@ class, with the following additional restrictions on those objects.
         to the same object as |V|.
 </div>
 
-<div algorithm="convert an ECMAScript value to IDL SharedArrayBuffer">
-
-    An ECMAScript value |V| is [=converted to an IDL value|converted=]
-    to an IDL {{SharedArrayBuffer}} value by running the following algorithm:
-
-    1.  If <a abstract-op>Type</a>(|V|) is not Object,
-        or |V| does not have an \[[ArrayBufferData]] [=/internal slot=],
-        then [=ECMAScript/throw=] a <l spec=ecmascript>{{TypeError}}</l>.
-    1.  If <a abstract-op>IsSharedArrayBuffer</a>(|V|) is false, then [=ECMAScript/throw=]
-        a <l spec=ecmascript>{{TypeError}}</l>.
-    1.  If the conversion is not to an IDL type
-        [=extended attributes associated with|associated with=] the [{{AllowResizable}}]
-        [=extended attribute=], and <a abstract-op>IsResizableArrayBuffer</a>(|V|) is true,
-        then [=ECMAScript/throw=] a <l spec=ecmascript>{{TypeError}}</l>.
-    1.  Return the IDL {{SharedArrayBuffer}} value that is a reference
-        to the same object as |V|.
-</div>
-
-<div algorithm="convert an ECMAScript value to IDL DataView">
+<div id="buffer-source-to-es" algorithm="convert an ECMAScript value to IDL DataView">
 
     An ECMAScript value |V| is [=converted to an IDL value|converted=]
     to an IDL {{DataView}} value by running the following algorithm:
@@ -8749,12 +8599,10 @@ class, with the following additional restrictions on those objects.
     1.  Return the IDL value of type |T| that is a reference to the same object as |V|.
 </div>
 
-<div id="buffer-source-to-es" algorithm="convert a buffer source type to an ECMAScript value">
 The result of [=converted to an ECMAScript value|converting=]
 an IDL value of any [=buffer source type=]
 to an ECMAScript value is the Object value that represents
 a reference to the same object that the IDL value represents.
-</div>
 
 <hr>
 
@@ -8769,19 +8617,6 @@ a reference to the same object that the IDL value represents.
         to an IDL value of type {{ArrayBuffer}}.
     1.  [=ArrayBuffer/Write=] |bytes| into |arrayBuffer|.
     1.  Return |arrayBuffer|.
-</div>
-
-<div algorithm>
-    To <dfn export for=SharedArrayBuffer>create</dfn> a {{SharedArrayBuffer}} from a
-    [=byte sequence=] |bytes| in a [=realm=] |realm|:
-
-    1.  Let |esSharedArrayBuffer| be [=?=]
-        [$AllocateSharedArrayBuffer$](|realm|.\[[Intrinsics]].[[{{%SharedArrayBuffer%}}]], |bytes|'s
-        [=byte sequence/length=]).
-    1.  Let |sharedArrayBuffer| be the result of [=converted to an IDL value|converting=]
-        |esSharedArrayBuffer| to an IDL value of type {{SharedArrayBuffer}}.
-    1.  [=SharedArrayBuffer/Write=] |bytes| into |sharedArrayBuffer|.
-    1.  Return |sharedArrayBuffer|.
 </div>
 
 <div algorithm>
@@ -8802,7 +8637,7 @@ a reference to the same object that the IDL value represents.
 
 <div algorithm>
     To <dfn id="dfn-get-buffer-source-copy" export lt="get a copy of the buffer source|get a copy of the bytes held by the buffer source">get a copy of the bytes held by the buffer source</dfn>
-    given a [=buffer source type=] instance |bufferSource|:
+    given a {{BufferSource}} |bufferSource|:
 
     1.  Let |esBufferSource| be the result of [=converted to an ECMAScript value|converting=]
         |bufferSource| to an ECMAScript value.
@@ -8827,8 +8662,8 @@ a reference to the same object that the IDL value represents.
 </div>
 
 <div algorithm>
-    The <dfn export for="BufferSource">byte length</dfn> of a [=buffer source type=] instance
-    |bufferSource| is the value returned by the following steps:
+    The <dfn export for="BufferSource">byte length</dfn> of a {{BufferSource}} |bufferSource| is
+    the value returned by the following steps:
 
     1.  Let |esBufferSource| be the result of [=converted to an ECMAScript value|converting=]
         |bufferSource| to an ECMAScript value.
@@ -8836,26 +8671,21 @@ a reference to the same object that the IDL value represents.
         |esBufferSource|.\[[ByteLength]].
     1.  Return |esBufferSource|.\[[ArrayBufferByteLength]].
 </div>
-<!-- TODO: should this be stricter around not being detached? -->
 
 <div algorithm>
-    The <dfn export for="BufferSource">underlying buffer</dfn> of a [=buffer source type=] instance
-    |bufferSource| is the value returned by the following steps:
+    The <dfn export for="BufferSource">underlying buffer</dfn> of a {{BufferSource}} |bufferSource|
+    is the value returned by the following steps:
 
-    1.  If |bufferSource| is a [=buffer type=] instance, then return |bufferSource|.
-    1.  Let |esBufferView| be the result of [=converted to an ECMAScript value|converting=]
+    1.  If |bufferSource| is an {{ArrayBuffer}}, return |bufferSource|.
+    1.  Let |esBufferSource| be the result of [=converted to an ECMAScript value|converting=]
         |bufferSource| to an ECMAScript value.
-    1.  Let |esBuffer| be |esBufferView|.\[[ViewedArrayBuffer]].
-    1.  If [$IsSharedArrayBuffer$](|esBuffer|) is false, then return the result of
-        [=converted to an IDL value|converting=] |esBuffer| to an IDL value of type {{ArrayBuffer}}.
-    1.  Return the result of [=converted to an IDL value|converting=] |esBuffer| to an IDL value of
-        type {{SharedArrayBuffer}}.
+    1.  Return the result of [=converted to an IDL value|converting=]
+        |esBufferSource|.\[[ViewedArrayBuffer]] to an IDL value of type {{ArrayBuffer}}.
 </div>
 
 <div algorithm="ArrayBuffer/write">
-    To <dfn id=arraybuffer-write export for="ArrayBuffer,SharedArrayBuffer">write</dfn> a
-    [=byte sequence=] |bytes| into a [=buffer type=] instance |arrayBuffer|, optionally given a
-    <dfn id=arraybuffer-write-startingoffset export for="ArrayBuffer/write,SharedArrayBuffer/write">|startingOffset|</dfn>
+    To <dfn export for="ArrayBuffer">write</dfn> a [=byte sequence=] |bytes| into an {{ArrayBuffer}}
+    |arrayBuffer|, optionally given a <dfn export for="ArrayBuffer/write">|startingOffset|</dfn>
     (default 0):
 
     1.  Let |esArrayBuffer| be the result of [=converted to an ECMAScript value|converting=]
@@ -8887,9 +8717,9 @@ a reference to the same object that the IDL value represents.
 
 <div class="warning">
     Extreme care must be taken when writing specification text that
-    [=ArrayBuffer/writes=] into a [=buffer source type=] instance, as the underlying data
+    [=ArrayBuffer/writes=] into an {{ArrayBuffer}} or {{ArrayBufferView}}, as the underlying data
     can easily be changed by the script author or other APIs at unpredictable times. This is
-    especially true if a {{SharedArrayBuffer}} object is involved.
+    especially true if the [{{AllowShared}}] [=extended attribute=] is involved.
 
     For the non-shared cases, a more recommended pattern is to [=ArrayBuffer/transfer=] the
     {{ArrayBuffer}} first if possible, to ensure the writes cannot overlap with other modifications,
@@ -8903,6 +8733,7 @@ a reference to the same object that the IDL value represents.
 
     1.  Let |esArrayBuffer| be the result of [=converted to an ECMAScript value|converting=]
         |arrayBuffer| to an ECMAScript value.
+    1.  Assert: [$IsSharedArrayBuffer$](|esArrayBuffer|) is false.
     1.  Perform [=?=] [$DetachArrayBuffer$](|esArrayBuffer|).
 
     <p class="note">This will throw an exception if |esArrayBuffer| has an \[[ArrayBufferDetachKey]]
@@ -8913,8 +8744,8 @@ a reference to the same object that the IDL value represents.
 </div>
 
 <div algorithm>
-    A [=buffer source type=] instance |bufferSource| is
-    <dfn for="BufferSource" export>detached</dfn> if the following steps return true:
+    A {{BufferSource}} |bufferSource| is <dfn for="BufferSource" export>detached</dfn> if the
+    following steps return true:
 
     1.  Let |esArrayBuffer| be the result of [=converted to an ECMAScript value|converting=]
         |bufferSource| to an ECMAScript value.
@@ -8929,6 +8760,7 @@ a reference to the same object that the IDL value represents.
 
     1.  Let |esArrayBuffer| be the result of [=converted to an ECMAScript value|converting=]
         |arrayBuffer| to an ECMAScript value.
+    1.  Assert: [$IsSharedArrayBuffer$](|esArrayBuffer|) is false.
     1.  Assert: [$IsDetachedBuffer$](|esArrayBuffer|) is false.
     1.  Let |arrayBufferData| be |esArrayBuffer|.\[[ArrayBufferData]].
     1.  Let |arrayBufferByteLength| be |esArrayBuffer|.\[[ArrayBufferByteLength]].
@@ -9026,19 +8858,13 @@ whose presence affects the ECMAScript binding.
 
 <h4 id="AllowResizable" extended-attribute lt="AllowResizable">[AllowResizable]</h4>
 
-If the [{{AllowResizable}}] [=extended attribute=] appears on a [=buffer type=], it creates a new
-IDL type that allows for the respective corresponding ECMAScript <l spec=ecmascript>{{ArrayBuffer}}</l>
-or <l spec=ecmascript>{{SharedArrayBuffer}}</l> object to be resizable.
+If the [{{AllowResizable}}] [=extended attribute=] appears on one of the [=buffer source types=] without the presence of the [{{AllowShared}}] [=extended attribute=], it
+creates a new IDL type that allows the buffer source type to be backed by an ECMAScript
+{{ArrayBuffer}} that is resizable, instead of only by a fixed-length {{ArrayBuffer}}.
 
-If the [{{AllowResizable}}] [=extended attribute=] appears on one of the [=buffer view types=] and
-the [{{AllowShared}}] [=extended attribute=] does not, it creates a new IDL type that allows the
-buffer view type to be backed by an ECMAScript <l spec=ecmascript>{{ArrayBuffer}}</l> that is
-resizable, instead of only by a fixed-length <l spec=ecmascript>{{ArrayBuffer}}</l>.
-
-If the [{{AllowResizable}}] [=extended attribute=] and the [{{AllowShared}}] [=extended attribute=]
-both appear on one of the [=buffer view types=], it creates a new IDL type that allows the buffer
-view type to be additionally backed by an ECMAScript <l spec=ecmascript>{{SharedArrayBuffer}}</l>
-that is growable.
+If the [{{AllowResizable}}] [=extended attribute=] and the [{{AllowShared}}] [=extended attribute=] both appear on one of the [=buffer source types=], it
+creates a new IDL type that allows the buffer source type to be additionally backed by an ECMAScript
+{{SharedArrayBuffer}} that is growable.
 
 The [{{AllowResizable}}] extended attribute must [=takes no arguments|take no arguments=].
 
@@ -9053,53 +8879,53 @@ See the <a href="#example-allowresizable-allowshared">example</a> in [[#AllowSha
 
 <h4 id="AllowShared" extended-attribute lt="AllowShared">[AllowShared]</h4>
 
-If the [{{AllowShared}}] [=extended attribute=] appears on one of the [=buffer view types=], it
-creates a new IDL type that allows the object to be backed by an {{SharedArrayBuffer}} instead of
-only by an {{ArrayBuffer}}.
+If the [{{AllowShared}}] [=extended attribute=] appears on one of the [=buffer source types=], it
+creates a new IDL type that allows the buffer source type to be backed by an ECMAScript
+{{SharedArrayBuffer}}, instead of only by a non-shared {{ArrayBuffer}}.
 
 The [{{AllowShared}}] extended attribute must [=takes no arguments|take no arguments=].
 
-A type that is not a [=buffer view type=] must not be
+A type that is not a [=buffer source type=] must not be
 [=extended attributes associated with|associated with=] the [{{AllowShared}}] extended attribute.
 
-See the rules for converting ECMAScript values to IDL [=buffer view types=] in
+See the rules for converting ECMAScript values to IDL [=buffer source types=] in
 [[#es-buffer-source-types]] for the specific requirements that the use of [{{AllowShared}}] entails.
 
 <div class="example" id="example-allowresizable-allowshared">
-    The following [=IDL fragment=] demonstrates the possible combinations of the
-    [{{AllowResizable}}] and [{{AllowShared}}] [=extended attribute=]:
+    In the following [=IDL fragment=], one operation's argument uses the [{{AllowResizable}}] extended
+    attribute, while the other does not:
 
     <pre highlight="webidl">
         [Exposed=Window]
         interface ExampleBufferFeature {
-          undefined writeInto(ArrayBufferView dest);
-          undefined writeIntoResizable([AllowResizable] ArrayBufferView dest);
-          undefined writeIntoShared([AllowShared] ArrayBufferView dest);
-          undefined writeIntoSharedResizable([AllowResizable, AllowShared] ArrayBufferView dest);
+          undefined writeInto(BufferSource dest);
+          undefined writeIntoResizable([AllowResizable] BufferSource dest);
+          undefined writeIntoShared([AllowShared] BufferSource dest);
+          undefined writeIntoSharedResizable([AllowResizable, AllowShared] BufferSource dest);
         };
     </pre>
 
     With this definition,
     <ul>
         <li>
-            A call to <code>writeInto</code> with any [=buffer view type=] backed by
-            either a resizable {{ArrayBuffer}} instance or a {{SharedArrayBuffer}} instance,
-            will throw a {{TypeError}} exception.
+            A call to <code>writeInto</code> with a resizable {{ArrayBuffer}} instance, a
+            {{SharedArrayBuffer}} instance, or any typed array or {{DataView}}
+            backed by either, will throw a {{TypeError}} exception.
        </li>
         <li>
-            A call to <code>writeIntoResizable</code> with any [=buffer view type=] backed by
-            a {{SharedArrayBuffer}} instance, will throw a
+            A call to <code>writeIntoResizable</code> with a {{SharedArrayBuffer}}
+            instance, or any typed array or {{DataView}} backed by one, will throw a
             {{TypeError}} exception.
         </li>
         <li>
-            A call to <code>writeIntoShared</code> with any [=buffer view type=] backed by a
-            resizable {{ArrayBuffer}} instance or a growable {{SharedArrayBuffer}} instance,
-            will throw a {{TypeError}} exception.
+            A call to <code>writeIntoShared</code> with a resizable {{ArrayBuffer}}
+            instance, a growable {{SharedArrayBuffer}} instance, or any typed array or
+            {{DataView}} backed by one, will throw a {{TypeError}} exception.
         </li>
         <li>
-            A call to <code>writeIntoSharedResizable</code> will accept any
-            [=buffer view type=] backed by a {{ArrayBuffer}} instance or a
-            {{SharedArrayBuffer}} instance.
+            A call to <code>writeIntoSharedResizable</code> will accept an
+            {{ArrayBuffer}} instance, a {{SharedArrayBuffer}} instance, or any
+            typed array or {{DataView}} backed by either.
         </li>
     </ul>
 </div>
@@ -10239,7 +10065,7 @@ behavior of legacy APIs.
 
 Editors who believe they have a good reason for using these extended attributes are strongly advised
 to discuss this by
-<a href="https://github.com/whatwg/webidl/issues/new?title=Intent%20to%20use%20a%20legacy%20extended%20attribute">filing an issue</a>
+<a href="https://github.com/heycam/webidl/issues/new?title=Intent%20to%20use%20a%20legacy%20extended%20attribute">filing an issue</a>
 before proceeding.
 
 
@@ -10987,7 +10813,7 @@ Note: The HTML Standard defines how a security check is performed. [[!HTML]]
     1.  Let |n| be the [=list/size=] of |args|.
     1.  Initialize |argcount| to be min(|maxarg|, |n|).
     1.  Remove from |S| all entries whose type list is not of length |argcount|.
-    1.  If |S| is empty, then [=ECMAScript/throw=] a <l spec=ecmascript>{{TypeError}}</l>.
+    1.  If |S| is empty, then [=ECMAScript/throw=] a <l spec=ecmascript>{{TypeError}}</l>}.
     1.  Initialize |d| to −1.
     1.  Initialize |method| to <emu-val>undefined</emu-val>.
     1.  If there is more than one entry in |S|, then set
@@ -11042,7 +10868,6 @@ Note: The HTML Standard defines how a security check is performed. [[!HTML]]
         1.  Otherwise: if <a abstract-op>Type</a>(|V|) is Object, |V| has an \[[ArrayBufferData]] [=/internal slot=], and
             there is an entry in |S| that has one of the following types at position |i| of its type list,
             *   {{ArrayBuffer}}
-            *   {{SharedArrayBuffer}}
             *   {{object}}
             *   a [=nullable type|nullable=] version of either of the above types
             *   an [=annotated type=] whose [=annotated types/inner type=] is one of the above types
@@ -11362,7 +11187,7 @@ default interfaces do not have such steps.
     In general, constructors are described by defining a [=constructor operation=] and its behavior.
     The [=overridden constructor steps=] are used only for more complicated situations.
     Editors who wish to use this feature are strongly advised to discuss this by
-    <a href="https://github.com/whatwg/webidl/issues/new?title=Intent%20to%20use%20constructor%20steps">filing an issue</a> before proceeding.
+    <a href="https://github.com/heycam/webidl/issues/new?title=Intent%20to%20use%20constructor%20steps">filing an issue</a> before proceeding.
 </p>
 
 <div algorithm>
@@ -11383,7 +11208,8 @@ default interfaces do not have such steps.
         1.  [=Compute the effective overload set=] for constructors with [=identifier=] |id| on
             [=interface=] |I| and with argument count |n|, and let |S| be the result.
         1.  Let &lt;|constructor|, |values|&gt; be the result
-            of passing |S| and |args| to the [=overload resolution algorithm=].
+            of passing |S| and |args|.
+            to the [=overload resolution algorithm=].
         1.  Let |object| be the result of [=internally create a new object implementing the
             interface|internally creating a new object implementing=] |I|, with |realm| and
             {{NewTarget}}.
@@ -11513,7 +11339,7 @@ with the [{{LegacyNoInterfaceObject}}] [=extended attribute=].
 
         Issue: Should an {{@@unscopables}} property also be defined if |interface| is
         declared with the [{{Global}}] [=extended attribute=]?
-        This is discussed in <a href="https://github.com/whatwg/webidl/issues/544">issue #544</a>.
+        This is discussed in <a href="https://github.com/heycam/webidl/issues/544">issue #544</a>.
         1.  Let |unscopableObject| be [$OrdinaryObjectCreate$](<emu-val>null</emu-val>).
         1.  [=list/For each=] [=exposed=] [=member=] |member| of |interface|
             that is declared with the [{{Unscopable}}] [=extended attribute=]:
@@ -11605,12 +11431,6 @@ for that interface on which named properties are exposed.
     1.  Set |obj|.\[[Prototype]] to |proto|.
     1.  Return |obj|.
 </div>
-
-Note: The \[[OwnPropertyKeys]] internal method of a named properties object
-continues to use <a abstract-op>OrdinaryOwnPropertyKeys</a>,
-unlike the counterpart for [=legacy platform objects=].
-Since named properties are not “real” own properties,
-they will not be returned by this internal method.
 
 The [=class string=] of a [=named properties object=]
 is the concatenation of the [=interface=]'s
@@ -12014,7 +11834,7 @@ in which case they are exposed on every object that [=implements=] the interface
                 with |idlObject| as [=this=] and |values| as the argument values.
             1.  Return |R|, [=converted to an ECMAScript value=].
 
-                Issue(whatwg/webidl#674): |R| is assumed to be an IDL value of the type |op| is declared to return.
+                Issue(heycam/webidl#674): |R| is assumed to be an IDL value of the type |op| is declared to return.
 
         And then, if <a lt="an exception was thrown">an exception |E| was thrown</a>:
 
@@ -14186,15 +14006,14 @@ the special value “missing”, which represents a missing optional argument.
         |callResult| and jump to the step labeled <a href="#call-user-object-operation-return"><i>return</i></a>.
     1.  Set |completion| to the result of [=converted to an IDL value|converting=]
         |callResult|.\[[Value]] to an IDL value of the same type as the operation's
-        return type. If this throws an exception, set |completion| to the completion value
-        representing the thrown exception.
+        return type.
     1.  <i id="call-user-object-operation-return">Return:</i> at this
-        point |completion| will be set to an IDL value or an [=abrupt completion=].
+        point |completion| will be set to an ECMAScript completion value.
         1.  [=Clean up after running a callback=] with |stored settings|.
         1.  [=Clean up after running script=] with |relevant settings|.
-        1.  If |completion| is an IDL value, return |completion|.
+        1.  If |completion| is a normal completion, return |completion|.
         1.  If |completion| is an [=abrupt completion=] and the operation has a [=return type=]
-            that is <em>not</em> a [=promise type=], throw |completion|.\[[Value]].
+            that is <em>not</em> a [=promise type=], return |completion|.
         1.  Let |rejectedPromise| be [=!=] <a abstract-op>Call</a>({{%Promise.reject%}},
             {{%Promise%}}, «|completion|.\[[Value]]»).
         1.  Return the result of [=converted to an IDL value|converting=]
@@ -14274,16 +14093,15 @@ described in the previous section).
     1.  If |callResult| is an [=abrupt completion=], set |completion| to
         |callResult| and jump to the step labeled <a href="#invoke-return"><i>return</i></a>.
     1.  Set |completion| to the result of [=converted to an IDL value|converting=]
-        |callResult|.\[[Value]] to an IDL value of the same type as |callable|'s
-        return type. If this throws an exception, set |completion| to the completion value
-        representing the thrown exception.
+        |callResult|.\[[Value]] to an IDL value of the same type as the operation's
+        return type.
     1.  <i id="invoke-return">Return:</i> at this
-        point |completion| will be set to an IDL value or an [=abrupt completion=].
+        point |completion| will be set to an ECMAScript completion value.
         1.  [=Clean up after running a callback=] with |stored settings|.
         1.  [=Clean up after running script=] with |relevant settings|.
-        1.  If |completion| is an IDL value, return |completion|.
+        1.  If |completion| is a normal completion, return |completion|.
         1.  If |completion| is an [=abrupt completion=] and the callback function has a
-            [=return type=] that is <em>not</em> a [=promise type=], throw |completion|.\[[Value]].
+            [=return type=] that is <em>not</em> a [=promise type=], return |completion|.
         1.  Let |rejectedPromise| be [=!=] <a abstract-op>Call</a>({{%Promise.reject%}},
             {{%Promise%}}, «|completion|.\[[Value]]»).
         1.  Return the result of [=converted to an IDL value|converting=]
@@ -14317,14 +14135,12 @@ a return type that is a [=promise type=].
     1.  If |callResult| is an [=abrupt completion=], set |completion| to
         |callResult| and jump to the step labeled <a href="#construct-return"><i>return</i></a>.
     1.  Set |completion| to the result of [=converted to an IDL value|converting=]
-        |callResult|.\[[Value]] to an IDL value of the same type as |callable|'s
-        return type. If this throws an exception, set |completion| to the completion value
-        representing the thrown exception.
+        |callResult|.\[[Value]] to an IDL value of the same type as the operation's
+        return type.
     1.  <i id="construct-return">Return:</i> at this
-        point |completion| will be set to an IDL value or an [=abrupt completion=].
+        point |completion| will be set to an ECMAScript completion value.
         1.  [=Clean up after running a callback=] with |stored settings|.
         1.  [=Clean up after running script=] with |relevant settings|.
-        1.  If |completion| is an [=abrupt completion=], throw |completion|.\[[Value]].
         1.  Return |completion|.
 </div>
 
@@ -14386,71 +14202,39 @@ A {{DOMException}} is represented by a
 <h4 id="es-creating-throwing-exceptions">Creating and throwing exceptions</h4>
 
 
-<div algorithm="to create a simple exception">
-    To [=exception/create=] a [=simple exception=] of type |T|:
+<div algorithm="to create a simple exception or DOMException">
 
-    1.  Let |message| be an [=implementation-defined=] message appropriate for the exceptional
-        situation. The calling specification may contain information to to help implementations
-        construct this message.
+    To create a [=simple exception=] or {{DOMException}} |E|, with a string giving the
+    [=error name=] |N| for the {{DOMException}} case and optionally a string giving a user
+    agent-defined message |M|:
 
-        Implementations need to be cautious not to leak sensitive or secured information when
-        constructing this message, e.g., by including the URL of a cross-origin frame, or
-        information which could identify the user.
-
-    1.  Let |args| be « |message| ».
-
-    1.  Let |constructor| be [=current realm=].\[[Intrinsics]].[[%|T|%]].
-
-    1. Return [=!=] [$Construct$](|constructor|, |args|).
-</div>
-
-<div algorithm="to create a DOMException">
-    To [=exception/create=] a {{DOMException}} given a string |name|:
-
-    1.  Assert: |name| appears in the <a><code>DOMException</code> names table</a>.
-
-    1.  Let |ex| be a [=new=] {{DOMException}} created in the [=current realm=].
-
-    1.  Set |ex|'s [=DOMException/name=] to |name|.
-
-    1.  Set |ex|'s [=DOMException/message=] to an [=implementation-defined=] message appropriate for
-        the exceptional situation. The calling specification may contain information to to help
-        implementations construct this message.
-
-        Implementations need to be cautious not to leak sensitive or secured information when
-        constructing this message, e.g., by including the URL of a cross-origin frame, or
-        information which could identify the user.
-
-    1.  Return |ex|.
-</div>
-
-<div algorithm="to create a DOMException derived interface">
-    To [=exception/create=] a {{DOMException}} derived interface given the [=interface=]
-    [=identifier=] |type| and additional initialization instructions:
-
-    1.  Let |ex| be a [=new=] instance of the [=interface=] identified by |type|, created in the
-        [=current realm=].
-
-    1.  Set |ex|'s [=DOMException/name=] to |type|.
-
-    1.  Set |ex|'s [=DOMException/message=] to an [=implementation-defined=] message appropriate for
-        the exceptional situation. The calling specification may contain information to to help
-        implementations construct this message.
-
-        Implementations need to be cautious not to leak sensitive or secured information when
-        constructing this message, e.g., by including the URL of a cross-origin frame, or
-        information which could identify the user.
-
-    1.  Perform any additional initialization on |ex| as described by the caller.
-
-    1.  Return |ex|.
+    1.  If |M| was not specified, let |M| be <emu-val>undefined</emu-val>.
+    1.  Let |args| be a list of ECMAScript values determined based on the type of |E|:
+        <dl class="switch">
+             :  |E| is {{DOMException}}
+             :: |args| is «|M|, |N|».
+             :  |E| is a [=simple exception=]
+             :: |args| is «|M|».
+        </dl>
+    1.  Let |X| be an object determined based on the type of |E|:
+        <dl class="switch">
+             :  |E| is {{DOMException}}
+             :: |X| is the {{DOMException}} [=interface object=]
+                from the [=current realm=].
+             :  |E| is a [=simple exception=]
+             :: |X| is the [=constructor=] for the corresponding ECMAScript error
+                from the [=current realm=].
+        </dl>
+    1.  Return [=!=] <a abstract-op>Construct</a>(|X|, |args|).
 </div>
 
 <div algorithm="throw an exception">
-    To [=exception/throw=] an [=exception=]:
 
-    1.  Let |O| be the result of [=exception/create|creating an exception=] with the same
-        arguments.
+    To [=exception/throw=] a [=simple exception=] or {{DOMException}}, with a string giving the
+    [=error name=] for the {{DOMException}} case and optionally a string giving a user
+    agent-defined message:
+
+    1.  Let |O| be the result of [=created|creating an exception=] with the same arguments.
     1.  Throw |O|.
 </div>
 
@@ -14582,8 +14366,7 @@ must support.
 </pre>
 
 The {{ArrayBufferView}} typedef is used to represent
-objects that provide a view on to an {{ArrayBuffer}} or
-{{SharedArrayBuffer}} (when [{{AllowShared}}] is used).
+objects that provide a view on to an {{ArrayBuffer}}.
 
 
 <h3 id="BufferSource" typedef oldids="common-BufferSource">BufferSource</h3>
@@ -14594,38 +14377,19 @@ The {{BufferSource}} typedef is used to represent objects
 that are either themselves an {{ArrayBuffer}} or which
 provide a view on to an {{ArrayBuffer}}.
 
-Note: [{{AllowShared}}] cannot be used with {{BufferSource}} as {{ArrayBuffer}} does not support it.
-Use {{AllowSharedBufferSource}} instead.
-
-
-<h3 id="AllowSharedBufferSource" typedef>AllowSharedBufferSource</h3>
-
-<pre class="idl">typedef (ArrayBuffer or SharedArrayBuffer or [AllowShared] ArrayBufferView) AllowSharedBufferSource;</pre>
-
-The {{AllowSharedBufferSource}} typedef is used to represent objects
-that are either themselves an {{ArrayBuffer}} or {{SharedArrayBuffer}} or which
-provide a view on to an {{ArrayBuffer}} or {{SharedArrayBuffer}}.
-
-
 <h3 id="idl-DOMException" interface oldids="dfn-DOMException">DOMException</h3>
 
 The {{DOMException}} type is an [=interface type=] defined by the following IDL
 fragment:
 
 <pre class="idl">
-dictionary DOMExceptionOptions {
-  any cause;
-  DOMString name = "Error";
-};
-
 [Exposed=*,
  Serializable]
 interface DOMException { // but see below note about ECMAScript binding
-  constructor(optional DOMString message = "", optional (DOMExceptionOptions or DOMString) options = {});
+  constructor(optional DOMString message = "", optional DOMString name = "Error");
   readonly attribute DOMString name;
   readonly attribute DOMString message;
   readonly attribute unsigned short code;
-  readonly attribute any cause;
 
   const unsigned short INDEX_SIZE_ERR = 1;
   const unsigned short DOMSTRING_SIZE_ERR = 2;
@@ -14658,21 +14422,15 @@ interface DOMException { // but see below note about ECMAScript binding
 Note: as discussed in [[#es-DOMException-specialness]], the ECMAScript binding imposes additional
 requirements beyond the normal ones for [=interface types=].
 
-Each {{DOMException}} object has an associated <dfn export for="DOMException">name</dfn> and
-<dfn export for="DOMException">message</dfn>, both [=strings=].
-
-Each {{DOMException}} object has an associated <dfn for="DOMException">cause</dfn>, which
-is a JavaScript value. It is <emu-val>undefined</emu-val> unless specified otherwise.
+Each {{DOMException}} object has an associated <dfn for="DOMException">name</dfn> and
+<dfn for="DOMException">message</dfn>, both [=strings=].
 
 The
-<dfn constructor for="DOMException" lt="DOMException(message, options)"><code>new DOMException(|message|, |options|)</code></dfn>
+<dfn constructor for="DOMException" lt="DOMException(message, name)"><code>new DOMException(|message|, |name|)</code></dfn>
 constructor steps are:
 
-1.  Set [=this=]'s [=DOMException/message=] to |message|.
-1.  If |options| is a string, then set [=this=]'s [=DOMException/name=] to |options|.
-1.  Otherwise,
-    1.  Set [=this=]'s [=DOMException/name=] to |options|["{{DOMExceptionOptions/name}}"].
-    1.  If |options|["{{DOMExceptionOptions/cause}}"] [=map/exists=], then set [=this=]'s [=DOMException/cause=] to |options|["{{DOMExceptionOptions/cause}}"].
+1. Set [=this=]'s [=DOMException/name=] to |name|.
+1. Set [=this=]'s [=DOMException/message=] to |message|.
 
 The <dfn attribute for="DOMException"><code>name</code></dfn> getter steps are to return
 [=this=]'s [=DOMException/name=].
@@ -14680,12 +14438,9 @@ The <dfn attribute for="DOMException"><code>name</code></dfn> getter steps are t
 The <dfn attribute for="DOMException"><code>message</code></dfn> getter steps are to
 return [=this=]'s [=DOMException/message=].
 
-The <dfn attribute for="DOMException"><code>cause</code></dfn> getter steps are to
-return [=this=]'s [=DOMException/cause=].
-
 The <dfn attribute for="DOMException"><code>code</code></dfn> getter steps are to return the legacy
-code indicated in the <a><code>DOMException</code> names table</a> for [=this=]'s
-[=DOMException/name=], or 0 if no such entry exists in the table.
+code indicated in the [=error names table=] for [=this=]'s [=DOMException/name=], or 0 if no such
+entry exists in the table.
 
 {{DOMException}} objects are [=serializable objects=].
 
@@ -14694,7 +14449,6 @@ Their [=serialization steps=], given <var>value</var> and <var>serialized</var>,
 <ol>
     <li>Set <var>serialized</var>.\[[Name]] to <var>value</var>'s [=DOMException/name=].</li>
     <li>Set <var>serialized</var>.\[[Message]] to <var>value</var>'s [=DOMException/message=].</li>
-    <li>Set <var>serialized</var>.\[[Cause]] to the [=sub-serialization=] of the value of <var>value</var>'s [=DOMException/cause=].</li>
     <li>User agents should attach a serialized representation of any interesting accompanying data
     which are not yet specified, notably the <code>stack</code> property, to
     <var>serialized</var>.</li>
@@ -14705,7 +14459,6 @@ Their [=deserialization steps=], given <var>value</var> and <var>serialized</var
 <ol>
     <li>Set <var>value</var>'s [=DOMException/name=] to <var>serialized</var>.\[[Name]].</li>
     <li>Set <var>value</var>'s [=DOMException/message=] to <var>serialized</var>.\[[Message]].</li>
-    <li>Set <var>value</var>'s [=DOMException/cause=] to the [=sub-deserialization=] of the value of <var>serialized</var>.\[[Cause]].</li>
     <li>If any other data is attached to <var>serialized</var>, then deserialize and attach it to
     <var>value</var>.</li>
 </ol>
@@ -14759,7 +14512,7 @@ It is strongly discouraged to use legacy Web IDL constructs in specifications
 unless required to specify the behavior of legacy Web platform features,
 or for consistency with such features.
 Editors who wish to use legacy Web IDL constructs are strongly advised to discuss this
-by <a href="https://github.com/whatwg/webidl/issues/new?title=Intent%20to%20use%20a%20legacy%20Web%20IDL%20construct">filing an issue</a>
+by <a href="https://github.com/heycam/webidl/issues/new?title=Intent%20to%20use%20a%20legacy%20Web%20IDL%20construct">filing an issue</a>
 before proceeding.
 
 Marking a construct as legacy does not, in itself,
@@ -14899,7 +14652,6 @@ Sam Sneddon,
 Jungkee Song,
 Josh Soref,
 Maciej Stachowiak,
-Austin Sullivan,
 Anton Tayanovskyy,
 triple-underscore,
 Peter Van der Beken,
