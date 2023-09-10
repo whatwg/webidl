@@ -7740,7 +7740,7 @@ up on the ECMAScript object are not necessarily the same as the object's propert
             1.  If |V|[|key|] [=map/exists=], then:
                 1.  Let |idlValue| be |V|[|key|].
                 1.  Let |value| be the result of [=converted to an ECMAScript value|converting=] |idlValue| to an ECMAScript value.
-                1.  Perform [=!=] <a abstract-op>CreateDataProperty</a>(|O|, |key|, |value|).
+                1.  Perform [=!=] <a abstract-op>CreateDataPropertyOrThrow</a>(|O|, |key|, |value|).
 
                 <p class="note">Recall that if |member| has a [=dictionary member/default value=],
                 then |key| will always [=map/exist=] in |V|.</p>
@@ -7886,7 +7886,7 @@ ECMAScript Array values.
         1.  Let |E| be the result of [=converted to an ECMAScript value|converting=]
             |V| to an ECMAScript value.
         1.  Let |P| be the result of calling [=!=] <a abstract-op>ToString</a>(|i|).
-        1.  Call [=!=] <a abstract-op>CreateDataProperty</a>(|A|, |P|, |E|).
+        1.  Perform [=!=] <a abstract-op>CreateDataPropertyOrThrow</a>(|A|, |P|, |E|).
         1.  Set |i| to |i| + 1.
     1.  Return |A|.
 </div>
@@ -11514,7 +11514,7 @@ with the [{{LegacyNoInterfaceObject}}] [=extended attribute=].
         1.  [=list/For each=] [=exposed=] [=member=] |member| of |interface|
             that is declared with the [{{Unscopable}}] [=extended attribute=]:
             1.  Let |id| be |member|'s [=identifier=].
-            1.  Perform [=!=] <a abstract-op>CreateDataProperty</a>(|unscopableObject|, |id|,
+            1.  Perform [=!=] <a abstract-op>CreateDataPropertyOrThrow</a>(|unscopableObject|, |id|,
                 <emu-val>true</emu-val>).
         1.  Let |desc| be the PropertyDescriptor{\[[Value]]: |unscopableObject|,
             \[[Writable]]: <emu-val>false</emu-val>, \[[Enumerable]]: <emu-val>false</emu-val>,
@@ -12068,7 +12068,7 @@ A [=regular operation=] that does not [=have default method steps=] must not be 
     1.  [=map/For each=] |key| → |value| of |map|,
         1.  Let |k| be |key| [=converted to an ECMAScript value=].
         1.  Let |v| be |value| [=converted to an ECMAScript value=].
-        1.  Perform [=!=] [$CreateDataProperty$](|result|, |k|, |v|).
+        1.  Perform [=!=] [$CreateDataPropertyOrThrow$](|result|, |k|, |v|).
     1.  Return |result|.
 </div>
 
@@ -12241,13 +12241,13 @@ then there must exist a property with the following characteristics:
         1.  Perform [$CreateMethodProperty$](|target|, {{@@iterator}},
             {{%Array.prototype.values%}}).
         1.  If |definition| has a [=value iterator=], then:
-            1.  Perform [=!=] [$CreateDataProperty$](|target|, "<code>entries</code>",
+            1.  Perform [=!=] [$CreateDataPropertyOrThrow$](|target|, "<code>entries</code>",
                 {{%Array.prototype.entries%}}).
-            1.  Perform [=!=] [$CreateDataProperty$](|target|, "<code>keys</code>",
+            1.  Perform [=!=] [$CreateDataPropertyOrThrow$](|target|, "<code>keys</code>",
                 {{%Array.prototype.keys%}}).
-            1.  Perform [=!=] [$CreateDataProperty$](|target|, "<code>values</code>",
+            1.  Perform [=!=] [$CreateDataPropertyOrThrow$](|target|, "<code>values</code>",
                 {{%Array.prototype.values%}}).
-            1.  Perform [=!=] [$CreateDataProperty$](|target|, "<code>forEach</code>",
+            1.  Perform [=!=] [$CreateDataPropertyOrThrow$](|target|, "<code>forEach</code>",
                 {{%Array.prototype.forEach%}}).
     1.  Otherwise, if |definition| has a [=pair iterator=], then:
         1.  Define the {{@@iterator}} and <code class="idl">entries</code> methods:
@@ -12265,7 +12265,7 @@ then there must exist a property with the following characteristics:
             1.  Perform [$SetFunctionName$](|F|, "<code>entries</code>").
             1.  Perform [$SetFunctionLength$](|F|, 0).
             1.  Perform [$CreateMethodProperty$](|target|, {{@@iterator}}, |F|).
-            1.  Perform [=!=] [$CreateDataProperty$](|target|, "<code>entries</code>", |F|).
+            1.  Perform [=!=] [$CreateDataPropertyOrThrow$](|target|, "<code>entries</code>", |F|).
         1.  Define the <code class="idl">keys</code> method:
             1.  Let |steps| be the following series of steps:
                 1.  Let |esValue| be [=?=] [$ToObject$](<emu-val>this</emu-val> value).
@@ -12279,7 +12279,7 @@ then there must exist a property with the following characteristics:
             1.  Let |F| be [$CreateBuiltinFunction$](|steps|, « », |realm|).
             1.  Perform [$SetFunctionName$](|F|, "<code>keys</code>").
             1.  Perform [$SetFunctionLength$](|F|, 0).
-            1.  Perform [=!=] [$CreateDataProperty$](|target|, "<code>keys</code>", |F|).
+            1.  Perform [=!=] [$CreateDataPropertyOrThrow$](|target|, "<code>keys</code>", |F|).
         1.  Define the <code class="idl">values</code> method:
             1.  Let |steps| be the following series of steps:
                 1.  Let |esValue| be [=?=] [$ToObject$](<emu-val>this</emu-val> value).
@@ -12293,7 +12293,7 @@ then there must exist a property with the following characteristics:
             1.  Let |F| be [$CreateBuiltinFunction$](|steps|, « », |realm|).
             1.  Perform [$SetFunctionName$](|F|, "<code>values</code>").
             1.  Perform [$SetFunctionLength$](|F|, 0).
-            1.  Perform [=!=] [$CreateDataProperty$](|target|, "<code>values</code>", |F|).
+            1.  Perform [=!=] [$CreateDataPropertyOrThrow$](|target|, "<code>values</code>", |F|).
         1.  Define the <code class="idl">forEach</code> method:
             1.  Let |steps| be the following series of steps, given function argument values
                 |callback| and |thisArg|:
@@ -12319,7 +12319,7 @@ then there must exist a property with the following characteristics:
             1.  Let |F| be [$CreateBuiltinFunction$](|steps|, « », |realm|).
             1.  Perform [$SetFunctionName$](|F|, "<code>forEach</code>").
             1.  Perform [$SetFunctionLength$](|F|, 1).
-            1.  Perform [=!=] [$CreateDataProperty$](|target|, "<code>forEach</code>", |F|).
+            1.  Perform [=!=] [$CreateDataPropertyOrThrow$](|target|, "<code>forEach</code>", |F|).
 </div>
 
 
@@ -12384,8 +12384,8 @@ must be {{%IteratorPrototype%}}.
                 1.  Let |key| be the result of [=converted to an ECMAScript value|converting=] |idlKey| to an ECMAScript value.
                 1.  Let |value| be the result of [=converted to an ECMAScript value|converting=] |idlValue| to an ECMAScript value.
                 1.  Let |array| be [=!=] [$ArrayCreate$](2).
-                1.  Call [=!=] [$CreateDataProperty$](|array|, "<code>0</code>", |key|).
-                1.  Call [=!=] [$CreateDataProperty$](|array|, "<code>1</code>", |value|).
+                1.  Perform [=!=] [$CreateDataPropertyOrThrow$](|array|, "<code>0</code>", |key|).
+                1.  Perform [=!=] [$CreateDataPropertyOrThrow$](|array|, "<code>1</code>", |value|).
                 1.  |result| is |array|.
         </dl>
     1.  Return [$CreateIterResultObject$](|result|, <emu-val>false</emu-val>).
@@ -12457,7 +12457,7 @@ and the string "<code> Iterator</code>".
         1.  Perform [$SetFunctionName$](|F|, "<code>entries</code>").
         1.  Perform [$SetFunctionLength$](|F|, 0).
         1.  Perform [$CreateMethodProperty$](|target|, {{@@asyncIterator}}, |F|).
-        1.  Perform [=!=] [$CreateDataProperty$](|target|, "<code>entries</code>", |F|).
+        1.  Perform [=!=] [$CreateDataPropertyOrThrow$](|target|, "<code>entries</code>", |F|).
     1.  If |definition| has a [=pair asynchronously iterable declaration=], then define the
         <code class="idl">keys</code> method:
         1.  Let |steps| be the following series of steps, given function argument values |args|:
@@ -12481,7 +12481,7 @@ and the string "<code> Iterator</code>".
         1.  Let |F| be [$CreateBuiltinFunction$](|steps|, « », |realm|).
         1.  Perform [$SetFunctionName$](|F|, "<code>keys</code>").
         1.  Perform [$SetFunctionLength$](|F|, 0).
-        1.  Perform [=!=] [$CreateDataProperty$](|target|, "<code>keys</code>", |F|).
+        1.  Perform [=!=] [$CreateDataPropertyOrThrow$](|target|, "<code>keys</code>", |F|).
     1.  Define the <code class="idl">values</code>, and possibly {{@@asyncIterator}}, methods:
         1.  Let |steps| be the following series of steps, given function argument values |args|:
             1.  Let |esValue| be [=?=] [$ToObject$](<emu-val>this</emu-val> value).
@@ -12504,7 +12504,7 @@ and the string "<code> Iterator</code>".
         1.  Let |F| be [$CreateBuiltinFunction$](|steps|, « », |realm|).
         1.  Perform [$SetFunctionName$](|F|, "<code>values</code>").
         1.  Perform [$SetFunctionLength$](|F|, 0).
-        1.  Perform [=!=] [$CreateDataProperty$](|target|, "<code>values</code>", |F|).
+        1.  Perform [=!=] [$CreateDataPropertyOrThrow$](|target|, "<code>values</code>", |F|).
         1.  If |definition| has a [=value asynchronously iterable declaration=], then perform [=!=]
             [$CreateMethodProperty$](|target|, {{@@asyncIterator}}, |F|).
 </div>
@@ -13888,21 +13888,21 @@ those of normal <code>Array</code> instances:
     1.  Set |handler|.\[[SetAlgorithm]] to |setAlgorithm|.
     1.  Set |handler|.\[[DeleteAlgorithm]] to |deleteAlgorithm|.
     1.  Let |defineProperty| be [$CreateBuiltinFunction$](the steps from [[#es-observable-array-defineProperty]], « », |realm|).
-    1.  Perform [=!=] [$CreateDataProperty$](|handler|, "<code>defineProperty</code>", |defineProperty|).
+    1.  Perform [=!=] [$CreateDataPropertyOrThrow$](|handler|, "<code>defineProperty</code>", |defineProperty|).
     1.  Let |deleteProperty| be [$CreateBuiltinFunction$](the steps from [[#es-observable-array-deleteProperty]], « », |realm|).
-    1.  Perform [=!=] [$CreateDataProperty$](|handler|, "<code>deleteProperty</code>", |deleteProperty|).
+    1.  Perform [=!=] [$CreateDataPropertyOrThrow$](|handler|, "<code>deleteProperty</code>", |deleteProperty|).
     1.  Let |get| be [$CreateBuiltinFunction$](the steps from [[#es-observable-array-get]], « », |realm|).
-    1.  Perform [=!=] [$CreateDataProperty$](|handler|, "<code>get</code>", |get|).
+    1.  Perform [=!=] [$CreateDataPropertyOrThrow$](|handler|, "<code>get</code>", |get|).
     1.  Let |getOwnPropertyDescriptor| be [$CreateBuiltinFunction$](the steps from [[#es-observable-array-getOwnPropertyDescriptor]], « », |realm|).
-    1.  Perform [=!=] [$CreateDataProperty$](|handler|, "<code>getOwnPropertyDescriptor</code>", |getOwnPropertyDescriptor|).
+    1.  Perform [=!=] [$CreateDataPropertyOrThrow$](|handler|, "<code>getOwnPropertyDescriptor</code>", |getOwnPropertyDescriptor|).
     1.  Let |has| be [$CreateBuiltinFunction$](the steps from [[#es-observable-array-has]], « », |realm|).
-    1.  Perform [=!=] [$CreateDataProperty$](|handler|, "<code>has</code>", |has|).
+    1.  Perform [=!=] [$CreateDataPropertyOrThrow$](|handler|, "<code>has</code>", |has|).
     1.  Let |ownKeys| be [$CreateBuiltinFunction$](the steps from [[#es-observable-array-ownKeys]], « », |realm|).
-    1.  Perform [=!=] [$CreateDataProperty$](|handler|, "<code>ownKeys</code>", |ownKeys|).
+    1.  Perform [=!=] [$CreateDataPropertyOrThrow$](|handler|, "<code>ownKeys</code>", |ownKeys|).
     1.  Let |preventExtensions| be [$CreateBuiltinFunction$](the steps from [[#es-observable-array-preventExtensions]], « », |realm|).
-    1.  Perform [=!=] [$CreateDataProperty$](|handler|, "<code>preventExtensions</code>", |preventExtensions|).
+    1.  Perform [=!=] [$CreateDataPropertyOrThrow$](|handler|, "<code>preventExtensions</code>", |preventExtensions|).
     1.  Let |set| be [$CreateBuiltinFunction$](the steps from [[#es-observable-array-set]], « », |realm|).
-    1.  Perform [=!=] [$CreateDataProperty$](|handler|, "<code>set</code>", |set|).
+    1.  Perform [=!=] [$CreateDataPropertyOrThrow$](|handler|, "<code>set</code>", |set|).
     1.  Return [=!=] [$ProxyCreate$](|innerArray|, |handler|).
 </div>
 
