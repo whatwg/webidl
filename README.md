@@ -2,39 +2,32 @@ This repository hosts the [Web IDL Standard](https://webidl.spec.whatwg.org/).
 
 ## Code of conduct
 
-We are committed to providing a friendly, safe, and welcoming environment for all. Please read and
-respect the [WHATWG Code of Conduct](https://whatwg.org/code-of-conduct).
+We are committed to providing a friendly, safe, and welcoming environment for all. Please read and respect the [Code of Conduct](https://whatwg.org/code-of-conduct).
 
-## Contributing
+## Contribution opportunities
 
-Good first issues are labeled as a [short good first issue](https://github.com/heycam/webidl/issues?q=is%3Aopen+label%3A%22%E2%8C%9B+duration%3Ashort%22+label%3A%22good+first+issue%22).
+Folks notice minor and larger issues with the Web IDL Standard all the time and we'd love your help fixing those. Pull requests for typographical and grammar errors are also most welcome.
 
-IDL generally follows the [WHATWG Contributor Guidelines](https://github.com/whatwg/meta/blob/main/CONTRIBUTING.md) and [WHATWG Committer Guidelines](https://github.com/whatwg/meta/blob/main/COMMITTING.md), except as otherwise noted.
+Issues labeled ["good first issue"](https://github.com/whatwg/webidl/labels/good%20first%20issue) are a good place to get a taste for editing the Web IDL Standard. Note that we don't assign issues and there's no reason to ask for availability either, just provide a pull request.
 
-## Markup
+If you are thinking of suggesting a new feature, read through the [FAQ](https://whatwg.org/faq) and [Working Mode](https://whatwg.org/working-mode) documents to get yourself familiarized with the process.
 
-The specification is written in [Bikeshed](https://github.com/tabatkins/bikeshed), plus the [Ecmarkup tags](https://tc39.es/ecmarkup/) `<emu-val>`, `<emu-t>`, and `<emu-nt>`.
+We'd be happy to help you with all of this [on Chat](https://whatwg.org/chat).
+
+## Pull requests
+
+In short, change `index.bs` and submit your patch, with a [good commit message](https://github.com/whatwg/meta/blob/main/COMMITTING.md).
+
+Please add your name to the Acknowledgments section in your first pull request, even for trivial fixes. The names are sorted lexicographically.
+
+To ensure your patch meets all the necessary requirements, please also see the [Contributor Guidelines](https://github.com/whatwg/meta/blob/main/CONTRIBUTING.md). Editors of the Web IDL Standard are expected to follow the [Maintainer Guidelines](https://github.com/whatwg/meta/blob/main/MAINTAINERS.md).
+
+## Tests
+
+Tests are an essential part of the standardization process and will need to be created or adjusted as changes to the standard are made. Tests for the Web IDL Standard can be found in the `webidl/` directory of [`web-platform-tests/wpt`](https://github.com/web-platform-tests/wpt).
+
+A dashboard showing the tests running against browser engines can be seen at [wpt.fyi/results/webidl](https://wpt.fyi/results/webidl).
 
 ## Building "locally"
 
-For quick local iteration, run `make`. To verify your changes locally, run `npm install` and
-`make deploy`. See more in the
-[WHATWG Contributor Guidelines](https://github.com/whatwg/meta/blob/main/CONTRIBUTING.md#building).
-
-## Filing issues elsewhere
-
-### Breaking changes should be filed against:
-
-*   Rendering engines
-    *   [Gecko](https://bugzilla.mozilla.org/enter_bug.cgi?product=Core&component=DOM&cc=bzbarsky@mit.edu)
-    *   [WebKit](https://bugs.webkit.org/enter_bug.cgi?product=WebKit&component=Bindings&short_desc=[WebIDL]%20)
-    *   [Chromium](https://bugs.chromium.org/p/chromium/issues/entry?template=Defect%20report%20from%20developer&components=Blink%3EBindings&summary=[WebIDL]%20&comment&labels=Via-WebIDLRepo)
-*   [web-platform-tests](https://github.com/web-platform-tests/wpt/issues/new?title=%5BWebIDL%5D%20)
-*   [idlharness.js](https://github.com/web-platform-tests/wpt/issues/new?title=%5Bidlharness%5D%20) (used by testharness.js to run IDL tests)
-*   [Reffy](https://github.com/tidoust/reffy) (scrapes IDL from specs for [reffy-reports](https://github.com/tidoust/reffy-reports) and web-platform-tests)
-
-### Syntax changes should be filed against the following parsers:
-
-*   [widlparser](https://github.com/plinss/widlparser/issues/new) (used by Bikeshed)
-*   [WebIDL parser](https://github.com/w3c/webidl2.js/issues/new/choose) (used by idlharness.js)
-*   [TypeScript and JavaScript lib generator](https://github.com/Microsoft/TSJS-lib-generator/)
+For quick local iteration, run `make`; this will use a web service to build the standard, so that you don't have to install anything. See more in the [Contributor Guidelines](https://github.com/whatwg/meta/blob/main/CONTRIBUTING.md#building).
