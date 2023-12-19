@@ -7741,32 +7741,32 @@ the object (or its prototype chain) correspond to [=dictionary members=].
 <div id="js-to-dictionary" algorithm="convert a JavaScript value to dictionary">
     <span id="es-to-dictionary"></span>
 
-    A JavaScript value |esDict| is [=converted to an IDL value|converted=]
+    A JavaScript value |jsDict| is [=converted to an IDL value|converted=]
     to an IDL [=dictionary type=] value by
     running the following algorithm (where |D| is the [=dictionary type=]):
 
-    1.  If <a abstract-op>Type</a>(|esDict|) is not Undefined, Null or Object, then [=JavaScript/throw=] a <l spec=ecmascript>{{TypeError}}</l>.
+    1.  If <a abstract-op>Type</a>(|jsDict|) is not Undefined, Null or Object, then [=JavaScript/throw=] a <l spec=ecmascript>{{TypeError}}</l>.
     1.  Let |idlDict| be an empty [=ordered map=], representing a dictionary of type |D|.
     1.  Let |dictionaries| be a list consisting of |D| and all of |D|'s [=inherited dictionaries=],
         in order from least to most derived.
     1.  For each dictionary |dictionary| in |dictionaries|, in order:
         1.  For each dictionary member |member| declared on |dictionary|, in lexicographical order:
             1.  Let |key| be the [=identifier=] of |member|.
-            1.  Let |esMemberValue| be a JavaScript value, depending on <a abstract-op>Type</a>(|esDict|):
+            1.  Let |jsMemberValue| be a JavaScript value, depending on <a abstract-op>Type</a>(|jsDict|):
                 <dl class="switch">
                      :  Undefined
                      :  Null
                      :: <emu-val>undefined</emu-val>
                      :  anything else
-                     :: [=?=] <a abstract-op>Get</a>(|esDict|, |key|)
+                     :: [=?=] <a abstract-op>Get</a>(|jsDict|, |key|)
                 </dl>
-            1.  If |esMemberValue| is not <emu-val>undefined</emu-val>, then:
-                1.  Let |idlMemberValue| be the result of [=converted to an IDL value|converting=] |esMemberValue| to an IDL value whose type is the type |member| is declared to be of.
+            1.  If |jsMemberValue| is not <emu-val>undefined</emu-val>, then:
+                1.  Let |idlMemberValue| be the result of [=converted to an IDL value|converting=] |jsMemberValue| to an IDL value whose type is the type |member| is declared to be of.
                 1.  [=map/Set=] |idlDict|[|key|] to |idlMemberValue|.
-            1.  Otherwise, if |esMemberValue| is <emu-val>undefined</emu-val> but |member| has a [=dictionary member/default value=], then:
+            1.  Otherwise, if |jsMemberValue| is <emu-val>undefined</emu-val> but |member| has a [=dictionary member/default value=], then:
                 1.  Let |idlMemberValue| be |member|'s default value.
                 1.  [=map/Set=] |idlDict|[|key|] to |idlMemberValue|.
-            1.  Otherwise, if |esMemberValue| is <emu-val>undefined</emu-val> and |member| is
+            1.  Otherwise, if |jsMemberValue| is <emu-val>undefined</emu-val> and |member| is
                 [=dictionary member/required=], then throw a {{TypeError}}.
     1.  Return |idlDict|.
 </div>
@@ -8090,9 +8090,9 @@ JavaScript Object values.
 
     1.  Let |result| be [$OrdinaryObjectCreate$]({{%Object.prototype%}}).
     1.  [=map/For each=] |key| → |value| of |D|:
-        1.  Let |esKey| be |key| [=converted to a JavaScript value=].
-        1.  Let |esValue| be |value| [=converted to a JavaScript value=].
-        1.  Let |created| be [=!=] <a abstract-op>CreateDataProperty</a>(|result|, |esKey|, |esValue|).
+        1.  Let |jsKey| be |key| [=converted to a JavaScript value=].
+        1.  Let |jsValue| be |value| [=converted to a JavaScript value=].
+        1.  Let |created| be [=!=] <a abstract-op>CreateDataProperty</a>(|result|, |jsKey|, |jsValue|).
         1.  Assert: |created| is <emu-val>true</emu-val>.
     1.  Return |result|.
 </div>
@@ -8829,10 +8829,10 @@ a reference to the same object that the IDL value represents.
     To <dfn export for="ArrayBuffer">create</dfn> an {{ArrayBuffer}} from a [=byte sequence=]
     |bytes| in a [=realm=] |realm|:
 
-    1.  Let |esArrayBuffer| be [=?=]
+    1.  Let |jsArrayBuffer| be [=?=]
         [$AllocateArrayBuffer$](|realm|.\[[Intrinsics]].[[{{%ArrayBuffer%}}]], |bytes|'s
         [=byte sequence/length=]).
-    1.  Let |arrayBuffer| be the result of [=converted to an IDL value|converting=] |esArrayBuffer|
+    1.  Let |arrayBuffer| be the result of [=converted to an IDL value|converting=] |jsArrayBuffer|
         to an IDL value of type {{ArrayBuffer}}.
     1.  [=ArrayBuffer/Write=] |bytes| into |arrayBuffer|.
     1.  Return |arrayBuffer|.
@@ -8842,11 +8842,11 @@ a reference to the same object that the IDL value represents.
     To <dfn export for=SharedArrayBuffer>create</dfn> a {{SharedArrayBuffer}} from a
     [=byte sequence=] |bytes| in a [=realm=] |realm|:
 
-    1.  Let |esSharedArrayBuffer| be [=?=]
+    1.  Let |jsSharedArrayBuffer| be [=?=]
         [$AllocateSharedArrayBuffer$](|realm|.\[[Intrinsics]].[[{{%SharedArrayBuffer%}}]], |bytes|'s
         [=byte sequence/length=]).
     1.  Let |sharedArrayBuffer| be the result of [=converted to an IDL value|converting=]
-        |esSharedArrayBuffer| to an IDL value of type {{SharedArrayBuffer}}.
+        |jsSharedArrayBuffer| to an IDL value of type {{SharedArrayBuffer}}.
     1.  [=SharedArrayBuffer/Write=] |bytes| into |sharedArrayBuffer|.
     1.  Return |sharedArrayBuffer|.
 </div>
@@ -8859,36 +8859,36 @@ a reference to the same object that the IDL value represents.
         the [=element size=] of that type is 0.
     1.  Let |arrayBuffer| be the result of [=ArrayBuffer/creating=] an {{ArrayBuffer}} from |bytes|
         in |realm|.
-    1.  Let |esArrayBuffer| be the result of [=converted to a JavaScript value|converting=]
+    1.  Let |jsArrayBuffer| be the result of [=converted to a JavaScript value|converting=]
         |arrayBuffer| to a JavaScript value.
     1.  Let |constructor| be the appropriate constructor from |realm|.\[[Intrinsics]] for the type
         of {{ArrayBufferView}} being created.
-    1.  Let |esView| be [=!=] [$Construct$](|constructor|, « |esArrayBuffer| »).
-    1.  Return the result of [=converted to an IDL value|converting=] |esView| into the given type.
+    1.  Let |jsView| be [=!=] [$Construct$](|constructor|, « |jsArrayBuffer| »).
+    1.  Return the result of [=converted to an IDL value|converting=] |jsView| into the given type.
 </div>
 
 <div algorithm>
     To <dfn id="dfn-get-buffer-source-copy" export lt="get a copy of the buffer source|get a copy of the bytes held by the buffer source">get a copy of the bytes held by the buffer source</dfn>
     given a [=buffer source type=] instance |bufferSource|:
 
-    1.  Let |esBufferSource| be the result of [=converted to a JavaScript value|converting=]
+    1.  Let |jsBufferSource| be the result of [=converted to a JavaScript value|converting=]
         |bufferSource| to a JavaScript value.
-    1.  Let |esArrayBuffer| be |esBufferSource|.
+    1.  Let |jsArrayBuffer| be |jsBufferSource|.
     1.  Let |offset| be 0.
     1.  Let |length| be 0.
-    1.  If |esBufferSource| has a \[[ViewedArrayBuffer]] [=/internal slot=], then:
-        1.  Set |esArrayBuffer| to |esBufferSource|.\[[ViewedArrayBuffer]].
-        1.  Set |offset| to |esBufferSource|.\[[ByteOffset]].
-        1.  Set |length| to |esBufferSource|.\[[ByteLength]].
+    1.  If |jsBufferSource| has a \[[ViewedArrayBuffer]] [=/internal slot=], then:
+        1.  Set |jsArrayBuffer| to |jsBufferSource|.\[[ViewedArrayBuffer]].
+        1.  Set |offset| to |jsBufferSource|.\[[ByteOffset]].
+        1.  Set |length| to |jsBufferSource|.\[[ByteLength]].
     1.  Otherwise:
-        1.  Assert: |esBufferSource| is an {{ArrayBuffer}} or
+        1.  Assert: |jsBufferSource| is an {{ArrayBuffer}} or
             {{SharedArrayBuffer}} object.
-        1.  Set |length| to |esBufferSource|.\[[ArrayBufferByteLength]].
-    1.  If [$IsDetachedBuffer$](|esArrayBuffer|) is true, then return the empty
+        1.  Set |length| to |jsBufferSource|.\[[ArrayBufferByteLength]].
+    1.  If [$IsDetachedBuffer$](|jsArrayBuffer|) is true, then return the empty
         [=byte sequence=].
     1.  Let |bytes| be a new [=byte sequence=] of [=byte sequence/length=] equal to |length|.
     1.  For |i| in [=the range=] |offset| to |offset| + |length| &minus; 1, inclusive, set
-        |bytes|[|i| &minus; |offset|] to [$GetValueFromBuffer$](|esArrayBuffer|, |i|, Uint8,
+        |bytes|[|i| &minus; |offset|] to [$GetValueFromBuffer$](|jsArrayBuffer|, |i|, Uint8,
         true, Unordered).
     1.  Return |bytes|.
 </div>
@@ -8897,11 +8897,11 @@ a reference to the same object that the IDL value represents.
     The <dfn export for="BufferSource">byte length</dfn> of a [=buffer source type=] instance
     |bufferSource| is the value returned by the following steps:
 
-    1.  Let |esBufferSource| be the result of [=converted to a JavaScript value|converting=]
+    1.  Let |jsBufferSource| be the result of [=converted to a JavaScript value|converting=]
         |bufferSource| to a JavaScript value.
-    1.  If |esBufferSource| has a \[[ViewedArrayBuffer]] internal slot, then return
-        |esBufferSource|.\[[ByteLength]].
-    1.  Return |esBufferSource|.\[[ArrayBufferByteLength]].
+    1.  If |jsBufferSource| has a \[[ViewedArrayBuffer]] internal slot, then return
+        |jsBufferSource|.\[[ByteLength]].
+    1.  Return |jsBufferSource|.\[[ArrayBufferByteLength]].
 </div>
 <!-- TODO: should this be stricter around not being detached? -->
 
@@ -8910,12 +8910,12 @@ a reference to the same object that the IDL value represents.
     |bufferSource| is the value returned by the following steps:
 
     1.  If |bufferSource| is a [=buffer type=] instance, then return |bufferSource|.
-    1.  Let |esBufferView| be the result of [=converted to a JavaScript value|converting=]
+    1.  Let |jsBufferView| be the result of [=converted to a JavaScript value|converting=]
         |bufferSource| to a JavaScript value.
-    1.  Let |esBuffer| be |esBufferView|.\[[ViewedArrayBuffer]].
-    1.  If [$IsSharedArrayBuffer$](|esBuffer|) is false, then return the result of
-        [=converted to an IDL value|converting=] |esBuffer| to an IDL value of type {{ArrayBuffer}}.
-    1.  Return the result of [=converted to an IDL value|converting=] |esBuffer| to an IDL value of
+    1.  Let |jsBuffer| be |jsBufferView|.\[[ViewedArrayBuffer]].
+    1.  If [$IsSharedArrayBuffer$](|jsBuffer|) is false, then return the result of
+        [=converted to an IDL value|converting=] |jsBuffer| to an IDL value of type {{ArrayBuffer}}.
+    1.  Return the result of [=converted to an IDL value|converting=] |jsBuffer| to an IDL value of
         type {{SharedArrayBuffer}}.
 </div>
 
@@ -8925,12 +8925,12 @@ a reference to the same object that the IDL value represents.
     <dfn id=arraybuffer-write-startingoffset export for="ArrayBuffer/write,SharedArrayBuffer/write">|startingOffset|</dfn>
     (default 0):
 
-    1.  Let |esArrayBuffer| be the result of [=converted to a JavaScript value|converting=]
+    1.  Let |jsArrayBuffer| be the result of [=converted to a JavaScript value|converting=]
         |arrayBuffer| to a JavaScript value.
-    1.  Assert: |bytes|'s [=byte sequence/length=] ≤ |esArrayBuffer|.\[[ArrayBufferByteLength]]
+    1.  Assert: |bytes|'s [=byte sequence/length=] ≤ |jsArrayBuffer|.\[[ArrayBufferByteLength]]
         &minus; |startingOffset|.
     1.  For |i| in [=the range=] |startingOffset| to |startingOffset| + |bytes|'s [=byte
-        sequence/length=] &minus; 1, inclusive, perform [$SetValueInBuffer$](|esArrayBuffer|,
+        sequence/length=] &minus; 1, inclusive, perform [$SetValueInBuffer$](|jsArrayBuffer|,
         |i|, Uint8, |bytes|[|i| - |startingOffset|], true, Unordered).
 </div>
 
@@ -8939,16 +8939,16 @@ a reference to the same object that the IDL value represents.
     {{ArrayBufferView}} |view|, optionally given a
     <dfn export for="ArrayBufferView/write">|startingOffset|</dfn> (default 0):
 
-    1.  Let |esView| be the result of [=converted to a JavaScript value|converting=] |view| to
+    1.  Let |jsView| be the result of [=converted to a JavaScript value|converting=] |view| to
         a JavaScript value.
-    1.  Assert: |bytes|'s [=byte sequence/length=] ≤ |esView|.\[[ByteLength]] &minus;
+    1.  Assert: |bytes|'s [=byte sequence/length=] ≤ |jsView|.\[[ByteLength]] &minus;
         |startingOffset|.
     1.  Assert: if |view| is not a {{DataView}}, then |bytes|'s [=byte sequence/length=] [=modulo=]
         the [=element size=] of |view|'s type is 0.
     1.  Let |arrayBuffer| be the result of [=converted to an IDL value|converting=]
-        |esView|.\[[ViewedArrayBuffer]] to an IDL value of type {{ArrayBuffer}}.
+        |jsView|.\[[ViewedArrayBuffer]] to an IDL value of type {{ArrayBuffer}}.
     1.  [=ArrayBuffer/Write=] |bytes| into |arrayBuffer| with
-        <i>[=ArrayBuffer/write/startingOffset=]</i> set to |esView|.\[[ByteOffset]] +
+        <i>[=ArrayBuffer/write/startingOffset=]</i> set to |jsView|.\[[ByteOffset]] +
         |startingOffset|.
 </div>
 
@@ -8968,11 +8968,11 @@ a reference to the same object that the IDL value represents.
 <div algorithm>
     To <dfn id="dfn-detach" for="ArrayBuffer" export>detach</dfn> an {{ArrayBuffer}} |arrayBuffer|:
 
-    1.  Let |esArrayBuffer| be the result of [=converted to a JavaScript value|converting=]
+    1.  Let |jsArrayBuffer| be the result of [=converted to a JavaScript value|converting=]
         |arrayBuffer| to a JavaScript value.
-    1.  Perform [=?=] [$DetachArrayBuffer$](|esArrayBuffer|).
+    1.  Perform [=?=] [$DetachArrayBuffer$](|jsArrayBuffer|).
 
-    <p class="note">This will throw an exception if |esArrayBuffer| has an \[[ArrayBufferDetachKey]]
+    <p class="note">This will throw an exception if |jsArrayBuffer| has an \[[ArrayBufferDetachKey]]
     that is not undefined, such as is the case with the value of {{Memory|WebAssembly.Memory}}'s
     {{Memory/buffer}} attribute. [[WASM-JS-API-1]]
 
@@ -8983,29 +8983,29 @@ a reference to the same object that the IDL value represents.
     A [=buffer source type=] instance |bufferSource| is
     <dfn for="BufferSource" export>detached</dfn> if the following steps return true:
 
-    1.  Let |esArrayBuffer| be the result of [=converted to a JavaScript value|converting=]
+    1.  Let |jsArrayBuffer| be the result of [=converted to a JavaScript value|converting=]
         |bufferSource| to a JavaScript value.
-    1.  If |esArrayBuffer| has a \[[ViewedArrayBuffer]] internal slot, then set |esArrayBuffer| to
-        |esArrayBuffer|.\[[ViewedArrayBuffer]].
-    1.  Return [$IsDetachedBuffer$](|esArrayBuffer|).
+    1.  If |jsArrayBuffer| has a \[[ViewedArrayBuffer]] internal slot, then set |jsArrayBuffer| to
+        |jsArrayBuffer|.\[[ViewedArrayBuffer]].
+    1.  Return [$IsDetachedBuffer$](|jsArrayBuffer|).
 </div>
 
 <div algorithm>
     To <dfn for="ArrayBuffer" export>transfer</dfn> an {{ArrayBuffer}} |arrayBuffer|, optionally
     given a [=realm=] |targetRealm|:
 
-    1.  Let |esArrayBuffer| be the result of [=converted to a JavaScript value|converting=]
+    1.  Let |jsArrayBuffer| be the result of [=converted to a JavaScript value|converting=]
         |arrayBuffer| to a JavaScript value.
-    1.  Assert: [$IsDetachedBuffer$](|esArrayBuffer|) is false.
-    1.  Let |arrayBufferData| be |esArrayBuffer|.\[[ArrayBufferData]].
-    1.  Let |arrayBufferByteLength| be |esArrayBuffer|.\[[ArrayBufferByteLength]].
-    1.  Perform [=?=] [$DetachArrayBuffer$](|esArrayBuffer|).
+    1.  Assert: [$IsDetachedBuffer$](|jsArrayBuffer|) is false.
+    1.  Let |arrayBufferData| be |jsArrayBuffer|.\[[ArrayBufferData]].
+    1.  Let |arrayBufferByteLength| be |jsArrayBuffer|.\[[ArrayBufferByteLength]].
+    1.  Perform [=?=] [$DetachArrayBuffer$](|jsArrayBuffer|).
     1.  If |targetRealm| is not given, let |targetRealm| be the [=current realm=].
-    1.  Let |esTransferred| be [=!=]
+    1.  Let |jsTransferred| be [=!=]
         [$AllocateArrayBuffer$](|targetRealm|.\[[Intrinsics]].[[{{%ArrayBuffer%}}]], 0).
-    1.  Set |esTransferred|.\[[ArrayBufferData]] to |arrayBufferData|.
-    1.  Set |esTransferred|.\[[ArrayBufferByteLength]] to |arrayBufferByteLength|.
-    1.  Return the result of [=converted to an IDL value|converting=] |esTransferred| to an IDL
+    1.  Set |jsTransferred|.\[[ArrayBufferData]] to |arrayBufferData|.
+    1.  Set |jsTransferred|.\[[ArrayBufferByteLength]] to |arrayBufferByteLength|.
+    1.  Return the result of [=converted to an IDL value|converting=] |jsTransferred| to an IDL
         value of type {{ArrayBuffer}}.
 
     <p class="note">This will throw an exception under the same circumstances as
@@ -11377,12 +11377,12 @@ The characteristics of a legacy factory function are described in [[#legacy-fact
     to ensure they're being called on the correct kind of object
     and that the method is valid to call from the current context.
 
-    To <dfn local-lt="implementation check|implementation-check">implementation-check an object</dfn> |esValue|
+    To <dfn local-lt="implementation check|implementation-check">implementation-check an object</dfn> |jsValue|
     against the interface |interface|,
     with the identifier |name|
     and the type |type|:
 
-    1. Let |object| to [=?=] [$ToObject$](|esValue|).
+    1. Let |object| to [=?=] [$ToObject$](|jsValue|).
     1. If |object| is a [=platform object=],
         then [=perform a security check=], passing:
 
@@ -11854,23 +11854,23 @@ in which case they are exposed on every object that [=implements=] the interface
         1.  Try running the following steps:
             1.  Let |idlObject| be null.
             1.  If |target| is an [=interface=], and |attribute| is a [=regular attribute=]:
-                1.  Let |esValue| be the <emu-val>this</emu-val> value, if it is not
+                1.  Let |jsValue| be the <emu-val>this</emu-val> value, if it is not
                     <emu-val>null</emu-val> or <emu-val>undefined</emu-val>, or |realm|'s
                     [=realm/global object=] otherwise.
                     (This will subsequently cause a {{TypeError}} in a few steps, if
                     the global object does not implement |target| and [{{LegacyLenientThis}}] is not
                     specified.)
                     <!-- https://www.w3.org/Bugs/Public/show_bug.cgi?id=18547#c9 -->
-                1.  If |esValue| [=is a platform object=], then [=perform a security check=],
-                    passing |esValue|, |attribute|'s [=identifier=], and "getter".
-                1.  If |esValue| does not [=implement=] |target|, then:
+                1.  If |jsValue| [=is a platform object=], then [=perform a security check=],
+                    passing |jsValue|, |attribute|'s [=identifier=], and "getter".
+                1.  If |jsValue| does not [=implement=] |target|, then:
                     1.  If |attribute| was specified with the [{{LegacyLenientThis}}]
                         [=extended attribute=], then return <emu-val>undefined</emu-val>.
                     1.  Otherwise, [=JavaScript/throw=] a <l spec=ecmascript>{{TypeError}}</l>.
-                1.  If |attribute|'s type is an [=observable array type=], then return |esValue|'s
+                1.  If |attribute|'s type is an [=observable array type=], then return |jsValue|'s
                     [=backing observable array exotic object=] for |attribute|.
                 1.  Set |idlObject| to the IDL [=interface type=] value that represents a reference
-                    to |esValue|.
+                    to |jsValue|.
             1.  Let |R| be the result of running the [=getter steps=] of |attribute| with
                 |idlObject| as [=this=].
             1.  Return the result of [=converted to a JavaScript value|converting=] |R| to an
@@ -11907,26 +11907,26 @@ in which case they are exposed on every object that [=implements=] the interface
         1.  Let |id| be |attribute|'s [=identifier=].
         1.  Let |idlObject| be null.
         1.  If |attribute| is a [=regular attribute=]:
-            1.  Let |esValue| be the <emu-val>this</emu-val> value, if it is not
+            1.  Let |jsValue| be the <emu-val>this</emu-val> value, if it is not
                 <emu-val>null</emu-val> or <emu-val>undefined</emu-val>, or |realm|'s
                 [=realm/global object=] otherwise.
                 (This will subsequently cause a {{TypeError}} in a few steps, if
                 the global object does not implement |target| and [{{LegacyLenientThis}}] is not
                 specified.)
                 <!-- https://www.w3.org/Bugs/Public/show_bug.cgi?id=18547#c9 -->
-            1.  If |esValue| [=is a platform object=], then [=perform a security check=], passing
-                |esValue|, |id|, and "setter".
-            1.  Let |validThis| be true if |esValue| [=implements=] |target|, or false otherwise.
+            1.  If |jsValue| [=is a platform object=], then [=perform a security check=], passing
+                |jsValue|, |id|, and "setter".
+            1.  Let |validThis| be true if |jsValue| [=implements=] |target|, or false otherwise.
             1.  If |validThis| is false and |attribute| was not specified with the [{{LegacyLenientThis}}]
                 [=extended attribute=], then [=JavaScript/throw=] a <l spec=ecmascript>{{TypeError}}</l>.
             1.  If |attribute| is declared with the [{{Replaceable}}] extended attribute, then:
-                1.  Perform [=?=] <a abstract-op>CreateDataPropertyOrThrow</a>(|esValue|, |id|, |V|).
+                1.  Perform [=?=] <a abstract-op>CreateDataPropertyOrThrow</a>(|jsValue|, |id|, |V|).
                 1.  Return <emu-val>undefined</emu-val>.
             1.  If |validThis| is false, then return <emu-val>undefined</emu-val>.
             1.  If |attribute| is declared with a [{{LegacyLenientSetter}}] extended attribute, then
                 return <emu-val>undefined</emu-val>.
             1.  If |attribute| is declared with a [{{PutForwards}}] extended attribute, then:
-                1.  Let |Q| be [=?=] <a abstract-op>Get</a>(|esValue|, |id|).
+                1.  Let |Q| be [=?=] <a abstract-op>Get</a>(|jsValue|, |id|).
                 1.  If <a abstract-op>Type</a>(|Q|) is not Object, then [=JavaScript/throw=] a
                     <l spec=ecmascript>{{TypeError}}</l>.
                 1.  Let |forwardId| be the identifier argument of the [{{PutForwards}}] extended
@@ -11934,7 +11934,7 @@ in which case they are exposed on every object that [=implements=] the interface
                 1.  Perform [=?=] <a abstract-op>Set</a>(|Q|, |forwardId|, |V|, <emu-val>false</emu-val>).
                 1.  Return <emu-val>undefined</emu-val>.
             1.  Set |idlObject| to the IDL [=interface type=] value that represents a reference
-                to |esValue|.
+                to |jsValue|.
             1.  If |attribute|'s type is an [=observable array type=] with type argument |T|:
                 1.  Let |newValues| be the result of [=converted to an IDL value|converting=] |V| to
                     an IDL value of type <a lt="sequence type">sequence&lt;|T|&gt;</a>.
@@ -12048,19 +12048,19 @@ in which case they are exposed on every object that [=implements=] the interface
         1.  Try running the following steps:
             1.  Let |idlObject| be null.
             1.  If |target| is an [=interface=], and |op| is not a [=static operation=]:
-                1.  Let |esValue| be the <emu-val>this</emu-val> value, if it is not
+                1.  Let |jsValue| be the <emu-val>this</emu-val> value, if it is not
                     <emu-val>null</emu-val> or <emu-val>undefined</emu-val>, or |realm|'s
                     [=realm/global object=] otherwise.
                     (This will subsequently cause a {{TypeError}} in a few steps, if
                     the global object does not implement |target| and [{{LegacyLenientThis}}] is not
                     specified.)
                     <!-- https://www.w3.org/Bugs/Public/show_bug.cgi?id=18547#c9 -->
-                1.  If |esValue| [=is a platform object=], then [=perform a security check=],
-                    passing |esValue|, |id|, and "method".
-                1.  If |esValue| does not [=implement=] the interface |target|,
+                1.  If |jsValue| [=is a platform object=], then [=perform a security check=],
+                    passing |jsValue|, |id|, and "method".
+                1.  If |jsValue| does not [=implement=] the interface |target|,
                     [=JavaScript/throw=] a <l spec=ecmascript>{{TypeError}}</l>.
                 1.  Set |idlObject| to the IDL [=interface type=] value that represents a reference
-                    to |esValue|.
+                    to |jsValue|.
             1.  Let |n| be the [=list/size=] of |args|.
             1.  [=Compute the effective overload set=]  for [=regular operations=] (if |op| is a
                 regular operation) or for [=static operations=] (if |op| is a static operation)
@@ -12319,13 +12319,13 @@ then there must exist a property with the following characteristics:
     1.  Otherwise, if |definition| has a [=pair iterator=], then:
         1.  Define the {{@@iterator}} and <code class="idl">entries</code> methods:
             1.  Let |steps| be the following series of steps:
-                1.  Let |esValue| be [=?=] [$ToObject$](<emu-val>this</emu-val> value).
-                1.  If |esValue| [=is a platform object=], then [=perform a security check=],
-                    passing |esValue|, "<code>@@iterator</code>", and "<code>method</code>".
-                1.  If |esValue| does not [=implement=] |definition|, then [=JavaScript/throw=] a
+                1.  Let |jsValue| be [=?=] [$ToObject$](<emu-val>this</emu-val> value).
+                1.  If |jsValue| [=is a platform object=], then [=perform a security check=],
+                    passing |jsValue|, "<code>@@iterator</code>", and "<code>method</code>".
+                1.  If |jsValue| does not [=implement=] |definition|, then [=JavaScript/throw=] a
                     <l spec=ecmascript>{{TypeError}}</l>.
                 1.  Return a newly created [=default iterator object=] for |definition|, with
-                    |esValue| as its [=default iterator object/target=], "<code>key+value</code>"
+                    |jsValue| as its [=default iterator object/target=], "<code>key+value</code>"
                     as its [=default iterator object/kind=], and [=default iterator object/index=]
                     set to 0.
             1.  Let |F| be [$CreateBuiltinFunction$](|steps|, « », |realm|).
@@ -12335,13 +12335,13 @@ then there must exist a property with the following characteristics:
             1.  Perform [=!=] [$CreateDataPropertyOrThrow$](|target|, "<code>entries</code>", |F|).
         1.  Define the <code class="idl">keys</code> method:
             1.  Let |steps| be the following series of steps:
-                1.  Let |esValue| be [=?=] [$ToObject$](<emu-val>this</emu-val> value).
-                1.  If |esValue| [=is a platform object=], then [=perform a security check=],
-                    passing |esValue|, "<code>keys</code>", and "<code>method</code>".
-                1.  If |esValue| does not [=implement=] |definition|, then [=JavaScript/throw=] a
+                1.  Let |jsValue| be [=?=] [$ToObject$](<emu-val>this</emu-val> value).
+                1.  If |jsValue| [=is a platform object=], then [=perform a security check=],
+                    passing |jsValue|, "<code>keys</code>", and "<code>method</code>".
+                1.  If |jsValue| does not [=implement=] |definition|, then [=JavaScript/throw=] a
                     <l spec=ecmascript>{{TypeError}}</l>.
                 1.  Return a newly created [=default iterator object=] for |definition|, with
-                    |esValue| as its [=default iterator object/target=], "<code>key</code>" as its
+                    |jsValue| as its [=default iterator object/target=], "<code>key</code>" as its
                     [=default iterator object/kind=], and [=default iterator object/index=] set to 0.
             1.  Let |F| be [$CreateBuiltinFunction$](|steps|, « », |realm|).
             1.  Perform [$SetFunctionName$](|F|, "<code>keys</code>").
@@ -12349,13 +12349,13 @@ then there must exist a property with the following characteristics:
             1.  Perform [=!=] [$CreateDataPropertyOrThrow$](|target|, "<code>keys</code>", |F|).
         1.  Define the <code class="idl">values</code> method:
             1.  Let |steps| be the following series of steps:
-                1.  Let |esValue| be [=?=] [$ToObject$](<emu-val>this</emu-val> value).
-                1.  If |esValue| [=is a platform object=], then [=perform a security check=],
-                    passing |esValue|, "<code>values</code>", and "<code>method</code>".
-                1.  If |esValue| does not [=implement=] |definition|, then [=JavaScript/throw=] a
+                1.  Let |jsValue| be [=?=] [$ToObject$](<emu-val>this</emu-val> value).
+                1.  If |jsValue| [=is a platform object=], then [=perform a security check=],
+                    passing |jsValue|, "<code>values</code>", and "<code>method</code>".
+                1.  If |jsValue| does not [=implement=] |definition|, then [=JavaScript/throw=] a
                     <l spec=ecmascript>{{TypeError}}</l>.
                 1.  Return a newly created [=default iterator object=] for |definition|, with
-                    |esValue| as its [=default iterator object/target=], "<code>value</code>" as its
+                    |jsValue| as its [=default iterator object/target=], "<code>value</code>" as its
                     [=default iterator object/kind=], and [=default iterator object/index=] set to 0.
             1.  Let |F| be [$CreateBuiltinFunction$](|steps|, « », |realm|).
             1.  Perform [$SetFunctionName$](|F|, "<code>values</code>").
@@ -12364,15 +12364,15 @@ then there must exist a property with the following characteristics:
         1.  Define the <code class="idl">forEach</code> method:
             1.  Let |steps| be the following series of steps, given function argument values
                 |callback| and |thisArg|:
-                1.  Let |esValue| be [=?=] [$ToObject$](<emu-val>this</emu-val> value).
-                1.  If |esValue| [=is a platform object=], then [=perform a security check=],
-                    passing |esValue|, "<code>forEach</code>", and "<code>method</code>".
-                1.  If |esValue| does not [=implement=] |definition|, then [=JavaScript/throw=] a
+                1.  Let |jsValue| be [=?=] [$ToObject$](<emu-val>this</emu-val> value).
+                1.  If |jsValue| [=is a platform object=], then [=perform a security check=],
+                    passing |jsValue|, "<code>forEach</code>", and "<code>method</code>".
+                1.  If |jsValue| does not [=implement=] |definition|, then [=JavaScript/throw=] a
                     <l spec=ecmascript>{{TypeError}}</l>.
                 1.  Let |idlCallback| be |callback|, [=converted to an IDL value|converted=] to a
                     {{Function}}.
                 1.  Let |idlObject| be the IDL [=interface type=] value that represents a reference
-                    to |esValue|.
+                    to |jsValue|.
                 1.  Let |pairs| be |idlObject|'s list of [=value pairs to iterate over=].
                 1.  Let |i| be 0.
                 1.  While |i| &lt; |pairs|'s [=list/size=]:
@@ -12503,13 +12503,13 @@ and the string "<code> Iterator</code>".
     1.  If |definition| has a [=pair asynchronously iterable declaration=], then define the
         {{@@asyncIterator}} and <code class="idl">entries</code> methods:
         1.  Let |steps| be the following series of steps, given function argument values |args|:
-            1.  Let |esValue| be [=?=] [$ToObject$](<emu-val>this</emu-val> value).
-            1.  If |esValue| [=is a platform object=], then [=perform a security check=], passing
-                |esValue|, "<code>@@asyncIterator</code>", and "<code>method</code>".
-            1.  If |esValue| does not [=implement=] |definition|, then [=JavaScript/throw=] a
+            1.  Let |jsValue| be [=?=] [$ToObject$](<emu-val>this</emu-val> value).
+            1.  If |jsValue| [=is a platform object=], then [=perform a security check=], passing
+                |jsValue|, "<code>@@asyncIterator</code>", and "<code>method</code>".
+            1.  If |jsValue| does not [=implement=] |definition|, then [=JavaScript/throw=] a
                 <l spec=ecmascript>{{TypeError}}</l>.
             1.  Let |idlObject| be the IDL [=interface type=] value that represents a reference to
-                |esValue|.
+                |jsValue|.
             1.  Let |idlArgs| be the result of
                 [=converting arguments for an asynchronous iterator method=] given |args|.
             1.  Let |iterator| be a newly created [=default asynchronous iterator object=] for
@@ -12528,13 +12528,13 @@ and the string "<code> Iterator</code>".
     1.  If |definition| has a [=pair asynchronously iterable declaration=], then define the
         <code class="idl">keys</code> method:
         1.  Let |steps| be the following series of steps, given function argument values |args|:
-            1.  Let |esValue| be [=?=] [$ToObject$](<emu-val>this</emu-val> value).
-            1.  If |esValue| [=is a platform object=], then [=perform a security check=], passing
-                |esValue|, "<code>keys</code>", and "<code>method</code>".
-            1.  If |esValue| does not [=implement=] |definition|, then [=JavaScript/throw=] a
+            1.  Let |jsValue| be [=?=] [$ToObject$](<emu-val>this</emu-val> value).
+            1.  If |jsValue| [=is a platform object=], then [=perform a security check=], passing
+                |jsValue|, "<code>keys</code>", and "<code>method</code>".
+            1.  If |jsValue| does not [=implement=] |definition|, then [=JavaScript/throw=] a
                 <l spec=ecmascript>{{TypeError}}</l>.
             1.  Let |idlObject| be the IDL [=interface type=] value that represents a reference to
-                |esValue|.
+                |jsValue|.
             1.  Let |idlArgs| be the result of
                 [=converting arguments for an asynchronous iterator method=] given |args|.
             1.  Let |iterator| be a newly created [=default asynchronous iterator object=] for
@@ -12551,13 +12551,13 @@ and the string "<code> Iterator</code>".
         1.  Perform [=!=] [$CreateDataPropertyOrThrow$](|target|, "<code>keys</code>", |F|).
     1.  Define the <code class="idl">values</code>, and possibly {{@@asyncIterator}}, methods:
         1.  Let |steps| be the following series of steps, given function argument values |args|:
-            1.  Let |esValue| be [=?=] [$ToObject$](<emu-val>this</emu-val> value).
-            1.  If |esValue| [=is a platform object=], then [=perform a security check=], passing
-                |esValue|, "<code>values</code>", and "<code>method</code>".
-            1.  If |esValue| does not [=implement=] |definition|, then [=JavaScript/throw=] a
+            1.  Let |jsValue| be [=?=] [$ToObject$](<emu-val>this</emu-val> value).
+            1.  If |jsValue| [=is a platform object=], then [=perform a security check=], passing
+                |jsValue|, "<code>values</code>", and "<code>method</code>".
+            1.  If |jsValue| does not [=implement=] |definition|, then [=JavaScript/throw=] a
                 <l spec=ecmascript>{{TypeError}}</l>.
             1.  Let |idlObject| be the IDL [=interface type=] value that represents a reference to
-                |esValue|.
+                |jsValue|.
             1.  Let |idlArgs| be the result of
                 [=converting arguments for an asynchronous iterator method=] given |args|.
             1.  Let |iterator| be a newly created [=default asynchronous iterator object=] for
@@ -12948,8 +12948,8 @@ with the following characteristics:
         1.  If [$IsCallable$](|callbackFn|) is <emu-val>false</emu-val>, [=JavaScript/throw=] a <l spec=ecmascript>{{TypeError}}</l>.
         1.  Let |thisArg| be the second argument passed to the function, or <emu-val>undefined</emu-val> if not supplied.
         1. [=map/For each=] |key| → |value| of |map|:
-            1. Let |esKey| and |esValue| be |key| and |value| [=converted to a JavaScript value=].
-            1. Perform [=?=] [$Call$](|callbackFn|, |thisArg|, « |esValue|, |esKey|, |O| »).
+            1. Let |jsKey| and |jsValue| be |key| and |value| [=converted to a JavaScript value=].
+            1. Perform [=?=] [$Call$](|callbackFn|, |thisArg|, « |jsValue|, |jsKey|, |O| »).
         1.  Return <emu-val>undefined</emu-val>.
     </div>
 
@@ -13249,8 +13249,8 @@ with the following characteristics:
         1.  If [$IsCallable$](|callbackFn|) is <emu-val>false</emu-val>, [=JavaScript/throw=] a <l spec=ecmascript>{{TypeError}}</l>.
         1.  Let |thisArg| be the second argument passed to the function, or <emu-val>undefined</emu-val> if not supplied.
         1. [=map/For each=] |value| of |set|:
-            1. Let |esValue| be |value| [=converted to a JavaScript value=].
-            1. Perform [=?=] [$Call$](|callbackFn|, |thisArg|, « |esValue|, |esValue|, |O|»).
+            1. Let |jsValue| be |value| [=converted to a JavaScript value=].
+            1. Perform [=?=] [$Call$](|callbackFn|, |thisArg|, « |jsValue|, |jsValue|, |O|»).
         1.  Return <emu-val>undefined</emu-val>.
     </div>
 
@@ -14042,10 +14042,10 @@ those of normal <code>Array</code> instances:
     1.  If |P| [=is an array index=], then:
         1.  Let |index| be [=!=] [$ToUint32$](|P|).
         1.  If |index| ≥ |length|, then return <emu-val>undefined</emu-val>.
-        1.  Let |esValue| be the result of [=converted to a JavaScript value|converting=]
+        1.  Let |jsValue| be the result of [=converted to a JavaScript value|converting=]
             |handler|.\[[BackingList]][|index|] to a JavaScript value.
         1.  Assert: the above step never throws an exception.
-        1.  Return |esValue|.
+        1.  Return |jsValue|.
     1.  Return [=?=] |O|.\[[Get]](|P|, |Receiver|).
 </div>
 
@@ -14064,12 +14064,12 @@ those of normal <code>Array</code> instances:
     1.  If |P| [=is an array index=], then
         1.  Let |index| be [=!=] [$ToUint32$](|P|).
         1.  If |index| ≥ |length|, then return <emu-val>undefined</emu-val>.
-        1.  Let |esValue| be the result of [=converted to a JavaScript value|converting=]
+        1.  Let |jsValue| be the result of [=converted to a JavaScript value|converting=]
             |handler|.\[[BackingList]][|index|] to a JavaScript value.
         1.  Assert: the above step never throws an exception.
         1.  Return [$FromPropertyDescriptor$](PropertyDescriptor{\[[Configurable]]:
             <emu-val>true</emu-val>, \[[Enumerable]]: <emu-val>true</emu-val>, \[[Writable]]:
-            <emu-val>true</emu-val>, \[[Value]]: |esValue| }).
+            <emu-val>true</emu-val>, \[[Value]]: |jsValue| }).
     1.  Return [$FromPropertyDescriptor$]([=?=] |O|.\[[GetOwnProperty]](|P|)).
 </div>
 
@@ -14196,20 +14196,20 @@ the special value “missing”, which represents a missing optional argument.
     JavaScript arguments list</dfn>, given a [=Web IDL arguments list=] |args|, perform the
     following steps:
 
-    1.  Let |esArgs| be an empty [=list=].
+    1.  Let |jsArgs| be an empty [=list=].
     1.  Let |i| be 0.
     1.  Let |count| be 0.
     1.  While |i| &lt; |args|'s [=list/size=]:
         1.  If |args|[|i|] is the special value “missing”, then [=list/append=]
-            <emu-val>undefined</emu-val> to |esArgs|.
+            <emu-val>undefined</emu-val> to |jsArgs|.
         1.  Otherwise, |args|[|i|] is an IDL value:
             1.  Let |convertResult| be the result of [=converted to a JavaScript value|converting=]
                 |args|[|i|] to a JavaScript value. Rethrow any exceptions.
-            1.  [=list/Append=] |convertResult| to |esArgs|.
+            1.  [=list/Append=] |convertResult| to |jsArgs|.
             1.  Set |count| to |i| + 1.
         1.  Set |i| to |i| + 1.
-    1.  Truncate |esArgs| to contain |count| items.
-    1.  Return |esArgs|.
+    1.  Truncate |jsArgs| to contain |count| items.
+    1.  Return |jsArgs|.
 </div>
 
 <div algorithm="to call a user object's operation">
@@ -14240,11 +14240,11 @@ the special value “missing”, which represents a missing optional argument.
             newly created <l spec=ecmascript>{{TypeError}}</l> object, \[[Target]]: empty }, and jump
             to the step labeled <a href="#call-user-object-operation-return"><i>return</i></a>.
         1.  Set |thisArg| to |O| (overriding the provided value).
-    1.  Let |esArgs| be the result of [=Web IDL arguments list/converting=] |args| to a JavaScript
+    1.  Let |jsArgs| be the result of [=Web IDL arguments list/converting=] |args| to a JavaScript
         arguments list. If this throws an exception, set |completion| to the completion value
         representing the thrown exception and jump to the step labeled
         <a href="#call-user-object-operation-return"><i>return</i></a>.
-    1.  Let |callResult| be <a abstract-op>Completion</a>(<a abstract-op>Call</a>(|X|, |thisArg|, |esArgs|)).
+    1.  Let |callResult| be <a abstract-op>Completion</a>(<a abstract-op>Call</a>(|X|, |thisArg|, |jsArgs|)).
     1.  If |callResult| is an [=abrupt completion=], set |completion| to
         |callResult| and jump to the step labeled <a href="#call-user-object-operation-return"><i>return</i></a>.
     1.  Set |completion| to the result of [=converted to an IDL value|converting=]
@@ -14329,11 +14329,11 @@ described in the previous section).
     1.  Let |stored settings| be |callable|'s [=callback context=].
     1.  [=Prepare to run script=] with |relevant settings|.
     1.  [=Prepare to run a callback=] with |stored settings|.
-    1.  Let |esArgs| be the result of [=Web IDL arguments list/converting=] |args| to a JavaScript
+    1.  Let |jsArgs| be the result of [=Web IDL arguments list/converting=] |args| to a JavaScript
         arguments list. If this throws an exception, set |completion| to the completion value
         representing the thrown exception and jump to the step labeled
         <a href="#invoke-return"><i>return</i></a>.
-    1.  Let |callResult| be <a abstract-op>Completion</a>(<a abstract-op>Call</a>(|F|, |thisArg|, |esArgs|)).
+    1.  Let |callResult| be <a abstract-op>Completion</a>(<a abstract-op>Call</a>(|F|, |thisArg|, |jsArgs|)).
     1.  If |callResult| is an [=abrupt completion=], set |completion| to
         |callResult| and jump to the step labeled <a href="#invoke-return"><i>return</i></a>.
     1.  Set |completion| to the result of [=converted to an IDL value|converting=]
@@ -14372,11 +14372,11 @@ a return type that is a [=promise type=].
     1.  Let |stored settings| be |callable|'s [=callback context=].
     1.  [=Prepare to run script=] with |relevant settings|.
     1.  [=Prepare to run a callback=] with |stored settings|.
-    1.  Let |esArgs| be the result of [=Web IDL arguments list/converting=] |args| to a JavaScript
+    1.  Let |jsArgs| be the result of [=Web IDL arguments list/converting=] |args| to a JavaScript
         arguments list. If this throws an exception, set |completion| to the completion value
         representing the thrown exception and jump to the step labeled
         <a href="#construct-return"><i>return</i></a>.
-    1.  Let |callResult| be <a abstract-op>Completion</a>(<a abstract-op>Construct</a>(|F|, |esArgs|)).
+    1.  Let |callResult| be <a abstract-op>Completion</a>(<a abstract-op>Construct</a>(|F|, |jsArgs|)).
     1.  If |callResult| is an [=abrupt completion=], set |completion| to
         |callResult| and jump to the step labeled <a href="#construct-return"><i>return</i></a>.
     1.  Set |completion| to the result of [=converted to an IDL value|converting=]
