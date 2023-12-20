@@ -9687,6 +9687,10 @@ from other interfaces. Specifically:
     will correspond to properties on the object itself rather than on
     [=interface prototype objects=].
 
+A [=realm=] can be defined to
+<dfn export for="realm" lt="has a mutable global prototype chain">have a mutable global prototype chain</dfn>.
+If a [=realm=] is not defined as such, the prototype of its global object can not be changed.
+
 <div class="note">
 
     Placing named properties on an object in the prototype chain
@@ -11498,7 +11502,9 @@ with the [{{LegacyNoInterfaceObject}}] [=extended attribute=].
     1.  Otherwise, set |proto| to |realm|.\[[Intrinsics]].[[{{%Object.prototype%}}]].
     1.  Assert: <a abstract-op>Type</a>(|proto|) is Object.
     1.  Let |interfaceProtoObj| be null.
-    1.  If |interface| is declared with the [{{Global}}] [=extended attribute=], or
+    1.  If |realm| [=realm/has a mutable global prototype chain=], then:
+        1.  Set |interfaceProtoObj| to [$OrdinaryObjectCreate$](|proto|).
+    1.  Otherwise, if |interface| is declared with the [{{Global}}] [=extended attribute=], or
         |interface| is in the set of [=inherited interfaces=] of an interface
         that is declared with the [{{Global}}] [=extended attribute=], then:
         1.  Set |interfaceProtoObj| to [$MakeBasicObject$](« \[[Prototype]], \[[Extensible]] »).
@@ -11676,6 +11682,8 @@ is the concatenation of the [=interface=]'s
     When the \[[SetPrototypeOf]] internal method of a [=named properties object=] |O| is called with
     ECMAScript language value |V|, the following step is taken:
 
+    1.  If |O|'s [=associated realm=] [=realm/has a mutable global prototype chain=],
+        return [=?=] [$OrdinarySetPrototypeOf$](|O|, |V|).
     1.  Return [=?=] <a abstract-op>SetImmutablePrototype</a>(|O|, |V|).
 
 </div>
@@ -13494,6 +13502,8 @@ Issue: Define those properties imperatively instead.
     [=interface=] with the [{{Global}}] [=extended attribute=] is called with
     ECMAScript language value |V|, the following step is taken:
 
+    1.  If |O|'s [=associated realm=] [=realm/has a mutable global prototype chain=],
+        return [=?=] [$OrdinarySetPrototypeOf$](|O|, |V|).
     1.  Return [=?=] <a abstract-op>SetImmutablePrototype</a>(|O|, |V|).
 
 </div>
