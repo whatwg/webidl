@@ -9756,6 +9756,13 @@ from other interfaces. Specifically:
     will correspond to properties on the object itself rather than on
     [=interface prototype objects=].
 
+All [=realms=] have an <dfn export for="realm">is global prototype chain mutable</dfn> boolean,
+which can be set when the [=realm=] is created.
+Its value can not change during the lifetime of the [=realm=].
+By default it is set to false.
+
+<p class="note">This allows the <code>ShadowRealm</code> global to have a mutable prototype.</p>
+
 <div class="note">
 
     Placing named properties on an object in the prototype chain
@@ -11567,7 +11574,9 @@ with the [{{LegacyNoInterfaceObject}}] [=extended attribute=].
     1.  Otherwise, set |proto| to |realm|.\[[Intrinsics]].[[{{%Object.prototype%}}]].
     1.  Assert: <a abstract-op>Type</a>(|proto|) is Object.
     1.  Let |interfaceProtoObj| be null.
-    1.  If |interface| is declared with the [{{Global}}] [=extended attribute=], or
+    1.  If |realm|'s [=is global prototype chain mutable=] is true, then:
+        1.  Set |interfaceProtoObj| to [$OrdinaryObjectCreate$](|proto|).
+    1.  Otherwise, if |interface| is declared with the [{{Global}}] [=extended attribute=], or
         |interface| is in the set of [=inherited interfaces=] of an interface
         that is declared with the [{{Global}}] [=extended attribute=], then:
         1.  Set |interfaceProtoObj| to [$MakeBasicObject$](« \[[Prototype]], \[[Extensible]] »).
@@ -11745,6 +11754,8 @@ is the concatenation of the [=interface=]'s
     When the \[[SetPrototypeOf]] internal method of a [=named properties object=] |O| is called with
     JavaScript language value |V|, the following step is taken:
 
+    1.  If |O|'s [=associated realm=]'s [=is global prototype chain mutable=] is true,
+        return [=?=] [$OrdinarySetPrototypeOf$](|O|, |V|).
     1.  Return [=?=] <a abstract-op>SetImmutablePrototype</a>(|O|, |V|).
 
 </div>
@@ -13563,6 +13574,8 @@ Issue: Define those properties imperatively instead.
     [=interface=] with the [{{Global}}] [=extended attribute=] is called with
     JavaScript language value |V|, the following step is taken:
 
+    1.  If |O|'s [=associated realm=]'s [=is global prototype chain mutable=] is true,
+        return [=?=] [$OrdinarySetPrototypeOf$](|O|, |V|).
     1.  Return [=?=] <a abstract-op>SetImmutablePrototype</a>(|O|, |V|).
 
 </div>
