@@ -68,6 +68,7 @@ urlPrefix: https://tc39.es/ecma262/; spec: ecmascript
             text: internal slot
         text: own property; url: sec-own-property
         text: PromiseCapability; url: sec-promisecapability-records
+        text: Iterator; url: sec-iterator-records
         text: element size; url: table-the-typedarray-constructors
 urlPrefix: https://tc39.es/proposal-resizablearraybuffer/; spec: RESIZABLE-BUFFERS-PROPOSAL
     type: abstract-op
@@ -3350,6 +3351,7 @@ the following algorithm returns <i>true</i>.
                 <th><div><span>interface-like</span></div>
                 <th><div><span>callback function</span></div>
                 <th><div><span>dictionary-like</span></div>
+                <th><div><span>async iterable</span></div>
                 <th><div><span>sequence-like</span></div>
         </thead>
         <tr>
@@ -3365,10 +3367,12 @@ the following algorithm returns <i>true</i>.
             <td>●
             <td>
             <td>●
+            <td>●
         <tr>
             <th>boolean
             <td class="belowdiagonal">
             <td>
+            <td>●
             <td>●
             <td>●
             <td>●
@@ -3391,12 +3395,14 @@ the following algorithm returns <i>true</i>.
             <td>●
             <td>●
             <td>●
+            <td>●
         <tr>
             <th>bigint
             <td class="belowdiagonal">
             <td class="belowdiagonal">
             <td class="belowdiagonal">
             <td>
+            <td>●
             <td>●
             <td>●
             <td>●
@@ -3417,6 +3423,7 @@ the following algorithm returns <i>true</i>.
             <td>●
             <td>●
             <td>●
+            <td>●
         <tr>
             <th>object
             <td class="belowdiagonal">
@@ -3426,6 +3433,7 @@ the following algorithm returns <i>true</i>.
             <td class="belowdiagonal">
             <td>
             <td>●
+            <td>
             <td>
             <td>
             <td>
@@ -3443,6 +3451,7 @@ the following algorithm returns <i>true</i>.
             <td>●
             <td>●
             <td>●
+            <td>●
         <tr>
             <th>interface-like
             <td class="belowdiagonal">
@@ -3453,6 +3462,7 @@ the following algorithm returns <i>true</i>.
             <td class="belowdiagonal">
             <td class="belowdiagonal">
             <td>(a)
+            <td>●
             <td>●
             <td>●
             <td>●
@@ -3469,6 +3479,7 @@ the following algorithm returns <i>true</i>.
             <td>
             <td>(c)
             <td>●
+            <td>●
         <tr>
             <th>dictionary-like
             <td class="belowdiagonal">
@@ -3482,8 +3493,24 @@ the following algorithm returns <i>true</i>.
             <td class="belowdiagonal">
             <td>
             <td>●
+            <td>●
+        <tr>
+            <th>async iterable
+            <td class="belowdiagonal">
+            <td class="belowdiagonal">
+            <td class="belowdiagonal">
+            <td class="belowdiagonal">
+            <td class="belowdiagonal">
+            <td class="belowdiagonal">
+            <td class="belowdiagonal">
+            <td class="belowdiagonal">
+            <td class="belowdiagonal">
+            <td class="belowdiagonal">
+            <td>
+            <td>
         <tr>
             <th>sequence-like
+            <td class="belowdiagonal">
             <td class="belowdiagonal">
             <td class="belowdiagonal">
             <td class="belowdiagonal">
@@ -4059,7 +4086,7 @@ The following extended attributes are applicable to [=iterable declarations=]:
 </pre>
 
 
-<h4 id="idl-async-iterable">Asynchronously iterable declarations</h4>
+<h4 oldids="idl-async-iterable" id="idl-async-iterable-declaration">Asynchronously iterable declarations</h4>
 
 An [=interface=] can be declared to be asynchronously iterable by using an
 <dfn id="dfn-async-iterable-declaration" export>asynchronously iterable declaration</dfn>
@@ -5665,6 +5692,7 @@ are known as <dfn id="dfn-object-type" export>object types</dfn>.
         StringType Null
         identifier Null
         "sequence" "&lt;" TypeWithExtendedAttributes "&gt;" Null
+        "async iterable" "&lt;" TypeWithExtendedAttributes "&gt;" Null
         "object" Null
         "symbol" Null
         BufferRelatedType Null
@@ -6166,6 +6194,26 @@ sequence is used.
 Any [=list=] can be implicitly treated as a <code>sequence&lt;|T|&gt;</code>, as long as it contains
 only [=list/items=] that are of type |T|.
 
+<!-- Note: if we ever add synchronous iterable types, we should add a note here about why sequences and iterables are not the same. -->
+
+<h4 id="idl-async-iterable-type" lt="async-iterable" dfn export>Async iterable types — async iterable&lt;|T|&gt;</h4>
+
+The <dfn lt="async iterable type" export>async iterable&lt;|T|&gt;</dfn> type is a parameterized
+type whose values are references to objects that asynchronously yield zero or more values of type
+|T|.
+
+Async iterables, unlike sequences, do not have a fixed length and can be infinite. Values are
+asynchronously produced as the async iterable is iterated over.
+
+Async iterable are passed by reference in language bindings where they are represented by an object.
+This means that passing an async iterable to a [=platform object=] will result in a reference to the
+async iterable being kept by that object. Similarly, any async iterable returned from a platform
+object will be a reference to the same object and modifications made to it will be visible to the
+platform object. This is in contrast to sequences, which are always passed by value.
+
+Async iterables must not be used as the type of an [=attribute=] or [=constant=].
+
+There is no way to represent an async iterable value in IDL.
 
 <h4 id="idl-record" lt="record" dfn export>Record types — record&lt;|K|, |V|&gt;</h4>
 
@@ -8061,6 +8109,122 @@ JavaScript Array values.
         var b = canvas.getLastDrawnPolygon();
         alert(b[4]);    // This would alert "50".
     </pre>
+</div>
+
+
+<h4 id="js-async-iterable">Async iterable — async iterable&lt;|T|&gt;</h4>
+
+IDL <a lt="async iterable type">async iterable&lt;|T|&gt;</a> values are represented by JavaScript
+[=Iterator=] records.
+
+<div id="js-to-async-iterable" algorithm="convert a JavaScript value to async iterable">
+    A JavaScript value |V| is [=converted to an IDL value|converted=]
+    to an IDL <a lt="async iterable type">async iterable&lt;<var ignore>T</var>&gt;</a> value as follows:
+
+    1.  If <a abstract-op>Type</a>(|V|) is not Object,
+        [=JavaScript/throw=] a <l spec=ecmascript>{{TypeError}}</l>.
+    1.  Let |iteratorRecord| be [=?=] <a abstract-op>GetIterator</a>(|V|, async).
+    1.  Return |iteratorRecord|.
+</div>
+
+An IDL <a lt="async iterable type">async iterable&lt;|T|&gt;</a> value can not be
+[=converted to a JavaScript value=].
+
+Note: Instead of returning an async iterable from an IDL operation, the operation should return an
+[=interface=] that has an [=asynchronously iterable declaration=].
+
+<h5 id="js-async-iterable-iteration">Iterating async iterables</h5>
+
+<div algorithm>
+
+    To <dfn id="async-iterable-get-next-value" export lt="get an async iterable next value">get the next value</dfn> of an
+    <code><a lt="async iterable type">async iterable&lt;<var>T</var>&gt;</a></code> |iteratorRecord|,
+    perform the following steps:
+
+    1.  Let |nextResult| be the result of calling <a abstract-op>IteratorNext</a>(|iteratorRecord|).
+    1.  If |nextResult| is an abrupt completion, return [=a promise rejected with=]
+        |nextResult|.\[[Value]].
+    1.  Let |nextPromise| be [=a promise resolved with=] |nextResult|.\[[Value]].
+    1.  Return the result of [=reacting=] to |nextPromise| with with the following fulfillment
+        steps, given |iterResult|:
+        1.  If <a abstract-op>Type</a>(|iterResult|) is not Object, [=JavaScript/throw=] a
+            <l spec=ecmascript>{{TypeError}}</l>.
+        1.  Let |done| be [=?=] <a abstract-op>IteratorComplete</a>(|iterResult|).
+        1.  If |done| is true:
+            1.  Return [=end of iteration=].
+        1.  Otherwise:
+            1.  Let |V| be [=?=] <a abstract-op>IteratorValue</a>(|iterResult|).
+            1.  Let |value| be the result of [=converted to an IDL value|converting=] |V| to an IDL
+                value of type |T|.
+            1.  Return |value|.
+
+</div>
+
+<div algorithm>
+
+    To <dfn id="async-iterable-finish-iterating" export lt="finish iterating an async iterable">finish iterating</dfn> an
+    <code><a lt="async iterable type">async iterable&lt;<var ignore>T</var>&gt;</a></code> |iteratorRecord|,
+    perform the following steps:
+
+    1.  Let |iterator| be |iteratorRecord|.\[[Iterator]].
+    1.  Let |returnMethod| be <a abstract-op>GetMethod</a>(|iterator|, "return").
+    1.  If |returnMethod| is an abrupt completion, return [=a promise rejected with=]
+        |returnMethod|.\[[Value]].
+    1.  If |returnMethod| is <emu-val>undefined</emu-val>, return [=a promise resolved with=]
+        <emu-val>undefined</emu-val>.
+    1.  Let |returnResult| be <a abstract-op>Call</a>(|returnMethod|.\[[Value]], |iterator|).
+    1.  If |returnResult| is an abrupt completion, return [=a promise rejected with=]
+        |returnResult|.\[[Value]].
+    1.  Let |returnPromise| be [=a promise resolved with=] |returnResult|.\[[Value]].
+    1.  Return the result of [=reacting=] to |returnPromise| with the following fulfillment steps,
+        given |returnPromiseResult|:
+        1.  If <a abstract-op>Type</a>(|returnPromiseResult|) is not Object, [=JavaScript/throw=] a
+            <l spec=ecmascript>{{TypeError}}</l>.
+        1.  Return <emu-val>undefined</emu-val>.
+
+</div>
+
+<div class="example" id="example-js-async-iterable">
+
+    <code>concatN</code> is an [=operation=] that returns a promise that will be fulfilled with the
+    concatenation of all the strings yielded by the async iterable passed to it. It stops
+    concatenating and finishes the iterator once the async iterable has yielded N strings.
+
+    <pre>
+        interface I {
+          Promise&lt;DOMString> concat(async iterable&lt;DOMString> strings, unsigned long maxN);
+        };
+    </pre>
+
+<div algorithm="concatN">
+
+    The <code>concatN(|iterable|, |maxN|)</code> method steps are:
+
+    1.  Let |promise| be [=a new promise=].
+    1.  Let |result| be the empty string.
+    1.  Let |n| be 0.
+    1.  Let |step| be a sequence of steps that will be used to process the async iterable:
+        1.  Let |next| be the result of <a lt="get an async iterable next value">getting the next value</a> of |iterable|.
+        1.  [=React=] to |next|:
+            -   If |next| was fulfilled with value |v|:
+                1.  If |v| is [=end of iteration=], [=resolve=] |promise| with |result|.
+                1.  Set |result| to the result of concatenating |result| and |v|.
+                1.  Set |n| to |n| + 1.
+                1.  If |n| is |maxN|, then:
+                    1.  Let |finish| be the result of <a lt="finish iterating an async iterable">finishing iterating</a> |iterable|.
+                    1.  [=React=] to |finish|:
+                        -   If |finish| was fulfilled, [=resolve=] |promise| with |result|.
+                        -   If |finish| was rejected with reason |r|, [=reject=] |promise| with |r|.
+                1.  Otherwise:
+                    1.  Call |step|.
+            -   If |next| was rejected with reason |r|, [=reject=] |promise| with |r|.
+    1.  Call step.
+    1.  Return |promise|.
+
+</div>
+</div>
+
+
 </div>
 
 
@@ -11174,6 +11338,23 @@ Note: The HTML Standard defines how a security check is performed. [[!HTML]]
         1.  Otherwise: if <a abstract-op>Type</a>(|V|) is Object and
             there is an entry in |S| that has one of the
             following types at position |i| of its type list,
+            *   a [=async iterable type=]
+            *   a [=nullable type|nullable=] version of any of the above types
+            *   an [=annotated type=] whose [=annotated types/inner type=] is one of the above types
+            *   a [=union type=], [=nullable type|nullable=] union type, or [=annotated type|annotated=] union type
+                that has one of the above types in its [=flattened member types=]
+
+            and after performing the following steps,
+
+            1.  Let |method| be [=?=] <a abstract-op>GetMethod</a>(|V|, {{@@asyncIterator}}).
+
+            |method| is not <emu-val>undefined</emu-val>, then remove from |S| all
+            other entries.
+
+        1.  Otherwise: if <a abstract-op>Type</a>(|V|) is Object and
+            there is an entry in |S| that has one of the
+            following types at position |i| of its type list,
+            *   a [=async iterable type=]
             *   a [=sequence type=]
             *   a [=frozen array type=]
             *   a [=nullable type|nullable=] version of any of the above types
@@ -11342,11 +11523,11 @@ Note: The HTML Standard defines how a security check is performed. [[!HTML]]
     Generally, the inspection of the value at the distinguishing argument index does not have any
     side effects, and the only side effects in the overload resolution algorithm are the result of
     converting the JavaScript values to IDL values.
-    (An exception exists when one of the overloads has a [=sequence type=] or [=frozen array type=]
-    at the distinguishing argument index.
-    In this case, we attempt to get the {{@@iterator}} property to determine the appropriate
-    overload, and perform the conversion of the distinguishing argument separately before continuing
-    with the next step.)
+    (An exception exists when one of the overloads has a [=async iterable type=], [=sequence type=]
+    or [=frozen array type=] at the distinguishing argument index.
+    In this case, we attempt to get the {{@@asyncIterator}} / {{@@iterator}} property to determine
+    the appropriate overload, and perform the conversion of the distinguishing argument separately
+    before continuing with the next step.)
 
     At this point, we have determined which overload to use.  We now
     convert the remaining arguments, from the distinguishing argument onwards,
