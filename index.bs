@@ -8162,9 +8162,9 @@ Note: Instead of returning an async iterable from an IDL operation, the operatio
 
 <div algorithm>
 
-    To <dfn id="async-iterable-finish-iterating" export lt="finish iterating an async iterable">finish iterating</dfn> an
+    To <dfn id="async-iterable-close" export lt="close an async iterable">close</dfn> an
     <code><a lt="async iterable type">async iterable&lt;<var ignore>T</var>&gt;</a></code> |iteratorRecord|,
-    perform the following steps:
+    with a reason |reason|, perform the following steps:
 
     1.  Let |iterator| be |iteratorRecord|.\[[Iterator]].
     1.  Let |returnMethod| be <a abstract-op>GetMethod</a>(|iterator|, "return").
@@ -8172,7 +8172,7 @@ Note: Instead of returning an async iterable from an IDL operation, the operatio
         |returnMethod|.\[[Value]].
     1.  If |returnMethod| is <emu-val>undefined</emu-val>, return [=a promise resolved with=]
         <emu-val>undefined</emu-val>.
-    1.  Let |returnResult| be <a abstract-op>Call</a>(|returnMethod|.\[[Value]], |iterator|).
+    1.  Let |returnResult| be <a abstract-op>Call</a>(|returnMethod|.\[[Value]], |iterator|, « |reason| »).
     1.  If |returnResult| is an abrupt completion, return [=a promise rejected with=]
         |returnResult|.\[[Value]].
     1.  Let |returnPromise| be [=a promise resolved with=] |returnResult|.\[[Value]].
@@ -8188,7 +8188,7 @@ Note: Instead of returning an async iterable from an IDL operation, the operatio
 
     <code>concatN</code> is an [=operation=] that returns a promise that will be fulfilled with the
     concatenation of all the strings yielded by the async iterable passed to it. It stops
-    concatenating and finishes the iterator once the async iterable has yielded N strings.
+    concatenating and closes the iterator once the async iterable has yielded N strings.
 
     <pre>
         interface I {
@@ -8211,7 +8211,8 @@ Note: Instead of returning an async iterable from an IDL operation, the operatio
                 1.  Set |result| to the result of concatenating |result| and |v|.
                 1.  Set |n| to |n| + 1.
                 1.  If |n| is |maxN|, then:
-                    1.  Let |finish| be the result of <a lt="finish iterating an async iterable">finishing iterating</a> |iterable|.
+                    1.  Let |finish| be the result of <a lt="close an async iterable">closing</a>
+                        |iterable| with reason <emu-val>undefined</emu-val>.
                     1.  [=React=] to |finish|:
                         -   If |finish| was fulfilled, [=resolve=] |promise| with |result|.
                         -   If |finish| was rejected with reason |r|, [=reject=] |promise| with |r|.
