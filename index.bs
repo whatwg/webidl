@@ -1662,6 +1662,7 @@ The type of the attribute, after resolving typedefs, must not be a
 [=nullable type|nullable=] or non-nullable version of any of the following types:
 
 *   a [=sequence type=]
+*   an [=async iterable type=]
 *   a [=dictionary type=]
 *   a [=record type=]
 *   a [=union type=]
@@ -6211,6 +6212,12 @@ async iterable being kept by that object. Similarly, any async iterable returned
 object will be a reference to the same object and modifications made to it will be visible to the
 platform object. This is in contrast to sequences, which are always passed by value.
 
+Note: Async iterables can not be constructed from IDL. If returned from an operation, or used as the
+type of a dictionary member, the async iterable will have originated from the host environment and
+have been turned into an IDL type via a language binding. Instead of returning an async iterable
+from an IDL operation, the operation may want to return an [=interface=] that has an
+[=asynchronously iterable declaration=].
+
 Async iterables must not be used as the type of an [=attribute=] or [=constant=].
 
 There is no way to represent an async iterable value in IDL.
@@ -8114,8 +8121,8 @@ JavaScript Array values.
 
 <h4 id="js-async-iterable">Async iterable — async iterable&lt;|T|&gt;</h4>
 
-IDL <a lt="async iterable type">async iterable&lt;|T|&gt;</a> values are represented by JavaScript
-[=Iterator=] records.
+IDL <a lt="async iterable type">async iterable&lt;|T|&gt;</a> values are represented by a JavaScript
+object and a JavaScript [=Iterator=] record.
 
 <div id="js-to-async-iterable" algorithm="convert a JavaScript value to async iterable">
     A JavaScript value |V| is [=converted to an IDL value|converted=]
@@ -8127,11 +8134,12 @@ IDL <a lt="async iterable type">async iterable&lt;|T|&gt;</a> values are represe
     1.  Return |iteratorRecord|.
 </div>
 
-An IDL <a lt="async iterable type">async iterable&lt;|T|&gt;</a> value can not be
-[=converted to a JavaScript value=].
+<div id="async-iterable-to-js" algorithm="convert an async iterable to a JavaScript value">
+    An IDL <a lt="async iterable type">async iterable&lt;|T|&gt;</a> value is
+    [=converted to a JavaScript value|converted=] to a JavaScript object as follows:
 
-Note: Instead of returning an async iterable from an IDL operation, the operation should return an
-[=interface=] that has an [=asynchronously iterable declaration=].
+    1.  Return the JavaScript object that represents the same async iterable as the IDL value.
+</div>
 
 <h5 id="js-async-iterable-iteration">Iterating async iterables</h5>
 
