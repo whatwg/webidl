@@ -6539,6 +6539,44 @@ A <dfn id="dfn-frozen-array-type" export>frozen array type</dfn> is a parameteri
 type whose values are references to objects that hold a fixed length array
 of unmodifiable values.  The values in the array are of type |T|.
 
+Frozen array types must only be used as the type of [=regular attributes=] or [=static attributes=]
+defined on an [=interface=].
+
+<div class="example" id="example-frozen-array">
+    The following [=IDL fragment=] defines an [=interface=] with two frozen array attributes, one
+    [=read only=] and one not.
+
+    <pre highlight="webidl">
+        [Exposed=Window]
+        interface PersonalPreferences {
+            readonly attribute FrozenArray&lt;DOMString> favoriteColors;
+            attribute FrozenArray&lt;DOMString> favoriteFoods;
+
+            undefined randomizeFavoriteColors();
+        };
+    </pre>
+
+    The behavior of these attributes could be defined like so:
+
+    <blockquote>
+        Each <code>PersonalPreferences</code> has associated <b>favorite colors</b>, a {{FrozenArray}}&lt;{{DOMString}}>, initially equal to the result of [=creating a frozen array=] from « "<code>purple</code>", "<code>aquamarine</code>" ».
+
+        Each <code>PersonalPreferences</code> has an associated <b>favorite foods</b>, a {{FrozenArray}}&lt;{{DOMString}}>, initially equal to the result of [=creating a frozen array=] from the empty list.
+
+        The <code>favoriteColors</code> [=getter steps=] are to return [=this=]'s favorite colors.
+
+        The <code>favoriteFoods</code> [=getter steps=] are to return [=this=]'s favorite foods.
+
+        The <code>favoriteFoods</code> [=setter steps=] are to set [=this=]'s favorite foods to [=the given value=].
+
+        The <code>randomizeFavoriteColors()</code> [=method steps=] are:
+
+        1. Let |newFavoriteColors| be a list of two strings representing colors, chosen randomly.
+
+        1. Set [=this=]'s favorite colors to the result of [=creating a frozen array=] from |newFavoriteColors|.
+    </blockquote>
+</div>
+
 Since <a interface lt="FrozenArray">FrozenArray&lt;|T|&gt;</a> values
 are references, they are unlike [=sequence types=],
 which are lists of values that are passed by value.
@@ -11189,11 +11227,10 @@ Note: The HTML Standard defines how a security check is performed. [[!HTML]]
             there is an entry in |S| that has one of the
             following types at position |i| of its type list,
             *   a [=sequence type=]
-            *   a [=frozen array type=]
-            *   a [=nullable type|nullable=] version of any of the above types
-            *   an [=annotated type=] whose [=annotated types/inner type=] is one of the above types
+            *   a [=nullable type|nullable=] [=sequence type=]
+            *   an [=annotated type=] whose [=annotated types/inner type=] is a [=sequence type=]
             *   a [=union type=], [=nullable type|nullable=] union type, or [=annotated type|annotated=] union type
-                that has one of the above types in its [=flattened member types=]
+                that has a [=sequence type=] in its [=flattened member types=]
 
             and after performing the following steps,
 
@@ -11290,13 +11327,10 @@ Note: The HTML Standard defines how a security check is performed. [[!HTML]]
         1.  Let |V| be |args|[|i|].
         1.  Let |T| be the type at index |i| in the
             type list of the remaining entry in |S|.
-        1.  If |T| is a [=sequence type=], then
-            append to |values| the result of
+        1.  Assert: |T| is a [=sequence type=].
+        1.  Append to |values| the result of
             [=creating a sequence from an iterable|creating a sequence=]
             of type |T| from |V| and |method|.
-        1.  Otherwise, |T| is a [=frozen array type=].
-            Append to |values| the result of
-            [=Creating a frozen array from an iterable|creating a frozen array of type T from V and method=].
         1.  Set |i| to |i| + 1.
     1.  While |i| &lt; |argcount|:
         1.  Let |V| be |args|[|i|].
