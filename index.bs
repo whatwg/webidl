@@ -6200,13 +6200,9 @@ only [=list/items=] that are of type |T|.
 <h4 id="idl-async-iterable-type" lt="async-iterable" dfn export>Async iterable types — async iterable&lt;|T|&gt;</h4>
 
 The <dfn lt="async iterable type" export>async iterable&lt;|T|&gt;</dfn> type is a parameterized
-type whose values are references to objects that asynchronously yield zero or more values of type
-|T|.
+type whose values are references to objects that can produce an [=async iterator=].
 
-Async iterables, unlike sequences, do not have a fixed length and can be infinite. Values are
-asynchronously produced as the async iterable is iterated over.
-
-Async iterable are passed by reference in language bindings where they are represented by an object.
+Async iterables are passed by reference in language bindings where they are represented by an object.
 This means that passing an async iterable to a [=platform object=] will result in a reference to the
 async iterable being kept by that object. Similarly, any async iterable returned from a platform
 object will be a reference to the same object and modifications made to it will be visible to the
@@ -6221,6 +6217,20 @@ from an IDL operation, the operation may want to return an [=interface=] that ha
 Async iterables must not be used as the type of an [=attribute=] or [=constant=].
 
 There is no way to represent an async iterable value in IDL.
+
+<h5 id="idl-async-iterator-object" lt="async-iterator" dfn export>Async iterator objects</h5>
+
+An <dfn lt="async iterator" export>async iterator&lt;|T|&gt;</dfn> value is a reference to an object
+that can produce a sequence of values asynchronously. The async iterator value is is a parameterized
+by a type |T|, which defines the types of values produced by this async iterator.
+
+Async iterators, unlike sequences, do not have a fixed length and can be infinite. Values are
+asynchronously produced as the async iterator is iterated over.
+
+Async iterators are values, not types, and thus cannot be used as a type in IDL. They can only be
+created from [=async iterables=]. Thus, async iterators can not be used as the type of an IDL
+operation parameter, an IDL interface attribute, or an IDL dictionary member. Instead an
+[=async iterable=] should be used.
 
 <h4 id="idl-record" lt="record" dfn export>Record types — record&lt;|K|, |V|&gt;</h4>
 
@@ -8122,7 +8132,8 @@ JavaScript Array values.
 <h4 id="js-async-iterable">Async iterable — async iterable&lt;|T|&gt;</h4>
 
 IDL <a lt="async iterable type">async iterable&lt;|T|&gt;</a> values are represented by a JavaScript
-object and a JavaScript [=Iterator=] record.
+object, a JavaScript method, and a flag indicating whether the method is expected to produce a
+<code>sync</code> or <code>async</code> iterator.
 
 <div id="js-to-async-iterable" algorithm="convert a JavaScript value to async iterable">
     A JavaScript value |V| is [=converted to an IDL value|converted=]
@@ -8130,25 +8141,60 @@ object and a JavaScript [=Iterator=] record.
 
     1.  If <a abstract-op>Type</a>(|V|) is not Object,
         [=JavaScript/throw=] a <l spec=ecmascript>{{TypeError}}</l>.
-    1.  Let |iteratorRecord| be [=?=] <a abstract-op>GetIterator</a>(|V|, async).
-    1.  Return |iteratorRecord|.
+    1.  Let |method| be [=?=] <a abstract-op>GetMethod</a>(obj, %Symbol.asyncIterator%).
+    1.  If |method| is undefined:
+        1.  Set |syncMethod| to [=?=] <a abstract-op>GetMethod</a>(obj, %Symbol.iterator%).
+        1.  If |syncMethod| is undefined, [=JavaScript/throw=] a <l spec=ecmascript>{{TypeError}}</l>.
+        1   Return the IDL async iterable value that represents a reference to the JavaScript object
+            |V|, the JavaScript method |syncMethod|, and the flag <code>sync</code>.
+    1.  Return the IDL async iterable value that represents a reference to the JavaScript object
+        |V|, the JavaScript method |method|, and the flag <code>async</code>.
 </div>
 
 <div id="async-iterable-to-js" algorithm="convert an async iterable to a JavaScript value">
-    An IDL <a lt="async iterable type">async iterable&lt;|<var ignore>T</var>&gt;</a> value is
+    An IDL <a lt="async iterable type">async iterable&lt;<var ignore>T</var>&gt;</a> value is
     [=converted to a JavaScript value|converted=] to a JavaScript object as follows:
 
     1.  Return the JavaScript object that represents the same async iterable as the IDL value.
 </div>
 
-<h5 id="js-async-iterable-iteration">Iterating async iterables</h5>
+<h5 id="idl-async-iterator" lt="async-iterator" dfn export>Async iterators</h5>
+
+IDL <a lt="async-iterator">async-iterator</a> values are represented by JavaScript [=Iterator=]
+records.
+
+Async iterators can only be created from an [=async iterable=] object.
+
+<h5 id="js-async-iterator-iteration">Iterating async iterator</h5>
+
+[=Async iterables=] are not directly iterated over. They are first opened, to create a new
+[=async iterator=], and then the [=async iterator=] is iterated over.
 
 <div algorithm>
 
-    To <dfn id="async-iterable-get-next-value" export lt="get an async iterable next value">get the next value</dfn> of an
-    <code><a lt="async iterable type">async iterable&lt;<var>T</var>&gt;</a></code> |iteratorRecord|,
+    To <dfn id="async-iterable-open" export lt="get an async iterable next value">get the next value</dfn> of an
+    <code><a lt="async iterable type">async iterable&lt;<var>T</var>&gt;</a></code> |iterable|,
     perform the following steps:
 
+    1.  Let |object| be the |iterable|'s JavaScript object.
+    1.  Let |method| be the |iterable|'s JavaScript method.
+    1.  Let |iterator| be [=?=] <a abstract-op>GetIteratorFromMethod</a>(|object|, |method|).
+    1.  If |iterable| has a flag that shows that it is expected to produce a
+        <code>sync</code> iterator, then:
+        1. Set |iterator| to <a abstract-op>CreateAsyncFromSyncIteator</a>(|iterator|).
+    1.  Return an IDL [=async iterator=] value with type parameter |T| that represents |iterator|.
+
+</div>
+
+
+
+<div algorithm>
+
+    To <dfn id="async-iterator-get-next-value" export lt="get an async iterator next value">get the next value</dfn> of an
+    <code><a lt="async iterator">async iterator&lt;<var>T</var>&gt;</a></code> |iterator|,
+    perform the following steps:
+
+    1.  Let |iteratorRecord| be the [=Iterator=] represented by |iterator|.
     1.  Let |nextResult| be the result of calling <a abstract-op>IteratorNext</a>(|iteratorRecord|).
     1.  If |nextResult| is an abrupt completion, return [=a promise rejected with=]
         |nextResult|.\[[Value]].
@@ -8170,17 +8216,18 @@ object and a JavaScript [=Iterator=] record.
 
 <div algorithm>
 
-    To <dfn id="async-iterable-close" export lt="close an async iterable">close</dfn> an
-    <code><a lt="async iterable type">async iterable&lt;<var ignore>T</var>&gt;</a></code> |iteratorRecord|,
+    To <dfn id="async-iterator-close" export lt="close an async iterator">close</dfn> an
+    <code><a lt="async iterator">async iterator&lt;<var ignore>T</var>&gt;</a></code> |iterator|,
     with a reason |reason|, perform the following steps:
 
-    1.  Let |iterator| be |iteratorRecord|.\[[Iterator]].
-    1.  Let |returnMethod| be <a abstract-op>GetMethod</a>(|iterator|, "return").
+    1.  Let |iteratorRecord| be the [=Iterator=] represented by |iterator|.
+    1.  Let |iteratorObj| be |iteratorRecord|.\[[Iterator]].
+    1.  Let |returnMethod| be <a abstract-op>GetMethod</a>(|iteratorObj|, "return").
     1.  If |returnMethod| is an abrupt completion, return [=a promise rejected with=]
         |returnMethod|.\[[Value]].
     1.  If |returnMethod| is <emu-val>undefined</emu-val>, return [=a promise resolved with=]
         <emu-val>undefined</emu-val>.
-    1.  Let |returnResult| be <a abstract-op>Call</a>(|returnMethod|.\[[Value]], |iterator|, « |reason| »).
+    1.  Let |returnResult| be <a abstract-op>Call</a>(|returnMethod|.\[[Value]], |iteratorObj|, « |reason| »).
     1.  If |returnResult| is an abrupt completion, return [=a promise rejected with=]
         |returnResult|.\[[Value]].
     1.  Let |returnPromise| be [=a promise resolved with=] |returnResult|.\[[Value]].
@@ -8211,23 +8258,24 @@ object and a JavaScript [=Iterator=] record.
     1.  Let |promise| be [=a new promise=].
     1.  Let |result| be the empty string.
     1.  Let |n| be 0.
+    1.  Let |iterator| be the result of <a lt="open an async iterable">opening</a> |iterable|.
     1.  Let |step| be a sequence of steps that will be used to process the async iterable:
-        1.  Let |next| be the result of <a lt="get an async iterable next value">getting the next value</a> of |iterable|.
+        1.  Let |next| be the result of <a lt="get an async iterator next value">getting the next value</a> of |iterator|.
         1.  [=React=] to |next|:
             -   If |next| was fulfilled with value |v|:
                 1.  If |v| is [=end of iteration=], [=resolve=] |promise| with |result|.
                 1.  Set |result| to the result of concatenating |result| and |v|.
                 1.  Set |n| to |n| + 1.
                 1.  If |n| is |maxN|, then:
-                    1.  Let |finish| be the result of <a lt="close an async iterable">closing</a>
-                        |iterable| with reason <emu-val>undefined</emu-val>.
+                    1.  Let |finish| be the result of <a lt="close an async iterator">closing</a>
+                        |iterator| with reason <emu-val>undefined</emu-val>.
                     1.  [=React=] to |finish|:
                         -   If |finish| was fulfilled, [=resolve=] |promise| with |result|.
                         -   If |finish| was rejected with reason |r|, [=reject=] |promise| with |r|.
                 1.  Otherwise:
                     1.  Call |step|.
             -   If |next| was rejected with reason |r|, [=reject=] |promise| with |r|.
-    1.  Call step.
+    1.  Call |step|.
     1.  Return |promise|.
 
 </div>
@@ -11347,7 +11395,7 @@ Note: The HTML Standard defines how a security check is performed. [[!HTML]]
         1.  Otherwise: if <a abstract-op>Type</a>(|V|) is Object and
             there is an entry in |S| that has one of the
             following types at position |i| of its type list,
-            *   a [=async iterable type=]
+            *   an [=async iterable type=]
             *   a [=nullable type|nullable=] version of any of the above types
             *   an [=annotated type=] whose [=annotated types/inner type=] is one of the above types
             *   a [=union type=], [=nullable type|nullable=] union type, or [=annotated type|annotated=] union type
@@ -11363,7 +11411,7 @@ Note: The HTML Standard defines how a security check is performed. [[!HTML]]
         1.  Otherwise: if <a abstract-op>Type</a>(|V|) is Object and
             there is an entry in |S| that has one of the
             following types at position |i| of its type list,
-            *   a [=async iterable type=]
+            *   an [=async iterable type=]
             *   a [=sequence type=]
             *   a [=frozen array type=]
             *   a [=nullable type|nullable=] version of any of the above types
@@ -11532,7 +11580,7 @@ Note: The HTML Standard defines how a security check is performed. [[!HTML]]
     Generally, the inspection of the value at the distinguishing argument index does not have any
     side effects, and the only side effects in the overload resolution algorithm are the result of
     converting the JavaScript values to IDL values.
-    (An exception exists when one of the overloads has a [=async iterable type=], [=sequence type=]
+    (An exception exists when one of the overloads has an [=async iterable type=], [=sequence type=]
     or [=frozen array type=] at the distinguishing argument index.
     In this case, we attempt to get the {{@@asyncIterator}} / {{@@iterator}} property to determine
     the appropriate overload, and perform the conversion of the distinguishing argument separately
