@@ -14335,17 +14335,17 @@ the special value “missing”, which represents a missing optional argument.
     given a [=callback interface type=] value |value|,
     operation name |opName|, [=Web IDL arguments list=] |args|, optional
     <dfn id="dfn-callback-this-value" export>callback this value</dfn> |thisArg|, and
-    an optional [=boolean=] |useCreationTimeAsyncContext|, perform the following steps.
+    an optional [=boolean=] |useCurrentAsyncContext|, perform the following steps.
     These steps will either return an IDL value or throw an exception.
 
-    1.  If |useCreationTimeAsyncContext| was not given, let |useCreationTimeAsyncContext| be false.
+    1.  If |useCurrentAsyncContext| was not given, let |useCurrentAsyncContext| be false.
     1.  Let |completion| be an uninitialized variable.
     1.  If |thisArg| was not given, let |thisArg| be <emu-val>undefined</emu-val>.
     1.  Let |O| be the JavaScript object corresponding to |value|.
     1.  Let |realm| be |O|'s [=associated realm=].
     1.  Let |relevant settings| be |realm|'s [=realm/settings object=].
     1.  Let (|stored settings|, |async context mapping|) be |value|'s [=callback context=].
-    1.  If |useCreationTimeAsyncContext| is true, then:
+    1.  If |useCurrentAsyncContext| is false, then:
          1.  Let |previous async context mapping| be [$AsyncContextSwap$](|async context mapping|).
     1.  [=Prepare to run script=] with |relevant settings|.
     1.  [=Prepare to run a callback=] with |stored settings|.
@@ -14375,7 +14375,7 @@ the special value “missing”, which represents a missing optional argument.
         point |completion| will be set to an IDL value or an [=abrupt completion=].
         1.  [=Clean up after running a callback=] with |stored settings|.
         1.  [=Clean up after running script=] with |relevant settings|.
-        1.  If |useCreationTimeAsyncContext| is true, then:
+        1.  If |useCurrentAsyncContext| is false, then:
             1.  [$AsyncContextSwap$](|previous async context mapping|).
         1.  If |completion| is an IDL value, return |completion|.
         1.  If |completion| is an [=abrupt completion=] and the operation has a [=return type=]
@@ -14436,7 +14436,7 @@ described in the previous section).
     [=callback function type=] value |callable| with a [=Web IDL arguments list=] |args|,
     exception behavior |exceptionBehavior| (either "<code>report</code>" or "<code>rethrow</code>"),
     an optional [=callback this value|callback this value=] |thisArg|,
-    and an optional [=boolean=] |useCreationTimeAsyncContext|,
+    and an optional [=boolean=] |useCurrentAsyncContext|,
     perform the following steps.
     These steps will either return an IDL value or throw an exception.
 
@@ -14452,7 +14452,7 @@ described in the previous section).
 
     1.  Let |completion| be an uninitialized variable.
     1.  If |thisArg| was not given, let |thisArg| be <emu-val>undefined</emu-val>.
-    1.  If |useCreationTimeAsyncContext| was not given, let |useCreationTimeAsyncContext| be false.
+    1.  If |useCurrentAsyncContext| was not given, let |useCurrentAsyncContext| be false.
     1.  Let |F| be the JavaScript object corresponding to |callable|.
     1.  If <a abstract-op>IsCallable</a>(|F|) is <emu-val>false</emu-val>:
         1.  Note: This is only possible when the [=callback function=] came from an attribute
@@ -14462,7 +14462,7 @@ described in the previous section).
     1.  Let |realm| be |F|'s [=associated realm=].
     1.  Let |relevant settings| be |realm|'s [=realm/settings object=].
     1.  Let (|stored settings|, |async context mapping|) be |callable|'s [=callback context=].
-    1.  If |useCreationTimeAsyncContext| is true, then:
+    1.  If |useCurrentAsyncContext| is false, then:
          1.  Let |previous async context mapping| be [$AsyncContextSwap$](|async context mapping|).
     1.  [=Prepare to run script=] with |relevant settings|.
     1.  [=Prepare to run a callback=] with |stored settings|.
@@ -14481,7 +14481,7 @@ described in the previous section).
         point |completion| will be set to an IDL value or an [=abrupt completion=].
         1.  [=Clean up after running a callback=] with |stored settings|.
         1.  [=Clean up after running script=] with |relevant settings|.
-        1.  If |useCreationTimeAsyncContext| is true, then:
+        1.  If |useCurrentAsyncContext| is false, then:
             1.  [$AsyncContextSwap$](|previous async context mapping|).
         1.  If |completion| is an IDL value, return |completion|.
         1.  [=Assert=]: |completion| is an [=abrupt completion=].
@@ -14504,10 +14504,10 @@ a return type that is a [=promise type=].
 
     To <dfn id="construct-a-callback-function" export>construct</dfn> a
     [=callback function type=] value |callable| with a [=Web IDL arguments list=] |args|, and
-    an optional [=boolean=] |useCreationTimeAsyncContext|, perform the following steps.
+    an optional [=boolean=] |useCurrentAsyncContext|, perform the following steps.
     These steps will either return an IDL value or throw an exception.
 
-    1.  If |useCreationTimeAsyncContext| was not given, let |useCreationTimeAsyncContext| be false.
+    1.  If |useCurrentAsyncContext| was not given, let |useCurrentAsyncContext| be false.
     1.  Let |completion| be an uninitialized variable.
     1.  Let |F| be the JavaScript object corresponding to |callable|.
     1.  If <a abstract-op>IsConstructor</a>(|F|) is <emu-val>false</emu-val>, throw a
@@ -14515,7 +14515,7 @@ a return type that is a [=promise type=].
     1.  Let |realm| be |F|'s [=associated realm=].
     1.  Let |relevant settings| be |realm|'s [=realm/settings object=].
     1.  Let (|stored settings|, |async context mapping|) be |callable|'s [=callback context=].
-    1.  If |useCreationTimeAsyncContext| is true, then:
+    1.  If |useCurrentAsyncContext| is false, then:
          1.  Let |previous async context mapping| be [$AsyncContextSwap$](|async context mapping|).
     1.  [=Prepare to run script=] with |relevant settings|.
     1.  [=Prepare to run a callback=] with |stored settings|.
@@ -14534,7 +14534,7 @@ a return type that is a [=promise type=].
         point |completion| will be set to an IDL value or an [=abrupt completion=].
         1.  [=Clean up after running a callback=] with |stored settings|.
         1.  [=Clean up after running script=] with |relevant settings|.
-        1.  If |useCreationTimeAsyncContext| is true, then:
+        1.  If |useCurrentAsyncContext| is false, then:
             1.  [$AsyncContextSwap$](|previous async context mapping|).
         1.  If |completion| is an [=abrupt completion=], throw |completion|.\[[Value]].
         1.  Return |completion|.
