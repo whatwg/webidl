@@ -14399,10 +14399,21 @@ described in the previous section).
 <div algorithm>
 
     To <dfn id="invoke-a-callback-function" export>invoke</dfn> a
-    [=callback function type=] value |callable| with a [=Web IDL arguments list=] |args|
+    [=callback function type=] value |callable| with a [=Web IDL arguments list=] |args|,
+    exception behavior |exceptionBehavior| (either "<code>report</code>" or "<code>rethrow</code>"),
     and an optional [=callback this value|callback this value=] |thisArg|,
     perform the following steps.
     These steps will either return an IDL value or throw an exception.
+
+    The |exceptionBehavior| argument must be supplied if, and only if, |callable|'s
+    [=return type=] is not a [=promise type=]. If |callable|'s return type is neither
+    {{undefined}} nor {{any}}, it must be "<code>rethrow</code>".
+
+    <div class="XXX">
+        Until call sites are updated to respect this, specifications which fail to
+        provide a value here when it would be mandatory should be understood as
+        supplying "<code>rethrow</code>".
+    </div>
 
     1.  Let |completion| be an uninitialized variable.
     1.  If |thisArg| was not given, let |thisArg| be <emu-val>undefined</emu-val>.
@@ -14433,8 +14444,13 @@ described in the previous section).
         1.  [=Clean up after running a callback=] with |stored settings|.
         1.  [=Clean up after running script=] with |relevant settings|.
         1.  If |completion| is an IDL value, return |completion|.
-        1.  If |completion| is an [=abrupt completion=] and the callback function has a
-            [=return type=] that is <em>not</em> a [=promise type=], throw |completion|.\[[Value]].
+        1.  [=Assert=]: |completion| is an [=abrupt completion=].
+        1.  If |exceptionBehavior| is "<code>rethrow</code>", throw |completion|.\[[Value]].
+        1.  Otherwise, if |exceptionBehavior| is "<code>report</code>":
+            1.  [=Assert=]: |callable|'s [=return type=] is {{undefined}} or {{any}}.
+            1.  [=Report an exception=] |completion|.\[[Value]] for |realm|'s [=realm/global object=].
+            1.  Return the unique {{undefined}} IDL value.
+        1.  [=Assert=]: |callable|'s [=return type=] is a [=promise type=].
         1.  Let |rejectedPromise| be [=!=] <a abstract-op>Call</a>({{%Promise.reject%}},
             {{%Promise%}}, «|completion|.\[[Value]]»).
         1.  Return the result of [=converted to an IDL value|converting=]
