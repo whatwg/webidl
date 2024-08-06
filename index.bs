@@ -9036,9 +9036,10 @@ a reference to the same object that the IDL value represents.
         |arrayBuffer| to a JavaScript value.
     1.  Perform [=?=] [$DetachArrayBuffer$](|jsArrayBuffer|).
 
-    <p class="note">This will throw an exception if |jsArrayBuffer| has an \[[ArrayBufferDetachKey]]
-    that is not undefined, such as is the case with the value of {{Memory|WebAssembly.Memory}}'s
-    {{Memory/buffer}} attribute. [[WASM-JS-API-1]]
+    <p class="note" id="note-ArrayBuffer-detach-exceptions">This will throw an exception if
+    |jsArrayBuffer| has an \[[ArrayBufferDetachKey]] that is not undefined, such as is the case
+    with the value of {{Memory|WebAssembly.Memory}}'s {{Memory/buffer}} attribute.
+    [[WASM-JS-API-1]]
 
     <p class="note">Detaching a buffer that is already [=BufferSource/detached=] is a no-op.
 </div>
@@ -9081,16 +9082,26 @@ a reference to the same object that the IDL value represents.
     1.  Let |arrayBufferByteLength| be |jsArrayBuffer|.\[[ArrayBufferByteLength]].
     1.  Perform [=?=] [$DetachArrayBuffer$](|jsArrayBuffer|).
     1.  If |targetRealm| is not given, let |targetRealm| be the [=current realm=].
-    1.  Let |jsTransferred| be [=!=]
+    1.  Let |jsTransferred| be [=?=]
         [$AllocateArrayBuffer$](|targetRealm|.\[[Intrinsics]].[[{{%ArrayBuffer%}}]], 0).
     1.  Set |jsTransferred|.\[[ArrayBufferData]] to |arrayBufferData|.
     1.  Set |jsTransferred|.\[[ArrayBufferByteLength]] to |arrayBufferByteLength|.
     1.  Return the result of [=converted to an IDL value|converting=] |jsTransferred| to an IDL
         value of type {{ArrayBuffer}}.
 
-    <p class="note">This will throw an exception under the same circumstances as
-    [=ArrayBuffer/detaching=], and also for {{ArrayBuffer}}s that are already
-    [=BufferSource/detached=].
+    <div class="note" id="note-ArrayBuffer-transfer-exceptions">
+        This will throw an exception under any of the following circumstances:
+
+        *   |arrayBuffer| cannot be [=BufferSource/detached=], for the reasons
+            <a href="#note-ArrayBuffer-detach-exceptions">explained in that algorithm's
+            definition</a>;
+        *   |arrayBuffer| is already [=BufferSource/detached=];
+        *   Sufficient memory cannot be allocated in |realm|. Generally this will only be the case
+            if |realm| is in a different [=agent cluster=] than the one in which |arrayBuffer| was
+            allocated. If they are in the same [=agent cluster=], then implementations will just
+            change the backing pointers to get the same observable results with better performance
+            and no allocations.
+    </div>
 </div>
 
 <h4 id="js-frozen-array" oldids="es-frozen-array">Frozen arrays — FrozenArray&lt;|T|&gt;</h4>
