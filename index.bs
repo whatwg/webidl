@@ -6036,7 +6036,7 @@ about the execution context at the time the language binding specific object ref
 converted to an IDL value.
 
 Note: For JavaScript objects, the [=callback context=] is used to hold a reference to the
-<a spec="HTML">incumbent settings object</a> at the time the Object value is converted to an IDL
+<a spec="HTML">incumbent realm</a> at the time the Object value is converted to an IDL
 callback interface type value. See [[#js-callback-interface]].
 
 There is no way to represent a constant object reference value for a particular
@@ -6085,7 +6085,7 @@ An IDL value of the callback function type is represented by a tuple of an objec
 reference and a [=callback context=].
 
 Note: As with [=callback interface types=], the [=callback context=] is used to hold a
-reference to the <a spec="HTML">incumbent settings object</a> at
+reference to the <a spec="HTML">incumbent realm</a> at
 the time a JavaScript Object value is converted to an IDL
 callback function type value.  See [[#js-callback-function]].
 
@@ -7783,7 +7783,7 @@ values are represented by JavaScript Object values (including [=function objects
 
     1.  If <a abstract-op>Type</a>(|V|) is not Object, then [=JavaScript/throw=] a <l spec=ecmascript>{{TypeError}}</l>.
     1.  Return the IDL [=callback interface type=] value that represents a reference to |V|, with
-        the <a spec="HTML">incumbent settings object</a> as the [=callback context=].
+        the <a spec="HTML">incumbent realm</a> as the [=callback context=].
 </div>
 
 <p id="callback-interface-to-js">
@@ -7911,7 +7911,7 @@ IDL [=callback function types=] are represented by JavaScript [=function objects
         then [=JavaScript/throw=] a <l spec=ecmascript>{{TypeError}}</l>.
     1.  Return the IDL [=callback function type=] value
         that represents a reference to the same object that |V| represents, with the
-        <a spec="HTML">incumbent settings object</a> as the [=callback context=].
+        <a spec="HTML">incumbent realm</a> as the [=callback context=].
 </div>
 
 <p id="callback-function-to-js">
@@ -9677,9 +9677,10 @@ Otherwise, it is the [=host interface=]'s [=exposure set=].
 
     1.  If |construct|'s [=exposure set=] is not <code>*</code>, and |realm|.\[[GlobalObject]] does
         not implement an [=interface=] that is in |construct|'s [=exposure set=], then return false.
-    1.  If |realm|'s [=realm/settings object=] is not a [=secure context=], and |construct| is
-        [=conditionally exposed=] on [{{SecureContext}}], then return false.
-    1.  If |realm|'s [=realm/settings object=]'s
+    1.  If |realm|'s [=realm/principal realm=]'s [=principal realm/settings object=] is not a
+        [=secure context=], and |construct| is [=conditionally exposed=] on [{{SecureContext}}],
+        then return false.
+    1.  If |realm|'s [=realm/principal realm=]'s [=principal realm/settings object=]'s
         [=environment settings object/cross-origin isolated capability=] is false, and |construct|
         is [=conditionally exposed=] on [{{CrossOriginIsolated}}], then return false.
     1.  Return true.
@@ -14323,11 +14324,10 @@ the special value “missing”, which represents a missing optional argument.
     1.  Let |completion| be an uninitialized variable.
     1.  If |thisArg| was not given, let |thisArg| be <emu-val>undefined</emu-val>.
     1.  Let |O| be the JavaScript object corresponding to |value|.
-    1.  Let |realm| be |O|'s [=associated realm=].
-    1.  Let |relevant settings| be |realm|'s [=realm/settings object=].
-    1.  Let |stored settings| be |value|'s [=callback context=].
-    1.  [=Prepare to run script=] with |relevant settings|.
-    1.  [=Prepare to run a callback=] with |stored settings|.
+    1.  Let |relevant realm| be |O|'s [=associated realm=].
+    1.  Let |stored realm| be |value|'s [=callback context=].
+    1.  [=Prepare to run script=] with |relevant realm|.
+    1.  [=Prepare to run a callback=] with |stored realm|.
     1.  Let |X| be |O|.
     1.  If <a abstract-op>IsCallable</a>(|O|) is false, then:
         1.  Let |getResult| be <a abstract-op>Completion</a>(<a abstract-op>Get</a>(|O|, |opName|)).
@@ -14352,8 +14352,8 @@ the special value “missing”, which represents a missing optional argument.
         representing the thrown exception.
     1.  <i id="call-user-object-operation-return">Return:</i> at this
         point |completion| will be set to an IDL value or an [=abrupt completion=].
-        1.  [=Clean up after running a callback=] with |stored settings|.
-        1.  [=Clean up after running script=] with |relevant settings|.
+        1.  [=Clean up after running a callback=] with |stored realm|.
+        1.  [=Clean up after running script=] with |relevant realm|.
         1.  If |completion| is an IDL value, return |completion|.
         1.  If |completion| is an [=abrupt completion=] and the operation has a [=return type=]
             that is <em>not</em> a [=promise type=], throw |completion|.\[[Value]].
@@ -14434,11 +14434,10 @@ described in the previous section).
             marked with [{{LegacyTreatNonObjectAsNull}}].
         1.  Return the result of [=converted to an IDL value|converting=]
             <emu-val>undefined</emu-val> to the callback function's return type.
-    1.  Let |realm| be |F|'s [=associated realm=].
-    1.  Let |relevant settings| be |realm|'s [=realm/settings object=].
-    1.  Let |stored settings| be |callable|'s [=callback context=].
-    1.  [=Prepare to run script=] with |relevant settings|.
-    1.  [=Prepare to run a callback=] with |stored settings|.
+    1.  Let |relevant realm| be |F|'s [=associated realm=].
+    1.  Let |stored realm| be |callable|'s [=callback context=].
+    1.  [=Prepare to run script=] with |relevant realm|.
+    1.  [=Prepare to run a callback=] with |stored realm|.
     1.  Let |jsArgs| be the result of [=Web IDL arguments list/converting=] |args| to a JavaScript
         arguments list. If this throws an exception, set |completion| to the completion value
         representing the thrown exception and jump to the step labeled
@@ -14452,14 +14451,15 @@ described in the previous section).
         representing the thrown exception.
     1.  <i id="invoke-return">Return:</i> at this
         point |completion| will be set to an IDL value or an [=abrupt completion=].
-        1.  [=Clean up after running a callback=] with |stored settings|.
-        1.  [=Clean up after running script=] with |relevant settings|.
+        1.  [=Clean up after running a callback=] with |stored realm|.
+        1.  [=Clean up after running script=] with |relevant realm|.
         1.  If |completion| is an IDL value, return |completion|.
         1.  [=Assert=]: |completion| is an [=abrupt completion=].
         1.  If |exceptionBehavior| is "<code>rethrow</code>", throw |completion|.\[[Value]].
         1.  Otherwise, if |exceptionBehavior| is "<code>report</code>":
             1.  [=Assert=]: |callable|'s [=return type=] is {{undefined}} or {{any}}.
-            1.  [=Report an exception=] |completion|.\[[Value]] for |realm|'s [=realm/global object=].
+            1.  [=Report an exception=] |completion|.\[[Value]] for |relevant realm|'s
+                [=realm/global object=].
             1.  Return the unique {{undefined}} IDL value.
         1.  [=Assert=]: |callable|'s [=return type=] is a [=promise type=].
         1.  Let |rejectedPromise| be [=!=] <a abstract-op>Call</a>({{%Promise.reject%}},
@@ -14482,11 +14482,10 @@ a return type that is a [=promise type=].
     1.  Let |F| be the JavaScript object corresponding to |callable|.
     1.  If <a abstract-op>IsConstructor</a>(|F|) is <emu-val>false</emu-val>, throw a
         <l spec=ecmascript>{{TypeError}}</l> exception.
-    1.  Let |realm| be |F|'s [=associated realm=].
-    1.  Let |relevant settings| be |realm|'s [=realm/settings object=].
-    1.  Let |stored settings| be |callable|'s [=callback context=].
-    1.  [=Prepare to run script=] with |relevant settings|.
-    1.  [=Prepare to run a callback=] with |stored settings|.
+    1.  Let |relevant realm| be |F|'s [=associated realm=].
+    1.  Let |stored realm| be |callable|'s [=callback context=].
+    1.  [=Prepare to run script=] with |relevant realm|.
+    1.  [=Prepare to run a callback=] with |stored realm|.
     1.  Let |jsArgs| be the result of [=Web IDL arguments list/converting=] |args| to a JavaScript
         arguments list. If this throws an exception, set |completion| to the completion value
         representing the thrown exception and jump to the step labeled
@@ -14500,8 +14499,8 @@ a return type that is a [=promise type=].
         representing the thrown exception.
     1.  <i id="construct-return">Return:</i> at this
         point |completion| will be set to an IDL value or an [=abrupt completion=].
-        1.  [=Clean up after running a callback=] with |stored settings|.
-        1.  [=Clean up after running script=] with |relevant settings|.
+        1.  [=Clean up after running a callback=] with |stored realm|.
+        1.  [=Clean up after running script=] with |relevant realm|.
         1.  If |completion| is an [=abrupt completion=], throw |completion|.\[[Value]].
         1.  Return |completion|.
 </div>
