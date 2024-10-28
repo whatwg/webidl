@@ -36,7 +36,6 @@ urlPrefix: https://tc39.es/ecma262/; spec: ecmascript
     type: abstract-op
         text: Completion; url: sec-completion-record-specification-type
         text: IsInteger; url: sec-isinteger
-        text: Type; url: sec-ecmascript-data-types-and-values
         text: abs; url: eqn-abs
         text: floor; url: eqn-floor
         text: max; url: eqn-max
@@ -69,6 +68,24 @@ urlPrefix: https://tc39.es/ecma262/; spec: ecmascript
         text: own property; url: sec-own-property
         text: PromiseCapability; url: sec-promisecapability-records
         text: element size; url: table-the-typedarray-constructors
+        url: sec-ecmascript-language-types-bigint-type
+            text: is a BigInt
+            text: is not a BigInt
+        url: sec-ecmascript-language-types-boolean-type
+            text: is a Boolean
+            text: is not a Boolean
+        url: sec-ecmascript-language-types-number-type
+            text: is a Number
+            text: is not a Number
+        url: sec-ecmascript-language-types-string-type
+            text: is a String
+            text: is not a String
+        url: sec-ecmascript-language-types-symbol-type
+            text: is a Symbol
+            text: is not a Symbol
+        url: sec-object-type
+            text: is an Object
+            text: is not an Object
 urlPrefix: https://tc39.es/proposal-resizablearraybuffer/; spec: RESIZABLE-BUFFERS-PROPOSAL
     type: abstract-op
         text: IsResizableArrayBuffer; url: sec-isresizablearraybuffer
@@ -7128,21 +7145,21 @@ JavaScript value type.
         return the unique {{undefined}} IDL value.
     1.  If |V| is <emu-val>null</emu-val>, then
         return the <emu-val>null</emu-val> {{object|object?}} reference.
-    1.  If <a abstract-op>Type</a>(|V|) is Boolean, then
+    1.  If |V| [=is a Boolean=], then
         return the {{boolean}} value that represents the same truth value.
-    1.  If <a abstract-op>Type</a>(|V|) is Number, then
+    1.  If |V| [=is a Number=], then
         return the result of <a href="#js-to-unrestricted-double">converting</a> |V|
         to an {{unrestricted double}}.
-    1.  If <a abstract-op>Type</a>(|V|) is BigInt, then
+    1.  If |V| [=is a BigInt=], then
         return the result of <a href="#js-to-bigint">converting</a> |V|
         to a {{bigint}}.
-    1.  If <a abstract-op>Type</a>(|V|) is String, then
+    1.  If |V| [=is a String=], then
         return the result of <a href="#js-to-DOMString">converting</a> |V|
         to a {{DOMString}}.
-    1.  If <a abstract-op>Type</a>(|V|) is Symbol, then
+    1.  If |V| [=is a Symbol=], then
         return the result of <a href="#js-symbol">converting</a> |V|
         to a {{symbol}}.
-    1.  If <a abstract-op>Type</a>(|V|) is Object, then
+    1.  If |V| [=is an Object=], then
         return an IDL {{object}} value that references |V|.
 </div>
 
@@ -7618,9 +7635,9 @@ value when its bit pattern is interpreted as an unsigned 64-bit integer.
     to an IDL [=numeric type=] |T| or {{bigint}} value by running the following algorithm:
 
     1.  Let |x| be [=?=] [$ToNumeric$](|V|).
-    1.  If [$Type$](|x|) is BigInt, then
+    1.  If |x| [=is a BigInt=], then
         1.  Return the IDL {{bigint}} value that represents the same numeric value as |x|.
-    1.  Assert: [$Type$](|x|) is Number.
+    1.  Assert: |x| [=is a Number=].
     1.  Return the result of [=converted to a JavaScript value|converting=] |x| to |T|.
 </div>
 
@@ -7711,7 +7728,7 @@ values are represented by JavaScript Object values.
     A JavaScript value |V| is [=converted to an IDL value|converted=]
     to an IDL {{object}} value by running the following algorithm:
 
-    1.  If <a abstract-op>Type</a>(|V|) is not Object, then [=JavaScript/throw=] a <l spec=ecmascript>{{TypeError}}</l>.
+    1.  If |V| [=is not an Object=], then [=JavaScript/throw=] a <l spec=ecmascript>{{TypeError}}</l>.
     1.  Return the IDL {{object}} value that is a reference to the same object as |V|.
 </div>
 
@@ -7733,7 +7750,7 @@ IDL {{symbol}} values are represented by JavaScript Symbol values.
     A JavaScript value |V| is [=converted to an IDL value|converted=] to an IDL {{symbol}} value
     by running the following algorithm:
 
-    1.  If <a abstract-op>Type</a>(|V|) is not Symbol, then [=JavaScript/throw=] a <l spec=ecmascript>{{TypeError}}</l>.
+    1.  If |V| [=is not a Symbol=], then [=JavaScript/throw=] a <l spec=ecmascript>{{TypeError}}</l>.
     1.  Return the IDL {{symbol}} value that is a reference to the same symbol as |V|.
 </div>
 
@@ -7781,7 +7798,7 @@ values are represented by JavaScript Object values (including [=function objects
     A JavaScript value |V| is [=converted to an IDL value|converted=]
     to an IDL [=callback interface type=] value by running the following algorithm:
 
-    1.  If <a abstract-op>Type</a>(|V|) is not Object, then [=JavaScript/throw=] a <l spec=ecmascript>{{TypeError}}</l>.
+    1.  If |V| [=is not an Object=], then [=JavaScript/throw=] a <l spec=ecmascript>{{TypeError}}</l>.
     1.  Return the IDL [=callback interface type=] value that represents a reference to |V|, with
         the <a spec="HTML">incumbent settings object</a> as the [=callback context=].
 </div>
@@ -7809,21 +7826,18 @@ the object (or its prototype chain) correspond to [=dictionary members=].
     to an IDL [=dictionary type=] value by
     running the following algorithm (where |D| is the [=dictionary type=]):
 
-    1.  If <a abstract-op>Type</a>(|jsDict|) is not Undefined, Null or Object, then [=JavaScript/throw=] a <l spec=ecmascript>{{TypeError}}</l>.
+    1.  If |jsDict| [=is not an Object=] and |jsDict| is neither <emu-val>undefined</emu-val> nor
+        <emu-val>null</emu-val>, then [=JavaScript/throw=] a <l spec=ecmascript>{{TypeError}}</l>.
     1.  Let |idlDict| be an empty [=ordered map=], representing a dictionary of type |D|.
     1.  Let |dictionaries| be a list consisting of |D| and all of |D|'s [=inherited dictionaries=],
         in order from least to most derived.
     1.  For each dictionary |dictionary| in |dictionaries|, in order:
         1.  For each dictionary member |member| declared on |dictionary|, in lexicographical order:
             1.  Let |key| be the [=identifier=] of |member|.
-            1.  Let |jsMemberValue| be a JavaScript value, depending on <a abstract-op>Type</a>(|jsDict|):
-                <dl class="switch">
-                     :  Undefined
-                     :  Null
-                     :: <emu-val>undefined</emu-val>
-                     :  anything else
-                     :: [=?=] <a abstract-op>Get</a>(|jsDict|, |key|)
-                </dl>
+            1.  If |jsDict| is either <emu-val>undefined</emu-val> or <emu-val>null</emu-val>, then:
+                1.  Let |jsMemberValue| be <emu-val>undefined</emu-val>.
+            1.  Otherwise,
+                1.  Let |jsMemberValue| be [=?=] <a abstract-op>Get</a>(|jsDict|, |key|).
             1.  If |jsMemberValue| is not <emu-val>undefined</emu-val>, then:
                 1.  Let |idlMemberValue| be the result of [=converted to an IDL value|converting=] |jsMemberValue| to an IDL value whose type is the type |member| is declared to be of.
                 1.  [=map/Set=] |idlDict|[|key|] to |idlMemberValue|.
@@ -7936,7 +7950,7 @@ the JavaScript <emu-val>null</emu-val> value.
     to an IDL [=nullable type=] <code class="idl">|T|?</code>
     value (where |T| is the [=nullable types/inner type=]) as follows:
 
-    1.  If <a abstract-op>Type</a>(|V|) is not Object, and
+    1.  If |V| [=is not an Object=], and
         the conversion to an IDL value is being performed due
         to |V| being assigned to an [=attribute=]
         whose type is a [=nullable type|nullable=]
@@ -7982,7 +7996,7 @@ JavaScript Array values.
     A JavaScript value |V| is [=converted to an IDL value|converted=]
     to an IDL <a lt="sequence type">sequence&lt;<var ignore>T</var>&gt;</a> value as follows:
 
-    1.  If <a abstract-op>Type</a>(|V|) is not Object,
+    1.  If |V| [=is not an Object=],
         [=JavaScript/throw=] a <l spec=ecmascript>{{TypeError}}</l>.
     1.  Let |method| be [=?=] <a abstract-op>GetMethod</a>(|V|, {{%Symbol.iterator%}}).
     1.  If |method| is <emu-val>undefined</emu-val>,
@@ -8126,7 +8140,7 @@ JavaScript Object values.
     A JavaScript value |O| is [=converted to an IDL value|converted=]
     to an IDL <code>[=record=]&lt;|K|, |V|></code> value as follows:
 
-    1.  If <a abstract-op>Type</a>(|O|) is not Object,
+    1.  If |O| [=is not an Object=],
         [=JavaScript/throw=] a <l spec=ecmascript>{{TypeError}}</l>.
     1.  Let |result| be a new empty instance of <code>[=record=]&lt;|K|, |V|></code>.
     1.  Let |keys| be [=?=] |O|.\[[OwnPropertyKeys]]().
@@ -8646,27 +8660,27 @@ that correspond to the union's [=member types=].
             [=implements=], then return the IDL value that is a reference to the object |V|.
         1.  If |types| includes {{object}}, then return the IDL value
             that is a reference to the object |V|.
-    1.  If <a abstract-op>Type</a>(|V|) is Object, |V| has an \[[ArrayBufferData]]
+    1.  If |V| [=is an Object=], |V| has an \[[ArrayBufferData]]
         [=/internal slot=], and <a abstract-op>IsSharedArrayBuffer</a>(|V|) is false, then:
         1.  If |types| includes {{ArrayBuffer}}, then return the
             result of [=converted to an IDL value|converting=]
             |V| to {{ArrayBuffer}}.
         1.  If |types| includes {{object}}, then return the IDL value
             that is a reference to the object |V|.
-    1.  If <a abstract-op>Type</a>(|V|) is Object, |V|, has an \[[ArrayBufferData]]
+    1.  If |V| [=is an Object=], |V|, has an \[[ArrayBufferData]]
         [=/internal slot=], and <a abstract-op>IsSharedArrayBuffer</a>(|V|) is true, then:
         1.  If |types| includes {{SharedArrayBuffer}}, then return the
             result of [=converted to an IDL value|converting=]
             |V| to {{SharedArrayBuffer}}.
         1.  If |types| includes {{object}}, then return the IDL value
             that is a reference to the object |V|.
-    1.  If <a abstract-op>Type</a>(|V|) is Object and |V| has a \[[DataView]] [=/internal slot=], then:
+    1.  If |V| [=is an Object=] and |V| has a \[[DataView]] [=/internal slot=], then:
         1.  If |types| includes {{DataView}}, then return the
             result of [=converted to an IDL value|converting=]
             |V| to {{DataView}}.
         1.  If |types| includes {{object}}, then return the IDL value
             that is a reference to the object |V|.
-    1.  If <a abstract-op>Type</a>(|V|) is Object and |V| has a \[[TypedArrayName]] [=/internal slot=], then:
+    1.  If |V| [=is an Object=] and |V| has a \[[TypedArrayName]] [=/internal slot=], then:
         1.  If |types| includes a [=typed array type=]
             whose name is the value of |V|'s \[[TypedArrayName]] [=/internal slot=], then return the
             result of [=converted to an IDL value|converting=]
@@ -8680,7 +8694,7 @@ that correspond to the union's [=member types=].
             |V| to that callback function type.
         1.  If |types| includes {{object}}, then return the IDL value
             that is a reference to the object |V|.
-    1.  If <a abstract-op>Type</a>(|V|) is Object, then:
+    1.  If |V| [=is an Object=], then:
         1.  If |types| includes a [=sequence type=], then
             1.  Let |method| be [=?=] <a abstract-op>GetMethod</a>(|V|, {{%Symbol.iterator%}}).
             1.  If |method| is not <emu-val>undefined</emu-val>,
@@ -8705,15 +8719,15 @@ that correspond to the union's [=member types=].
             |V| to that [=callback interface type=].
         1.  If |types| includes {{object}}, then return the IDL value
             that is a reference to the object |V|.
-    1.  If <a abstract-op>Type</a>(|V|) is Boolean, then:
+    1.  If |V| [=is a Boolean=], then:
         1.  If |types| includes {{boolean}},
             then return the result of [=converted to an IDL value|converting=]
             |V| to {{boolean}}.
-    1.  If <a abstract-op>Type</a>(|V|) is Number, then:
+    1.  If |V| [=is a Number=], then:
         1.  If |types| includes a [=numeric type=],
             then return the result of [=converted to an IDL value|converting=]
             |V| to that [=numeric type=].
-    1.  If <a abstract-op>Type</a>(|V|) is BigInt, then:
+    1.  If |V| [=is a BigInt=], then:
         1.  If |types| includes {{bigint}},
             then return the result of [=converted to an IDL value|converting=]
             |V| to {{bigint}}
@@ -8795,7 +8809,7 @@ class, with the following additional restrictions on those objects.
     A JavaScript value |V| is [=converted to an IDL value|converted=]
     to an IDL {{ArrayBuffer}} value by running the following algorithm:
 
-    1.  If <a abstract-op>Type</a>(|V|) is not Object,
+    1.  If |V| [=is not an Object=],
         or |V| does not have an \[[ArrayBufferData]] [=/internal slot=],
         then [=JavaScript/throw=] a <l spec=ecmascript>{{TypeError}}</l>.
     1.  If <a abstract-op>IsSharedArrayBuffer</a>(|V|) is true, then [=JavaScript/throw=]
@@ -8813,7 +8827,7 @@ class, with the following additional restrictions on those objects.
     A JavaScript value |V| is [=converted to an IDL value|converted=]
     to an IDL {{SharedArrayBuffer}} value by running the following algorithm:
 
-    1.  If <a abstract-op>Type</a>(|V|) is not Object,
+    1.  If |V| [=is not an Object=],
         or |V| does not have an \[[ArrayBufferData]] [=/internal slot=],
         then [=JavaScript/throw=] a <l spec=ecmascript>{{TypeError}}</l>.
     1.  If <a abstract-op>IsSharedArrayBuffer</a>(|V|) is false, then [=JavaScript/throw=]
@@ -8831,7 +8845,7 @@ class, with the following additional restrictions on those objects.
     A JavaScript value |V| is [=converted to an IDL value|converted=]
     to an IDL {{DataView}} value by running the following algorithm:
 
-    1.  If <a abstract-op>Type</a>(|V|) is not Object,
+    1.  If |V| [=is not an Object=],
         or |V| does not have a \[[DataView]] [=/internal slot=],
         then [=JavaScript/throw=] a <l spec=ecmascript>{{TypeError}}</l>.
     1.  If the conversion is not to an IDL type
@@ -8865,7 +8879,7 @@ class, with the following additional restrictions on those objects.
     by running the following algorithm:
 
     1.  Let |T| be the IDL type |V| is being converted to.
-    1.  If <a abstract-op>Type</a>(|V|) is not Object,
+    1.  If |V| [=is not an Object=],
         or |V| does not have a \[[TypedArrayName]] [=/internal slot=]
         with a value equal to |T|'s name,
         then [=JavaScript/throw=] a <l spec=ecmascript>{{TypeError}}</l>.
@@ -11206,7 +11220,7 @@ Note: The HTML Standard defines how a security check is performed. [[!HTML]]
 
             then remove from |S| all other entries.
 
-        1.  Otherwise: if <a abstract-op>Type</a>(|V|) is Object, |V| has an \[[ArrayBufferData]] [=/internal slot=], and
+        1.  Otherwise: if |V| [=is an Object=], |V| has an \[[ArrayBufferData]] [=/internal slot=], and
             there is an entry in |S| that has one of the following types at position |i| of its type list,
             *   {{ArrayBuffer}}
             *   {{SharedArrayBuffer}}
@@ -11218,7 +11232,7 @@ Note: The HTML Standard defines how a security check is performed. [[!HTML]]
 
             then remove from |S| all other entries.
 
-        1.  Otherwise: if <a abstract-op>Type</a>(|V|) is Object, |V| has a \[[DataView]] [=/internal slot=], and
+        1.  Otherwise: if |V| [=is an Object=], |V| has a \[[DataView]] [=/internal slot=], and
             there is an entry in |S| that has one of the following types at position |i| of its type list,
             *   {{DataView}}
             *   {{object}}
@@ -11229,7 +11243,7 @@ Note: The HTML Standard defines how a security check is performed. [[!HTML]]
 
             then remove from |S| all other entries.
 
-        1.  Otherwise: if <a abstract-op>Type</a>(|V|) is Object, |V| has a \[[TypedArrayName]] [=/internal slot=], and
+        1.  Otherwise: if |V| [=is an Object=], |V| has a \[[TypedArrayName]] [=/internal slot=], and
             there is an entry in |S| that has one of the following types at position |i| of its type list,
             *   a [=typed array type=] whose name
                 is equal to the value of |V|'s \[[TypedArrayName]] [=/internal slot=]
@@ -11252,7 +11266,7 @@ Note: The HTML Standard defines how a security check is performed. [[!HTML]]
 
             then remove from |S| all other entries.
 
-        1.  Otherwise: if <a abstract-op>Type</a>(|V|) is Object and
+        1.  Otherwise: if |V| [=is an Object=] and
             there is an entry in |S| that has one of the
             following types at position |i| of its type list,
             *   a [=sequence type=]
@@ -11268,7 +11282,7 @@ Note: The HTML Standard defines how a security check is performed. [[!HTML]]
             |method| is not <emu-val>undefined</emu-val>, then remove from |S| all
             other entries.
 
-        1.  Otherwise: if <a abstract-op>Type</a>(|V|) is Object and
+        1.  Otherwise: if |V| [=is an Object=] and
             there is an entry in |S| that has one of the following types at position |i| of its type list,
             *   a [=callback interface type=]
             *   a [=dictionary type=]
@@ -11281,7 +11295,7 @@ Note: The HTML Standard defines how a security check is performed. [[!HTML]]
 
             then remove from |S| all other entries.
 
-        1.  Otherwise: if <a abstract-op>Type</a>(|V|) is Boolean
+        1.  Otherwise: if |V| [=is a Boolean=]
             and there is an entry in |S| that has one of the following types at position |i| of its type list,
             *   {{boolean}}
             *   a [=nullable type|nullable=] {{boolean}}
@@ -11291,7 +11305,7 @@ Note: The HTML Standard defines how a security check is performed. [[!HTML]]
 
             then remove from |S| all other entries.
 
-        1.  Otherwise: if <a abstract-op>Type</a>(|V|) is Number
+        1.  Otherwise: if |V| [=is a Number=]
             and there is an entry in |S| that has one of the following types at position |i| of its type list,
             *   a [=numeric type=]
             *   a [=nullable type|nullable=] [=numeric type=]
@@ -11301,7 +11315,7 @@ Note: The HTML Standard defines how a security check is performed. [[!HTML]]
 
             then remove from |S| all other entries.
 
-        1.  Otherwise: if <a abstract-op>Type</a>(|V|) is BigInt
+        1.  Otherwise: if |V| [=is a BigInt=]
             and there is an entry in |S| that has one of the following types at position |i| of its type list,
             *   {{bigint}}
             *   a [=nullable type|nullable=] {{bigint}}
@@ -11659,7 +11673,7 @@ with the [{{LegacyNoInterfaceObject}}] [=extended attribute=].
     1.  Otherwise, if |interface| is the {{DOMException}} [=interface=],
         then set |proto| to |realm|.\[[Intrinsics]].[[{{%Error.prototype%}}]].
     1.  Otherwise, set |proto| to |realm|.\[[Intrinsics]].[[{{%Object.prototype%}}]].
-    1.  Assert: <a abstract-op>Type</a>(|proto|) is Object.
+    1.  Assert: |proto| [=is an Object=].
     1.  Let |interfaceProtoObj| be null.
     1.  If |realm|'s [=is global prototype chain mutable=] is true, then:
         1.  Set |interfaceProtoObj| to [$OrdinaryObjectCreate$](|proto|).
@@ -12027,7 +12041,7 @@ in which case they are exposed on every object that [=implements=] the interface
                 return <emu-val>undefined</emu-val>.
             1.  If |attribute| is declared with a [{{PutForwards}}] extended attribute, then:
                 1.  Let |Q| be [=?=] <a abstract-op>Get</a>(|jsValue|, |id|).
-                1.  If <a abstract-op>Type</a>(|Q|) is not Object, then [=JavaScript/throw=] a
+                1.  If |Q| [=is not an Object=], then [=JavaScript/throw=] a
                     <l spec=ecmascript>{{TypeError}}</l>.
                 1.  Let |forwardId| be the identifier argument of the [{{PutForwards}}] extended
                     attribute.
@@ -13487,7 +13501,7 @@ and must return {{undefined}}.
 <h3 id="js-platform-objects" oldids="es-platform-objects">Platform objects implementing interfaces</h3>
 
 <div algorithm>
-    A JavaScript value |value| <dfn>is a platform object</dfn> if [$Type$](|value|) is Object and
+    A JavaScript value |value| <dfn>is a platform object</dfn> if |value| [=is an Object=] and
     if |value| has a \[[PrimaryInterface]] internal slot.
 </div>
 
@@ -13529,7 +13543,7 @@ the realm given as an argument.
     1.  Otherwise:
         1.  Assert: [$IsCallable$](|newTarget|) is true.
         1.  Let |prototype| be [=?=] [$Get$](|newTarget|, "prototype").
-        1.  If [$Type$](|prototype|) is not Object, then:
+        1.  If |prototype| [=is not an Object=], then:
             1.  Let |targetRealm| be [=?=] [$GetFunctionRealm$](|newTarget|).
             1.  Set |prototype| to the [=interface prototype object=] for |interface| in
                 |targetRealm|.
@@ -13736,7 +13750,7 @@ Additionally, [=legacy platform objects=] have internal methods as defined in:
             1.  [=Invoke the indexed property setter=] on |O| with |P| and |V|.
             1.  Return <emu-val>true</emu-val>.
         1.  If |O| [=implements=] an interface with a [=named property setter=]
-            and <a abstract-op>Type</a>(|P|) is String, then:
+            and |P| [=is a String=], then:
             1.  [=Invoke the named property setter=] on |O| with |P| and |V|.
             1.  Return <emu-val>true</emu-val>.
     1.  Let |ownDesc| be [=?=] <a abstract-op>LegacyPlatformObjectGetOwnProperty</a>(|O|, |P|, <emu-val>true</emu-val>).
@@ -13763,7 +13777,7 @@ Additionally, [=legacy platform objects=] have internal methods as defined in:
         1.  Return <emu-val>true</emu-val>.
     1.  If |O| [=support named properties|supports named properties=],
         |O| does not implement an [=interface=] with the [{{Global}}] [=extended attribute=],
-        <a abstract-op>Type</a>(|P|) is String,
+        |P| [=is a String=],
         and |P| is not an [=unforgeable property name=]
         of |O|, then:
         1.  Let |creating| be true if |P| is not a [=supported property name=], and false otherwise.
@@ -13870,7 +13884,7 @@ internal method as follows.
     oldids="dfn-array-index-property-name">is an [=array index=]</dfn>, the following algorithm is
     applied:
 
-    1.  If <a abstract-op>Type</a>(|P|) is not String, then return <emu-val>false</emu-val>.
+    1.  If |P| [=is not a String=], then return <emu-val>false</emu-val>.
     1.  Let |index| be <a abstract-op>CanonicalNumericIndexString</a>(|P|).
     1.  If |index| is <emu-val>undefined</emu-val>, then return <emu-val>false</emu-val>.
     1.  If <a abstract-op>IsInteger</a>(|index|) is <emu-val>false</emu-val>,
