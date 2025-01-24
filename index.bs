@@ -19,6 +19,7 @@ spec: ecmascript; type: dfn;
         text: constructor
         text: realm
 spec: dom; type: dfn; text: element
+spec: dom; type: dfn; for: /; text: document
 </pre>
 
 <pre class="anchors">
@@ -70,6 +71,7 @@ urlPrefix: https://tc39.es/ecma262/; spec: ecmascript
         text: PromiseCapability; url: sec-promisecapability-records
         text: Iterator; url: sec-iterator-records
         text: element size; url: table-the-typedarray-constructors
+        text: string object; url: sec-string-objects
         url: sec-ecmascript-language-types-bigint-type
             text: is a BigInt
             text: is not a BigInt
@@ -3451,7 +3453,7 @@ the following algorithm returns <i>true</i>.
             <td>●
             <td>●
             <td>●
-            <td>●
+            <td>(d)
             <td>●
         <tr>
             <th>object
@@ -3571,6 +3573,10 @@ the following algorithm returns <i>true</i>.
               then it is converted to a [=callback function=]. Otherwise, it is
               converted to a dictionary-like type.
             </div>
+        1.  The types are distinguishable, but when converting from an ECMAScript value,
+            a [=string object=] is never converted to an [=async iterable type=]
+            (even if it has a {{%Symbol.iterator%}} method), if a [=string type=]
+            is also in the overload set or union.
     </ol>
 
     <div class="example" id="example-distinguishability-diff-types">
@@ -8192,7 +8198,7 @@ a [=struct=] with the following [=struct/items=]:
     A JavaScript value |V| is [=converted to an IDL value|converted=]
     to an IDL <a lt="async iterable">async iterable&lt;<var ignore>T</var>&gt;</a> value as follows:
 
-    1.  If <a abstract-op>Type</a>(|V|) is not Object,
+    1.  If |V| [=is not an Object=], then
         [=JavaScript/throw=] a <l spec=ecmascript>{{TypeError}}</l>.
     1.  Let |method| be [=?=] <a abstract-op>GetMethod</a>(obj, {{%Symbol.asyncIterator%}}).
     1.  If |method| is undefined:
@@ -8250,7 +8256,7 @@ an [=async iterator=]. The [=async iterator=] can be asynchronously iterated ove
     1.  Let |nextPromise| be [=a promise resolved with=] |nextResult|.\[[Value]].
     1.  Return the result of [=reacting=] to |nextPromise| with the following fulfillment
         steps, given |iterResult|:
-        1.  If <a abstract-op>Type</a>(|iterResult|) is not Object, [=JavaScript/throw=] a
+        1.  If |iterResult| [=is not an Object=], [=JavaScript/throw=] a
             <l spec=ecmascript>{{TypeError}}</l>.
         1.  Let |done| be [=?=] <a abstract-op>IteratorComplete</a>(|iterResult|).
         1.  If |done| is true:
@@ -8282,7 +8288,7 @@ an [=async iterator=]. The [=async iterator=] can be asynchronously iterated ove
     1.  Let |returnPromise| be [=a promise resolved with=] |returnResult|.\[[Value]].
     1.  Return the result of [=reacting=] to |returnPromise| with the following fulfillment steps,
         given |returnPromiseResult|:
-        1.  If <a abstract-op>Type</a>(|returnPromiseResult|) is not Object, [=JavaScript/throw=] a
+        1.  If |returnPromiseResult| [=is not an Object=], [=JavaScript/throw=] a
             <l spec=ecmascript>{{TypeError}}</l>.
         1.  Return {{undefined}}.
 
@@ -8900,6 +8906,18 @@ that correspond to the union's [=member types=].
         1.  If |types| includes {{object}}, then return the IDL value
             that is a reference to the object |V|.
     1.  If |V| [=is an Object=], then:
+        1.  If |types| includes an [=async iterable type=], then
+            1. If |types| does not include a [=string type=] or |V| does not have a \[[StringData]] [=/internal slot=], then
+                1.  Let |asyncMethod| be [=?=] <a abstract-op>GetMethod</a>(|V|, {{%Symbol.asyncIterator%}}).
+                1.  If |asyncMethod| is not <emu-val>undefined</emu-val>,
+                    return an IDL [=async iterable=] value with [=JS async iterable/object=]
+                    set to |V|, [=JS async iterable/method=] set to |syncMethod|, and
+                    [=JS async iterable/type=] set to "<code>async</code>".
+                1.  Let |syncMethod| be [=?=] <a abstract-op>GetMethod</a>(|V|, {{%Symbol.iterator%}}).
+                1.  If |syncMethod| is not <emu-val>undefined</emu-val>,
+                    return an IDL [=async iterable=] value with [=JS async iterable/object=]
+                    set to |V|, [=JS async iterable/method=] set to |syncMethod|, and
+                    [=JS async iterable/type=] set to "<code>sync</code>".
         1.  If |types| includes a [=sequence type=], then
             1.  Let |method| be [=?=] <a abstract-op>GetMethod</a>(|V|, {{%Symbol.iterator%}}).
             1.  If |method| is not <emu-val>undefined</emu-val>,
@@ -11480,7 +11498,7 @@ Note: The HTML Standard defines how a security check is performed. [[!HTML]]
             *   a [=union type=], [=nullable type|nullable=] union type, or [=annotated type|annotated=] union type
                 that has one of the above types in its [=flattened member types=]
 
-            and not all of the following are true,
+            and the following are not all true,
             *   |V| has a \[[StringData]] [=/internal slot=]
             *   |S| has one of the following types at position |i| of its type list,
                 *   a [=string type=]
@@ -11492,34 +11510,19 @@ Note: The HTML Standard defines how a security check is performed. [[!HTML]]
             and after performing the following steps,
 
             1.  Let |method| be [=?=] <a abstract-op>GetMethod</a>(|V|, {{%Symbol.asyncIterator%}}).
+            1.  If |method| is <emu-val>undefined</emu-val>, then set |method| to [=?=] <a abstract-op>GetMethod</a>(|V|, {{%Symbol.iterator%}}).
 
             |method| is not <emu-val>undefined</emu-val>, then remove from |S| all
             other entries.
 
-        1.  Otherwise: if <a abstract-op>Type</a>(|V|) is Object and
+        1.  Otherwise: if |V| [=is an Object=] and
             there is an entry in |S| that has one of the
             following types at position |i| of its type list,
-            *   an [=async iterable type=]
             *   a [=sequence type=]
             *   a [=nullable type|nullable=] version of any of the above types
             *   an [=annotated type=] whose [=annotated types/inner type=] is one of the above types
             *   a [=union type=], [=nullable type|nullable=] union type, or [=annotated type|annotated=] union type
                 that has one of the above types in its [=flattened member types=]
-
-            and not all of the following are true,
-            *   |V| has a \[[StringData]] [=/internal slot=]
-            *   |S| has one of the following types at position |i| of its type list,
-                *   a [=string type=]
-                *   a [=nullable type|nullable=] version of a [=string type=]
-                *   an [=annotated type=] whose [=annotated types/inner type=] is a [=string type=]
-                *   a [=union type=], [=nullable type|nullable=] union type, or [=annotated type|annotated=] union type
-                    that has one of the above types in its [=flattened member types=]
-            *   |S| has one of the following types at position |i| of its type list,
-                *   an [=async iterable type=]
-                *   a [=nullable type|nullable=] version of an [=async iterable type=]
-                *   an [=annotated type=] whose [=annotated types/inner type=] is a [=async iterable type=]
-                *   a [=union type=], [=nullable type|nullable=] union type, or [=annotated type|annotated=] union type
-                    that has one of the above types in its [=flattened member types=]
 
             and after performing the following steps,
 
