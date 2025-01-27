@@ -5159,11 +5159,6 @@ over just using {{SyntaxError!!exception}} to refer to the {{DOMException}}. [[D
             <td><dfn id="dom-domexception-url_mismatch_err" for="DOMException" const export><code>URL_MISMATCH_ERR</code></dfn>&nbsp;(21)</td>
         </tr>
         <tr>
-            <td>"<dfn id="quotaexceedederror" exception export><code>QuotaExceededError</code></dfn>"</td>
-            <td>The quota has been exceeded.</td>
-            <td><dfn id="dom-domexception-quota_exceeded_err" for="DOMException" const export><code>QUOTA_EXCEEDED_ERR</code></dfn>&nbsp;(22)</td>
-        </tr>
-        <tr>
             <td>"<dfn id="timeouterror" exception export><code>TimeoutError</code></dfn>"</td>
             <td>The operation timed out.</td>
             <td><dfn id="dom-domexception-timeout_err" for="DOMException" const export><code>TIMEOUT_ERR</code></dfn>&nbsp;(23)</td>
@@ -5260,69 +5255,113 @@ certain rules, in order to have a predictable shape for developers. Specifically
 <p class=note>These requirements mean that the inherited {{DOMException/code}} property of these
 interfaces will always return 0.
 
-<div class=example id=example-domexception-derived-interface>
-    The definition for a {{DOMException}} derived interface which carries along an additional
-    "protocol error code", which is derived from what the server sent over some some hypothetical
-    network protocol "protocol X", could look something like this:
-
-    <pre highlight=webidl>
-        [Exposed=Window, Serializable]
-        interface ProtocolXError : DOMException {
-          constructor(optional DOMString message = "", ProtocolXErrorOptions options);
-
-          readonly attribute unsigned long long errorCode;
-        };
-
-        dictionary ProtocolXErrorOptions {
-            required [EnforceRange] unsigned long long errorCode;
-        };
-    </pre>
-
-    Every <code>ProtocolXError</code> instance has an <dfn for="ProtocolXError">error code</dfn>,
-    a number.
-
-    <div algorithm="ProtocolXError constructor">
-        The <b><code>new ProtocolXError(|message|, |options|)</code></b> constructor steps are:
-
-        1.  Set [=this=]'s [=DOMException/name=] to "<code>ProtocolXError</code>".
-        1.  Set [=this=]'s [=DOMException/message=] to |message|.
-        1.  Set [=this=]'s [=ProtocolXError/error code=] to |options|["<code>errorCode</code>"].
-    </div>
-
-    <div algorithm="ProtocolXError errorCode">
-        The <b><code>errorCode</code></b> getter steps are to return [=this=]'s
-        [=ProtocolXError/error code=].
-    </div>
-
-    <code>ProtocolXError</code> objects are [=serializable objects=].
-
-    <div algorithm="ProtocolXError serialization steps">
-        Their [=serialization steps=], given |value| and |serialized|, are:
-
-        1. Run the {{DOMException}} [=serialization steps=] given |value| and |serialized|.
-        1. Set |serialized|.\[[ErrorCode]] to |value|'s [=ProtocolXError/error code=].
-    </div>
-
-    <div algorithm="ProtocolXError deserialization steps">
-        Their [=deserialization steps=], given |serialized| and |value|, are:
-
-        1. Run the {{DOMException}} [=deserialization steps=] given |serialized| and |value|.
-        1. Set |value|'s [=ProtocolXError/error code=] to |serialized|.\[[ErrorCode]].
-    </div>
-</div>
-
 To [=exception/create=] or [=exception/throw=] a {{DOMException}} derived interface, supply its
 [=interface=] [=identifier=] as well as the additional information needed to construct it.
 
 <div class=example id=example-domexception-derived-throwing>
-    <p>To throw an instance of the <code>ProtocolXError</code> exemplified
-    <a href=#example-domexception-derived-interface>above</a>:
+    <p>To throw an instance of {{QuotaExceededError}}:
 
     <blockquote>
-        <p>[=exception/Throw=] a <code>ProtocolXError</code> whose [=ProtocolXError/error code=]
-        is 42.
+        <p>[=exception/Throw=] a {{QuotaExceededError}} whose [=QuotaExceededError/quota=] is 42 and
+        [=QuotaExceededError/requested=] is 50.
     </blockquote>
 </div>
+
+<h4 id="idl-DOMException-derived-predefineds" oldids="example-domexception-derived-interface">Predefined {{DOMException}} derived interfaces</h4>
+
+This standard so far defines one predefined {{DOMException}} derived interface:
+
+<pre class=idl>
+[Exposed=*, Serializable]
+interface QuotaExceededError : DOMException {
+  constructor(optional DOMString message = "", optional QuotaExceededErrorOptions options = {});
+
+  readonly attribute double? quota;
+  readonly attribute double? requested;
+};
+
+dictionary QuotaExceededErrorOptions {
+  double quota;
+  double requested;
+};
+</pre>
+
+The {{QuotaExceededError}} exception can be thrown when a quota is exceeded. It has two properties
+that are optionally present, to give more information to the web developer about their request
+compared to the quota value.
+
+<p class="note">Previous versions of this standard defined "<code>QuotaExceededError</code>" as one
+of the <a href="#idl-DOMException-error-names">base <code>DOMException</code> error names</a>. It
+has been upgraded to a full interface to support including such information.</p>
+
+Every {{QuotaExceededError}} instance has a <dfn for="QuotaExceededError">requested</dfn> and a
+<dfn for="QuotaExceededError">quota</dfn>, both numbers or null. They are both initially null.
+
+<div algorithm>
+    The <dfn constructor for="QuotaExceededError" lt="QuotaExceededError(message, options)">new QuotaExceededError(|message|, |options|)</dfn>
+    constructor steps are:
+
+    1.  Set [=this=]'s [=DOMException/name=] to "<code>QuotaExceededError</code>".
+
+    1.  Set [=this=]'s [=DOMException/message=] to |message|.
+
+    1.  If |options|["{{QuotaExceededErrorOptions/quota}}"] is present, then:
+
+        1.  If |options|["{{QuotaExceededErrorOptions/quota}}"] is less than 0, then throw a
+            {{RangeError}}.
+
+        1.  Set [=this=]'s [=QuotaExceededError/quota=] to
+            |options|["{{QuotaExceededErrorOptions/quota}}"].
+
+    1.  If |options|["{{QuotaExceededErrorOptions/requested}}"] is present, then:
+
+        1.  If |options|["{{QuotaExceededErrorOptions/requested}}"] is less than 0, then throw a
+            {{RangeError}}.
+
+        1.  Set [=this=]'s [=QuotaExceededError/requested=] to
+            |options|["{{QuotaExceededErrorOptions/requested}}"].
+
+    1.  If [=this=]'s [=QuotaExceededError/quota=] is not null, [=this=]'s [=QuotaExceededError/requested=] is not null,
+        and [=this=]'s [=QuotaExceededError/requested=] is less than [=this=]'s [=QuotaExceededError/quota=], then
+        throw a {{RangeError}}.
+</div>
+
+The <dfn attribute for="QuotaExceededError">quota</dfn> getter steps are to return [=this=]'s
+[=QuotaExceededError/quota=].
+
+The <dfn attribute for="QuotaExceededError">requested</dfn> getter steps are to return [=this=]'s
+[=QuotaExceededError/requested=].
+
+<hr>
+
+{{QuotaExceededError}} objects are [=serializable objects=].
+
+<div algorithm="QuotaExceededError serialization steps">
+    Their [=serialization steps=], given |value| and |serialized|, are:
+
+    1. Run the {{DOMException}} [=serialization steps=] given |value| and |serialized|.
+
+    1. Set |serialized|.\[[Quota]] to |value|'s [=QuotaExceededError/quota=].
+
+    1. Set |serialized|.\[[Requested]] to |value|'s [=QuotaExceededError/requested=].
+</div>
+
+<div algorithm="QuotaExceededError deserialization steps">
+    Their [=deserialization steps=], given |serialized| and |value|, are:
+
+    1. Run the {{DOMException}} [=deserialization steps=] given |serialized| and |value|.
+
+    1. Set |value|'s [=QuotaExceededError/quota=] to |serialized|.\[[Quota]].
+
+    1. Set |value|'s [=QuotaExceededError/requested=] to |serialized|.\[[Requested]].
+</div>
+
+<hr>
+
+Specifications that [=exception/create=] or [=exception/throw=] a {{QuotaExceededError}} must not
+provide a [=QuotaExceededError/requested=] and [=QuotaExceededError/quota=] that are both non-null
+and where [=QuotaExceededError/requested=] is less than [=QuotaExceededError/quota=].
+
 
 <h3 id="idl-enums">Enumerations</h3>
 
@@ -6651,7 +6690,8 @@ There is no way to represent a constant observable array value in IDL.
 
         1.  If |employee| is not allowed to enter the building today, then throw a
             "{{NotAllowedError}}" {{DOMException}}.
-        1.  If |index| is greater than 200, then throw a "{{QuotaExceededError}}" {{DOMException}}.
+        1.  If |index| is greater than or equal to 200, then throw a {{QuotaExceededError}} whose
+            [=QuotaExceededError/quota=] is 200 and [=QuotaExceededError/requested=] is |index|.
         1.  Put |employee| to work!
 
         The [=observable array attribute/delete an indexed value=] algorithm for
