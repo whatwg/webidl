@@ -1691,7 +1691,7 @@ The type of the attribute, after resolving typedefs, must not be a
 [=nullable type|nullable=] or non-nullable version of any of the following types:
 
 *   a [=sequence type=]
-*   an [=async iterable type=]
+*   an [=async sequence type=]
 *   a [=dictionary type=]
 *   a [=record type=]
 *   a [=union type=]
@@ -3381,7 +3381,7 @@ the following algorithm returns <i>true</i>.
                 <th><div><span>interface-like</span></div>
                 <th><div><span>callback function</span></div>
                 <th><div><span>dictionary-like</span></div>
-                <th><div><span>async iterable</span></div>
+                <th><div><span>async sequence</span></div>
                 <th><div><span>sequence-like</span></div>
         </thead>
         <tr>
@@ -3525,7 +3525,7 @@ the following algorithm returns <i>true</i>.
             <td>●
             <td>●
         <tr>
-            <th>async iterable
+            <th>async sequence
             <td class="belowdiagonal">
             <td class="belowdiagonal">
             <td class="belowdiagonal">
@@ -3573,7 +3573,7 @@ the following algorithm returns <i>true</i>.
               converted to a dictionary-like type.
             </div>
         1.  The types are distinguishable, but when converting from an ECMAScript value,
-            a [=string object=] is never converted to an [=async iterable type=]
+            a [=string object=] is never converted to an [=async sequence type=]
             (even if it has a {{%Symbol.iterator%}} method), if a [=string type=]
             is also in the overload set or union.
     </ol>
@@ -4129,10 +4129,10 @@ An [=interface=] can be declared to be asynchronously iterable by using an
 
 <pre highlight="webidl" class="syntax">
     interface interface_identifier {
-      async_iterable&lt;value_type&gt;;
-      async_iterable&lt;value_type&gt;(/* arguments... */);
-      async_iterable&lt;key_type, value_type&gt;;
-      async_iterable&lt;key_type, value_type&gt;(/* arguments... */);
+      async iterable&lt;value_type&gt;;
+      async iterable&lt;value_type&gt;(/* arguments... */);
+      async iterable&lt;key_type, value_type&gt;;
+      async iterable&lt;key_type, value_type&gt;(/* arguments... */);
     };
 </pre>
 
@@ -4211,7 +4211,7 @@ or [=regular operations=] with these names.
         interface SessionManager {
           Session getSessionForUser(DOMString username);
 
-          async_iterable&lt;DOMString, Session&gt;;
+          async iterable&lt;DOMString, Session&gt;;
         };
 
         [Exposed=Window]
@@ -5727,7 +5727,7 @@ are known as <dfn id="dfn-object-type" export>object types</dfn>.
         StringType Null
         identifier Null
         "sequence" "&lt;" TypeWithExtendedAttributes "&gt;" Null
-        "async_iterable" "&lt;" TypeWithExtendedAttributes "&gt;" Null
+        "async" "sequence" "&lt;" TypeWithExtendedAttributes "&gt;" Null
         "object" Null
         "symbol" Null
         BufferRelatedType Null
@@ -6222,32 +6222,32 @@ only [=list/items=] that are of type |T|.
 
 <!-- Note: if we ever add synchronous iterable types, we should add a note here about why sequences and iterables are not the same. -->
 
-<h4 id="idl-async-iterable-type" lt="async_iterable" dfn export>Async iterable types — async iterable&lt;|T|&gt;</h4>
+<h4 id="idl-async-iterable-type" lt="async sequence" dfn export>Async sequence types — async sequence&lt;|T|&gt;</h4>
 
-An <dfn lt="async iterable type" export>async iterable type</dfn> is a parameterized
+An <dfn lt="async sequence type" export>async sequence type</dfn> is a parameterized
 type whose values are references to objects that can produce an asynchronously iterable, possibly infinite,
 sequence of values of type |T|.
 
 Unlike [=sequences=], which are fixed-length lists where all values are known in advance, the asynchronously
-iterable sequences created by async iterables are lazy. Their values may be produced asynchronously
+iterable sequences created by async sequences are lazy. Their values may be produced asynchronously
 only during iteration, and thus the values or length might not be known at the time the async
-iterable is created.
+sequence is created.
 
-Async iterables are passed by reference in language bindings where they are represented by an object.
-This means that passing an async iterable to a [=platform object=] will result in a reference to the
-async iterable being kept by that object. Similarly, any async iterable returned from a platform
+Async sequences are passed by reference in language bindings where they are represented by an object.
+This means that passing an async sequence to a [=platform object=] will result in a reference to the
+async sequence being kept by that object. Similarly, any async sequence returned from a platform
 object will be a reference to the same object and modifications made to it will be visible to the
 platform object. This is in contrast to sequences, which are always passed by value.
 
-Note: Async iterables cannot be constructed from IDL. If returned from an operation, or used as the
-type of a dictionary member, the async iterable will have originated from the host environment and
-have been turned into an IDL type via a language binding. Instead of returning an async iterable
+Note: Async sequences cannot be constructed from IDL. If returned from an operation, or used as the
+type of a dictionary member, the async sequence will have originated from the host environment and
+have been turned into an IDL type via a language binding. Instead of returning an async sequence
 from an IDL operation, the operation might want to return an [=interface=] that has an
 [=asynchronously iterable declaration=].
 
-Async iterables must not be used as the type of an [=attribute=] or [=constant=].
+Async sequences must not be used as the type of an [=attribute=] or [=constant=].
 
-There is no way to represent an async iterable value in IDL.
+There is no way to represent an async sequence value in IDL.
 
 <h4 id="idl-record" lt="record" dfn export>Record types — record&lt;|K|, |V|&gt;</h4>
 
@@ -8183,19 +8183,19 @@ JavaScript Array values.
 </div>
 
 
-<h4 id="js-async-iterable">Async iterables — async iterable&lt;|T|&gt;</h4>
+<h4 id="js-async-iterable">Async sequences — async sequence&lt;|T|&gt;</h4>
 
-In the JavaScript binding, IDL [=async iterable type|async iterable=] values are represented by
+In the JavaScript binding, IDL [=async sequence type|async sequence=] values are represented by
 a [=struct=] with the following [=struct/items=]:
 
-* <dfn for="JS async iterable">object</dfn>, a JavaScript value
-* <dfn for="JS async iterable">method</dfn>, a JavaScript value
-* <dfn for="JS async iterable">type</dfn>, either "<code>sync</code>" or "<code>async</code>"
+* <dfn for="JS async sequence">object</dfn>, a JavaScript value
+* <dfn for="JS async sequence">method</dfn>, a JavaScript value
+* <dfn for="JS async sequence">type</dfn>, either "<code>sync</code>" or "<code>async</code>"
 
 
 <div id="js-to-async-iterable" algorithm="convert a JavaScript value to async iterable">
     A JavaScript value |V| is [=converted to an IDL value|converted=]
-    to an IDL <a lt="async iterable">async iterable&lt;<var ignore>T</var>&gt;</a> value as follows:
+    to an IDL <a lt="async sequence">async sequence&lt;<var ignore>T</var>&gt;</a> value as follows:
 
     1.  If |V| [=is not an Object=], then
         [=JavaScript/throw=] a <l spec=ecmascript>{{TypeError}}</l>.
@@ -8203,24 +8203,24 @@ a [=struct=] with the following [=struct/items=]:
     1.  If |method| is <emu-val>undefined</emu-val>:
         1.  Set |syncMethod| to [=?=] <a abstract-op>GetMethod</a>(obj, {{%Symbol.iterator%}}).
         1.  If |syncMethod| is undefined, [=JavaScript/throw=] a <l spec=ecmascript>{{TypeError}}</l>.
-        1.  Return an IDL [=async iterable=] value with [=JS async iterable/object=] set to |V|,
-            [=JS async iterable/method=] set to |syncMethod|, and [=JS async iterable/type=] set to
+        1.  Return an IDL [=async sequence=] value with [=JS async sequence/object=] set to |V|,
+            [=JS async sequence/method=] set to |syncMethod|, and [=JS async sequence/type=] set to
             "<code>sync</code>".
-    1.  Return an IDL [=async iterable=] value with [=JS async iterable/object=] set to |V|,
-        [=JS async iterable/method=] set to |method|, and [=JS async iterable/type=] set to
+    1.  Return an IDL [=async sequence=] value with [=JS async sequence/object=] set to |V|,
+        [=JS async sequence/method=] set to |method|, and [=JS async sequence/type=] set to
         "<code>async</code>".
 </div>
 
-<div id="async-iterable-to-js" algorithm="convert an async iterable to a JavaScript value">
-    An IDL <a lt="async iterable">async iterable&lt;<var ignore>T</var>&gt;</a> value |V| is
+<div id="async-sequence-to-js" algorithm="convert an async sequence to a JavaScript value">
+    An IDL <a lt="async sequence">async sequence&lt;<var ignore>T</var>&gt;</a> value |V| is
     [=converted to a JavaScript value|converted=] to a JavaScript object as follows:
 
-    1.  Return |V|'s [=JS async iterable/object=].
+    1.  Return |V|'s [=JS async sequence/object=].
 </div>
 
-<h5 id="js-async-iterator-iteration">Iterating async iterators</h5>
+<h5 id="js-async-sequence-iteration">Iterating async sequences</h5>
 
-An [=async iterable=] is not directly iterated over. Instead, it is first opened to create
+An [=async sequence=] is not directly iterated over. Instead, it is first opened to create
 an [=async iterator=]. The [=async iterator=] can be asynchronously iterated over to produce values.
 
 <dfn lt="async iterator" export>Async iterators</dfn> are [=structs=] with the following [=struct/items=]:
@@ -8229,12 +8229,12 @@ an [=async iterator=]. The [=async iterator=] can be asynchronously iterated ove
 
 <div algorithm>
 
-    To <dfn id="async-iterable-open" export lt="open an async iterable">open</dfn> an
-    <code><a lt="async iterable type">async_iterable&lt;<var>T</var>&gt;</a></code> |iterable|:
+    To <dfn id="async-sequence-open" export lt="open an async sequence">open</dfn> an
+    <code><a lt="async sequence type">async sequence&lt;<var>T</var>&gt;</a></code> |sequence|:
 
-    1.  Let |iterator| be [=?=] <a abstract-op>GetIteratorFromMethod</a>(|iterable|'s
-        [=JS async iterable/object=], |iterable|'s [=JS async iterable/method=]).
-    1.  If |iterable|'s [=JS async iterable/type=] is "<code>sync</code>", set |iterator| to
+    1.  Let |iterator| be [=?=] <a abstract-op>GetIteratorFromMethod</a>(|sequence|'s
+        [=JS async sequence/object=], |sequence|'s [=JS async sequence/method=]).
+    1.  If |sequence|'s [=JS async sequence/type=] is "<code>sync</code>", set |iterator| to
         <a abstract-op>CreateAsyncFromSyncIterator</a>(|iterator|).
     1.  Return an [=async iterator=] value with [=JS async iterator/underlying record=] set to |iterator| and
         [=JS async iterator/type parameter=] set to |T|.
@@ -8293,28 +8293,28 @@ an [=async iterator=]. The [=async iterator=] can be asynchronously iterated ove
 
 </div>
 
-<div class="example" id="example-js-async-iterable">
+<div class="example" id="example-js-async-sequence">
 
     <code>concatN</code> is an [=operation=] that returns a promise that will be fulfilled with the
-    concatenation of all the strings yielded by the async iterable passed to it. It stops
-    concatenating and closes the iterator once the async iterable has yielded <var ignore>maxN</var>
+    concatenation of all the strings yielded by the async sequence passed to it. It stops
+    concatenating and closes the iterator once the async sequence has yielded <var ignore>maxN</var>
     strings.
 
     <pre>
         interface I {
-          Promise&lt;DOMString> concatN(async_iterable&lt;DOMString> strings, unsigned long maxN);
+          Promise&lt;DOMString> concatN(async sequence&lt;DOMString> strings, unsigned long maxN);
         };
     </pre>
 
 <div algorithm="concatN">
 
-    The <code>concatN(|iterable|, |maxN|)</code> method steps are:
+    The <code>concatN(|sequence|, |maxN|)</code> method steps are:
 
     1.  Let |promise| be [=a new promise=].
     1.  Let |result| be the empty string.
     1.  Let |n| be 0.
-    1.  Let |iterator| be the result of <a lt="open an async iterable">opening</a> |iterable|.
-    1.  Let |step| be a sequence of steps that will be used to process the async iterable:
+    1.  Let |iterator| be the result of <a lt="open an async sequence">opening</a> |sequence|.
+    1.  Let |step| be a sequence of steps that will be used to process the async sequence:
         1.  Let |next| be the result of <a lt="get an async iterator next value">getting the next value</a> of |iterator|.
         1.  [=React=] to |next|:
             -   If |next| was fulfilled with value |v|:
@@ -8905,18 +8905,18 @@ that correspond to the union's [=member types=].
         1.  If |types| includes {{object}}, then return the IDL value
             that is a reference to the object |V|.
     1.  If |V| [=is an Object=], then:
-        1.  If |types| includes an [=async iterable type=], then
+        1.  If |types| includes an [=async sequence type=], then
             1. If |types| does not include a [=string type=] or |V| does not have a \[[StringData]] [=/internal slot=], then
                 1.  Let |asyncMethod| be [=?=] <a abstract-op>GetMethod</a>(|V|, {{%Symbol.asyncIterator%}}).
                 1.  If |asyncMethod| is not <emu-val>undefined</emu-val>,
-                    return an IDL [=async iterable=] value with [=JS async iterable/object=]
-                    set to |V|, [=JS async iterable/method=] set to |syncMethod|, and
-                    [=JS async iterable/type=] set to "<code>async</code>".
+                    return an IDL [=async sequence=] value with [=JS async sequence/object=]
+                    set to |V|, [=JS async sequence/method=] set to |syncMethod|, and
+                    [=JS async sequence/type=] set to "<code>async</code>".
                 1.  Let |syncMethod| be [=?=] <a abstract-op>GetMethod</a>(|V|, {{%Symbol.iterator%}}).
                 1.  If |syncMethod| is not <emu-val>undefined</emu-val>,
-                    return an IDL [=async iterable=] value with [=JS async iterable/object=]
-                    set to |V|, [=JS async iterable/method=] set to |syncMethod|, and
-                    [=JS async iterable/type=] set to "<code>sync</code>".
+                    return an IDL [=async sequence=] value with [=JS async sequence/object=]
+                    set to |V|, [=JS async sequence/method=] set to |syncMethod|, and
+                    [=JS async sequence/type=] set to "<code>sync</code>".
         1.  If |types| includes a [=sequence type=], then
             1.  Let |method| be [=?=] <a abstract-op>GetMethod</a>(|V|, {{%Symbol.iterator%}}).
             1.  If |method| is not <emu-val>undefined</emu-val>,
@@ -11491,7 +11491,7 @@ Note: The HTML Standard defines how a security check is performed. [[!HTML]]
         1.  Otherwise: if |V| [=is an Object=] and
             there is an entry in |S| that has one of the
             following types at position |i| of its type list,
-            *   an [=async iterable type=]
+            *   an [=async sequence type=]
             *   a [=nullable type|nullable=] version of any of the above types
             *   an [=annotated type=] whose [=annotated types/inner type=] is one of the above types
             *   a [=union type=], [=nullable type|nullable=] union type, or [=annotated type|annotated=] union type
@@ -11681,7 +11681,7 @@ Note: The HTML Standard defines how a security check is performed. [[!HTML]]
     Generally, the inspection of the value at the distinguishing argument index does not have any
     side effects, and the only side effects in the overload resolution algorithm are the result of
     converting the JavaScript values to IDL values.
-    (An exception exists when one of the overloads has an [=async iterable type=], [=sequence type=]
+    (An exception exists when one of the overloads has an [=async sequence type=], [=sequence type=]
     or [=frozen array type=] at the distinguishing argument index.
     In this case, we attempt to get the {{%Symbol.asyncIterator%}} / {{%Symbol.iterator%}} property
     to determine the appropriate overload, and perform the conversion of the distinguishing argument
