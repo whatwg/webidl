@@ -470,12 +470,14 @@ underscore.
 <pre class="grammar" id="prod-ArgumentNameKeyword">
     ArgumentNameKeyword :
         "async"
+        "async_disposer"
         "attribute"
         "callback"
         "const"
         "constructor"
         "deleter"
         "dictionary"
+        "disposer"
         "enum"
         "getter"
         "includes"
@@ -887,6 +889,8 @@ The <dfn>qualified name</dfn> of an [=interface=] |interface| is defined as foll
         ReadWriteMaplike
         ReadWriteSetlike
         InheritAttribute
+        Disposer
+        AsyncDisposer
 </pre>
 
 <pre class="grammar" id="prod-Inheritance">
@@ -1001,10 +1005,10 @@ or [=partial interface mixins=] can be found in [[#using-mixins-and-partials]].
 
 An [=interface mixin=] is a specification of a set of <dfn export lt="interface mixin member">interface mixin members</dfn>
 (matching <emu-nt><a href="#prod-MixinMembers">MixinMembers</a></emu-nt>),
-which are the [=constants=], [=regular operations=], [=regular attributes=], and [=stringifiers=]
+which are the [=constants=], [=regular operations=], [=regular attributes=], [=stringifiers=], [=disposers=], and [=async_disposers=]
 that appear between the braces in the [=interface mixin=] declaration.
 
-These [=constants=], [=regular operations=], [=regular attributes=], and [=stringifiers=]
+These [=constants=], [=regular operations=], [=regular attributes=], [=stringifiers=], [=disposers=], and [=async_disposers=]
 describe the behaviors that can be implemented by an object,
 as if they were specified on the [=interface=] that [=includes=] them.
 
@@ -1145,6 +1149,8 @@ No [=extended attributes=] defined in this specification are applicable to [=inc
         Const
         RegularOperation
         Stringifier
+        Disposer
+        AsyncDisposer
         OptionalReadOnly AttributeRest
 </pre>
 
@@ -1352,6 +1358,22 @@ and summarized in the following informative table:
         </tr>
         <tr>
             <th>[=Stringifiers=]</th>
+            <td>●</td>
+            <td></td>
+            <td>●</td>
+            <td></td>
+        </tr>
+
+        <tr>
+            <th>[=Disposers=]</th>
+            <td>●</td>
+            <td></td>
+            <td>●</td>
+            <td></td>
+        </tr>
+
+        <tr>
+            <th>[=AsyncDisposers=]</th>
             <td>●</td>
             <td></td>
             <td>●</td>
@@ -1850,7 +1872,7 @@ are applicable only to regular attributes:
 An <dfn id="dfn-operation" export>operation</dfn> is an [=interface member=], [=callback interface
 member=] or [=namespace member=]
 (matching <emu-t>static</emu-t> <emu-nt><a href="#prod-RegularOperation">RegularOperation</a></emu-nt>,
-<emu-t>stringifier</emu-t>,
+<emu-t>stringifier</emu-t>, <emu-t>disposer</emu-t>, <emu-t>async-disposer</emu-t>,
 <emu-nt><a href="#prod-RegularOperation">RegularOperation</a></emu-nt> or
 <emu-nt><a href="#prod-SpecialOperation">SpecialOperation</a></emu-nt>)
 that defines a behavior that can be invoked on objects implementing the interface.
@@ -1889,7 +1911,7 @@ If the operation has a
 [=special keyword=]
 used in its declaration (that is, any keyword matching
 <emu-nt><a href="#prod-Special">Special</a></emu-nt>, or
-the <emu-t>stringifier</emu-t> keyword),
+the <emu-t>stringifier</emu-t>, <emu-t>disposer</emu-t>, or <emu-t>async_disposer</emu-t> keywords),
 then it declares a special operation.  A single operation can declare
 both a regular operation and a special operation;
 see [[#idl-special-operations]] for details on special operations.
@@ -2508,6 +2530,41 @@ See [[#interface-object]] for details on how a [=constructor operation=] is to b
 <div grammar-fill-with="Ellipsis"></div>
 <div grammar-fill-with="ArgumentNameKeyword"></div>
 
+<h4 id="idl-disposers">Disposers</h4>
+
+When an [=interface=] has a <dfn id="dfn-disposer">disposer</dfn>, it indicates that objects
+that implement the interface have an implementation of the {{%Symbol.dispose%}} operation.
+Disposers can be specified using a <emu-t>disposer</emu-t> keyword, which creates a
+{{%Symbol.dispose%}} operation.
+
+<pre highlight="webidl" class="syntax">
+    interface interface_identifier {
+      disposer;
+    };
+</pre>
+
+Prose accompanying the interface must define the <dfn id="dfn-disposal-behavior">disposal behavior</dfn>
+of the interface.
+
+On a given [=interface=], there must exist at most one disposer.
+
+<h4 id="idl-async-disposers">Async Disposers</h4>
+
+When an [=interface=] has an <dfn id="dfn-async-disposer">async_disposer</dfn>, it indicates that objects
+that implement the interface have an implementation of the {{%Symbol.asyncDispose%}} operation.
+Async Disposers can be specified using an <emu-t>async_disposer</emu-t> keyword, which creates a
+{{%Symbol.asyncDispose%}} operation.
+
+<pre highlight="webidl" class="syntax">
+    interface interface_identifier {
+      async_disposer;
+    };
+</pre>
+
+Prose accompanying the interface must define the <dfn id="dfn-async-disposal-behavior">async disposal behavior</dfn>
+of the interface.
+
+On a given [=interface=], there must exist at most one async disposer.
 
 <h4 id="idl-stringifiers">Stringifiers</h4>
 
@@ -7120,6 +7177,8 @@ and comprise the following:
 *   [=attribute setters=]
 *   <a href="#js-operations">the function objects that correspond to operations</a>
 *   <a href="#js-stringifier">the function objects that correspond to stringifiers</a>
+*   <a href="#js-disposer">the function objects that correspond to disposers</a>
+*   <a href="#js-async-disposer">the function objects that correspond to async disposers</a>
 
 Each [=realm=]
 must have its own unique set of each of
@@ -10155,8 +10214,9 @@ There also must not be more than
 one [=stringifier=]
 or more than one [=iterable declaration=],
 [=asynchronously iterable declaration=],
-[=maplike declaration=] or
-[=setlike declaration=]
+[=maplike declaration=],
+[=setlike declaration=],
+[=disposer=], or [=async_disposer=]
 across those interfaces.
 
 Note: This is because all of the [=members=] of the interface
@@ -11967,8 +12027,10 @@ with the [{{LegacyNoInterfaceObject}}] [=extended attribute=].
 Additionally, [=interface prototype objects=] get properties declaratively from:
 
 * [[#js-stringifier]],
-* [[#js-maplike]], and
-* [[#js-setlike]].
+* [[#js-maplike]],
+* [[#js-setlike]],
+* [[#js-disposer]], and
+* [[#js-async-disposer]].
 
 Issue: Define those properties imperatively instead.
 
@@ -12613,6 +12675,76 @@ A [=regular operation=] that does not [=have default method steps=] must not be 
     }
     </pre>
 </div>
+
+<h4 id="js-disposer">Disposers</h4>
+
+If the [=interface=] has an [=exposed=] [=disposer=], then there must
+exist a property with the following characteristics:
+
+* The name of the property is {{%Symbol.dispose%}}.
+* If the [=disposer=] is [=unforgeable=] on the interface
+  or if the interface was declared with the [{{Global}}] [=extended attribute=],
+  then the property exists on every object that [=implements=] the interface.
+  Otherwise, the property exists on the [=interface prototype object=].
+* The property as attributes
+  { \[[Writable]]: |B|, \[[Enumerable]]: <emu-val>true</emu-val>, \[[Configurable]]: |B| },
+    where |B| is <emu-val>false</emu-val> if the disposer is [=unforgeable=] on the interface,
+    and <emu-val>true</emu-val> otherwise.
+*   <div algorithm="to invoke the {{%Symbol.dispose%}} method of interfaces">
+
+        The value of the property is a [=built-in function object=], which behaves as follows:
+
+        1.  Let |thisValue| be the <emu-val>this</emu-val> value.
+        1.  Let |O| be [=?=] <a abstract-op>ToObject</a>(|thisValue|).
+        1.  If |O| [=is a platform object=],
+            then [=perform a security check=], passing:
+            *   the platform object |O|,
+            *   the [=identifier=] of the [=disposer=], and
+            *   the type "<code>method</code>".
+        1.  If |O| does not [=implement=] the [=interface=]
+            on which the disposer was declared, then [=JavaScript/throw=] a <l spec=ecmascript>{{TypeError}}</l>.
+        1.  Performing the [=disposal behavior=] of the interface.
+    </div>
+*   The value of the [=function object=]'s <code class="idl">length</code>
+    property is the Number value <emu-val>0</emu-val>.
+*   The value of the [=function object=]'s <code class="idl">name</code>
+    property is the Symbol value {{%Symbol.dispose%}}.
+
+<h4 id="js-async-disposer">Async Disposers</h4>
+
+If the [=interface=] has an [=exposed=] [=async_disposer=], then there must
+exist a property with the following characteristics:
+
+* The name of the property is {{%Symbol.asyncDispose%}}.
+* If the [=async_disposer=] is [=unforgeable=] on the interface
+  or if the interface was declared with the [{{Global}}] [=extended attribute=],
+  then the property exists on every object that [=implements=] the interface.
+  Otherwise, the property exists on the [=interface prototype object=].
+* The property as attributes
+  { \[[Writable]]: |B|, \[[Enumerable]]: <emu-val>true</emu-val>, \[[Configurable]]: |B| },
+    where |B| is <emu-val>false</emu-val> if the async disposer is [=unforgeable=] on the interface,
+    and <emu-val>true</emu-val> otherwise.
+*   <div algorithm="to invoke the {{%Symbol.asyncDispose%}} method of interfaces">
+
+        The value of the property is a [=built-in function object=], which behaves as follows:
+
+        1.  Let |thisValue| be the <emu-val>this</emu-val> value.
+        1.  Let |O| be [=?=] <a abstract-op>ToObject</a>(|thisValue|).
+        1.  If |O| [=is a platform object=],
+            then [=perform a security check=], passing:
+            *   the platform object |O|,
+            *   the [=identifier=] of the [=disposer=], and
+            *   the type "<code>method</code>".
+        1.  If |O| does not [=implement=] the [=interface=]
+            on which the disposer was declared, then [=JavaScript/throw=] a <l spec=ecmascript>{{TypeError}}</l>.
+        1.  Let |V| be an uninitialized variable.
+        1.  Set |V| to the result of performing the [=async disposal behavior=] of the interface.
+        1.  Return the result of [=converted to a JavaScript value|converting=] |V| to a Promise value.
+    </div>
+*   The value of the [=function object=]'s <code class="idl">length</code>
+    property is the Number value <emu-val>0</emu-val>.
+*   The value of the [=function object=]'s <code class="idl">name</code>
+    property is the Symbol value {{%Symbol.asyncDispose%}}.
 
 <h4 id="js-stringifier" oldids="es-stringifier">Stringifiers</h4>
 
@@ -13912,8 +14044,10 @@ which has a [{{Global}}] [=extended attribute=]
 get properties declaratively from:
 
 * [[#js-stringifier]],
-* [[#js-maplike]], and
-* [[#js-setlike]].
+* [[#js-maplike]],
+* [[#js-setlike]],
+* [[#js-disposer]], and
+* [[#js-async-disposer]].
 
 Issue: Define those properties imperatively instead.
 
