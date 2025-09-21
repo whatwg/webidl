@@ -6481,8 +6481,10 @@ The following extended attributes are <dfn for="extended attributes">applicable 
 [{{AllowResizable}}],
 [{{AllowShared}}],
 [{{Clamp}}],
-[{{EnforceRange}}], and
-[{{LegacyNullToEmptyString}}].
+[{{EnforceRange}}],
+[{{LegacyNullToEmptyString}}] and
+[{{StringContext}}].
+
 
 <div algorithm>
     The <dfn for="IDL type" lt="extended attribute associated with|extended attributes associated with">extended attributes associated with</dfn>
@@ -7825,6 +7827,13 @@ value when its bit pattern is interpreted as an [=/64-bit unsigned integer=].
 
     A JavaScript value |V| is [=converted to an IDL value|converted=]
     to an IDL {{DOMString}} value by running the following algorithm:
+
+    1.  If the conversion is to an IDL type [=extended attribute associated with|associated with=] the
+        [{{StringContext}}] extended attribute, then set |V| to the result of [=validate the string in context=], passing
+        [=this=], |V|, the {{StringContext}} extended attribute [=identifier=], and the [=identifier=]
+        of the [{{StringContext}}] extended attribute [=related construct=].
+
+        Note: That algorithm may [=ECMAScript/throw=] a {{ECMAScript/TypeError}}.
 
     1.  If |V| is <emu-val>null</emu-val> and the conversion is to an IDL type
         [=extended attribute associated with|associated with=] the [{{LegacyNullToEmptyString}}] extended
@@ -10698,6 +10707,41 @@ that does specify [{{SecureContext}}].
     </pre>
 </div>
 
+<h4 id="StringContext" extended-attribute lt="StringContext">[StringContext]</h4>
+
+If the [{{StringContext}}] [=extended attribute=] appears on {{DOMString}} or {{USVString}}, it
+modifies how the value is converted to the IDL type, causing additional value validation to
+adhere to the context the string is used in.
+
+The [{{StringContext}}] extended attribute must [=takes an identifier|take an identifier=]. The [=identifier=]
+must be one of "<code>html</code>", "<code>script-url</code>" and "<code>script</code>".
+
+[{{StringContext}}] extended attribute may only annotate a type of a [=regular attribute=] or
+a [=regular operation=] argument. A type annotated with the [{{StringContext}}]
+extended attribute must not appear in a [=read only=] attribute. The [=regular attribute=] or
+a [=regular operation=] argument that the type annotated with the [{{StringContext}}] extended
+attribute appears in is its <dfn>related construct</dfn>.
+
+A type that is not {{DOMString}} or {{USVString}} must not be [=extended attributes associated with|associated with=]
+the [{{StringContext}}] extended attribute.
+
+See the rules for converting ECMAScript values to the IDL types in [[#es-DOMString]] and [[#es-USVString]]
+for the specific requirements that the use of [{{StringContext}}] entails.
+
+<div class="example">
+
+    In the following [=IDL fragment=],
+    a [=variadic=] [=operation=] is declared
+    that uses the [{{StringContext}}] [=extended attribute=]
+    on all its arguments:
+
+    <pre highlight="webidl">
+        interface Document {
+          void write([StringContext=html] DOMString... text);
+        };
+    </pre>
+</div>
+
 
 <h4 id="Unscopable" extended-attribute lt="Unscopable">[Unscopable]</h4>
 
@@ -11494,6 +11538,21 @@ allowed.  The security check takes the following three inputs:
     getter or setter function of an IDL attribute).
 
 Note: The HTML Standard defines how a security check is performed. [[!HTML]]
+
+Certain algorithms in [[#es-type-mapping]] are defined to
+<dfn id="dfn-validate-the-string-in-context" export>validate the string in context</dfn> on a given
+value. This check is used to determine whether a given value
+is appropriate for its {{StringContext}}. This validation takes the following four inputs:
+
+1.  the [=platform object=] on
+    which the operation invocation or attribute access is being done,
+1.  the value to validate,
+1.  the {{StringContext}} [=identifier=], and
+1.  the [=identifier=] of the operation or attribute.
+
+The algorithm returns an ECMAScript String value, or [=ECMAScript/throws=] a {{ECMAScript/TypeError}}.
+
+Note: The HTML Standard defines how the validation is performed. [[!HTML]]
 
 
 <h3 id="js-overloads" oldids="es-overloads">Overload resolution algorithm</h3>
