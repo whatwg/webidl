@@ -9322,9 +9322,24 @@ a reference to the same object that the IDL value represents.
 
     1.  Let |jsBufferSource| be the result of [=converted to a JavaScript value|converting=]
         |bufferSource| to a JavaScript value.
-    1.  If |jsBufferSource| has a \[[ViewedArrayBuffer]] internal slot, then return
-        |jsBufferSource|.\[[ByteLength]].
-    1.  Return |jsBufferSource|.\[[ArrayBufferByteLength]].
+    1.  If |jsBufferSource| has a \[[ViewedArrayBuffer]] [=/internal slot=], then:
+        1.  If |jsBufferSource| has a \[[TypedArrayName]] [=/internal slot=]:
+            1.  Assert: |jsBufferSource| is a [=typed array type=] instance.
+            1.  Let |taRecord| be [$MakeTypedArrayWithBufferWitnessRecord$](|jsBufferSource|,
+                Unordered).
+            1.  Return [$TypedArrayByteLength$](|taRecord|).
+        1.  Otherwise:
+            1.  Assert: |jsBufferSource| is a {{DataView}}.
+            1.  Let |viewRecord| be [$MakeDataViewWithBufferWitnessRecord$](|jsBufferSource|,
+                Unordered).
+            1.  If [$IsViewOutOfBounds$](|viewRecord|) is true, return 0.
+            1.  Return [$GetViewByteLength$](|viewRecord|).
+    1.  Otherwise, if [$IsSharedArrayBuffer$](|jsBufferSource|) is true, then:
+        1.  Assert: |jsBufferSource| is a {{SharedArrayBuffer}}.
+        1.  Return [$ArrayBufferByteLength$](|jsBufferSource|, Unordered).
+    1.  Otherwise:
+        1.  Assert: |jsBufferSource| is an {{ArrayBuffer}}.
+        1.  Return |jsBufferSource|.\[[ArrayBufferByteLength]].
 </div>
 <!-- TODO: should this be stricter around not being detached? -->
 
