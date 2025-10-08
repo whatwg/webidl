@@ -9298,15 +9298,13 @@ a reference to the same object that the IDL value represents.
         |bufferSource| to a JavaScript value.
     1.  Let |jsArrayBuffer| be |jsBufferSource|.
     1.  Let |offset| be 0.
-    1.  Let |length| be 0.
     1.  If |jsBufferSource| has a \[[ViewedArrayBuffer]] [=/internal slot=], then:
         1.  Set |jsArrayBuffer| to |jsBufferSource|.\[[ViewedArrayBuffer]].
-        1.  Set |offset| to |jsBufferSource|.\[[ByteOffset]].
-        1.  Set |length| to |jsBufferSource|.\[[ByteLength]].
+        1.  Set |offset| to |jsBufferSource|'s [=ArrayBufferView/byte offset=].
     1.  Otherwise:
         1.  Assert: |jsBufferSource| is an {{ArrayBuffer}} or
             {{SharedArrayBuffer}} object.
-        1.  Set |length| to |jsBufferSource|.\[[ArrayBufferByteLength]].
+    1.  Let |length| be |jsBufferSource|'s [=BufferSource/byte length=].
     1.  If [$IsDetachedBuffer$](|jsArrayBuffer|) is true, then return the empty
         [=byte sequence=].
     1.  Let |bytes| be a new [=byte sequence=] of [=byte sequence/length=] equal to |length|.
@@ -9314,6 +9312,23 @@ a reference to the same object that the IDL value represents.
         |bytes|[|i| &minus; |offset|] to [$GetValueFromBuffer$](|jsArrayBuffer|, |i|, Uint8,
         true, Unordered).
     1.  Return |bytes|.
+</div>
+
+<div algorithm>
+    The <dfn export for="ArrayBufferView">byte offset</dfn> of an {{ArrayBufferView}}
+    |view| is the value returned by the following steps:
+
+    1.  Let |jsView| be the result of [=converted to a JavaScript value|converting=] |view| to
+        a JavaScript value.
+    1.  If |jsView| has a \[[TypedArrayName]] [=/internal slot=]:
+        1.  Assert: |jsView| is a [=typed array type=] instance.
+        1.  Let |taRecord| be [$MakeTypedArrayWithBufferWitnessRecord$](|jsView|, Unordered).
+        1.  If [$IsTypedArrayOutOfBounds$](|taRecord|) is true, throw a {{TypeError}} exception.
+    1.  Otherwise:
+        1.  Assert: |jsView| is a {{DataView}}.
+        1.  Let |viewRecord| be [$MakeDataViewWithBufferWitnessRecord$](|jsView|, Unordered).
+        1.  If [$IsViewOutOfBounds$](|viewRecord|) is true, throw a {{TypeError}} exception.
+    1.  Return |jsView|.\[[ByteOffset]].
 </div>
 
 <div algorithm>
