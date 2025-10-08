@@ -9455,22 +9455,20 @@ a reference to the same object that the IDL value represents.
     1.  Return true.
 </div>
 
-<div algorithm>
+<div algorithm="ArrayBuffer/transfer">
     To <dfn for="ArrayBuffer" export>transfer</dfn> an {{ArrayBuffer}} |arrayBuffer|, optionally
-    given a [=realm=] |targetRealm|:
+    given <dfn export for="ArrayBuffer/transfer">|preserveResizability|</dfn> (default false):
 
     1.  Let |jsArrayBuffer| be the result of [=converted to a JavaScript value|converting=]
         |arrayBuffer| to a JavaScript value.
     1.  If [$IsDetachedBuffer$](|jsArrayBuffer|) is true, then [=JavaScript/throw=] a
         <l spec=ecmascript>{{TypeError}}</l>.
-    1.  Let |arrayBufferData| be |jsArrayBuffer|.\[[ArrayBufferData]].
-    1.  Let |arrayBufferByteLength| be |jsArrayBuffer|.\[[ArrayBufferByteLength]].
-    1.  Perform [=?=] [$DetachArrayBuffer$](|jsArrayBuffer|).
-    1.  If |targetRealm| is not given, let |targetRealm| be the [=current realm=].
-    1.  Let |jsTransferred| be [=?=]
-        [$AllocateArrayBuffer$](|targetRealm|.\[[Intrinsics]].\[[{{%ArrayBuffer%}}]], 0).
-    1.  Set |jsTransferred|.\[[ArrayBufferData]] to |arrayBufferData|.
-    1.  Set |jsTransferred|.\[[ArrayBufferByteLength]] to |arrayBufferByteLength|.
+    1.  If |preserveResizability| is true, then:
+        1.  Let |jsTransferred| be [=?=] [$ArrayBufferCopyAndDetach$](|jsArrayBuffer|, undefined,
+            Preserve-Resizability).
+    1.  Otherwise,
+        1.  Let |jsTransferred| be [=?=] [$ArrayBufferCopyAndDetach$](|jsArrayBuffer|, undefined,
+            Fixed-Length).
     1.  Return the result of [=converted to an IDL value|converting=] |jsTransferred| to an IDL
         value of type {{ArrayBuffer}}.
 
