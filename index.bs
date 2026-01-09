@@ -91,6 +91,11 @@ urlPrefix: https://tc39.es/ecma262/; spec: ecmascript
         url: sec-object-type
             text: is an Object
             text: is not an Object
+urlPrefix: https://tc39.es/proposal-async-context/; spec: PROPOSAL-ASYNCCONTEXT
+    type: dfn
+        text: Async Context Mapping; url: async-context-mapping
+    type: abstract-op
+        text: AsyncContextSnapshot; url: sec-asynccontextsnapshot
 </pre>
 
 <pre class=biblio>
@@ -99,6 +104,11 @@ urlPrefix: https://tc39.es/ecma262/; spec: ecmascript
         "publisher": "Ecma",
         "href": "https://tc39.es/proposal-float16array/",
         "title": "Proposal to add float16 TypedArrays to JavaScript"
+    },
+    "PROPOSAL-ASYNCCONTEXT": {
+        "publisher": "Ecma",
+        "href": "https://tc39.es/proposal-async-context/",
+        "title": "AsyncContext"
     }
 }
 </pre>
@@ -6173,10 +6183,11 @@ the [=callback function=], the values can be references to objects that are not 
 An IDL value of the callback function type is represented by a tuple of an object
 reference and a [=callback context=].
 
-Note: As with [=callback interface types=], the [=callback context=] is used to hold a
-reference to the <a spec="HTML">incumbent settings object</a> at
-the time a JavaScript Object value is converted to an IDL
-callback function type value.  See [[#js-callback-function]].
+Note: For JavaScript objects, the [=callback context=] is used to hold a
+reference to the <a spec="HTML">incumbent settings object</a>, as with
+[=callback interface types=], as well as a nullable reference to an
+[=Async Context Mapping=], at the time a JavaScript Object value is converted to an
+IDL callback function type value.  See [[#js-callback-function]].
 
 There is no way to represent a constant [=callback function=]
 value in IDL.
@@ -8099,9 +8110,14 @@ IDL [=callback function types=] are represented by JavaScript [=function objects
         [=callback function=]
         that is annotated with [{{LegacyTreatNonObjectAsNull}}],
         then [=JavaScript/throw=] a <l spec=ecmascript>{{TypeError}}</l>.
+    1.  If the conversion is to an IDL type
+        [=extended attributes associated with|associated with=] the
+        [{{PropagatesAsyncContext}}] [=extended attribute=], then let |snapshot|
+        be [$AsyncContextSnapshot$](). Otherwise, let |snapshot| be null.
     1.  Return the IDL [=callback function type=] value
-        that represents a reference to the same object that |V| represents, with the
-        <a spec="HTML">incumbent settings object</a> as the [=callback context=].
+        that represents a reference to the same object that |V| represents, with
+        (the <a spec="HTML">incumbent settings object</a>, |snapshot|) as the
+        [=callback context=].
 </div>
 
 <p id="callback-function-to-js">
@@ -10378,6 +10394,28 @@ a [=promise type=].
         };
     </pre>
 </div>
+
+
+<h4 id="PropagatesAsyncContext" extended-attribute lt="PropagatesAsyncContext">[PropagatesAsyncContext]</h4>
+
+If the [{{PropagatesAsyncContext}}] [=extended attribute=] appears on a [=callback function=] type,
+it creates a new IDL type such that when a JavaScript function object is converted to the IDL type,
+the current [=Async Context Mapping=] is stored in the IDL type as part of its [=callback context=].
+
+The [{{PropagatesAsyncContext}}]
+extended attribute must
+[=takes no arguments|take no arguments=].
+
+A type annotated with the [{{PropagatesAsyncContext}}] extended attribute must only appear in
+operation arguments. A type that is not a [=callback function=] must not be
+[=extended attributes associated with|associated with=] the [{{PropagatesAsyncContext}}] extended
+attribute.
+
+See the rules for converting JavaScript values to callback function
+types in [[#js-callback-function]], as well as the rules for invoking
+callback functions in [[#js-invoking-callback-functions]],
+for the specific requirements that the use of
+[{{PropagatesAsyncContext}}] entails.
 
 
 <h4 id="PutForwards" extended-attribute lt="PutForwards">[PutForwards]</h4>
@@ -14796,36 +14834,41 @@ described in the previous section).
             <emu-val>undefined</emu-val> to the callback function's return type.
     1.  Let |realm| be |F|'s [=associated realm=].
     1.  Let |relevant settings| be |realm|'s [=realm/settings object=].
-    1.  Let |stored settings| be |callable|'s [=callback context=].
-    1.  [=Prepare to run script=] with |relevant settings|.
-    1.  [=Prepare to run a callback=] with |stored settings|.
-    1.  Let |jsArgs| be the result of [=Web IDL arguments list/converting=] |args| to a JavaScript
-        arguments list. If this throws an exception, set |completion| to the completion value
-        representing the thrown exception and jump to the step labeled
-        <a href="#invoke-return"><i>return</i></a>.
-    1.  Let |callResult| be <a abstract-op>Completion</a>(<a abstract-op>Call</a>(|F|, |thisArg|, |jsArgs|)).
-    1.  If |callResult| is an [=abrupt completion=], set |completion| to
-        |callResult| and jump to the step labeled <a href="#invoke-return"><i>return</i></a>.
-    1.  Set |completion| to the result of [=converted to an IDL value|converting=]
-        |callResult|.\[[Value]] to an IDL value of the same type as |callable|'s
-        return type. If this throws an exception, set |completion| to the completion value
-        representing the thrown exception.
-    1.  <i id="invoke-return">Return:</i> at this
-        point |completion| will be set to an IDL value or an [=abrupt completion=].
-        1.  [=Clean up after running a callback=] with |stored settings|.
-        1.  [=Clean up after running script=] with |relevant settings|.
-        1.  If |completion| is an IDL value, return |completion|.
-        1.  [=Assert=]: |completion| is an [=abrupt completion=].
-        1.  If |exceptionBehavior| is "<code>rethrow</code>", throw |completion|.\[[Value]].
-        1.  Otherwise, if |exceptionBehavior| is "<code>report</code>":
-            1.  [=Assert=]: |callable|'s [=return type=] is {{undefined}} or {{any}}.
-            1.  [=Report an exception=] |completion|.\[[Value]] for |realm|'s [=realm/global object=].
-            1.  Return the unique {{undefined}} IDL value.
-        1.  [=Assert=]: |callable|'s [=return type=] is a [=promise type=].
-        1.  Let |rejectedPromise| be [=!=] <a abstract-op>Call</a>({{%Promise.reject%}},
-            {{%Promise%}}, «|completion|.\[[Value]]»).
-        1.  Return the result of [=converted to an IDL value|converting=]
-            |rejectedPromise| to the callback function's return type.
+    1.  Let (|stored settings|, |acSnapshot|) be |callable|'s [=callback context=].
+    1.  If |acSnapshot| is not null, then return the result of [=Async Context Mapping/running=]
+        the following steps with [=Async Context Mapping=] |acSnapshot|. Otherwise, return the
+        result of running the following steps:
+        1.  [=Prepare to run script=] with |relevant settings|.
+        1.  [=Prepare to run a callback=] with |stored settings|.
+        1.  Let |jsArgs| be the result of [=Web IDL arguments list/converting=] |args| to a
+            JavaScript arguments list. If this throws an exception, set |completion| to the
+            completion value representing the thrown exception and jump to the step labeled
+            <a href="#invoke-return"><i>return</i></a>.
+        1.  Let |callResult| be <a abstract-op>Completion</a>(<a abstract-op>Call</a>(|F|,
+            |thisArg|, |jsArgs|)).
+        1.  If |callResult| is an [=abrupt completion=], set |completion| to
+            |callResult| and jump to the step labeled <a href="#invoke-return"><i>return</i></a>.
+        1.  Set |completion| to the result of [=converted to an IDL value|converting=]
+            |callResult|.\[[Value]] to an IDL value of the same type as |callable|'s
+            return type. If this throws an exception, set |completion| to the completion value
+            representing the thrown exception.
+        1.  <i id="invoke-return">Return:</i> at this
+            point |completion| will be set to an IDL value or an [=abrupt completion=].
+            1.  [=Clean up after running a callback=] with |stored settings|.
+            1.  [=Clean up after running script=] with |relevant settings|.
+            1.  If |completion| is an IDL value, return |completion|.
+            1.  [=Assert=]: |completion| is an [=abrupt completion=].
+            1.  If |exceptionBehavior| is "<code>rethrow</code>", throw |completion|.\[[Value]].
+            1.  Otherwise, if |exceptionBehavior| is "<code>report</code>":
+                1.  [=Assert=]: |callable|'s [=return type=] is {{undefined}} or {{any}}.
+                1.  [=Report an exception=] |completion|.\[[Value]] for |realm|'s
+                    [=realm/global object=].
+                1.  Return the unique {{undefined}} IDL value.
+            1.  [=Assert=]: |callable|'s [=return type=] is a [=promise type=].
+            1.  Let |rejectedPromise| be [=!=] <a abstract-op>Call</a>({{%Promise.reject%}},
+                {{%Promise%}}, «|completion|.\[[Value]]»).
+            1.  Return the result of [=converted to an IDL value|converting=]
+                |rejectedPromise| to the callback function's return type.
 </div>
 
 Some callback functions are instead used as [=constructors=]. Such callback functions must not have
@@ -14833,7 +14876,7 @@ a return type that is a [=promise type=].
 
 <div algorithm>
 
-    To <dfn id="construct-a-callback-function" export>construct</dfn> a
+    To <dfn id="construct-a-callback-function" export>construct</dfn> aq
     [=callback function type=] value |callable| with a [=Web IDL arguments list=] |args|,
     perform the following steps.
     These steps will either return an IDL value or throw an exception.
@@ -14844,26 +14887,29 @@ a return type that is a [=promise type=].
         <l spec=ecmascript>{{TypeError}}</l> exception.
     1.  Let |realm| be |F|'s [=associated realm=].
     1.  Let |relevant settings| be |realm|'s [=realm/settings object=].
-    1.  Let |stored settings| be |callable|'s [=callback context=].
-    1.  [=Prepare to run script=] with |relevant settings|.
-    1.  [=Prepare to run a callback=] with |stored settings|.
-    1.  Let |jsArgs| be the result of [=Web IDL arguments list/converting=] |args| to a JavaScript
-        arguments list. If this throws an exception, set |completion| to the completion value
-        representing the thrown exception and jump to the step labeled
-        <a href="#construct-return"><i>return</i></a>.
-    1.  Let |callResult| be <a abstract-op>Completion</a>(<a abstract-op>Construct</a>(|F|, |jsArgs|)).
-    1.  If |callResult| is an [=abrupt completion=], set |completion| to
-        |callResult| and jump to the step labeled <a href="#construct-return"><i>return</i></a>.
-    1.  Set |completion| to the result of [=converted to an IDL value|converting=]
-        |callResult|.\[[Value]] to an IDL value of the same type as |callable|'s
-        return type. If this throws an exception, set |completion| to the completion value
-        representing the thrown exception.
-    1.  <i id="construct-return">Return:</i> at this
-        point |completion| will be set to an IDL value or an [=abrupt completion=].
-        1.  [=Clean up after running a callback=] with |stored settings|.
-        1.  [=Clean up after running script=] with |relevant settings|.
-        1.  If |completion| is an [=abrupt completion=], throw |completion|.\[[Value]].
-        1.  Return |completion|.
+    1.  Let (|stored settings|, |acSnapshot|) be |callable|'s [=callback context=].
+    1.  If |acSnapshot| is not null, then return the result of [=Async Context Mapping/running=]
+        the following steps with [=Async Context Mapping=] |acSnapshot|. Otherwise, return the
+        result of running the following steps:
+        1.  [=Prepare to run script=] with |relevant settings|.
+        1.  [=Prepare to run a callback=] with |stored settings|.
+        1.  Let |jsArgs| be the result of [=Web IDL arguments list/converting=] |args| to a JavaScript
+            arguments list. If this throws an exception, set |completion| to the completion value
+            representing the thrown exception and jump to the step labeled
+            <a href="#construct-return"><i>return</i></a>.
+        1.  Let |callResult| be <a abstract-op>Completion</a>(<a abstract-op>Construct</a>(|F|, |jsArgs|)).
+        1.  If |callResult| is an [=abrupt completion=], set |completion| to
+            |callResult| and jump to the step labeled <a href="#construct-return"><i>return</i></a>.
+        1.  Set |completion| to the result of [=converted to an IDL value|converting=]
+            |callResult|.\[[Value]] to an IDL value of the same type as |callable|'s
+            return type. If this throws an exception, set |completion| to the completion value
+            representing the thrown exception.
+        1.  <i id="construct-return">Return:</i> at this
+            point |completion| will be set to an IDL value or an [=abrupt completion=].
+            1.  [=Clean up after running a callback=] with |stored settings|.
+            1.  [=Clean up after running script=] with |relevant settings|.
+            1.  If |completion| is an [=abrupt completion=], throw |completion|.\[[Value]].
+            1.  Return |completion|.
 </div>
 
 
