@@ -9294,6 +9294,7 @@ a reference to the same object that the IDL value represents.
     To <dfn id="dfn-get-buffer-source-copy" export lt="get a copy of the buffer source|get a copy of the bytes held by the buffer source">get a copy of the bytes held by the buffer source</dfn>
     given a [=buffer source type=] instance |bufferSource|:
 
+    1.  If |bufferSource| is [=BufferSource/detached=], then return the empty [=byte sequence=].
     1.  Let |arrayBuffer| be |bufferSource|.
     1.  Let |offset| be 0.
     1.  Let |length| be |bufferSource|'s [=BufferSource/byte length=].
@@ -9303,8 +9304,7 @@ a reference to the same object that the IDL value represents.
     1.  [=/Assert=]: |arrayBuffer| is an {{ArrayBuffer}} or {{SharedArrayBuffer}} object.
     1.  Let |jsArrayBuffer| be the result of [=converted to a JavaScript value|converting=]
         |arrayBuffer| to a JavaScript value.
-    1.  If [$IsDetachedBuffer$](|jsArrayBuffer|) is true, then return the empty
-        [=byte sequence=].
+    1.  [=/Assert=]: [$IsDetachedBuffer$](|jsArrayBuffer|) is false.
     1.  Let |bytes| be a new [=byte sequence=] of [=byte sequence/length=] equal to |length|.
     1.  For |i| in [=the range=] |offset| to |offset| + |length| &minus; 1, inclusive, set
         |bytes|[|i| &minus; |offset|] to [$GetValueFromBuffer$](|jsArrayBuffer|, |i|, Uint8,
@@ -9344,6 +9344,7 @@ a reference to the same object that the IDL value represents.
             1.  Return [$GetViewByteLength$](|viewRecord|).
     1.  Otherwise:
         1.  [=/Assert=]: |jsBufferSource| is an {{ArrayBuffer}} or a {{SharedArrayBuffer}}.
+        1.  If [$IsDetachedBuffer$](|jsBufferSource|) is true, then return 0.
         1.  Return [$ArrayBufferByteLength$](|jsBufferSource|, Seq-Cst).
 </div>
 <!-- TODO: should this be stricter around not being detached? -->
