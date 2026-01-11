@@ -9294,21 +9294,20 @@ a reference to the same object that the IDL value represents.
     To <dfn id="dfn-get-buffer-source-copy" export lt="get a copy of the buffer source|get a copy of the bytes held by the buffer source">get a copy of the bytes held by the buffer source</dfn>
     given a [=buffer source type=] instance |bufferSource|:
 
-    1.  Let |jsBufferSource| be the result of [=converted to a JavaScript value|converting=]
-        |bufferSource| to a JavaScript value.
-    1.  Let |jsArrayBuffer| be |jsBufferSource|.
+    1.  If |bufferSource| is [=BufferSource/detached=], then return the empty [=byte sequence=].
+    1.  Let |length| be |bufferSource|'s [=BufferSource/byte length=].
+    1.  Let |arrayBuffer| be |bufferSource|.
     1.  Let |offset| be 0.
-    1.  Let |length| be 0.
-    1.  If |jsBufferSource| has a \[[ViewedArrayBuffer]] [=/internal slot=], then:
-        1.  Set |jsArrayBuffer| to |jsBufferSource|.\[[ViewedArrayBuffer]].
-        1.  Set |offset| to |jsBufferSource|.\[[ByteOffset]].
-        1.  Set |length| to |jsBufferSource|.\[[ByteLength]].
-    1.  Otherwise:
-        1.  Assert: |jsBufferSource| is an {{ArrayBuffer}} or
-            {{SharedArrayBuffer}} object.
-        1.  Set |length| to |jsBufferSource|.\[[ArrayBufferByteLength]].
-    1.  If [$IsDetachedBuffer$](|jsArrayBuffer|) is true, then return the empty
-        [=byte sequence=].
+    1.  If |bufferSource| is a [=buffer view type=] instance:
+        1.  Set |arrayBuffer| to |bufferSource|'s [=underlying buffer=].
+        1.  Set |offset| to |bufferSource|'s [=ArrayBufferView/byte offset=].
+            <p class="note">This will throw an exception if |bufferSource| is
+            [=ArrayBufferView/out of bounds=].
+    1.  If |length| is 0, then return the empty [=byte sequence=].
+    1.  [=/Assert=]: |arrayBuffer| is an {{ArrayBuffer}} or {{SharedArrayBuffer}} object.
+    1.  Let |jsArrayBuffer| be the result of [=converted to a JavaScript value|converting=]
+        |arrayBuffer| to a JavaScript value.
+    1.  [=/Assert=]: [$IsDetachedBuffer$](|jsArrayBuffer|) is false.
     1.  Let |bytes| be a new [=byte sequence=] of [=byte sequence/length=] equal to |length|.
     1.  For |i| in [=the range=] |offset| to |offset| + |length| &minus; 1, inclusive, set
         |bytes|[|i| &minus; |offset|] to [$GetValueFromBuffer$](|jsArrayBuffer|, |i|, Uint8,
@@ -9317,16 +9316,62 @@ a reference to the same object that the IDL value represents.
 </div>
 
 <div algorithm>
+    The <dfn export for="ArrayBufferView">byte offset</dfn> of an {{ArrayBufferView}}
+    |view| is the value returned by the following steps:
+
+    1.  If |view| is [=ArrayBufferView/out of bounds=], then [=JavaScript/throw=] a
+        <l spec=ecmascript>{{TypeError}}</l>.
+    1.  Let |jsView| be the result of [=converted to a JavaScript value|converting=] |view| to
+        a JavaScript value.
+    1.  Return |jsView|.\[[ByteOffset]].
+
+    <p class="note">These steps are equivalent to
+    {{%TypedArray%/byteOffset|%TypedArray%.prototype.byteOffset}} (for a
+    [=typed array type=] instance) or {{DataView/byteOffset|DataView.prototype.byteOffset}}
+    (for a {{DataView}}).
+</div>
+
+<div algorithm>
     The <dfn export for="BufferSource">byte length</dfn> of a [=buffer source type=] instance
     |bufferSource| is the value returned by the following steps:
 
     1.  Let |jsBufferSource| be the result of [=converted to a JavaScript value|converting=]
         |bufferSource| to a JavaScript value.
-    1.  If |jsBufferSource| has a \[[ViewedArrayBuffer]] internal slot, then return
-        |jsBufferSource|.\[[ByteLength]].
-    1.  Return |jsBufferSource|.\[[ArrayBufferByteLength]].
+    1.  If |jsBufferSource| has a \[[ViewedArrayBuffer]] [=/internal slot=]:
+        1.  If |jsBufferSource| has a \[[TypedArrayName]] [=/internal slot=]:
+            1.  [=/Assert=]: |jsBufferSource| is a [=typed array type=] instance.
+            1.  Let |taRecord| be [$MakeTypedArrayWithBufferWitnessRecord$](|jsBufferSource|,
+                Seq-Cst).
+            1.  If [$IsTypedArrayOutOfBounds$](|taRecord|) is true, then return 0.
+            1.  Return [$TypedArrayByteLength$](|taRecord|).
+                <p class="note">The above substeps are equivalent to
+                {{%TypedArray%/byteLength|%TypedArray%.prototype.byteLength}}.
+        1.  Otherwise:
+            1.  [=/Assert=]: |jsBufferSource| is a {{DataView}}.
+            1.  Let |viewRecord| be [$MakeDataViewWithBufferWitnessRecord$](|jsBufferSource|,
+                Seq-Cst).
+            1.  If [$IsViewOutOfBounds$](|viewRecord|) is true, then [=JavaScript/throw=] a
+                <l spec=ecmascript>{{TypeError}}</l>.
+            1.  Return [$GetViewByteLength$](|viewRecord|).
+                <p class="note">The above substeps are equivalent to
+                {{DataView/byteLength|DataView.prototype.byteLength}}.
+    1.  Otherwise:
+        1.  [=/Assert=]: |jsBufferSource| is an {{ArrayBuffer}} or a {{SharedArrayBuffer}}.
+        1.  If [$IsDetachedBuffer$](|jsBufferSource|) is true, then return 0.
+        1.  Return [$ArrayBufferByteLength$](|jsBufferSource|, Seq-Cst).
+            <p class="note">The above substeps are equivalent to
+            {{ArrayBuffer/byteLength|ArrayBuffer.prototype.byteLength}} or
+            {{SharedArrayBuffer/byteLength|SharedArrayBuffer.prototype.byteLength}}.
 </div>
-<!-- TODO: should this be stricter around not being detached? -->
+
+<div algorithm>
+    An {{ArrayBufferView}} |view| is <dfn export for="ArrayBufferView">out of bounds</dfn>
+    if the following steps return true:
+
+    1.  Let |jsView| be the result of [=converted to a JavaScript value|converting=]
+        |view| to a JavaScript value.
+    1.  Return [$IsArrayBufferViewOutOfBounds$](|jsView|).
+</div>
 
 <div algorithm>
     The <dfn export for="BufferSource">underlying buffer</dfn> of a [=buffer source type=] instance
@@ -9348,10 +9393,10 @@ a reference to the same object that the IDL value represents.
     <dfn id=arraybuffer-write-startingoffset export for="ArrayBuffer/write,SharedArrayBuffer/write">|startingOffset|</dfn>
     (default 0):
 
+    1.  [=/Assert=]: |bytes|'s [=byte sequence/length=] ≤ |arrayBuffer|'s [=byte length=]
+        &minus; |startingOffset|.
     1.  Let |jsArrayBuffer| be the result of [=converted to a JavaScript value|converting=]
         |arrayBuffer| to a JavaScript value.
-    1.  Assert: |bytes|'s [=byte sequence/length=] ≤ |jsArrayBuffer|.\[[ArrayBufferByteLength]]
-        &minus; |startingOffset|.
     1.  For |i| in [=the range=] |startingOffset| to |startingOffset| + |bytes|'s [=byte
         sequence/length=] &minus; 1, inclusive, perform [$SetValueInBuffer$](|jsArrayBuffer|,
         |i|, Uint8, |bytes|[|i| - |startingOffset|], true, Unordered).
@@ -9362,16 +9407,12 @@ a reference to the same object that the IDL value represents.
     {{ArrayBufferView}} |view|, optionally given a
     <dfn export for="ArrayBufferView/write">|startingOffset|</dfn> (default 0):
 
-    1.  Let |jsView| be the result of [=converted to a JavaScript value|converting=] |view| to
-        a JavaScript value.
-    1.  Assert: |bytes|'s [=byte sequence/length=] ≤ |jsView|.\[[ByteLength]] &minus;
+    1.  [=/Assert=]: |bytes|'s [=byte sequence/length=] ≤ |view|'s [=byte length=] &minus;
         |startingOffset|.
     1.  Assert: if |view| is not a {{DataView}}, then |bytes|'s [=byte sequence/length=] [=modulo=]
         the [=element size=] of |view|'s type is 0.
-    1.  Let |arrayBuffer| be the result of [=converted to an IDL value|converting=]
-        |jsView|.\[[ViewedArrayBuffer]] to an IDL value of type {{ArrayBuffer}}.
-    1.  [=ArrayBuffer/Write=] |bytes| into |arrayBuffer| with
-        <i>[=ArrayBuffer/write/startingOffset=]</i> set to |jsView|.\[[ByteOffset]] +
+    1.  [=ArrayBuffer/Write=] |bytes| into |view|'s [=underlying buffer=] with
+        <i>[=ArrayBuffer/write/startingOffset=]</i> set to |view|'s [=ArrayBufferView/byte offset=] +
         |startingOffset|.
 </div>
 
@@ -9429,22 +9470,20 @@ a reference to the same object that the IDL value represents.
     1.  Return true.
 </div>
 
-<div algorithm>
+<div algorithm="ArrayBuffer/transfer">
     To <dfn for="ArrayBuffer" export>transfer</dfn> an {{ArrayBuffer}} |arrayBuffer|, optionally
-    given a [=realm=] |targetRealm|:
+    given <dfn export for="ArrayBuffer/transfer">|preserveResizability|</dfn> (default false):
 
     1.  Let |jsArrayBuffer| be the result of [=converted to a JavaScript value|converting=]
         |arrayBuffer| to a JavaScript value.
-    1.  If [$IsDetachedBuffer$](|jsArrayBuffer|) is false, then [=JavaScript/throw=] a
+    1.  If [$IsDetachedBuffer$](|jsArrayBuffer|) is true, then [=JavaScript/throw=] a
         <l spec=ecmascript>{{TypeError}}</l>.
-    1.  Let |arrayBufferData| be |jsArrayBuffer|.\[[ArrayBufferData]].
-    1.  Let |arrayBufferByteLength| be |jsArrayBuffer|.\[[ArrayBufferByteLength]].
-    1.  Perform [=?=] [$DetachArrayBuffer$](|jsArrayBuffer|).
-    1.  If |targetRealm| is not given, let |targetRealm| be the [=current realm=].
-    1.  Let |jsTransferred| be [=?=]
-        [$AllocateArrayBuffer$](|targetRealm|.\[[Intrinsics]].\[[{{%ArrayBuffer%}}]], 0).
-    1.  Set |jsTransferred|.\[[ArrayBufferData]] to |arrayBufferData|.
-    1.  Set |jsTransferred|.\[[ArrayBufferByteLength]] to |arrayBufferByteLength|.
+    1.  If |preserveResizability| is true:
+        1.  Let |jsTransferred| be [=?=] [$ArrayBufferCopyAndDetach$](|jsArrayBuffer|, undefined,
+            Preserve-Resizability).
+    1.  Otherwise:
+        1.  Let |jsTransferred| be [=?=] [$ArrayBufferCopyAndDetach$](|jsArrayBuffer|, undefined,
+            Fixed-Length).
     1.  Return the result of [=converted to an IDL value|converting=] |jsTransferred| to an IDL
         value of type {{ArrayBuffer}}.
 
