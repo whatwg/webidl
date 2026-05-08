@@ -91,6 +91,9 @@ urlPrefix: https://tc39.es/ecma262/; spec: ecmascript
         url: sec-object-type
             text: is an Object
             text: is not an Object
+urlPrefix: https://tc39.es/proposal-immutable-arraybuffer/; spec: PROPOSAL-IMMUTABLE-ARRAYBUFFER
+    type: abstract-op
+        text: AllocateImmutableArrayBuffer; url: sec-allocateimmutablearraybuffer
 </pre>
 
 <pre class=biblio>
@@ -99,6 +102,11 @@ urlPrefix: https://tc39.es/ecma262/; spec: ecmascript
         "publisher": "Ecma",
         "href": "https://tc39.es/proposal-float16array/",
         "title": "Proposal to add float16 TypedArrays to JavaScript"
+    },
+    "PROPOSAL-IMMUTABLE-ARRAYBUFFER": {
+        "publisher": "Ecma",
+        "href": "https://tc39.es/proposal-immutable-arraybuffer/",
+        "title": "Immutable ArrayBuffers"
     }
 }
 </pre>
@@ -9266,9 +9274,11 @@ a reference to the same object that the IDL value represents.
 
 <hr>
 
-<div algorithm>
+<div algorithm="ArrayBuffer/create">
     To <dfn export for="ArrayBuffer">create</dfn> an {{ArrayBuffer}} from a [=byte sequence=]
-    |bytes| in a [=realm=] |realm|:
+    |bytes| in a [=realm=] |realm|, optionally given an
+    <dfn export for="ArrayBuffer/create">|immutable|</dfn> boolean (default
+    <emu-val>false</emu-val>):
 
     1.  Let |jsArrayBuffer| be [=?=]
         [$AllocateArrayBuffer$](|realm|.\[[Intrinsics]].\[[{{%ArrayBuffer%}}]], |bytes|'s
@@ -9276,6 +9286,13 @@ a reference to the same object that the IDL value represents.
     1.  Let |arrayBuffer| be the result of [=converted to an IDL value|converting=] |jsArrayBuffer|
         to an IDL value of type {{ArrayBuffer}}.
     1.  [=ArrayBuffer/Write=] |bytes| into |arrayBuffer|.
+    1.  If |immutable| is <emu-val>true</emu-val>, then:
+        1.  Set |jsArrayBuffer| to [=?=]
+            [$AllocateImmutableArrayBuffer$](|realm|.\[[Intrinsics]].\[[{{%ArrayBuffer%}}]],
+            |bytes|'s [=byte sequence/length=], |jsArrayBuffer|.\[[ArrayBufferData]], 0,
+            |bytes|'s [=byte sequence/length=]).
+        1.  Set |arrayBuffer| to the result of [=converted to an IDL value|converting=]
+            |jsArrayBuffer| to an IDL value of type {{ArrayBuffer}}.
     1.  Return |arrayBuffer|.
 </div>
 
