@@ -9346,16 +9346,23 @@ a reference to the same object that the IDL value represents.
     The <dfn export for="ArrayBufferView">byte offset</dfn> of an {{ArrayBufferView}}
     |view| is the value returned by the following steps:
 
-    1.  If |view| is [=ArrayBufferView/out of bounds=], then [=JavaScript/throw=] a
-        <l spec=ecmascript>{{TypeError}}</l>.
     1.  Let |jsView| be the result of [=converted to a JavaScript value|converting=] |view| to
         a JavaScript value.
+    1.  If |jsView| has a \[[DataView]] [=/internal slot=]:
+        1.  Let |viewRecord| be [$MakeDataViewWithBufferWitnessRecord$](|jsView|, Seq-Cst).
+        1.  If [$IsViewOutOfBounds$](|viewRecord|) is true, then [=JavaScript/throw=] a
+            <l spec=ecmascript>{{TypeError}}</l>.
+    1.  Otherwise:
+        1.  Let |taRecord| be [$MakeTypedArrayWithBufferWitnessRecord$](|jsView|, Seq-Cst).
+        1.  If [$IsTypedArrayOutOfBounds$](|taRecord|) is true, then return 0.
     1.  Return |jsView|.\[[ByteOffset]].
 
     <p class="note">These steps are equivalent to
     {{%TypedArray%/byteOffset|%TypedArray%.prototype.byteOffset}} (for a
     [=typed array type=] instance) or {{DataView/byteOffset|DataView.prototype.byteOffset}}
-    (for a {{DataView}}).
+    (for a {{DataView}}). In particular, this deliberately mirrors JavaScript's asymmetry: a
+    [=typed array type=] instance that is [=ArrayBufferView/out of bounds=] has a byte offset of
+    0, whereas a {{DataView}} that is [=ArrayBufferView/out of bounds=] instead throws.
 </div>
 
 <div algorithm>
