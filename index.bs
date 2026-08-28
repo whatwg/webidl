@@ -9371,31 +9371,27 @@ a reference to the same object that the IDL value represents.
 
     1.  Let |jsBufferSource| be the result of [=converted to a JavaScript value|converting=]
         |bufferSource| to a JavaScript value.
-    1.  If |jsBufferSource| has a \[[ViewedArrayBuffer]] [=/internal slot=]:
-        1.  If |jsBufferSource| has a \[[TypedArrayName]] [=/internal slot=]:
-            1.  [=/Assert=]: |jsBufferSource| is a [=typed array type=] instance.
-            1.  Let |taRecord| be [$MakeTypedArrayWithBufferWitnessRecord$](|jsBufferSource|,
-                Seq-Cst).
-            1.  If [$IsTypedArrayOutOfBounds$](|taRecord|) is true, then return 0.
-            1.  Return [$TypedArrayByteLength$](|taRecord|).
-                <p class="note">The above substeps are equivalent to
-                {{%TypedArray%/byteLength|%TypedArray%.prototype.byteLength}}.
-        1.  Otherwise:
-            1.  [=/Assert=]: |jsBufferSource| is a {{DataView}}.
-            1.  Let |viewRecord| be [$MakeDataViewWithBufferWitnessRecord$](|jsBufferSource|,
-                Seq-Cst).
-            1.  If [$IsViewOutOfBounds$](|viewRecord|) is true, then [=JavaScript/throw=] a
-                <l spec=ecmascript>{{TypeError}}</l>.
-            1.  Return [$GetViewByteLength$](|viewRecord|).
-                <p class="note">The above substeps are equivalent to
-                {{DataView/byteLength|DataView.prototype.byteLength}}.
+    1.  If |jsBufferSource| has a \[[DataView]] [=/internal slot=]:
+        1.  Let |viewRecord| be [$MakeDataViewWithBufferWitnessRecord$](|jsBufferSource|, Seq-Cst).
+        1.  If [$IsViewOutOfBounds$](|viewRecord|) is true, then [=JavaScript/throw=] a
+            <l spec=ecmascript>{{TypeError}}</l>.
+        1.  Return [$GetViewByteLength$](|viewRecord|).
+    1.  Otherwise, if |jsBufferSource| has a \[[ViewedArrayBuffer]] [=/internal slot=]:
+        1.  Let |taRecord| be [$MakeTypedArrayWithBufferWitnessRecord$](|jsBufferSource|, Seq-Cst).
+        1.  If [$IsTypedArrayOutOfBounds$](|taRecord|) is true, then return 0.
+        1.  Return [$TypedArrayByteLength$](|taRecord|).
     1.  Otherwise:
-        1.  [=/Assert=]: |jsBufferSource| is an {{ArrayBuffer}} or a {{SharedArrayBuffer}}.
+        1.  Assert: |jsBufferSource| is an {{ArrayBuffer}} or a {{SharedArrayBuffer}}.
         1.  If [$IsDetachedBuffer$](|jsBufferSource|) is true, then return 0.
         1.  Return [$ArrayBufferByteLength$](|jsBufferSource|, Seq-Cst).
-            <p class="note">The above substeps are equivalent to
-            {{ArrayBuffer/byteLength|ArrayBuffer.prototype.byteLength}} or
-            {{SharedArrayBuffer/byteLength|SharedArrayBuffer.prototype.byteLength}}.
+
+    <p class="note">These steps are equivalent to
+    {{%TypedArray%/byteLength|%TypedArray%.prototype.byteLength}} (for a
+    [=typed array type=] instance), {{DataView/byteLength|DataView.prototype.byteLength}}
+    (for a {{DataView}}), or
+    {{ArrayBuffer/byteLength|ArrayBuffer.prototype.byteLength}} and
+    {{SharedArrayBuffer/byteLength|SharedArrayBuffer.prototype.byteLength}}
+    (for a [=buffer type=] instance).
 </div>
 
 <div algorithm>
