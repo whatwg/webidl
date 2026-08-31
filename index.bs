@@ -6201,6 +6201,9 @@ The [=nullable types/inner type=] must not be:
 Note: Although dictionary types can in general be nullable,
 they cannot when used as the type of an operation argument or a dictionary member.
 
+For any type |X|, a <dfn>potentially nullable</dfn> |X| is either an |X| or a
+[=nullable type=] whose [=nullable types/inner type=] is an |X|.
+
 Nullable type constant values in IDL are represented in the same way that
 constant values of their [=nullable types/inner type=]
 would be represented, or with the <emu-t>null</emu-t> token.
@@ -6489,7 +6492,7 @@ The following extended attributes are <dfn for="extended attributes">applicable 
     an IDL type |type| are determined as follows:
 
     1.  Let |extended attributes| be a new empty [=ordered set|set=].
-    1.  If |type| appears as part of a
+    1.  If |type| is the <emu-nt><a href="#prod-Type">Type</a></emu-nt> directly within a
         <emu-nt><a href="#prod-TypeWithExtendedAttributes">TypeWithExtendedAttributes</a></emu-nt>
         production, [=set/append=] each of the [=extended attributes=] present in the production's
         <emu-nt><a href="#prod-ExtendedAttributeList">ExtendedAttributeList</a></emu-nt> to
@@ -6522,10 +6525,20 @@ The following extended attributes are <dfn for="extended attributes">applicable 
                 };
             </pre>
         </div>
-    1.  If |type| appears as part of a <emu-nt><a href="#prod-Type">Type</a></emu-nt> production
-        directly within an <emu-nt><a href="#prod-Argument">Argument</a></emu-nt> production,
-        [=set/append=] to |extended attributes| all of the [=extended attributes=] present in the
-        production's
+    1.  If |type| is the [=nullable types/inner type=] of a [=nullable type=] |N|, [=set/append=]
+        each of the [=extended attributes associated with=] |N| to |extended attributes|.
+
+        <div class="example" id="example-extended-attribute-association-nullable">
+            <pre class="idl">
+                [Exposed=Window]
+                interface I {
+                    undefined f([Clamp] long? arg);
+                };
+            </pre>
+        </div>
+    1.  If |type| is the <emu-nt><a href="#prod-Type">Type</a></emu-nt> directly within an
+        <emu-nt><a href="#prod-Argument">Argument</a></emu-nt> production, [=set/append=] to
+        |extended attributes| all of the [=extended attributes=] present in the production's
         <emu-nt><a href="#prod-ExtendedAttributeList">ExtendedAttributeList</a></emu-nt> that are
         [=applicable to types=].
 
@@ -6541,10 +6554,10 @@ The following extended attributes are <dfn for="extended attributes">applicable 
             [=applicable to types=]; otherwise [<code>XAttr</code>] applies to the argument, and not
             the argument's type.
         </div>
-    1.  If |type| appears as part of a <emu-nt><a href="#prod-Type">Type</a></emu-nt> production
-        directly within a <emu-nt><a href="#prod-DictionaryMember">DictionaryMember</a></emu-nt>
-        production, [=set/append=] to |extended attributes| all of the [=extended attributes=]
-        present in the production's
+    1.  If |type| is the <emu-nt><a href="#prod-Type">Type</a></emu-nt> directly within a
+        <emu-nt><a href="#prod-DictionaryMember">DictionaryMember</a></emu-nt> production,
+        [=set/append=] to |extended attributes| all of the [=extended attributes=] present in the
+        production's
         <emu-nt><a href="#prod-ExtendedAttributeList">ExtendedAttributeList</a></emu-nt> that are
         [=applicable to types=].
 
@@ -9563,23 +9576,25 @@ whose presence affects the JavaScript binding.
 
 <h4 id="AllowResizable" extended-attribute lt="AllowResizable">[AllowResizable]</h4>
 
-If the [{{AllowResizable}}] [=extended attribute=] appears on a [=buffer type=], it creates a new
-IDL type that allows for the respective corresponding JavaScript <l spec=ecmascript>{{ArrayBuffer}}</l>
-or <l spec=ecmascript>{{SharedArrayBuffer}}</l> object to be resizable.
+If the [{{AllowResizable}}] [=extended attribute=] appears on a [=potentially nullable=]
+[=buffer type=], it creates a new IDL type that allows for the respective corresponding JavaScript
+<l spec=ecmascript>{{ArrayBuffer}}</l> or <l spec=ecmascript>{{SharedArrayBuffer}}</l> object to be
+resizable.
 
-If the [{{AllowResizable}}] [=extended attribute=] appears on one of the [=buffer view types=] and
-the [{{AllowShared}}] [=extended attribute=] does not, it creates a new IDL type that allows the
-buffer view type to be backed by a JavaScript <l spec=ecmascript>{{ArrayBuffer}}</l> that is
-resizable, instead of only by a fixed-length <l spec=ecmascript>{{ArrayBuffer}}</l>.
+If the [{{AllowResizable}}] [=extended attribute=] appears on a [=potentially nullable=]
+[=buffer view type=] and the [{{AllowShared}}] [=extended attribute=] does not, it creates a new
+IDL type that allows the buffer view type to be backed by a JavaScript
+<l spec=ecmascript>{{ArrayBuffer}}</l> that is resizable, instead of only by a fixed-length
+<l spec=ecmascript>{{ArrayBuffer}}</l>.
 
 If the [{{AllowResizable}}] [=extended attribute=] and the [{{AllowShared}}] [=extended attribute=]
-both appear on one of the [=buffer view types=], it creates a new IDL type that allows the buffer
-view type to be additionally backed by a JavaScript <l spec=ecmascript>{{SharedArrayBuffer}}</l>
-that is growable.
+both appear on a [=potentially nullable=] [=buffer view type=], it creates a new IDL type that
+allows the buffer view type to be additionally backed by a JavaScript
+<l spec=ecmascript>{{SharedArrayBuffer}}</l> that is growable.
 
 The [{{AllowResizable}}] extended attribute must [=takes no arguments|take no arguments=].
 
-A type that is not a [=buffer source type=] must not be
+A type that is not a [=potentially nullable=] [=buffer source type=] must not be
 [=extended attributes associated with|associated with=] the [{{AllowResizable}}] extended attribute.
 
 See the rules for converting JavaScript values to IDL [=buffer source types=] in
@@ -9590,13 +9605,13 @@ See the <a href="#example-allowresizable-allowshared">example</a> in [[#AllowSha
 
 <h4 id="AllowShared" extended-attribute lt="AllowShared">[AllowShared]</h4>
 
-If the [{{AllowShared}}] [=extended attribute=] appears on one of the [=buffer view types=], it
-creates a new IDL type that allows the object to be backed by an {{SharedArrayBuffer}} instead of
-only by an {{ArrayBuffer}}.
+If the [{{AllowShared}}] [=extended attribute=] appears on a [=potentially nullable=]
+[=buffer view type=], it creates a new IDL type that allows the object to be backed by an
+{{SharedArrayBuffer}} instead of only by an {{ArrayBuffer}}.
 
 The [{{AllowShared}}] extended attribute must [=takes no arguments|take no arguments=].
 
-A type that is not a [=buffer view type=] must not be
+A type that is not a [=potentially nullable=] [=buffer view type=] must not be
 [=extended attributes associated with|associated with=] the [{{AllowShared}}] extended attribute.
 
 See the rules for converting JavaScript values to IDL [=buffer view types=] in
@@ -9644,8 +9659,8 @@ See the rules for converting JavaScript values to IDL [=buffer view types=] in
 
 <h4 id="Clamp" extended-attribute lt="Clamp">[Clamp]</h4>
 
-If the [{{Clamp}}] [=extended attribute=] appears on one of the [=integer types=], it creates a new
-IDL type such that that when a JavaScript Number is converted to the IDL type,
+If the [{{Clamp}}] [=extended attribute=] appears on a [=potentially nullable=] [=integer type=],
+it creates a new IDL type such that when a JavaScript Number is converted to the IDL type,
 out-of-range values will be clamped to the range of valid values, rather than using the operators
 that use a modulo operation (<a abstract-op>ToInt32</a>, <a abstract-op>ToUint32</a>, etc.).
 
@@ -9655,8 +9670,9 @@ extended attribute must
 
 A type annotated with the [{{Clamp}}] extended attribute must not appear in a [=read only=]
 attribute. A type must not be [=extended attributes associated with|associated with=] both the
-[{{Clamp}}] and [{{EnforceRange}}] extended attributes. A type that is not an [=integer type=] must
-not be [=extended attributes associated with|associated with=] the [{{Clamp}}] extended attribute.
+[{{Clamp}}] and [{{EnforceRange}}] extended attributes. A type that is not a
+[=potentially nullable=] [=integer type=] must not be
+[=extended attributes associated with|associated with=] the [{{Clamp}}] extended attribute.
 
 See the rules for converting JavaScript values to the various IDL integer
 types in [[#js-integer-types]]
@@ -9856,10 +9872,11 @@ that [=has default method steps=] defined.
 
 <h4 id="EnforceRange" extended-attribute lt="EnforceRange">[EnforceRange]</h4>
 
-If the [{{EnforceRange}}] [=extended attribute=] appears on one of the [=integer types=], it creates
-a new IDL type such that that when a JavaScript Number is converted to the IDL
-type, out-of-range values will cause an exception to be thrown, rather than being converted to a
-valid value using using the operators that use a modulo operation (<a abstract-op>ToInt32</a>, <a abstract-op>ToUint32</a>, etc.).
+If the [{{EnforceRange}}] [=extended attribute=] appears on a [=potentially nullable=]
+[=integer type=], it creates a new IDL type such that when a JavaScript Number is converted to
+the IDL type, out-of-range values will cause an exception to be thrown, rather than being converted
+to a valid value using the operators that use a modulo operation
+(<a abstract-op>ToInt32</a>, <a abstract-op>ToUint32</a>, etc.).
 The Number will be rounded toward zero before being checked against its range.
 
 The [{{EnforceRange}}]
@@ -9868,9 +9885,9 @@ extended attribute must
 
 A type annotated with the [{{EnforceRange}}] extended attribute must not appear in a
 [=read only=] attribute. A type must not be [=extended attributes associated with|associated with=]
-both the [{{Clamp}}] and [{{EnforceRange}}] extended attributes. A type that is not an
-[=integer type=] must not be [=extended attributes associated with|associated with=] the
-[{{EnforceRange}}] extended attribute.
+both the [{{Clamp}}] and [{{EnforceRange}}] extended attributes. A type that is not a
+[=potentially nullable=] [=integer type=] must not be
+[=extended attributes associated with|associated with=] the [{{EnforceRange}}] extended attribute.
 
 See the rules for converting JavaScript values to the various IDL integer
 types in [[#js-type-mapping]]
@@ -11087,7 +11104,7 @@ for the specific requirements that the use of
 <h4 id="LegacyNullToEmptyString" extended-attribute lt="LegacyNullToEmptyString" oldids="TreatNullAs">[LegacyNullToEmptyString]</h4>
 
 If the [{{LegacyNullToEmptyString}}] [=extended attribute=] appears on the {{DOMString}} or {{USVString}} type,
-it creates a new IDL type such that that when a JavaScript <emu-val>null</emu-val> is converted to the IDL type,
+it creates a new IDL type such that when a JavaScript <emu-val>null</emu-val> is converted to the IDL type,
 it will be handled differently from its default handling. Instead of being stringified to
 "<code>null</code>", which is the default, it will be converted to the empty string.
 
@@ -11095,7 +11112,8 @@ The [{{LegacyNullToEmptyString}}] extended attribute must not be
 [=extended attribute associated with|associated with=] a type that is not {{DOMString}} or {{USVString}}.
 
 Note: This means that even <code class="idl">DOMString?</code> must not use [{{LegacyNullToEmptyString}}], since
-<emu-val>null</emu-val> is a valid value of that type.
+<emu-val>null</emu-val> is a valid value of that type. Unlike other [=extended attributes=] that
+are [=applicable to types=], [{{LegacyNullToEmptyString}}] may not be used on a [=nullable type=].
 
 See [[#js-DOMString]] for the specific requirements that the use of [{{LegacyNullToEmptyString}}] entails.
 
