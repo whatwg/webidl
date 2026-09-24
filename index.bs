@@ -10053,13 +10053,14 @@ Otherwise, it is the [=host interface=]'s [=exposure set=].
     <dfn id="dfn-exposed" export>exposed</dfn> in a given [=realm=] |realm| if the following steps
     return true:
 
-    1.  If |construct|'s [=exposure set=] is not <code>*</code>, and |realm|.\[[GlobalObject]] does
-        not implement an [=interface=] that is in |construct|'s [=exposure set=], then return false.
-    1.  If |realm|'s [=realm/settings object=] is not a [=secure context=], and |construct| is
+    1.  Let |settings| be |realm|'s [=realm/settings object=].
+    1.  If |construct|'s [=exposure set=] is not <code>*</code>, and the [=set/intersection=] of
+        |settings|'s [=environment settings object/global names=] and |construct|'s
+        [=exposure set=] is [=set/empty=], then return false.
+    1.  If |settings| is not a [=secure context=], and |construct| is
         [=conditionally exposed=] on [{{SecureContext}}], then return false.
-    1.  If |realm|'s [=realm/settings object=]'s
-        [=environment settings object/cross-origin isolated capability=] is false, and |construct|
-        is [=conditionally exposed=] on [{{CrossOriginIsolated}}], then return false.
+    1.  If |settings|'s [=environment settings object/cross-origin isolated capability=] is false,
+        and |construct| is [=conditionally exposed=] on [{{CrossOriginIsolated}}], then return false.
     1.  Return true.
 </div>
 
@@ -10097,9 +10098,9 @@ Otherwise, it is the [=host interface=]'s [=exposure set=].
     1.  Otherwise, return false.
 </div>
 
-Note: Since it is not possible for the [=relevant settings object=]
-for a JavaScript global object to change whether it is a
-[=secure context=] or [=environment settings object/cross-origin isolated capability=] over time, an
+Note: Since an [=environment settings object=]'s
+[=environment settings object/global names=], its [=secure context=] status, and its
+[=environment settings object/cross-origin isolated capability=] do not change over its lifetime, an
 implementation's decision to create properties for an interface or interface member can be made
 once, at the time the [=initial objects=] are created.
 
