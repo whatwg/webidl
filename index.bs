@@ -9332,12 +9332,6 @@ a reference to the same object that the IDL value represents.
         set |bytes|[|i| &minus; |offset|] to [$GetValueFromBuffer$](|jsArrayBuffer|, |i|, Uint8,
         true, Unordered).
     1.  Return |bytes|.
-
-    <p class="note" id="note-get-buffer-source-copy-exceptions">This will throw an exception if
-    |bufferSource| is a {{DataView}} that is [=ArrayBufferView/out of bounds=] without being
-    [=BufferSource/detached=], since reading its [=BufferSource/byte length=]
-    <a href="#note-BufferSource-byte-length-exceptions">throws</a>. A [=BufferSource/detached=]
-    |bufferSource| returns the empty [=byte sequence=] in the first step instead.
 </div>
 
 <div algorithm>
@@ -9375,8 +9369,7 @@ a reference to the same object that the IDL value represents.
         |bufferSource| to a JavaScript value.
     1.  If |jsBufferSource| has a \[[DataView]] [=/internal slot=]:
         1.  Let |viewRecord| be [$MakeDataViewWithBufferWitnessRecord$](|jsBufferSource|, Seq-Cst).
-        1.  If [$IsViewOutOfBounds$](|viewRecord|) is true, then [=JavaScript/throw=] a
-            <l spec=ecmascript>{{TypeError}}</l>.
+        1.  If [$IsViewOutOfBounds$](|viewRecord|) is true, then return 0.
         1.  Return [$GetViewByteLength$](|viewRecord|).
     1.  Otherwise, if |jsBufferSource| has a \[[ViewedArrayBuffer]] [=/internal slot=]:
         1.  Let |taRecord| be [$MakeTypedArrayWithBufferWitnessRecord$](|jsBufferSource|, Seq-Cst).
@@ -9393,13 +9386,10 @@ a reference to the same object that the IDL value represents.
     (for a {{DataView}}), or
     {{ArrayBuffer/byteLength|ArrayBuffer.prototype.byteLength}} and
     {{SharedArrayBuffer/byteLength|SharedArrayBuffer.prototype.byteLength}}
-    (for a [=buffer type=] instance).
-
-    <p class="note" id="note-BufferSource-byte-length-exceptions">This will throw an exception if
-    |bufferSource| is a {{DataView}} that is [=ArrayBufferView/out of bounds=], which includes the
-    case where it is [=BufferSource/detached=]. Every other [=buffer source type=] instance
-    returns 0 in those cases. This mirrors JavaScript, where only
-    {{DataView/byteLength|DataView.prototype.byteLength}} throws.
+    (for a [=buffer type=] instance). For a {{DataView}} that is
+    [=ArrayBufferView/out of bounds=], this assumes the change in
+    <a href="https://github.com/tc39/ecma262/pull/3972">tc39/ecma262#3972</a>, which makes
+    {{DataView/byteLength|DataView.prototype.byteLength}} return 0 instead of throwing.
 </div>
 
 <div algorithm>
