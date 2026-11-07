@@ -8250,6 +8250,8 @@ JavaScript Array values.
         1.  Initialize |S|<sub>|i|</sub> to the result of
             [=converted to an IDL value|converting=]
             |next| to an IDL value of type |T|.
+            If <a lt="an exception was thrown">an exception |E| was thrown</a>, then return [=?=]
+            <a abstract-op>IteratorClose</a>(|iteratorRecord|, <a abstract-op>ThrowCompletion</a>(|E|)).
         1.  Set |i| to |i| + 1.
 </div>
 
@@ -8411,6 +8413,12 @@ an [=async iterator=]. The [=async iterator=] can be asynchronously iterated ove
             1.  Let |V| be [=?=] <a abstract-op>IteratorValue</a>(|iterResult|).
             1.  Let |value| be the result of [=converted to an IDL value|converting=] |V| to an IDL
                 value of type |iterator|'s [=JS async iterator/type parameter=].
+                If <a lt="an exception was thrown">an exception |E| was thrown</a>, then:
+                1.  Let |closePromise| be the result of
+                    <a lt="close an async iterator">closing</a> |iterator|.
+                1.  Return the result of [=promise/reacting=] to |closePromise|:
+                    -   If |closePromise| was fulfilled, return [=a promise rejected with=] |E|.
+                    -   If |closePromise| was rejected, return [=a promise rejected with=] |E|.
             1.  Return |value|.
 
 </div>
@@ -8419,7 +8427,7 @@ an [=async iterator=]. The [=async iterator=] can be asynchronously iterated ove
 
     To <dfn id="async-iterator-close" export lt="close an async iterator">close</dfn> an
     <code><a lt="async iterator">async iterator&lt;<var ignore>T</var>&gt;</a></code> |iterator|,
-    with an ECMAScript value |reason|:
+    optionally given an ECMAScript value |reason|:
 
     1.  Let |iteratorRecord| be |iterator|'s [=JS async iterator/underlying record=].
     1.  Let |iteratorObj| be |iteratorRecord|.\[[Iterator]].
@@ -8428,7 +8436,8 @@ an [=async iterator=]. The [=async iterator=] can be asynchronously iterated ove
         |returnMethod|.\[[Value]].
     1.  If |returnMethod| is <emu-val>undefined</emu-val>, return [=a promise resolved with=]
         {{undefined}}.
-    1.  Let |returnResult| be <a abstract-op>Call</a>(|returnMethod|.\[[Value]], |iteratorObj|, « |reason| »).
+    1.  Let |args| be « |reason| » if |reason| was given; otherwise « ».
+    1.  Let |returnResult| be <a abstract-op>Call</a>(|returnMethod|.\[[Value]], |iteratorObj|, |args|).
     1.  If |returnResult| is an [=abrupt completion=], return [=a promise rejected with=]
         |returnResult|.\[[Value]].
     1.  Let |returnPromise| be [=a promise resolved with=] |returnResult|.\[[Value]].
@@ -8470,7 +8479,7 @@ an [=async iterator=]. The [=async iterator=] can be asynchronously iterated ove
                 1.  Set |n| to |n| + 1.
                 1.  If |n| is |maxN|, then:
                     1.  Let |finish| be the result of <a lt="close an async iterator">closing</a>
-                        |iterator| with reason {{undefined}}.
+                        |iterator|.
                     1.  [=React=] to |finish|:
                         -   If |finish| was fulfilled, [=resolve=] |promise| with |result|.
                         -   If |finish| was rejected with reason |r|, [=reject=] |promise| with |r|.
