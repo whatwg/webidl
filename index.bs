@@ -91,6 +91,10 @@ urlPrefix: https://tc39.es/ecma262/; spec: ecmascript
         url: sec-object-type
             text: is an Object
             text: is not an Object
+urlPrefix: https://tc39.es/proposal-thenable-curtailment/; spec: PROPOSAL-THENABLE-CURTAILMENT
+    type: abstract-op
+        text: SafePromiseResolve; url: sec-safe-resolve-promise
+        text: HostObjectHasImpureLookupInternalMethods; url: sec-hosthasinternalmethodswhichcanrunusercode
 </pre>
 
 <pre class=biblio>
@@ -99,6 +103,11 @@ urlPrefix: https://tc39.es/ecma262/; spec: ecmascript
         "publisher": "Ecma",
         "href": "https://tc39.es/proposal-float16array/",
         "title": "Proposal to add float16 TypedArrays to JavaScript"
+    },
+    "PROPOSAL-THENABLE-CURTAILMENT": {
+        "publisher": "Ecma",
+        "href": "https://tc39.es/proposal-thenable-curtailment/",
+        "title": "Curtailing the power of \"Thenables\""
     }
 }
 </pre>
@@ -8594,8 +8603,7 @@ IDL [=promise type=] values are represented by JavaScript [=PromiseCapability=] 
     <code><a interface>Promise</a>&lt;<var ignore>T</var>></code> value as follows:
 
     1.  Let |promiseCapability| be [=?=] [$NewPromiseCapability$]({{%Promise%}}).
-    1.  Perform [=?=] [$Call$](|promiseCapability|.\[[Resolve]], <emu-val>undefined</emu-val>,
-        « |V| »).
+    1.  Perform [=?=] [$SafePromiseResolve$](|promiseCapability|, |V|).
     1.  Return |promiseCapability|.
 </div>
 
@@ -8647,8 +8655,7 @@ IDL [=promise type=] values are represented by JavaScript [=PromiseCapability=] 
         JavaScript value.
     1.  Let |constructor| be |realm|.\[[Intrinsics]].\[[{{%Promise%}}]].
     1.  Let |promiseCapability| be [=?=] [$NewPromiseCapability$](|constructor|).
-    1.  Perform [=!=] [$Call$](|promiseCapability|.\[[Resolve]], <emu-val>undefined</emu-val>,
-        « |value| »).
+    1.  Perform [=!=] [$SafePromiseResolve$](|promiseCapability|, |value|).
     1.  Return |promiseCapability|.
 </div>
 
@@ -8673,7 +8680,7 @@ IDL [=promise type=] values are represented by JavaScript [=PromiseCapability=] 
     1.  If |x| is not given, then let it be the {{undefined}} value.
     1.  Let |value| be the result of [=converted to a JavaScript value|converting=] |x| to a
         JavaScript value.
-    1.  Perform [=!=] [$Call$](|p|.\[[Resolve]], <emu-val>undefined</emu-val>, « |value| »).
+    1.  Perform [=!=] [$SafePromiseResolve$](|p|, |value|).
 
     If |T| is {{undefined}}, then the |x| argument is optional, allowing a simpler "[=resolve=] p" usage.
 </div>
@@ -14049,6 +14056,8 @@ Additionally, [=legacy platform objects=] have internal methods as defined in:
 * [[#legacy-platform-object-preventextensions]], and
 * [[#legacy-platform-object-ownpropertykeys]].
 
+<a abstract-op>HostObjectHasImpureLookupInternalMethods</a>(|O|) must return
+<emu-val>true</emu-val> for every [=legacy platform object=] |O|.
 
 <h4 id="legacy-platform-object-getownproperty" dfn oldids="getownproperty" lt=GetOwnProperty for="legacy platform object">\[[GetOwnProperty]]</h4>
 
